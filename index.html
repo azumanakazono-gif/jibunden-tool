@@ -183,10 +183,9 @@ canvas#mini-chart { height: 150px !important; }
 
     <div class="section-card">
       <div class="section-title">⚡ 電気使用状況</div>
-      <div class="grid3" style="margin-bottom:14px">
+      <div class="grid2" style="margin-bottom:14px">
         <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="5000" max="80000" step="1000" oninput="calc()"></div>
         <div class="field"><label>現在の単価（円/kWh）</label><input type="number" id="up" value="30" min="20" max="50" step="1" oninput="calc()"></div>
-        <div class="field"><label>年間発電量（kWh）</label><input type="number" id="ag" value="7700" min="2000" max="20000" step="100" oninput="calc()"></div>
       </div>
       <div class="field" style="max-width:320px;margin-bottom:14px">
         <label>電気代の年間上昇率（%）<span style="font-size:10px;color:var(--mg);margin-left:4px">不明な場合は0のまま</span></label>
@@ -215,7 +214,10 @@ canvas#mini-chart { height: 150px !important; }
         <div class="field"><label>蓄電池容量（kWh）</label><input type="number" id="bk" value="7" min="3" max="20" step="0.5" oninput="calc()"></div>
         <div class="field"><label>1kWあたり費用（万円）</label><input type="number" id="ck" value="40" min="20" max="70" step="1" oninput="calc()"></div>
       </div>
-      <div class="field" style="max-width:240px"><label>保証年数（年）</label><input type="number" id="wy" value="20" min="10" max="25" step="5" oninput="calc()"></div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field"><label>年間発電量（kWh）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光パネルの年間発電量</span></label><input type="number" id="ag" value="7700" min="2000" max="20000" step="100" oninput="calc()"></div>
+        <div class="field"><label>保証年数（年）</label><input type="number" id="wy" value="20" min="10" max="25" step="5" oninput="calc()"></div>
+      </div>
     </div>
 
     <div class="section-card">
