@@ -188,6 +188,13 @@ canvas#mini-chart { height: 150px !important; }
         <div class="field"><label>現在の単価（円/kWh）</label><input type="number" id="up" value="30" min="20" max="50" step="1" oninput="calc()"></div>
         <div class="field"><label>年間発電量（kWh）</label><input type="number" id="ag" value="7700" min="2000" max="20000" step="100" oninput="calc()"></div>
       </div>
+      <div class="field" style="max-width:320px;margin-bottom:14px">
+        <label>電気代の年間上昇率（%）<span style="font-size:10px;color:var(--mg);margin-left:4px">不明な場合は0のまま</span></label>
+        <input type="number" id="er" value="0" min="0" max="10" step="0.1" oninput="calc()">
+        <div id="er-note" style="display:none;font-size:11px;color:var(--or);margin-top:4px">
+          ⚠️ 電気代の上昇予測はあくまで試算です。実際の上昇率は料金改定により異なります。
+        </div>
+      </div>
       <div class="grid2" style="margin-top:4px">
         <div class="field">
           <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
@@ -219,19 +226,39 @@ canvas#mini-chart { height: 150px !important; }
       </div>
       <div class="loan-fields" id="loan-fields">
         <!-- 計算方式切り替え -->
-        <div style="display:flex;gap:8px;margin-bottom:12px">
-          <button id="btn-addon" onclick="setLoanMethod('addon')"
-            style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--mg);background:var(--mg);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button id="btn-addon"   onclick="setLoanMethod('addon')"
+            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--mg);background:var(--mg);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
             アドオン方式
           </button>
           <button id="btn-zansai" onclick="setLoanMethod('zansai')"
-            style="flex:1;padding:8px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">
-            残債方式（元利均等）
+            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
+            残債方式<br>元利均等
+          </button>
+          <button id="btn-gankin" onclick="setLoanMethod('gankin')"
+            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
+            残債方式<br>元金均等
           </button>
         </div>
         <!-- 方式の説明 -->
         <div id="loan-method-desc" style="font-size:11px;color:var(--muted);margin-bottom:10px;padding:6px 10px;background:#f9f9f9;border-radius:6px;border:1px solid var(--border)">
           アドオン方式：元本に対して金利を一括計算。月々返済額が一定で計算がシンプル。
+        </div>
+        <!-- 3方式比較テーブル -->
+        <div id="loan-compare-table" style="margin-bottom:12px;display:none">
+          <div style="font-size:11px;font-weight:700;color:var(--dg);margin-bottom:6px">📊 3方式 比較</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <thead>
+              <tr style="background:var(--dg);color:#fff">
+                <th style="padding:6px 8px;text-align:left;border-radius:6px 0 0 0">方式</th>
+                <th style="padding:6px 8px;text-align:right">月々返済（初回）</th>
+                <th style="padding:6px 8px;text-align:right">総返済額</th>
+                <th style="padding:6px 8px;text-align:right;border-radius:0 6px 0 0">うち利息</th>
+              </tr>
+            </thead>
+            <tbody id="compare-tbody"></tbody>
+          </table>
+          <div style="font-size:10px;color:var(--muted);margin-top:4px">※元金均等は初回月々返済額を表示。返済が進むにつれて減少します。</div>
         </div>
         <div class="grid3" style="margin-bottom:8px">
           <div class="field">
@@ -247,6 +274,7 @@ canvas#mini-chart { height: 150px !important; }
             <input type="number" id="lc" value="180" min="12" max="240" step="12" oninput="calcLoan()">
           </div>
         </div>
+
         <!-- 計算結果 -->
         <div id="loan-calc-result" style="background:var(--pg);border-radius:8px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--border);font-size:13px">
           <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
@@ -276,9 +304,10 @@ canvas#mini-chart { height: 150px !important; }
             <div class="ct">20年間 累計支出イメージ</div>
             <canvas id="mini-chart"></canvas>
             <div class="legend">
-              <span><b style="background:var(--or)"></b>電力会社（現状）</span>
+              <span><b style="background:var(--or)"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
               <span><b style="background:var(--mg)"></b>じぶん電気（ローン）</span>
             </div>
+            <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
           </div>
         </div>
       </div>
@@ -289,7 +318,7 @@ canvas#mini-chart { height: 150px !important; }
       <div class="preview-grid">
         <div class="prev-card"><div class="p-label">初期費用</div><div class="p-val" id="rc">-</div></div>
         <div class="prev-card"><div class="p-label">実質発電単価</div><div class="p-val" id="rk">-</div></div>
-        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div></div>
+        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:2px" id="rb-note"></div></div>
         <div class="prev-card"><div class="p-label">年間削減効果</div><div class="p-val" id="rs">-</div></div>
       </div>
       <div class="bar-compare">
@@ -303,7 +332,7 @@ canvas#mini-chart { height: 150px !important; }
         </div>
       </div>
       <div class="diff-banner">
-        <span class="d-label">20年間のコスト差</span>
+        <span class="d-label">20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
       </div>
     </div>
@@ -357,69 +386,108 @@ function showSection(s) {
 // ══════════════════════════════════════════
 // スライダー同期
 // ══════════════════════════════════════════
-let loanMethod = 'addon'; // 'addon' or 'zansai'
+let loanMethod = 'addon'; // 'addon' | 'zansai' | 'gankin'
+
+// 各方式の計算ロジック（共通）
+function calcLoanValues(borrowAmt, annualRate, count) {
+  const years = count / 12;
+  const r     = annualRate / 12;
+
+  // アドオン
+  const addonInterest = borrowAmt * annualRate * years;
+  const addonTotal    = borrowAmt + addonInterest;
+  const addonMonthly  = Math.round(addonTotal / count);
+
+  // 残債元利均等
+  let zansaiMonthly;
+  if (r === 0) { zansaiMonthly = Math.round(borrowAmt / count); }
+  else { const pow = Math.pow(1+r, count); zansaiMonthly = Math.round(borrowAmt * r * pow / (pow - 1)); }
+  const zansaiTotal    = zansaiMonthly * count;
+  const zansaiInterest = zansaiTotal - borrowAmt;
+
+  // 残債元金均等（初回月々 = 元金均等分 + 初回利息）
+  const gankinBase       = Math.round(borrowAmt / count);       // 毎月の元金返済
+  const gankinFirstInt   = Math.round(borrowAmt * r);           // 初回利息
+  const gankinFirstTotal = gankinBase + gankinFirstInt;         // 初回月々返済
+  // 総返済額：元金 + 利息合計（1回目から最終回まで利息を合計）
+  let gankinTotalInterest = 0;
+  for(let i = 0; i < count; i++) {
+    const remaining = borrowAmt - gankinBase * i;
+    gankinTotalInterest += Math.round(remaining * r);
+  }
+  const gankinTotal = borrowAmt + gankinTotalInterest;
+
+  return {
+    addon:  { monthly: addonMonthly,       total: addonTotal,    interest: addonInterest },
+    zansai: { monthly: zansaiMonthly,      total: zansaiTotal,   interest: zansaiInterest },
+    gankin: { monthly: gankinFirstTotal,   total: gankinTotal,   interest: gankinTotalInterest },
+    years,
+  };
+}
 
 function setLoanMethod(method) {
   loanMethod = method;
-  // ボタンの見た目切り替え
-  const btnAddon  = document.getElementById('btn-addon');
-  const btnZansai = document.getElementById('btn-zansai');
-  if (method === 'addon') {
-    btnAddon.style.background  = 'var(--mg)'; btnAddon.style.color  = '#fff'; btnAddon.style.borderColor  = 'var(--mg)';
-    btnZansai.style.background = '#fff';      btnZansai.style.color = 'var(--muted)'; btnZansai.style.borderColor = 'var(--border)';
-    document.getElementById('loan-method-desc').textContent =
-      'アドオン方式：元本に対して金利を一括計算。月々返済額が一定で計算がシンプル。';
-    document.getElementById('loan-warning').textContent =
-      '⚠️ アドオン方式による概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。';
-  } else {
-    btnZansai.style.background = 'var(--mg)'; btnZansai.style.color = '#fff'; btnZansai.style.borderColor = 'var(--mg)';
-    btnAddon.style.background  = '#fff';      btnAddon.style.color  = 'var(--muted)'; btnAddon.style.borderColor = 'var(--border)';
-    document.getElementById('loan-method-desc').textContent =
-      '残債方式（元利均等）：残高に対して毎月利息を計算。一般的な銀行ローン・住宅ローンと同じ方式。';
-    document.getElementById('loan-warning').textContent =
-      '⚠️ 元利均等返済による概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。';
-  }
+  const methods = ['addon','zansai','gankin'];
+  const btns    = ['btn-addon','btn-zansai','btn-gankin'];
+  btns.forEach((id, i) => {
+    const el = document.getElementById(id);
+    const active = methods[i] === method;
+    el.style.background   = active ? 'var(--mg)' : '#fff';
+    el.style.color        = active ? '#fff'       : 'var(--muted)';
+    el.style.borderColor  = active ? 'var(--mg)'  : 'var(--border)';
+  });
+  const descs = {
+    addon:  'アドオン方式：元本全体に金利を一括計算。月々返済額が一定。消費者ローンに多い。',
+    zansai: '残債方式（元利均等）：毎月の返済額が一定。残高に応じた利息を計算。銀行・住宅ローンに多い。',
+    gankin: '残債方式（元金均等）：毎月の元金返済額が一定。返済当初は高く、後半は減少。総利息が最も少ない。',
+  };
+  const warnings = {
+    addon:  '⚠️ アドオン方式による概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。',
+    zansai: '⚠️ 元利均等返済による概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。',
+    gankin: '⚠️ 元金均等返済（初回月々）による概算です。返済額は毎月減少します。実際の返済額は金融機関へご確認ください。',
+  };
+  document.getElementById('loan-method-desc').textContent = descs[method];
+  document.getElementById('loan-warning').textContent     = warnings[method];
   calcLoan();
 }
 
 function calcLoan() {
-  const borrowAmt  = v('la2') * 10000;   // 借入金額（円）
-  const annualRate = v('lr') / 100;       // 年利
-  const count      = v('lc');             // 支払回数
-  const years      = count / 12;          // 返済期間（年）
-  let monthly, totalRepay, totalInterest;
+  const borrowAmt  = v('la2') * 10000;
+  const annualRate = v('lr') / 100;
+  const count      = v('lc');
+  const res = calcLoanValues(borrowAmt, annualRate, count);
+  const cur = res[loanMethod];
 
-  if (loanMethod === 'addon') {
-    // ── アドオン方式 ──
-    // 月々返済額 = (元本 + 元本×年利×返済年数) ÷ 支払回数
-    totalInterest = borrowAmt * annualRate * years;
-    totalRepay    = borrowAmt + totalInterest;
-    monthly       = Math.round(totalRepay / count);
+  // 隠しフィールドに選択中方式の値を反映
+  document.getElementById('lp').value = cur.monthly;
+  document.getElementById('ly').value = res.years;
 
-  } else {
-    // ── 残債方式（元利均等返済） ──
-    // 月利 r = 年利 / 12
-    // 月々返済額 = 元本 × r × (1+r)^n / ((1+r)^n - 1)
-    const r = annualRate / 12;
-    if (r === 0) {
-      monthly = Math.round(borrowAmt / count);
-    } else {
-      const pow = Math.pow(1 + r, count);
-      monthly   = Math.round(borrowAmt * r * pow / (pow - 1));
-    }
-    totalRepay    = monthly * count;
-    totalInterest = totalRepay - borrowAmt;
-  }
+  // 選択中方式の結果表示
+  const suffix = loanMethod === 'gankin' ? '（初回）' : '';
+  document.getElementById('lp-display').textContent = '¥' + fmt(cur.monthly) + ' / 月' + suffix;
+  document.getElementById('ly-display').textContent = res.years + '年（' + count + '回）';
+  document.getElementById('lt-display').textContent = '約' + Math.round(cur.total   / 10000) + '万円';
+  document.getElementById('li-display').textContent = '約' + Math.round(cur.interest / 10000) + '万円';
 
-  // 隠しフィールドに反映（他の計算で使用）
-  document.getElementById('lp').value = monthly;
-  document.getElementById('ly').value = years;
-
-  // 表示更新
-  document.getElementById('lp-display').textContent = '¥' + fmt(monthly) + ' / 月';
-  document.getElementById('ly-display').textContent = years + '年（' + count + '回）';
-  document.getElementById('lt-display').textContent = '約' + Math.round(totalRepay / 10000) + '万円';
-  document.getElementById('li-display').textContent = '約' + Math.round(totalInterest / 10000) + '万円';
+  // 3方式比較テーブル更新
+  const tbody = document.getElementById('compare-tbody');
+  const rows = [
+    { label:'アドオン',     key:'addon',  d:res.addon  },
+    { label:'残債・元利均等', key:'zansai', d:res.zansai },
+    { label:'残債・元金均等', key:'gankin', d:res.gankin },
+  ];
+  tbody.innerHTML = rows.map((r,i) => {
+    const isActive = r.key === loanMethod;
+    const bg = isActive ? 'background:var(--pg);font-weight:700' : (i%2===0?'background:#fff':'background:#fafafa');
+    const suffix = r.key==='gankin' ? '<span style="font-size:9px;color:var(--muted)">初回</span>' : '';
+    return `<tr style="${bg}">
+      <td style="padding:6px 8px;border-bottom:1px solid var(--border)">${isActive?'▶ ':''}<b>${r.label}</b></td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:right">¥${fmt(r.d.monthly)} ${suffix}</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:right">約${Math.round(r.d.total/10000)}万円</td>
+      <td style="padding:6px 8px;border-bottom:1px solid var(--border);text-align:right;color:var(--or)">約${Math.round(r.d.interest/10000)}万円</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('loan-compare-table').style.display = '';
 
   calc();
 }
@@ -447,52 +515,76 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
 let miniChart = null;
 
 function calcMetrics(c) {
-  const totalCost = c.solarCapacityKW * c.costPerKW * 10000;
+  const totalCost  = c.solarCapacityKW * c.costPerKW * 10000;
   const costPerKWh = Math.round(totalCost / (c.annualGenerationKWh * c.warrantyYears));
   const annualBill = c.monthlyElectricBill * 12;
+  const er         = (c.escalationRate || 0) / 100; // 年間上昇率
+
   // 精密計算：昼間直接使用量＋蓄電池放電量
   const selfKWh = (c.directConsumptionKWh || 0) + (c.batteryConsumptionKWh || 0);
-  // 年間残り購入量（年間消費量 - 自家消費量）
   const annualConsumptionKWh = c.annualConsumptionKWh || (c.monthlyElectricBill / c.currentUnitPrice * 12);
-  const remainKWh = Math.max(0, annualConsumptionKWh - selfKWh);
-  const remainBill = Math.round(remainKWh * c.currentUnitPrice / 12); // 月平均
-  // 削減額 = 現在の電気代 - 残り電気代（月額）
+  const remainKWh  = Math.max(0, annualConsumptionKWh - selfKWh);
+  const remainBill = Math.round(remainKWh * c.currentUnitPrice / 12);
   const monthlySaving = c.monthlyElectricBill - remainBill;
-  const annualSaving = monthlySaving * 12;
   const selfRate = c.annualGenerationKWh > 0 ? Math.round(selfKWh / c.annualGenerationKWh * 100) : 0;
+
+  // 上昇率を考慮した20年間累計電気代
+  let bill20Y_with_rise = 0;
+  for(let i=1; i<=c.warrantyYears; i++) bill20Y_with_rise += annualBill * Math.pow(1+er, i-1);
+  // 上昇率考慮の残り電気代累計（太陽光導入後）
+  let remain20Y_with_rise = 0;
+  for(let i=1; i<=c.warrantyYears; i++) remain20Y_with_rise += remainBill*12 * Math.pow(1+er, i-1);
+  // 削減効果（上昇率考慮）
+  const saving20Y_with_rise = bill20Y_with_rise - remain20Y_with_rise;
+  // コスト差（上昇率考慮）：現状20年電気代 - (初期費用 + じぶん電気20年残り電気代)
+  const costDiff_with_rise = Math.round((bill20Y_with_rise - totalCost - remain20Y_with_rise) / 10000);
+
   return {
     totalCost, costPerKWh, annualBill,
-    bill10Y: annualBill*10, bill20Y: annualBill*c.warrantyYears,
-    selfKWh, annualSaving, saving20Y: annualSaving*c.warrantyYears,
-    remainKWh, remainBill, selfRate,
+    bill10Y: annualBill*10,
+    bill20Y: annualBill*c.warrantyYears,           // 上昇なし（カード表示用）
+    bill20Y_rise: Math.round(bill20Y_with_rise),   // 上昇考慮
+    selfKWh, remainKWh, remainBill, selfRate,
+    annualSaving: monthlySaving*12,
+    saving20Y: monthlySaving*12*c.warrantyYears,   // 上昇なし
+    saving20Y_rise: Math.round(saving20Y_with_rise), // 上昇考慮
+    costDiff_with_rise,
     totalCostMan: Math.round(totalCost/10000),
     bill20YMan: Math.round((annualBill*c.warrantyYears)/10000),
-    saving20YMan: Math.round(annualSaving*c.warrantyYears/10000),
+    bill20YMan_rise: Math.round(bill20Y_with_rise/10000),
+    saving20YMan: Math.round(monthlySaving*12*c.warrantyYears/10000),
   };
 }
 
 function calc() {
   const mb=v('mb'),up=v('up'),ag=v('ag'),sk=v('sk'),ck=v('ck'),wy=v('wy');
-  const dc=v('dc'), bc=v('bc');
-  // 年間消費量：月間電気代 ÷ 単価 × 12
+  const dc=v('dc'), bc=v('bc'), er=v('er');
   const annualConsumptionKWh = Math.round(mb / up * 12);
   const c = { monthlyElectricBill:mb, currentUnitPrice:up, annualGenerationKWh:ag,
                solarCapacityKW:sk, costPerKW:ck, warrantyYears:wy,
                directConsumptionKWh:dc, batteryConsumptionKWh:bc,
-               annualConsumptionKWh };
+               annualConsumptionKWh, escalationRate:er };
   const m = calcMetrics(c);
-  const ratio = Math.min(m.totalCostMan/m.bill20YMan,1);
-  // サマリー更新
+  // 上昇率ノート表示切替
+  document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
+  // 上昇率がある場合は20年電気代を上昇後の数値で表示
+  const bill20Show = er > 0 ? m.bill20YMan_rise : m.bill20YMan;
+  const ratio = Math.min(m.totalCostMan/bill20Show, 1);
   updateSelfSummary(dc, bc, ag, mb, up, m.remainKWh, m.remainBill);
 
   document.getElementById('rc').textContent = m.totalCostMan+'万円';
   document.getElementById('rk').textContent = m.costPerKWh+'円/kWh';
-  document.getElementById('rb').textContent = m.bill20YMan+'万円';
+  // 20年電気代：上昇率があれば上昇後の数値を表示
+  document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
   document.getElementById('rs').textContent = fmt(m.annualSaving)+'円';
-  document.getElementById('bbv').textContent = m.bill20YMan+'万円';
+  document.getElementById('bbv').textContent = bill20Show+'万円';
   document.getElementById('biv').textContent = m.totalCostMan+'万円';
   document.getElementById('bi').style.width = (ratio*100)+'%';
-  document.getElementById('rd').textContent = '約'+Math.round((m.bill20Y-m.totalCost)/10000)+'万円のコスト差';
+  // コスト差も上昇率考慮
+  const diffShow = er > 0 ? m.costDiff_with_rise : Math.round((m.bill20Y-m.totalCost)/10000);
+  document.getElementById('rd').textContent = '約'+diffShow+'万円';
+  document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
+  document.getElementById('diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
 
   const lon = document.getElementById('le').checked;
   if (lon) {
@@ -511,14 +603,21 @@ function calc() {
     if(mdiff>=0){dd.textContent='月々 約'+fmt(mdiff)+'円 おトク';dr.className='loan-row pos';}
     else{dd.textContent='月々 約'+fmt(Math.abs(mdiff))+'円 増加（返済後は削減）';dr.className='loan-row neg';}
 
-    // ミニチャート
+    // ミニチャート（電気代上昇率を考慮）
+    const er = v('er') / 100; // 年間上昇率
+    // er-note は電気使用状況セクションで管理
     const labels=[], nowD=[], loanD=[];
     for(let y=0;y<=wy;y++){
       labels.push(y+'年');
-      nowD.push(Math.round(mb*12*y/10000));
+      // 現状：毎年er%ずつ電気代が上昇（複利）
+      let cumNow = 0;
+      for(let i=1;i<=y;i++) cumNow += mb * 12 * Math.pow(1+er, i-1);
+      nowD.push(Math.round(cumNow/10000));
       if(y===0){loanD.push(0);continue;}
       const prev=loanD[y-1];
-      loanD.push(Math.round(prev+(y<=ly?mt:re)*12/10000));
+      // ローン側も残り電気代は上昇率に連動
+      const reYear = re * Math.pow(1+er, y-1);
+      loanD.push(Math.round(prev+(y<=ly?mt+(reYear-re):reYear)*12/10000));
     }
     const ctx=document.getElementById('mini-chart').getContext('2d');
     if(miniChart)miniChart.destroy();
@@ -531,6 +630,13 @@ function calc() {
         scales:{x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
                 y:{ticks:{callback:v=>v+'万',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}
     });
+    // 凡例・注釈更新
+    const erVal = v('er');
+    const legendLabel = erVal > 0 ? `年${erVal}%上昇想定` : '現状維持';
+    document.getElementById('legend-now-label').textContent = legendLabel;
+    document.getElementById('rise-note').textContent = erVal > 0
+      ? `※電気代が毎年${erVal}%上昇した場合の試算。実際の上昇率は異なる場合があります。`
+      : '';
   } else {
     document.getElementById('loan-preview-box').style.display='none';
   }
@@ -543,6 +649,7 @@ function clearForm() {
   document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
   document.getElementById('bk').value=7; document.getElementById('ck').value=40;
   document.getElementById('dc').value=2310; document.getElementById('bc').value=2520;
+  document.getElementById('er').value=0;
   document.getElementById('wy').value=20;
   document.getElementById('la2').value=280;
   document.getElementById('lr').value=3.5;
@@ -580,6 +687,7 @@ function loadCustomer(id) {
   document.getElementById('ck').value = entry.costPerKW||40;
   document.getElementById('dc').value = entry.directConsumptionKWh||2310;
   document.getElementById('bc').value = entry.batteryConsumptionKWh||2520;
+  document.getElementById('er').value = entry.escalationRate||0;
   document.getElementById('wy').value = entry.warrantyYears||20;
   const hasLoan = entry.monthlyLoanPayment > 0;
   document.getElementById('le').checked = hasLoan;
@@ -851,11 +959,21 @@ async function generatePPTX() {
       {
         const sl=pres.addSlide(); sl.background={color:C.offWhite};
         sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-        sl.addText(`20年間の累計支出比較　〜ローン${loanYrs}年払いの場合〜`,{x:0.3,y:0,w:9.4,h:0.9,fontSize:20,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+        const erLabel = cfg.escalationRate > 0 ? `・電気代年${cfg.escalationRate}%上昇想定` : '・電気代現状維持';
+        sl.addText(`20年間の累計支出比較　〜ローン${loanYrs}年払い${erLabel}〜`,{x:0.3,y:0,w:9.4,h:0.9,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
         addBrand(sl,pres);
         const wY=cfg.warrantyYears, aBN=cfg.monthlyElectricBill*12, aDL=mt*12, aDLA=re*12;
+        const er = (cfg.escalationRate||0) / 100; // 電気代年間上昇率
         const cN=[],cL=[];
-        for(let y=0;y<=wY;y++){cN.push(aBN*y);cL.push(y===0?0:cL[y-1]+(y<=loanYrs?aDL:aDLA));}
+        for(let y=0;y<=wY;y++){
+          // 現状：上昇率を考慮した累計
+          let cumNow=0;
+          for(let i=1;i<=y;i++) cumNow += aBN * Math.pow(1+er, i-1);
+          cN.push(cumNow);
+          if(y===0){cL.push(0);continue;}
+          const reYear = re*12 * Math.pow(1+er, y-1);
+          cL.push(cL[y-1]+(y<=loanYrs ? aDL+(reYear-aDLA) : reYear));
+        }
         const maxC=Math.max(cN[wY],cL[wY])*1.05;
         const gx=1.0,gy=1.1,gw=7.3,gh=3.2;
         sl.addShape(pres.ShapeType.line,{x:gx,y:gy,w:0,h:gh,line:{color:C.lightGray,width:1}});
@@ -891,7 +1009,14 @@ async function generatePPTX() {
         const tDiff=Math.round((cN[wY]-cL[wY])/10000),tPos=tDiff>=0;
         const dMsg=tPos?`じぶん電気のほうが 約${fmt(Math.abs(tDiff))}万円 おトク`:`現状のほうが 約${fmt(Math.abs(tDiff))}万円 少ない（ローン返済額が高い場合）`;
         sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.9,w:9.2,h:0.55,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-        sl.addText([{text:"🌿  20年間の累計比較：",options:{color:C.charcoal,fontSize:13}},{text:` ${dMsg}`,options:{bold:true,fontSize:16,color:tPos?C.midGreen:C.orange}}],{x:0.5,y:4.9,w:9.1,h:0.55,fontFace:"Meiryo",valign:"middle"});
+        const riseNote = cfg.escalationRate > 0
+          ? `※電気代が毎年${cfg.escalationRate}%上昇した場合の試算です。`
+          : `※電力会社の電気代は現状維持として試算しています。`;
+        sl.addText([
+          {text:"🌿  20年間の累計比較：",options:{color:C.charcoal,fontSize:13}},
+          {text:` ${dMsg}`,options:{bold:true,fontSize:16,color:tPos?C.midGreen:C.orange}},
+        ],{x:0.5,y:4.88,w:9.1,h:0.4,fontFace:"Meiryo",valign:"middle"});
+        sl.addText(riseNote,{x:0.5,y:5.28,w:9.1,h:0.25,fontSize:9,color:C.gray,fontFace:"Meiryo",valign:"middle"});
       }
     }
 
