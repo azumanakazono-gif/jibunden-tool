@@ -183,9 +183,14 @@ canvas#mini-chart { height: 150px !important; }
 
     <div class="section-card">
       <div class="section-title">⚡ 電気使用状況</div>
-      <div class="grid2" style="margin-bottom:14px">
+      <div class="grid2" style="margin-bottom:8px">
         <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="5000" max="80000" step="1000" oninput="calc()"></div>
         <div class="field"><label>現在の単価（円/kWh）</label><input type="number" id="up" value="30" min="20" max="50" step="1" oninput="calc()"></div>
+      </div>
+      <!-- 年間電気代・年間消費電力量の自動表示 -->
+      <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
+        <span style="color:var(--muted)">年間電気代：<b id="annual-bill-disp" style="color:var(--dg)">-</b></span>
+        <span style="color:var(--muted)">年間消費電力量：<b id="annual-kwh-disp" style="color:var(--dg)">-</b></span>
       </div>
       <div class="field" style="max-width:320px;margin-bottom:14px">
         <label>電気代の年間上昇率（%）<span style="font-size:10px;color:var(--mg);margin-left:4px">不明な場合は0のまま</span></label>
@@ -212,7 +217,10 @@ canvas#mini-chart { height: 150px !important; }
       <div class="grid3" style="margin-bottom:12px">
         <div class="field"><label>太陽光容量（kW）</label><input type="number" id="sk" value="7" min="3" max="20" step="0.5" oninput="calc()"></div>
         <div class="field"><label>蓄電池容量（kWh）</label><input type="number" id="bk" value="7" min="3" max="20" step="0.5" oninput="calc()"></div>
-        <div class="field"><label>1kWあたり費用（万円）</label><input type="number" id="ck" value="40" min="20" max="70" step="1" oninput="calc()"></div>
+        <div class="field">
+          <label>税込総工事費用（万円）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光＋蓄電池 工事込み</span></label>
+          <input type="number" id="ck" value="280" min="50" max="2000" step="10" oninput="calc()">
+        </div>
       </div>
       <div class="grid2" style="margin-bottom:12px">
         <div class="field"><label>年間発電量（kWh）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光パネルの年間発電量</span></label><input type="number" id="ag" value="7700" min="2000" max="20000" step="100" oninput="calc()"></div>
@@ -517,7 +525,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
 let miniChart = null;
 
 function calcMetrics(c) {
-  const totalCost  = c.solarCapacityKW * c.costPerKW * 10000;
+  const totalCost  = c.totalConstructionCost; // 税込総工事費用（円）を直接使用
   const costPerKWh = Math.round(totalCost / (c.annualGenerationKWh * c.warrantyYears));
   const annualBill = c.monthlyElectricBill * 12;
   const er         = (c.escalationRate || 0) / 100; // 年間上昇率
@@ -559,13 +567,17 @@ function calcMetrics(c) {
 }
 
 function calc() {
-  const mb=v('mb'),up=v('up'),ag=v('ag'),sk=v('sk'),ck=v('ck'),wy=v('wy');
+  const mb=v('mb'),up=v('up'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   const dc=v('dc'), bc=v('bc'), er=v('er');
+  const totalConstructionCost = v('ck') * 10000; // 税込総工事費用（万円→円）
   const annualConsumptionKWh = Math.round(mb / up * 12);
   const c = { monthlyElectricBill:mb, currentUnitPrice:up, annualGenerationKWh:ag,
-               solarCapacityKW:sk, costPerKW:ck, warrantyYears:wy,
+               solarCapacityKW:sk, totalConstructionCost, warrantyYears:wy,
                directConsumptionKWh:dc, batteryConsumptionKWh:bc,
                annualConsumptionKWh, escalationRate:er };
+  // 年間電気代・年間消費電力量の表示更新
+  document.getElementById('annual-bill-disp').textContent = '¥' + fmt(mb * 12);
+  document.getElementById('annual-kwh-disp').textContent = fmt(annualConsumptionKWh) + ' kWh';
   const m = calcMetrics(c);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
@@ -686,7 +698,7 @@ function loadCustomer(id) {
   document.getElementById('ag').value = entry.annualGenerationKWh||7700;
   document.getElementById('sk').value = entry.solarCapacityKW||7;
   document.getElementById('bk').value = entry.batteryCapacityKWh||7;
-  document.getElementById('ck').value = entry.costPerKW||40;
+  document.getElementById('ck').value = entry.totalConstructionCost ? Math.round(entry.totalConstructionCost/10000) : 280;
   document.getElementById('dc').value = entry.directConsumptionKWh||2310;
   document.getElementById('bc').value = entry.batteryConsumptionKWh||2520;
   document.getElementById('er').value = entry.escalationRate||0;
@@ -769,6 +781,7 @@ async function generatePPTX() {
     directConsumptionKWh: v('dc'),
     batteryConsumptionKWh: v('bc'),
     annualConsumptionKWh: Math.round(v('mb') / v('up') * 12),
+    totalConstructionCost: v('ck') * 10000, // 税込総工事費用（円）
     warrantyYears: v('wy'),
     monthlyLoanPayment: document.getElementById('le').checked ? v('lp') : 0,
     loanYears: parseFloat(document.getElementById('ly').value) || 15,
@@ -867,7 +880,7 @@ async function generatePPTX() {
         sl.addText(card.desc,{x,y:2.9,w:2.8,h:0.65,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
       });
       sl.addShape(pres.ShapeType.rect,{x:0.4,y:3.8,w:9.2,h:1.55,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-      sl.addText([{text:"💰 じぶん電気の初期費用：",options:{bold:true,breakLine:true,color:C.darkGreen,fontSize:14}},{text:`${cfg.solarCapacityKW}kW × ${cfg.costPerKW}万円/kW = `,options:{color:C.charcoal}},{text:`約${m.totalCostMan}万円`,options:{bold:true,fontSize:22,color:C.darkGreen}},{text:`　（1kWhあたりの発電コスト：約${m.costPerKWh}円）`,options:{color:C.gray,fontSize:13}}],{x:0.8,y:3.85,w:8.5,h:1.4,fontSize:15,fontFace:"Meiryo",valign:"middle"});
+      sl.addText([{text:"💰 税込総工事費用：",options:{bold:true,breakLine:true,color:C.darkGreen,fontSize:14}},{text:`約${m.totalCostMan}万円`,options:{bold:true,fontSize:28,color:C.darkGreen}},{text:`　（1kWhあたりの発電コスト：約${m.costPerKWh}円）`,options:{color:C.gray,fontSize:13}}],{x:0.8,y:3.85,w:8.5,h:1.4,fontSize:15,fontFace:"Meiryo",valign:"middle"});
     }
     // ── Slide 5 ──
     {
