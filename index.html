@@ -1579,7 +1579,9 @@ async function generatePPTX() {
       {
         const sl=pres.addSlide(); sl.background={color:C.offWhite};
         sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-        sl.addText("ローン活用なら、月々の負担はこう変わります",{x:0.3,y:0,w:9.4,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+        sl.addText("ローン活用なら、月々の負担はこう変わります",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+        sl.addShape(pres.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
+        sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         addBrand(sl,pres);
         sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:3.7,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.08}});
         sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:0.55,fill:{color:C.orange},line:{color:C.orange}});
@@ -1614,8 +1616,10 @@ async function generatePPTX() {
         sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.75,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
         const erLabel = cfg.escalationRate > 0 ? `・電気代年${cfg.escalationRate}%上昇想定` : '・電気代現状維持';
         sl.addText(`20年間の累計支出比較　〜ローン${loanYrs}年払い${erLabel}〜`,{
-          x:0.4,y:0,w:9.2,h:0.75,fontSize:16,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0
+          x:0.4,y:0,w:7.5,h:0.75,fontSize:16,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0
         });
+        sl.addShape(pres.ShapeType.rect,{x:8.2,y:0.1,w:1.55,h:0.55,fill:{color:C.midGreen},line:{color:C.midGreen}});
+        sl.addText("実データ",{x:8.2,y:0.1,w:1.55,h:0.55,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
 
         // グラフデータ計算（電気代上昇率考慮）
         const wY=cfg.warrantyYears;
