@@ -1336,6 +1336,8 @@ async function generatePPTX() {
       const sl=pres.addSlide(); sl.background={color:C.offWhite};
       sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText("じぶん電気は、長く・安心して使えます",{x:0.3,y:0,w:9.4,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      sl.addShape(pres.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
+      sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,pres);
       [{icon:"☀️",title:"太陽光パネル",warranty:`${hCfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${hCfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${hCfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}].forEach((p,i)=>{
         const x=0.4+i*3.1;
@@ -1349,26 +1351,6 @@ async function generatePPTX() {
       sl.addShape(pres.ShapeType.rect,{x:0.4,y:3.65,w:9.2,h:1.7,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
       sl.addText([{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}],{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
     }
-    // ── モデルケース版：まとめ ──
-    setProgress("モデルケース版：まとめスライドを作成中...");
-    await new Promise(r=>setTimeout(r,30));
-    {
-      const sl=pres.addSlide(); sl.background={color:C.darkGreen};
-      sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
-      sl.addShape(pres.ShapeType.rect,{x:0,y:5.545,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
-      sl.addShape(pres.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      sl.addText("のご提案　まとめ（モデルケース版）",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-      [{num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${hCfg.warrantyYears}年間のコスト差　約${fmt(hM.bill20YMan - hM.totalCostMan)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
-        const y=1.05+i*1.0;
-        sl.addShape(pres.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
-        sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
-      });
-      sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-    }
-
     setProgress("モデルケース版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
     await pres.writeFile({ fileName: `${safeName(hCfg.customerName)}様_モデルケース版.pptx` });
@@ -1732,6 +1714,29 @@ async function generatePPTX() {
       }
     }
 
+    // ── 実データ版：保証スライド ──
+    setProgress("実データ版：保証スライドを作成中...");
+    await new Promise(r=>setTimeout(r,30));
+    {
+      const sl=pres.addSlide(); sl.background={color:C.offWhite};
+      sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+      sl.addText("じぶん電気は、長く・安心して使えます",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      sl.addShape(pres.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
+      sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      addBrand(sl,pres);
+      [{icon:"☀️",title:"太陽光パネル",warranty:`${cfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${cfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${cfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}].forEach((p,i)=>{
+        const x=0.4+i*3.1;
+        sl.addShape(pres.ShapeType.rect,{x,y:1.0,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
+        sl.addText(p.icon,{x,y:1.05,w:2.8,h:0.7,fontSize:26,align:"center",valign:"middle"});
+        sl.addText(p.title,{x,y:1.75,w:2.8,h:0.4,fontSize:12,bold:true,color:C.darkGreen,align:"center",fontFace:"Meiryo"});
+        sl.addShape(pres.ShapeType.rect,{x:x+0.3,y:2.18,w:2.2,h:0.4,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+        sl.addText(p.warranty,{x:x+0.3,y:2.18,w:2.2,h:0.4,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText(p.desc,{x,y:2.65,w:2.8,h:0.75,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
+      });
+      sl.addShape(pres.ShapeType.rect,{x:0.4,y:3.65,w:9.2,h:1.7,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
+      sl.addText([{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}],{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
+    }
+
     setProgress("実データ版：まとめスライドを作成中...");
     await new Promise(r=>setTimeout(r,30));
     // ── Slide まとめ（実データ版）──
@@ -1741,7 +1746,7 @@ async function generatePPTX() {
       sl.addShape(pres.ShapeType.rect,{x:0,y:5.545,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
       sl.addShape(pres.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
       sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      sl.addText("のご提案　まとめ",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:20,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      sl.addText(`${cfg.customerName}様へのご提案　まとめ`,{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       [{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${cfg.warrantyYears}年間のコスト差　約${fmt(m.bill20YMan - m.totalCostMan)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
         const y=1.05+i*1.0;
         sl.addShape(pres.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
