@@ -163,18 +163,22 @@ canvas#mini-chart { height: 150px !important; }
 
 <!-- ── メイン ── -->
 <main class="main">
-  <!-- 診断用バナー: 見えたら削除 -->
-  <div id="diag-banner" style="background:#ff0;color:#000;font-size:16px;font-weight:900;padding:12px 24px;text-align:center;border:4px solid red;z-index:9999;position:relative">
-    ✅ 最新版ロード確認 (v2026-04-17) — 出力選択:
-    <label style="margin:0 12px;font-size:15px"><input type="checkbox" id="opt-model" checked> 🔬 モデルケース版</label>
-    <label style="margin:0 12px;font-size:15px"><input type="checkbox" id="opt-real" checked> 👤 実データ版</label>
-  </div>
   <div class="main-header">
     <div>
       <h1 id="main-title">お客様情報を入力してください</h1>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
+      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:#fff">
+          <input type="checkbox" id="opt-model" checked style="width:15px;height:15px;accent-color:var(--ac)">
+          🔬 モデルケース版
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:#fff">
+          <input type="checkbox" id="opt-real" checked style="width:15px;height:15px;accent-color:var(--ac)">
+          👤 実データ版
+        </label>
+      </div>
       <button class="gen-btn" id="gen-btn" onclick="generatePPTX()">
         <span>⚡</span> PPTX を生成・DL
       </button>
