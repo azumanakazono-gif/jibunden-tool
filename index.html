@@ -169,16 +169,6 @@ canvas#mini-chart { height: 150px !important; }
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
-      <div style="display:flex;gap:12px;padding:8px 12px;background:var(--pg);border:1px solid var(--border);border-radius:8px;font-size:12px">
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
-          <input type="checkbox" id="opt-model" checked style="accent-color:var(--mg)">
-          モデルケース版
-        </label>
-        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
-          <input type="checkbox" id="opt-real" checked style="accent-color:var(--mg)">
-          実データシミュレーション版
-        </label>
-      </div>
       <button class="gen-btn" id="gen-btn" onclick="generatePPTX()">
         <span>⚡</span> PPTX を生成・DL
       </button>
@@ -187,6 +177,24 @@ canvas#mini-chart { height: 150px !important; }
 
   <!-- ── 入力フォーム ── -->
   <div class="form-body" id="section-form">
+
+  <!-- ── 出力設定 ── -->
+  <div class="section-card" style="margin-bottom:16px;border:2px solid var(--mg)">
+    <div class="section-title" style="margin-bottom:12px">📄 出力対象を選択（どちらか1つ、または両方）</div>
+    <div style="display:flex;gap:24px;flex-wrap:wrap">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--dg)">
+        <input type="checkbox" id="opt-model" checked style="width:18px;height:18px;accent-color:var(--mg)">
+        🔬 モデルケース版
+        <span style="font-size:11px;font-weight:400;color:var(--muted)">（仮説モデル入力値を使用）</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:14px;font-weight:600;color:var(--dg)">
+        <input type="checkbox" id="opt-real" checked style="width:18px;height:18px;accent-color:var(--mg)">
+        👤 実データシミュレーション版
+        <span style="font-size:11px;font-weight:400;color:var(--muted)">（お客様ヒアリング値を使用）</span>
+      </label>
+    </div>
+  </div>
+
 
     <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px">
       <button class="tab-btn active" id="tab-customer" onclick="switchTab('customer')">👤 お客様ヒアリング入力</button>
