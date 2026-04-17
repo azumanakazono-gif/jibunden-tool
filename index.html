@@ -1129,18 +1129,23 @@ async function generatePPTX() {
   const hCfg = buildCfg(hypData, 0, 20);
   const hM = calcMetrics(hCfg);
 
+  const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
+
   document.getElementById('progress').classList.add('show');
   document.getElementById('gen-btn').disabled = true;
 
   try {
     await new Promise(r=>setTimeout(r,50));
+
+    // ── モデルケース版 ──────────────────────────────────────────
+    if (outModel) {
     const pres = new PptxGenJS();
     pres.layout = "LAYOUT_16x9";
-    pres.title = "じぶん電気のご提案";
+    pres.title = "じぶん電気のご提案（モデルケース版）";
 
-    setProgress("スライド1：タイトルを作成中...");
+    setProgress("モデルケース版：スライド1 タイトルを作成中...");
     await new Promise(r=>setTimeout(r,30));
-    // ── Slide 1 ──
+    // ── Slide 1（モデルケース版タイトル）──
     {
       const sl = pres.addSlide();
       sl.background={color:C.darkGreen};
@@ -1154,11 +1159,11 @@ async function generatePPTX() {
       sl.addText("じぶんでつくる時代へ。",{x:0.5,y:1.8,w:7,h:0.9,fontSize:36,bold:true,color:C.white,fontFace:"Meiryo",margin:0});
       sl.addText("太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addShape(pres.ShapeType.rect,{x:0.5,y:3.55,w:4.5,h:0.65,fill:{color:C.lightGreen,transparency:20},line:{color:C.lightGreen}});
-      sl.addText(`${cfg.customerName}　ご提案資料`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:15,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      sl.addText([{text:`家族構成：${cfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${cfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
+      sl.addText(`${hCfg.customerName}　ご提案資料（モデルケース版）`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:13,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText([{text:`家族構成：${hCfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${hCfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
     }
 
-    setProgress("スライド2：電気代の現状を作成中...");
+    setProgress("モデルケース版：スライド2〜を作成中...");
     await new Promise(r=>setTimeout(r,30));
     // ── Slide 2 ──
     {
@@ -1179,7 +1184,7 @@ async function generatePPTX() {
       sl.addText([{text:`約${hM.costPerKWh}円/kWh でつくって使う`,options:{bold:true,breakLine:true}},{text:" ",options:{breakLine:true}},{text:`初期投資：¥${fmt(hM.totalCost)}`,options:{breakLine:true}},{text:`20年間の実質単価：${hM.costPerKWh}円/kWh`,options:{bold:true,color:C.midGreen,breakLine:true}},{text:" ",options:{breakLine:true}},{text:"単価を自分でコントロール",options:{color:C.midGreen,breakLine:true}},{text:`${hCfg.warrantyYears}年間の保証で安心`,options:{color:C.midGreen}}],{x:5.6,y:1.8,w:3.8,h:3.0,fontSize:14,color:C.charcoal,fontFace:"Meiryo"});
     }
 
-    setProgress("スライド3〜7を作成中...");
+    setProgress("モデルケース版：スライド3〜を作成中...");
     await new Promise(r=>setTimeout(r,30));
     // ── Slide 3 ──
     {
@@ -1344,6 +1349,57 @@ async function generatePPTX() {
       sl.addShape(pres.ShapeType.rect,{x:0.4,y:3.65,w:9.2,h:1.7,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
       sl.addText([{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}],{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
     }
+    // ── モデルケース版：まとめ ──
+    setProgress("モデルケース版：まとめスライドを作成中...");
+    await new Promise(r=>setTimeout(r,30));
+    {
+      const sl=pres.addSlide(); sl.background={color:C.darkGreen};
+      sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(pres.ShapeType.rect,{x:0,y:5.545,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(pres.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText("のご提案　まとめ（モデルケース版）",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      [{num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${hCfg.warrantyYears}年間のコスト差　約${fmt(hM.bill20YMan - hM.totalCostMan)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
+        const y=1.05+i*1.0;
+        sl.addShape(pres.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+        sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
+      });
+      sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
+      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+    }
+
+    setProgress("モデルケース版：ファイルを生成中...");
+    await new Promise(r=>setTimeout(r,30));
+    await pres.writeFile({ fileName: `${safeName(hCfg.customerName)}様_モデルケース版.pptx` });
+    } // end if (outModel)
+
+    // ── 実データシミュレーション版 ─────────────────────────────
+    if (outReal) {
+    const pres = new PptxGenJS();
+    pres.layout = "LAYOUT_16x9";
+    pres.title = "じぶん電気のご提案（実データシミュレーション版）";
+
+    // ── Slide 1（実データ版タイトル）──
+    setProgress("実データ版：スライド1 タイトルを作成中...");
+    await new Promise(r=>setTimeout(r,30));
+    {
+      const sl = pres.addSlide();
+      sl.background={color:C.darkGreen};
+      sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(pres.ShapeType.rect,{x:0,y:5.545,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(pres.ShapeType.rect,{x:7.5,y:0.08,w:2.5,h:5.465,fill:{color:C.midGreen},line:{color:C.midGreen}});
+      sl.addShape(pres.ShapeType.rect,{x:8.5,y:0.08,w:1.5,h:5.465,fill:{color:C.lightGreen,transparency:30},line:{color:C.lightGreen,transparency:30}});
+      sl.addShape(pres.ShapeType.rect,{x:0.5,y:0.45,w:2.5,h:0.55,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addText("じぶん電気",{x:0.5,y:0.45,w:2.5,h:0.55,fontSize:19,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText("電気は、",{x:0.5,y:1.2,w:7,h:0.65,fontSize:34,bold:true,color:C.accent,fontFace:"Meiryo",margin:0});
+      sl.addText("じぶんでつくる時代へ。",{x:0.5,y:1.8,w:7,h:0.9,fontSize:36,bold:true,color:C.white,fontFace:"Meiryo",margin:0});
+      sl.addText("太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
+      sl.addShape(pres.ShapeType.rect,{x:0.5,y:3.55,w:4.5,h:0.65,fill:{color:C.lightGreen,transparency:20},line:{color:C.lightGreen}});
+      sl.addText(`${cfg.customerName}　ご提案資料`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:15,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText([{text:`家族構成：${cfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${cfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
+    }
+
     setProgress("実データスライドを作成中...");
     await new Promise(r=>setTimeout(r,30));
     // ── Slide 5.5：お客様ヒアリング結果（実データ区切り）──
@@ -1676,9 +1732,9 @@ async function generatePPTX() {
       }
     }
 
-    setProgress("最終スライドを作成中...");
+    setProgress("実データ版：まとめスライドを作成中...");
     await new Promise(r=>setTimeout(r,30));
-    // ── Slide まとめ ──
+    // ── Slide まとめ（実データ版）──
     {
       const sl=pres.addSlide(); sl.background={color:C.darkGreen};
       sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
@@ -1696,11 +1752,10 @@ async function generatePPTX() {
       sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
     }
 
-    setProgress("ファイルを生成中...");
+    setProgress("実データ版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
-
-    const fileName = `じぶん電気_${cfg.customerName}_${new Date().toLocaleDateString('ja-JP').replace(/\//g,'-')}.pptx`;
-    await pres.writeFile({ fileName });
+    await pres.writeFile({ fileName: `${safeName(cfg.customerName)}様_実データシミュレーション版.pptx` });
+    } // end if (outReal)
 
     // 履歴保存
     saveCustomer(cfg);
@@ -1708,7 +1763,8 @@ async function generatePPTX() {
 
     document.getElementById('progress').classList.remove('show');
     document.getElementById('gen-btn').disabled = false;
-    toast(`${cfg.customerName}の提案書を生成しました！`);
+    const outNames=[outModel&&'モデルケース版',outReal&&'実データシミュレーション版'].filter(Boolean).join('・');
+    toast(`${cfg.customerName}の提案書（${outNames}）を生成しました！`);
 
   } catch(err) {
     console.error(err);
