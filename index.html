@@ -168,9 +168,21 @@ canvas#mini-chart { height: 150px !important; }
       <h1 id="main-title">お客様情報を入力してください</h1>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
-    <button class="gen-btn" id="gen-btn" onclick="generatePPTX()">
-      <span>⚡</span> PPTX を生成・DL
-    </button>
+    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:8px">
+      <div style="display:flex;gap:12px;padding:8px 12px;background:var(--pg);border:1px solid var(--border);border-radius:8px;font-size:12px">
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="opt-model" checked style="accent-color:var(--mg)">
+          モデルケース版
+        </label>
+        <label style="display:flex;align-items:center;gap:5px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" id="opt-real" checked style="accent-color:var(--mg)">
+          実データシミュレーション版
+        </label>
+      </div>
+      <button class="gen-btn" id="gen-btn" onclick="generatePPTX()">
+        <span>⚡</span> PPTX を生成・DL
+      </button>
+    </div>
   </div>
 
   <!-- ── 入力フォーム ── -->
@@ -1108,6 +1120,9 @@ function addBrand(sl, pres) {
 function setProgress(msg) { document.getElementById('progress-msg').textContent = msg; }
 
 async function generatePPTX() {
+  const outModel = document.getElementById('opt-model').checked;
+  const outReal  = document.getElementById('opt-real').checked;
+  if (!outModel && !outReal) { alert('出力するバージョンを1つ以上選択してください。'); return; }
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
   const m = calcMetrics(cfg);
