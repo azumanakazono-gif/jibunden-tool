@@ -1173,7 +1173,7 @@ async function generatePPTX() {
       sl.addText("「じぶん電気」って、なに？",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:1.1,w:4.2,h:3.8,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.08}});
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:1.1,w:4.2,h:0.6,fill:{color:C.orange},line:{color:C.orange}});
       sl.addText("❌ 電力会社の電気",{x:0.4,y:1.1,w:4.2,h:0.6,fontSize:14,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
@@ -1192,7 +1192,7 @@ async function generatePPTX() {
       const sl=presM.addSlide(); sl.background={color:C.offWhite};
       sl.addShape(presM.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText("このまま電気代を払い続けたら",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       const cards=[
@@ -1219,7 +1219,7 @@ async function generatePPTX() {
       sl.addText("「じぶん電気」構成プランのモデルケース",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       const sc=[{icon:"☀️",title:"太陽光パネル",value:`${hCfg.solarCapacityKW} kW`,desc:`年間発電量\n約${fmt(hCfg.annualGenerationKWh)} kWh`,col:C.gold},{icon:"🔋",title:"蓄電池",value:`${hCfg.batteryCapacityKWh} kWh`,desc:"夜間・曇天時も\n安定して供給",col:C.midGreen},{icon:"🔒",title:"安心保証",value:`${hCfg.warrantyYears}年間`,desc:"全機器まとめて\n長期保証付き",col:C.lightGreen}];
       sc.forEach((card,i)=>{
         const x=0.5+i*3.05;
@@ -1240,7 +1240,7 @@ async function generatePPTX() {
       sl.addText(`発電コスト 約${hM.costPerKWh}円/kWh　その根拠`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       // 計算式ボックス
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:1.05,w:9.2,h:1.45,fill:{color:C.white},line:{color:C.lightGreen}});
       sl.addText("💡 実質発電単価の計算式",{x:0.6,y:1.1,w:8.8,h:0.38,fontSize:13,bold:true,color:C.darkGreen,fontFace:"Meiryo"});
@@ -1283,7 +1283,7 @@ async function generatePPTX() {
       sl.addText("じぶん電気、どのくらい使える？",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       const bd=[{name:"年間発電量",val:hCfg.annualGenerationKWh,color:C.gold,label:`${fmt(hCfg.annualGenerationKWh)} kWh`},{name:"自家消費量",val:hM.selfKWh,color:C.lightGreen,label:`${fmt(hM.selfKWh)} kWh`}];
       const barAreaH=2.5,barY=1.1;
       bd.forEach((bar,i)=>{
@@ -1319,7 +1319,7 @@ async function generatePPTX() {
       sl.addText(`${hCfg.warrantyYears}年間トータルコスト比較`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       const mBW=6.0, iR=hM.totalCostMan/hM.bill20YMan;
       [{label:"このまま電力会社の電気を買い続けた場合",val:hM.bill20YMan,ratio:1.0,color:C.orange},{label:"じぶん電気（太陽光＋蓄電池）の初期投資",val:hM.totalCostMan,ratio:iR,color:C.midGreen}].forEach((item,i)=>{
         const y=1.3+i*1.6;
@@ -1339,7 +1339,7 @@ async function generatePPTX() {
       sl.addText("じぶん電気は、長く・安心して使えます",{x:0.3,y:0,w:9.4,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:"4B5563"},line:{color:"4B5563"}});
       sl.addText("モデルケース",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presM);
       [{icon:"☀️",title:"太陽光パネル",warranty:`${hCfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${hCfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${hCfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}].forEach((p,i)=>{
         const x=0.4+i*3.1;
         sl.addShape(presM.ShapeType.rect,{x,y:1.0,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
@@ -1393,7 +1393,7 @@ async function generatePPTX() {
       sl.addText(`${cfg.customerName}　お客様ヒアリング結果`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       const planLabel = custData.kyudenPlan
         ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
         : '手動入力';
@@ -1432,7 +1432,7 @@ async function generatePPTX() {
       sl.addText("このまま電気代を払い続けたら",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       const cardsA=[
         {label:"月間電気代",value:`¥${fmt(cfg.monthlyElectricBill)}`,sub:"毎月の固定支出",color:C.midGreen},
         {label:"1年間",value:`¥${fmt(m.annualBill)}`,sub:"12ヶ月分の合計",color:C.orange},
@@ -1457,7 +1457,7 @@ async function generatePPTX() {
       sl.addText(`${cn}様宅「じぶん電気」構成プラン`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:20,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       [{icon:"☀️",title:"太陽光パネル",value:`${cfg.solarCapacityKW} kW`,desc:`年間発電量\n約${fmt(cfg.annualGenerationKWh)} kWh`,col:C.gold},{icon:"🔋",title:"蓄電池",value:`${cfg.batteryCapacityKWh} kWh`,desc:"夜間・曇天時も\n安定して供給",col:C.midGreen},{icon:"🔒",title:"安心保証",value:`${cfg.warrantyYears}年間`,desc:"全機器まとめて\n長期保証付き",col:C.lightGreen}].forEach((card,i)=>{
         const x=0.5+i*3.05;
         sl.addShape(presR.ShapeType.rect,{x,y:1.1,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
@@ -1477,7 +1477,7 @@ async function generatePPTX() {
       sl.addText(`発電コスト 約${m.costPerKWh}円/kWh　その根拠`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.05,w:9.2,h:1.45,fill:{color:C.white},line:{color:C.lightGreen}});
       sl.addText("💡 実質発電単価の計算式",{x:0.6,y:1.1,w:8.8,h:0.38,fontSize:13,bold:true,color:C.darkGreen,fontFace:"Meiryo"});
       sl.addText([
@@ -1517,7 +1517,7 @@ async function generatePPTX() {
       sl.addText("じぶん電気、どのくらい使える？",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       const bdD=[{name:"年間発電量",val:cfg.annualGenerationKWh,color:C.gold,label:`${fmt(cfg.annualGenerationKWh)} kWh`},{name:"自家消費量",val:m.selfKWh,color:C.lightGreen,label:`${fmt(m.selfKWh)} kWh`}];
       const barAreaHD=2.5,barYD=1.1;
       bdD.forEach((bar,i)=>{
@@ -1553,7 +1553,7 @@ async function generatePPTX() {
       sl.addText(`${cfg.warrantyYears}年間トータルコスト比較`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       const mBWE=6.0, iRE=m.totalCostMan/m.bill20YMan;
       [{label:"このまま電力会社の電気を買い続けた場合",val:m.bill20YMan,ratio:1.0,color:C.orange},{label:"じぶん電気（太陽光＋蓄電池）の初期投資",val:m.totalCostMan,ratio:iRE,color:C.midGreen}].forEach((item,i)=>{
         const y=1.3+i*1.6;
@@ -1584,7 +1584,7 @@ async function generatePPTX() {
         sl.addText("ローン活用なら、月々の負担はこう変わります",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
         sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
         sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        addBrand(sl,pres);
+        addBrand(sl,presR);
         sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:3.7,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.08}});
         sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:0.55,fill:{color:C.orange},line:{color:C.orange}});
         sl.addText("現状　電気代のみ",{x:0.4,y:1.05,w:4.0,h:0.55,fontSize:13,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
@@ -1729,7 +1729,7 @@ async function generatePPTX() {
       sl.addText("じぶん電気は、長く・安心して使えます",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-      addBrand(sl,pres);
+      addBrand(sl,presR);
       [{icon:"☀️",title:"太陽光パネル",warranty:`${cfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${cfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${cfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}].forEach((p,i)=>{
         const x=0.4+i*3.1;
         sl.addShape(presR.ShapeType.rect,{x,y:1.0,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
