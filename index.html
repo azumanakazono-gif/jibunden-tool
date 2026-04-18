@@ -197,10 +197,10 @@ canvas#mini-chart { height: 150px !important; }
       <span style="color:var(--muted)">実際のお客様条件による個別試算</span>
       <button onclick="copyHypToCustomer()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid var(--mg);background:#fff;color:var(--mg);font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">仮説値をコピーして初期化</button>
     </div>
-    <div id="tab-hyp-banner" style="display:none;padding:10px 14px;background:var(--pg);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:12px;align-items:center;gap:8px;flex-wrap:wrap">
-      <b style="color:var(--mg)">🔬 仮説モデル入力</b>
-      <span style="color:var(--muted)">一般的なご家庭モデルの説明用</span>
-      <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid var(--mg);background:#fff;color:var(--mg);font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
+    <div id="tab-hyp-banner" style="display:none;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:12px;font-size:12px;align-items:center;gap:8px;flex-wrap:wrap">
+      <b style="color:#1d4ed8">🔬 仮説モデル入力</b>
+      <span style="color:#1e40af">一般的なご家庭モデルの説明用</span>
+      <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid #1d4ed8;background:#fff;color:#1d4ed8;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
     </div>
 
     <div class="section-card">
@@ -566,6 +566,14 @@ function switchTab(tab) {
   loadDataToForm(activeTab === 'hypothesis' ? hypData : custData);
   document.getElementById('tab-customer').classList.toggle('active', tab === 'customer');
   document.getElementById('tab-hypothesis').classList.toggle('active', tab === 'hypothesis');
+  const hypBtn = document.getElementById('tab-hypothesis');
+  if (tab === 'hypothesis') {
+    hypBtn.style.cssText += ';background:#eff6ff;color:#1d4ed8;border-bottom-color:#1d4ed8';
+  } else {
+    hypBtn.style.background = '';
+    hypBtn.style.color = '';
+    hypBtn.style.borderBottomColor = '';
+  }
   const cb = document.getElementById('tab-cust-banner');
   const hb = document.getElementById('tab-hyp-banner');
   cb.style.display = tab === 'customer' ? 'flex' : 'none';
