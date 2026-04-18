@@ -1253,7 +1253,7 @@ async function generatePPTX() {
         {text:`${hCfg.warrantyYears}年`,options:{bold:true,fontSize:14,color:C.midGreen}},
         {text:"）  ＝  ",options:{color:C.charcoal,fontSize:13}},
       ],{x:0.5,y:1.5,w:7.5,h:0.9,fontSize:13,fontFace:"Meiryo",valign:"middle"});
-      sl.addText(`約${hM.costPerKWh}円/kWh`,{x:7.3,y:1.45,w:2.2,h:0.7,fontSize:20,bold:true,color:C.orange,fontFace:"Meiryo",valign:"middle",shrinkText:true});
+      sl.addText(`約${hM.costPerKWh}円/kWh`,{x:7.3,y:1.45,w:2.2,h:0.7,fontSize:20,bold:true,color:C.midGreen,fontFace:"Meiryo",valign:"middle",shrinkText:true});
       // 3比較カード
       const comps=[
         {icon:"❌",label:"電力会社から\n買う単価",value:`${hCfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
@@ -1489,7 +1489,7 @@ async function generatePPTX() {
         {text:`${cfg.warrantyYears}年`,options:{bold:true,fontSize:14,color:C.midGreen}},
         {text:"）  ＝  ",options:{color:C.charcoal,fontSize:13}},
       ],{x:0.5,y:1.5,w:7.5,h:0.9,fontSize:13,fontFace:"Meiryo",valign:"middle"});
-      sl.addText(`約${m.costPerKWh}円/kWh`,{x:7.3,y:1.45,w:2.2,h:0.7,fontSize:20,bold:true,color:C.orange,fontFace:"Meiryo",valign:"middle",shrinkText:true});
+      sl.addText(`約${m.costPerKWh}円/kWh`,{x:7.3,y:1.45,w:2.2,h:0.7,fontSize:20,bold:true,color:C.midGreen,fontFace:"Meiryo",valign:"middle",shrinkText:true});
       const compsC=[
         {icon:"❌",label:"電力会社から\n買う単価",value:`${cfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${m.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
