@@ -1579,6 +1579,30 @@ async function generatePPTX(mode) {
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:3.65,w:9.2,h:1.7,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
       sl.addText([{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}],{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
     }
+    setProgress("モデルケース版：まとめスライドを作成中...");
+    await new Promise(r=>setTimeout(r,30));
+    // ── Slide まとめ（モデルケース版）──
+    {
+      const sl=presM.addSlide(); sl.background={color:C.darkGreen};
+      sl.addShape(presM.ShapeType.rect,{x:0,y:0,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(presM.ShapeType.rect,{x:0,y:5.545,w:10,h:0.08,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addShape(presM.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+      sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText("じぶん電気 モデルケースまとめ",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      [
+        {num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},
+        {num:"02",icon:"💰",text:`${hCfg.warrantyYears}年間のコスト差　約${fmt(hM.bill20YMan - hM.totalCostMan)}万円（モデルケース試算）`},
+        {num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},
+        {num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"},
+      ].forEach((item,i)=>{
+        const y=1.05+i*1.0;
+        sl.addShape(presM.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
+        sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
+      });
+      sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
+      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+    }
     setProgress("モデルケース版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
     await presM.writeFile({ fileName: `${safeName(hCfg.customerName)}様_モデルケース版.pptx` });
