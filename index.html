@@ -415,11 +415,11 @@ canvas#mini-chart { height: 150px !important; }
         <div class="grid3" style="margin-bottom:8px">
           <div class="field">
             <label>借入金額（万円）</label>
-            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="calcLoan()">
+            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calcLoan()">
           </div>
           <div class="field">
             <label>金利（年率 %）</label>
-            <input type="number" id="lr" value="3.5" min="0.1" max="15" step="0.1" oninput="calcLoan()">
+            <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calcLoan()">
           </div>
           <div class="field">
             <label>支払回数（回）</label>
@@ -579,6 +579,7 @@ const PACKAGES = {
   '14+15':{panels:36,sk:14.04,bk:15.4,cost:500,ag:15444,bc:3935},
 };
 let pkgBaseCost = 280;
+let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
   return {
@@ -606,6 +607,7 @@ function buildCfg(data, lp, ly) {
 }
 
 function onPkgChange() {
+  loanAmountEdited = false;
   const key = document.getElementById('pkg-select').value;
   const isManual = !key;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
@@ -1030,6 +1032,7 @@ function calc() {
   const dc=v('dc'), bc=v('bc'), er=v('er');
   const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
   const totalConstructionCost = v('ck') * 10000;
+  if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); calcLoan(); }
   const subsidyAmount = v('sub');
   const annualConsumptionKWh = mkwh * 12;
   // 単価自動表示
@@ -1154,8 +1157,8 @@ function clearForm() {
   document.getElementById('dc').value=2310; document.getElementById('bc').value=2520;
   document.getElementById('er').value=0;
   document.getElementById('wy').value=20;
-  document.getElementById('la2').value=280;
-  document.getElementById('lr').value=3.5;
+  loanAmountEdited = false;
+  document.getElementById('lr').value=4.1;
   document.getElementById('lc').value=180;
   document.getElementById('le').checked=false; toggleLoan(); calc();
 }
