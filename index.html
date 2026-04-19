@@ -1257,6 +1257,7 @@ async function generatePPTX(mode) {
   const outReal  = mode === 'real';
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
+  const cn = (cfg.customerName || 'お客様').replace(/様$/, '');
   const m = calcMetrics(cfg);
   const hCfg = buildCfg(hypData, 0, 20);
   const hM = calcMetrics(hCfg);
@@ -1405,7 +1406,7 @@ async function generatePPTX(mode) {
       sl.addText([
         {text:"✅  ",options:{fontSize:14}},
         {text:`じぶん電気の発電コストは約${hM.costPerKWh}円/kWh。`,options:{color:C.darkGreen,fontSize:13}},
-        {text:`電力会社の${hCfg.currentUnitPrice}円より${hCfg.currentUnitPrice - hM.costPerKWh}円/kWh安く、売電より自家消費がおトク！`,options:{bold:true,color:C.midGreen,fontSize:13}},
+        {text:`電力会社の${hCfg.currentUnitPrice}円より${Math.round(hCfg.currentUnitPrice - hM.costPerKWh)}円/kWh安く、売電より自家消費がおトク！`,options:{bold:true,color:C.midGreen,fontSize:13}},
       ],{x:0.5,y:4.62,w:9.0,h:0.65,fontFace:"Meiryo",valign:"middle"});
     }
     // ── Slide 5 ──
@@ -1492,7 +1493,6 @@ async function generatePPTX(mode) {
     // ── 実データシミュレーション版 ─────────────────────────────
     if (outReal) {
     presR = new PptxGenJS();
-    const cn = cfg.customerName.replace(/様$/, '');
     presR.layout = "LAYOUT_16x9";
     presR.title = "じぶん電気のご提案（実データシミュレーション版）";
 
@@ -1512,7 +1512,7 @@ async function generatePPTX(mode) {
       sl.addText("じぶんでつくる時代へ。",{x:0.5,y:1.8,w:7,h:0.9,fontSize:36,bold:true,color:C.white,fontFace:"Meiryo",margin:0});
       sl.addText("太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:0.5,y:3.55,w:4.5,h:0.65,fill:{color:C.lightGreen,transparency:20},line:{color:C.lightGreen}});
-      sl.addText(`${cfg.customerName}　ご提案資料`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:15,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText(`${cn}様　ご提案資料`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:15,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText([{text:`家族構成：${cfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${cfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
     }
 
@@ -1522,7 +1522,7 @@ async function generatePPTX(mode) {
     {
       const sl=presR.addSlide(); sl.background={color:C.offWhite};
       sl.addShape(presR.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-      sl.addText(`${cfg.customerName}　お客様ヒアリング結果`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+      sl.addText(`${cn}様　お客様ヒアリング結果`,{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,presR);
@@ -1532,7 +1532,7 @@ async function generatePPTX(mode) {
           ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
           : '手動入力');
       const hItems=[
-        {label:"お客様名",       value:cfg.customerName},
+        {label:"お客様名",       value:cn + '様'},
         {label:"家族構成",       value:cfg.familyComposition},
         {label:"月間電気代",     value:`¥${fmt(cfg.monthlyElectricBill)}`},
         {label:"現在の単価",     value:`${cfg.currentUnitPrice} 円/kWh`},
@@ -1641,7 +1641,7 @@ async function generatePPTX(mode) {
       sl.addText([
         {text:"✅  ",options:{fontSize:14}},
         {text:`じぶん電気の発電コストは約${m.costPerKWh}円/kWh。`,options:{color:C.darkGreen,fontSize:13}},
-        {text:`電力会社の${cfg.currentUnitPrice}円より${cfg.currentUnitPrice - m.costPerKWh}円/kWh安く、売電より自家消費がおトク！`,options:{bold:true,color:C.midGreen,fontSize:13}},
+        {text:`電力会社の${cfg.currentUnitPrice}円より${Math.round(cfg.currentUnitPrice - m.costPerKWh)}円/kWh安く、売電より自家消費がおトク！`,options:{bold:true,color:C.midGreen,fontSize:13}},
       ],{x:0.5,y:4.62,w:9.0,h:0.65,fontFace:"Meiryo",valign:"middle"});
     }
     // ── 実データ D：自家消費 ──
@@ -1899,7 +1899,7 @@ async function generatePPTX(mode) {
 
     setProgress("実データ版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
-    await presR.writeFile({ fileName: `${safeName(cfg.customerName)}様_実データシミュレーション版.pptx` });
+    await presR.writeFile({ fileName: `${safeName(cn)}様_実データシミュレーション版.pptx` });
     } // end if (outReal)
 
     // 履歴保存
@@ -1909,7 +1909,7 @@ async function generatePPTX(mode) {
     document.getElementById('progress').classList.remove('show');
     document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=false);
     const outNames=[outModel&&'モデルケース版',outReal&&'実データシミュレーション版'].filter(Boolean).join('・');
-    toast(`${cfg.customerName}の提案書（${outNames}）を生成しました！`);
+    toast(`${cn}様の提案書（${outNames}）を生成しました！`);
 
   } catch(err) {
     console.error(err);
