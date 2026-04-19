@@ -118,6 +118,8 @@ canvas#mini-chart { height: 150px !important; }
 
 /* ── トースト ── */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
+#scroll-top-btn { position: fixed; bottom: 80px; right: 20px; width: 48px; height: 48px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.2); opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 190; display: flex; align-items: center; justify-content: center; }
+#scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
 .toast.error { background: var(--danger); }
@@ -2015,6 +2017,16 @@ async function generatePPTX(mode) {
 onPkgChange(); // 7+7パッケージのデフォルト値を適用
 calc();
 renderSidebarHistory();
+
+// ── 上へ戻るボタン ──
+const scrollTopBtn = document.getElementById('scroll-top-btn');
+window.addEventListener('scroll', () => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 300);
+}, { passive: true });
+scrollTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 </script>
+<button id="scroll-top-btn" title="上へ戻る">↑</button>
 </body>
 </html>
