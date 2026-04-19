@@ -602,6 +602,9 @@ function onPkgChange() {
     document.getElementById('ag').value = p.ag;
     document.getElementById('bc').value = p.bc;
     document.getElementById('ck').value = p.cost + extra;
+    // パッケージ選択で bc を上書きするため、自動計算説明文をリセット
+    document.getElementById('daytime-auto-note').style.display = 'none';
+    document.getElementById('daytime-auto-text').textContent = '';
   }
   updatePkgSummary();
   calc();
