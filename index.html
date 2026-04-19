@@ -118,7 +118,8 @@ canvas#mini-chart { height: 150px !important; }
 
 /* ── トースト ── */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
-#scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 9999; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
+#scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 9999; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
 @media (max-width: 900px) { #scroll-top-btn { display: flex; } }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
@@ -2038,6 +2039,15 @@ function scrollToTopHandler(e) {
 const _stb = document.getElementById('scroll-top-btn');
 _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
 _stb.addEventListener('click', scrollToTopHandler);
+
+// スクロール中のみ表示
+let _stbTimer = null;
+const _scrollEl = document.querySelector('.main') || window;
+_scrollEl.addEventListener('scroll', () => {
+  _stb.classList.add('visible');
+  clearTimeout(_stbTimer);
+  _stbTimer = setTimeout(() => _stb.classList.remove('visible'), 1200);
+}, { passive: true });
 </script>
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
 </body>
