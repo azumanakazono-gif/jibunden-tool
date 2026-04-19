@@ -567,16 +567,16 @@ const HYPOTHESIS_DEFAULTS = {
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:5000, bc:2500, sub:0, wy:20, er:0,
-  la2:280, lr:3.5, lc:180, le:false, kyudenPlan:'',
-  lp:0, ly:15, loanMethod:'addon',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
 };
 const CUSTOMER_DEFAULTS = {
   cn:'○○様', fm:'4人家族（夫婦＋子ども2人）',
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
-  la2:280, lr:3.5, lc:180, le:false, kyudenPlan:'',
-  lp:0, ly:15, loanMethod:'addon',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
 };
 let hypData = {...HYPOTHESIS_DEFAULTS};
 let custData = {...CUSTOMER_DEFAULTS};
@@ -724,6 +724,7 @@ function switchTab(tab) {
   if (tab === activeTab) return;
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   activeTab = tab;
+  loanAmountEdited = false;
   loadDataToForm(activeTab === 'hypothesis' ? hypData : custData);
   document.getElementById('tab-customer').classList.toggle('active', tab === 'customer');
   document.getElementById('tab-hypothesis').classList.toggle('active', tab === 'hypothesis');
