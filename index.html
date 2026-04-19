@@ -377,6 +377,29 @@ canvas#mini-chart { height: 150px !important; }
         <label for="le">ローン活用スライドを追加する</label>
       </div>
       <div class="loan-fields" id="loan-fields">
+        <!-- 入力モード切替 -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;background:var(--pg);border-radius:8px;padding:5px;border:1px solid var(--border)">
+          <button id="btn-loan-auto" onclick="setLoanInputMode('auto')"
+            style="flex:1;padding:7px;border-radius:6px;border:none;background:var(--mg);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+            🔢 自動計算
+          </button>
+          <button id="btn-loan-manual" onclick="setLoanInputMode('manual')"
+            style="flex:1;padding:7px;border-radius:6px;border:none;background:transparent;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">
+            ✏️ 手動入力
+          </button>
+        </div>
+        <!-- 手動入力エリア -->
+        <div id="loan-manual-area" style="display:none;margin-bottom:12px">
+          <div class="field" style="margin-bottom:8px">
+            <label>月々返済額（円）<span style="font-size:10px;color:var(--mg);margin-left:6px">金融機関提示の実際の返済額</span></label>
+            <input type="number" id="lp-manual" value="0" min="0" step="100" oninput="calc()">
+          </div>
+          <div style="font-size:11px;color:var(--muted);padding:6px 10px;background:#f9f9f9;border-radius:6px;border:1px solid var(--border)">
+            ✏️ 入力した月々返済額をそのまま試算に使用します。支払回数は自動計算側の設定値（回数）を参照します。
+          </div>
+        </div>
+        <!-- 自動計算エリア -->
+        <div id="loan-auto-area">
         <!-- 計算方式切り替え -->
         <div style="display:flex;gap:6px;margin-bottom:10px">
           <button id="btn-addon"   onclick="setLoanMethod('addon')"
@@ -455,6 +478,7 @@ canvas#mini-chart { height: 150px !important; }
             ⚠️ アドオン方式による概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。
           </div>
         </div>
+        </div><!-- /loan-auto-area -->
         <!-- 隠しフィールド（計算用） -->
         <input type="hidden" id="lp" value="13000">
         <input type="hidden" id="ly" value="15">
@@ -664,6 +688,8 @@ function saveFormToData(data) {
   data.lp = parseFloat(document.getElementById('lp').value)||0;
   data.ly = parseFloat(document.getElementById('ly').value)||15;
   data.loanMethod = loanMethod;
+  data.loanInputMode = loanInputMode;
+  data.lpManual = v('lp-manual');
   data.pkgSelect = document.getElementById('pkg-select').value;
   data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
   data.sysName = document.getElementById('sys-name').value;
@@ -681,6 +707,8 @@ function loadDataToForm(data) {
   const kp = data.kyudenPlan || '';
   showAvgRateSection(kp.startsWith('avg:'));
   if (data.loanMethod) setLoanMethod(data.loanMethod);
+  setLoanInputMode(data.loanInputMode || 'auto');
+  document.getElementById('lp-manual').value = data.lpManual || 0;
   const ps = data.pkgSelect !== undefined ? data.pkgSelect : '7+7';
   document.getElementById('pkg-select').value = ps;
   document.getElementById('pkg-extra').value = data.pkgExtra || 0;
@@ -844,6 +872,21 @@ function onLifestyleChange() {
 // スライダー同期
 // ══════════════════════════════════════════
 let loanMethod = 'zansai'; // 'addon' | 'zansai' | 'gankin'
+let loanInputMode = 'auto'; // 'auto' | 'manual'
+
+function setLoanInputMode(mode) {
+  loanInputMode = mode;
+  const isManual = mode === 'manual';
+  document.getElementById('loan-manual-area').style.display = isManual ? '' : 'none';
+  document.getElementById('loan-auto-area').style.display   = isManual ? 'none' : '';
+  const aBtn = document.getElementById('btn-loan-auto');
+  const mBtn = document.getElementById('btn-loan-manual');
+  aBtn.style.background = isManual ? 'transparent' : 'var(--mg)';
+  aBtn.style.color      = isManual ? 'var(--muted)' : '#fff';
+  mBtn.style.background = isManual ? 'var(--mg)' : 'transparent';
+  mBtn.style.color      = isManual ? '#fff' : 'var(--muted)';
+  calc();
+}
 
 // 各方式の計算ロジック（共通）
 function calcLoanValues(borrowAmt, annualRate, count) {
@@ -909,6 +952,20 @@ function setLoanMethod(method) {
 }
 
 function calcLoan() {
+  if (loanInputMode === 'manual') {
+    const manualMonthly = v('lp-manual');
+    const count = v('lc');
+    const years = count / 12;
+    document.getElementById('lp').value = manualMonthly;
+    document.getElementById('ly').value = years;
+    document.getElementById('lp-display').textContent = '¥' + fmt(manualMonthly) + ' / 月';
+    document.getElementById('ly-display').textContent = years + '年（' + count + '回）';
+    document.getElementById('lt-display').textContent = '約' + Math.round(manualMonthly * count / 10000) + '万円';
+    document.getElementById('li-display').textContent = '-（手動入力）';
+    document.getElementById('loan-compare-table').style.display = 'none';
+    document.getElementById('loan-warning').textContent = '✏️ 金融機関から提示された月々返済額を使用しています。';
+    return;
+  }
   const borrowAmt  = v('la2') * 10000;
   const annualRate = v('lr') / 100;
   const count      = v('lc');
@@ -1157,7 +1214,7 @@ function clearForm() {
   loanAmountEdited = false;
   document.getElementById('lr').value=4.1;
   document.getElementById('lc').value=180;
-  document.getElementById('le').checked=false; setLoanMethod('zansai'); toggleLoan(); calc();
+  document.getElementById('le').checked=false; document.getElementById('lp-manual').value=0; setLoanInputMode('auto'); setLoanMethod('zansai'); toggleLoan(); calc();
 }
 
 // ══════════════════════════════════════════
