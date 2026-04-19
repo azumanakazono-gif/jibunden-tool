@@ -338,6 +338,16 @@ canvas#mini-chart { height: 150px !important; }
           </div>
         </div>
         <div id="pkg-cost-summary" style="margin-top:8px;font-size:12px;color:var(--dg);display:none"></div>
+        <!-- 手動入力時のみ表示 -->
+        <div id="pkg-manual-area" style="display:none;margin-top:8px;display:none">
+          <div class="grid2">
+            <div class="field">
+              <label>システム名（任意）<span style="font-size:10px;color:var(--mg);margin-left:4px">スライドの識別用</span></label>
+              <input type="text" id="sys-name" placeholder="例：オリジナル10kWプラン" oninput="calc()">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--muted);margin-top:6px">💡 下のフィールドに直接、太陽光容量・蓄電池容量・年間発電量・税込総工事費用を入力してください。</div>
+        </div>
       </div>
       <div class="grid3" style="margin-bottom:12px">
         <div class="field"><label>太陽光容量（kW）</label><input type="number" id="sk" value="7.02" min="3" max="20" step="0.01" oninput="calc()"></div>
@@ -580,9 +590,12 @@ function buildCfg(data, lp, ly) {
 
 function onPkgChange() {
   const key = document.getElementById('pkg-select').value;
-  const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
-  if (key && PACKAGES[key]) {
+  const isManual = !key;
+  document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
+  document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
+  if (!isManual && PACKAGES[key]) {
     const p = PACKAGES[key];
+    const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
     pkgBaseCost = p.cost;
     document.getElementById('sk').value = p.sk;
     document.getElementById('bk').value = p.bk;
@@ -630,6 +643,7 @@ function saveFormToData(data) {
   data.loanMethod = loanMethod;
   data.pkgSelect = document.getElementById('pkg-select').value;
   data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
+  data.sysName = document.getElementById('sys-name').value;
 }
 
 function loadDataToForm(data) {
@@ -646,7 +660,11 @@ function loadDataToForm(data) {
   const ps = data.pkgSelect !== undefined ? data.pkgSelect : '7+7';
   document.getElementById('pkg-select').value = ps;
   document.getElementById('pkg-extra').value = data.pkgExtra || 0;
+  document.getElementById('sys-name').value = data.sysName || '';
   if (ps && PACKAGES[ps]) pkgBaseCost = PACKAGES[ps].cost;
+  const isManual = !ps;
+  document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
+  document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
   updatePkgSummary();
   toggleLoan();
   calcLoan();
