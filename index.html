@@ -120,7 +120,8 @@ canvas#mini-chart { height: 150px !important; }
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
 #scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 9999; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #scroll-top-btn.visible { opacity: 1; pointer-events: auto; }
-@media (max-width: 900px) { #scroll-top-btn { display: flex; } }
+/* [DEBUG] スマホで無条件表示 */
+@media (max-width: 900px) { #scroll-top-btn { display: flex !important; opacity: 1 !important; pointer-events: auto !important; background: #dc2626 !important; border: 3px solid #fff !important; } }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
 .toast.error { background: var(--danger); }
