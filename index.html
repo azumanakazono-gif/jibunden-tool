@@ -309,9 +309,39 @@ canvas#mini-chart { height: 150px !important; }
 
     <div class="section-card">
       <div class="section-title">☀️ システム設計</div>
+      <!-- パッケージ選択（お客様ヒアリング入力時のみ表示） -->
+      <div id="pkg-area" style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;margin-bottom:12px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="flex:2;min-width:200px">
+            <label>📦 システムパッケージ</label>
+            <select id="pkg-select" onchange="onPkgChange()" style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
+              <option value="">── 手動入力（パッケージ選択なし）──</option>
+              <option value="5+7">5+7パッケージ（14枚 / 5.46kW / 7.7kWh）</option>
+              <option value="5+15">5+15パッケージ（14枚 / 5.46kW / 15.4kWh）</option>
+              <option value="6+7">6+7パッケージ（16枚 / 6.24kW / 7.7kWh）</option>
+              <option value="6+15">6+15パッケージ（16枚 / 6.24kW / 15.4kWh）</option>
+              <option value="7+7" selected>7+7パッケージ（18枚 / 7.02kW / 7.7kWh）</option>
+              <option value="7+15">7+15パッケージ（18枚 / 7.02kW / 15.4kWh）</option>
+              <option value="8+7">8+7パッケージ（21枚 / 8.16kW / 7.7kWh）</option>
+              <option value="8+15">8+15パッケージ（21枚 / 8.16kW / 15.4kWh）</option>
+              <option value="9+7">9+7パッケージ（24枚 / 9.36kW / 7.7kWh）</option>
+              <option value="9+15">9+15パッケージ（24枚 / 9.36kW / 15.4kWh）</option>
+              <option value="10+7">10+7パッケージ（27枚 / 10.53kW / 7.7kWh）</option>
+              <option value="10+15">10+15パッケージ（27枚 / 10.53kW / 15.4kWh）</option>
+              <option value="14+7">14+7パッケージ（36枚 / 14.04kW / 7.7kWh）</option>
+              <option value="14+15">14+15パッケージ（36枚 / 14.04kW / 15.4kWh）</option>
+            </select>
+          </div>
+          <div class="field" style="min-width:130px">
+            <label>追加費用（万円）</label>
+            <input type="number" id="pkg-extra" value="0" min="0" step="10" oninput="onPkgExtraChange()">
+          </div>
+        </div>
+        <div id="pkg-cost-summary" style="margin-top:8px;font-size:12px;color:var(--dg);display:none"></div>
+      </div>
       <div class="grid3" style="margin-bottom:12px">
-        <div class="field"><label>太陽光容量（kW）</label><input type="number" id="sk" value="7" min="3" max="20" step="0.5" oninput="calc()"></div>
-        <div class="field"><label>蓄電池容量（kWh）</label><input type="number" id="bk" value="7" min="3" max="20" step="0.5" oninput="calc()"></div>
+        <div class="field"><label>太陽光容量（kW）</label><input type="number" id="sk" value="7.02" min="3" max="20" step="0.01" oninput="calc()"></div>
+        <div class="field"><label>蓄電池容量（kWh）</label><input type="number" id="bk" value="7.7" min="3" max="30" step="0.1" oninput="calc()"></div>
         <div class="field">
           <label>税込総工事費用（万円）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光＋蓄電池 工事込み</span></label>
           <input type="number" id="ck" value="280" min="50" max="2000" step="10" oninput="calc()">
@@ -505,6 +535,24 @@ let activeTab = 'customer';
 
 const TAB_FIELDS = ['mb','up','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
 
+const PACKAGES = {
+  '5+7' :{panels:14,sk:5.46, bk:7.7, cost:265,ag:6006, bc:1967},
+  '5+15':{panels:14,sk:5.46, bk:15.4,cost:365,ag:6006, bc:3935},
+  '6+7' :{panels:16,sk:6.24, bk:7.7, cost:270,ag:6864, bc:1967},
+  '6+15':{panels:16,sk:6.24, bk:15.4,cost:390,ag:6864, bc:3935},
+  '7+7' :{panels:18,sk:7.02, bk:7.7, cost:280,ag:7722, bc:1967},
+  '7+15':{panels:18,sk:7.02, bk:15.4,cost:385,ag:7722, bc:3935},
+  '8+7' :{panels:21,sk:8.16, bk:7.7, cost:320,ag:8976, bc:1967},
+  '8+15':{panels:21,sk:8.16, bk:15.4,cost:397,ag:8976, bc:3935},
+  '9+7' :{panels:24,sk:9.36, bk:7.7, cost:370,ag:10296,bc:1967},
+  '9+15':{panels:24,sk:9.36, bk:15.4,cost:427,ag:10296,bc:3935},
+  '10+7':{panels:27,sk:10.53,bk:7.7, cost:420,ag:11583,bc:1967},
+  '10+15':{panels:27,sk:10.53,bk:15.4,cost:450,ag:11583,bc:3935},
+  '14+7':{panels:36,sk:14.04,bk:7.7, cost:450,ag:15444,bc:1967},
+  '14+15':{panels:36,sk:14.04,bk:15.4,cost:500,ag:15444,bc:3935},
+};
+let pkgBaseCost = 280;
+
 function buildCfg(data, lp, ly) {
   return {
     customerName: data.cn || '○○様',
@@ -530,6 +578,45 @@ function buildCfg(data, lp, ly) {
   };
 }
 
+function onPkgChange() {
+  const key = document.getElementById('pkg-select').value;
+  const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
+  if (key && PACKAGES[key]) {
+    const p = PACKAGES[key];
+    pkgBaseCost = p.cost;
+    document.getElementById('sk').value = p.sk;
+    document.getElementById('bk').value = p.bk;
+    document.getElementById('ag').value = p.ag;
+    document.getElementById('bc').value = p.bc;
+    document.getElementById('ck').value = p.cost + extra;
+  }
+  updatePkgSummary();
+  calc();
+}
+
+function onPkgExtraChange() {
+  const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
+  const key = document.getElementById('pkg-select').value;
+  if (key && PACKAGES[key]) {
+    document.getElementById('ck').value = pkgBaseCost + extra;
+  }
+  updatePkgSummary();
+  calc();
+}
+
+function updatePkgSummary() {
+  const key = document.getElementById('pkg-select').value;
+  const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
+  const el = document.getElementById('pkg-cost-summary');
+  if (key && PACKAGES[key]) {
+    const total = pkgBaseCost + extra;
+    el.style.display = '';
+    el.innerHTML = `標準パッケージ：<b>${pkgBaseCost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function saveFormToData(data) {
   data.cn = document.getElementById('cn').value;
   data.fm = document.getElementById('fm').value;
@@ -541,6 +628,8 @@ function saveFormToData(data) {
   data.lp = parseFloat(document.getElementById('lp').value)||0;
   data.ly = parseFloat(document.getElementById('ly').value)||15;
   data.loanMethod = loanMethod;
+  data.pkgSelect = document.getElementById('pkg-select').value;
+  data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
 }
 
 function loadDataToForm(data) {
@@ -554,6 +643,11 @@ function loadDataToForm(data) {
   const kp = data.kyudenPlan || '';
   showAvgRateSection(kp.startsWith('avg:'));
   if (data.loanMethod) setLoanMethod(data.loanMethod);
+  const ps = data.pkgSelect !== undefined ? data.pkgSelect : '7+7';
+  document.getElementById('pkg-select').value = ps;
+  document.getElementById('pkg-extra').value = data.pkgExtra || 0;
+  if (ps && PACKAGES[ps]) pkgBaseCost = PACKAGES[ps].cost;
+  updatePkgSummary();
   toggleLoan();
   calcLoan();
   calc();
@@ -578,6 +672,7 @@ function switchTab(tab) {
   const hb = document.getElementById('tab-hyp-banner');
   cb.style.display = tab === 'customer' ? 'flex' : 'none';
   hb.style.display = tab === 'hypothesis' ? 'flex' : 'none';
+  document.getElementById('pkg-area').style.display = tab === 'customer' ? '' : 'none';
 }
 
 function resetToDefaults() {
@@ -1794,6 +1889,7 @@ async function generatePPTX() {
 }
 
 // ── 初期化 ──
+onPkgChange(); // 7+7パッケージのデフォルト値を適用
 calcLoan();
 calc();
 renderSidebarHistory();
