@@ -1591,7 +1591,7 @@ async function generatePPTX(mode) {
       sl.addText("じぶん電気 モデルケースまとめ",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       [
         {num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},
-        {num:"02",icon:"💰",text:`${hCfg.warrantyYears}年間のコスト差　約${fmt(hM.bill20YMan - hM.totalCostMan)}万円（モデルケース試算）`},
+        {num:"02",icon:"💰",text:(()=>{const diff=Math.round(hM.bill20YMan-hM.totalCostMan);return diff>=10?`${hCfg.warrantyYears}年間で約${fmt(diff)}万円のコスト差が見込めます（モデルケース試算）`:diff>=-10?`${hCfg.warrantyYears}年間のコスト差はほぼ同水準になる場合があります（条件次第）`:`条件によっては電力会社と大きな差が出ない場合があります（ご確認ください）`;})()},
         {num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},
         {num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"},
       ].forEach((item,i)=>{
