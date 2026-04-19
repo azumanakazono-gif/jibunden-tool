@@ -945,6 +945,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
   const total = dc + bc;
   const selfRate = ag > 0 ? Math.round(total / ag * 100) : 0;
   const over = selfRate > 100;
+  const annualConsumption = Math.round(mb / Math.max(1, up) * 12);
+  const surplus = ag > annualConsumption;
   const el = document.getElementById('self-summary');
   el.style.background = over ? '#FFF3CD' : 'var(--pg)';
   el.style.borderColor = over ? '#F59E0B' : 'var(--border)';
@@ -955,7 +957,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
     `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
     `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b>（自家消費率 <b style="color:${rateColor}">${selfRate}%</b>）</span>` +
     `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
-    (over ? `<span style="color:#DC2626;font-weight:700;width:100%;margin-top:4px">⚠️ 自家消費率が100%を超えています。昼間直接使用量と蓄電池放電量の設定を見直してください。</span>` : '');
+    (over ? `<span style="color:#DC2626;font-weight:700;width:100%;margin-top:4px">⚠️ 自家消費率が100%を超えています。昼間直接使用量と蓄電池放電量の設定を見直してください。</span>` : '') +
+    (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。自家消費重視か売電重視かをご確認ください。</span>` : '');
 }
 
 // ══════════════════════════════════════════
