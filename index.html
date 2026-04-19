@@ -2041,16 +2041,18 @@ const _stb = document.getElementById('scroll-top-btn');
 _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
 _stb.addEventListener('click', scrollToTopHandler);
 
-// スクロール中のみ表示（window と .main 両方を監視）
+// スクロール検知: touchmove をメインに使用（scroll イベント不安定なため）
 let _stbTimer = null;
-function _onScroll() {
+function _showStb() {
   _stb.classList.add('visible');
   clearTimeout(_stbTimer);
   _stbTimer = setTimeout(() => _stb.classList.remove('visible'), 1000);
 }
-window.addEventListener('scroll', _onScroll, { passive: true });
-const _mainEl = document.querySelector('.main');
-if (_mainEl) _mainEl.addEventListener('scroll', _onScroll, { passive: true });
+document.addEventListener('touchmove', _showStb, { passive: true });
+// scroll フォールバック（window / .main / .app）
+[window, document.querySelector('.main'), document.querySelector('.app')]
+  .filter(Boolean)
+  .forEach(el => el.addEventListener('scroll', _showStb, { passive: true }));
 </script>
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
 </body>
