@@ -169,19 +169,14 @@ canvas#mini-chart { height: 150px !important; }
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
-      <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:#fff">
-          <input type="checkbox" id="opt-model" checked style="width:15px;height:15px;accent-color:var(--ac)">
-          🔬 モデルケース版
-        </label>
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:13px;font-weight:600;color:#fff">
-          <input type="checkbox" id="opt-real" checked style="width:15px;height:15px;accent-color:var(--ac)">
-          👤 実データ版
-        </label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
+        <button class="gen-btn" onclick="generatePPTX('model')">
+          <span>🔬</span> モデルケース版を出力
+        </button>
+        <button class="gen-btn" onclick="generatePPTX('real')">
+          <span>👤</span> 実データ版を出力
+        </button>
       </div>
-      <button class="gen-btn" id="gen-btn" onclick="generatePPTX()">
-        <span>⚡</span> PPTX を生成・DL
-      </button>
     </div>
   </div>
 
@@ -1257,10 +1252,9 @@ function addBrand(sl, pres) {
 
 function setProgress(msg) { document.getElementById('progress-msg').textContent = msg; }
 
-async function generatePPTX() {
-  const outModel = document.getElementById('opt-model').checked;
-  const outReal  = document.getElementById('opt-real').checked;
-  if (!outModel && !outReal) { alert('出力するバージョンを1つ以上選択してください。'); return; }
+async function generatePPTX(mode) {
+  const outModel = mode === 'model';
+  const outReal  = mode === 'real';
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
   const m = calcMetrics(cfg);
@@ -1270,7 +1264,7 @@ async function generatePPTX() {
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
 
   document.getElementById('progress').classList.add('show');
-  document.getElementById('gen-btn').disabled = true;
+  document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=true);
 
   try {
     await new Promise(r=>setTimeout(r,50));
@@ -1913,14 +1907,14 @@ async function generatePPTX() {
     renderSidebarHistory();
 
     document.getElementById('progress').classList.remove('show');
-    document.getElementById('gen-btn').disabled = false;
+    document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=false);
     const outNames=[outModel&&'モデルケース版',outReal&&'実データシミュレーション版'].filter(Boolean).join('・');
     toast(`${cfg.customerName}の提案書（${outNames}）を生成しました！`);
 
   } catch(err) {
     console.error(err);
     document.getElementById('progress').classList.remove('show');
-    document.getElementById('gen-btn').disabled = false;
+    document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=false);
     toast('エラーが発生しました: '+err.message, 'error');
   }
 }
