@@ -1246,7 +1246,7 @@ function saveHistory(h) { localStorage.setItem('jibunden_history', JSON.stringif
 
 function saveCustomer(cfg) {
   const h = getHistory();
-  const entry = { id: Date.now(), date: new Date().toLocaleString('ja-JP'), ...cfg };
+  const entry = { id: Date.now(), date: new Date().toLocaleString('ja-JP'), ...cfg, ...custData };
   h.unshift(entry);
   if(h.length>30) h.pop();
   saveHistory(h);
@@ -1257,38 +1257,48 @@ function loadCustomer(id) {
   const h = getHistory();
   const entry = h.find(e=>e.id===id);
   if(!entry) return;
-  document.getElementById('cn').value = entry.customerName||'';
-  // selectに存在しない旧データ値は既定値（4人家族）にフォールバック
-  const fmSel = document.getElementById('fm');
-  fmSel.value = entry.familyComposition||'';
-  if (!fmSel.value) fmSel.value = '4人家族（夫婦＋子ども2人）';
-  document.getElementById('ls').value = entry.lifestyleNote||'';
-  document.getElementById('mb').value = entry.monthlyElectricBill||20000;
-  document.getElementById('mkwh').value = entry.mkwh || Math.round((entry.monthlyElectricBill||20000) / (entry.currentUnitPrice||30));
-  document.getElementById('ag').value = entry.annualGenerationKWh||7700;
-  document.getElementById('sk').value = entry.solarCapacityKW||7;
-  document.getElementById('bk').value = entry.batteryCapacityKWh||7;
-  document.getElementById('ck').value = entry.totalConstructionCost ? Math.round(entry.totalConstructionCost/10000) : 280;
-  document.getElementById('sub').value = entry.subsidyAmount||0;
-  document.getElementById('dc').value = entry.directConsumptionKWh||2310;
-  document.getElementById('bc').value = entry.batteryConsumptionKWh||2520;
-  document.getElementById('er').value = entry.escalationRate||0;
-  document.getElementById('wy').value = entry.warrantyYears||20;
-  const hasLoan = entry.monthlyLoanPayment > 0;
-  document.getElementById('le').checked = hasLoan;
-  if(hasLoan){
-    document.getElementById('la2').value = entry.loanAmount||280;
-    document.getElementById('lr').value = entry.loanRate||3.5;
-    document.getElementById('lc').value = entry.loanCount||180;
+  // 短縮名フィールドを優先、古い履歴は長名フィールドからフォールバック
+  custData = {
+    cn:          entry.cn          || entry.customerName || '',
+    fm:          entry.fm          || entry.familyComposition || '4人家族（夫婦＋子ども2人）',
+    ls:          entry.ls          || entry.lifestyleNote || '',
+    lsPreset:    entry.lsPreset    || 'custom',
+    mb:          entry.mb          || entry.monthlyElectricBill || 20000,
+    mkwh:        entry.mkwh        || Math.round((entry.monthlyElectricBill||20000) / (entry.currentUnitPrice||30)),
+    ag:          entry.ag          || entry.annualGenerationKWh || 7700,
+    sk:          entry.sk          || entry.solarCapacityKW || 7,
+    bk:          entry.bk          || entry.batteryCapacityKWh || 7,
+    ck:          entry.ck          || (entry.totalConstructionCost ? Math.round(entry.totalConstructionCost/10000) : 280),
+    sub:         entry.sub         !== undefined ? entry.sub : (entry.subsidyAmount || 0),
+    dc:          entry.dc          || entry.directConsumptionKWh || 2310,
+    bc:          entry.bc          || entry.batteryConsumptionKWh || 2520,
+    er:          entry.er          !== undefined ? entry.er : (entry.escalationRate || 0),
+    wy:          entry.wy          || entry.warrantyYears || 20,
+    le:          entry.le          !== undefined ? entry.le : (entry.monthlyLoanPayment > 0),
+    la2:         entry.la2         || entry.loanAmount || 280,
+    lr:          entry.lr          || entry.loanRate || 4.1,
+    lc:          entry.lc          || entry.loanCount || 180,
+    lp:          entry.lp          || entry.monthlyLoanPayment || 0,
+    ly:          entry.ly          || entry.loanYears || 15,
+    sysName:     entry.sysName     || '',
+    utilityCompany: entry.utilityCompany || '',
+    kyudenPlan:  entry.kyudenPlan  || '',
+    loanMethod:  entry.loanMethod  || 'zansai',
+    loanInputMode: entry.loanInputMode || 'auto',
+    lpManual:    entry.lpManual    || 0,
+    pkgSelect:   entry.pkgSelect   !== undefined ? entry.pkgSelect : '',
+    pkgExtra:    entry.pkgExtra    || 0,
+  };
+  loanAmountEdited = false;
+  if (activeTab === 'customer') {
+    loadDataToForm(custData);
+  } else {
+    switchTab('customer');
   }
-  toggleLoan();
-  document.getElementById('ls-preset').value='custom';
-  document.getElementById('kyuden-plan').value='';
-  showAvgRateSection(false);
-  document.getElementById('daytime-rate-disp').textContent='';
-  document.getElementById('daytime-auto-note').style.display='none';
+  document.getElementById('daytime-rate-disp').textContent = '';
+  document.getElementById('daytime-auto-note').style.display = 'none';
   showSection('form');
-  toast(entry.customerName+'のデータを読み込みました');
+  toast((custData.cn || 'データ') + 'を読み込みました');
 }
 
 function deleteHistory(id, e) {
