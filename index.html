@@ -945,10 +945,11 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
   const total = dc + bc;
   const selfRate = ag > 0 ? Math.round(total / ag * 100) : 0;
   document.getElementById('self-summary').innerHTML =
+    `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
     `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
     `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
-    `<span>⚡ 合計自家消費：<b>${fmt(total)} kWh</b>（自家消費率 ${selfRate}%）</span>` +
-    `<span style="color:var(--or)">🏠 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>`;
+    `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b>（自家消費率 ${selfRate}%）</span>` +
+    `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>`;
 }
 
 // ══════════════════════════════════════════
