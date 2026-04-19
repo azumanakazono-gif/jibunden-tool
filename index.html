@@ -170,7 +170,7 @@ canvas#mini-chart { height: 150px !important; }
     </div>
     <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
       <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <button class="gen-btn" onclick="generatePPTX('model')">
+        <button class="gen-btn" onclick="generatePPTX('model')" style="background:#1d4ed8;color:#fff;">
           <span>🔬</span> モデルケース版を出力
         </button>
         <button class="gen-btn" onclick="generatePPTX('real')">
@@ -184,8 +184,8 @@ canvas#mini-chart { height: 150px !important; }
   <div class="form-body" id="section-form">
 
     <div style="display:flex;border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:16px">
-      <button class="tab-btn active" id="tab-customer" onclick="switchTab('customer')">👤 お客様ヒアリング入力</button>
-      <button class="tab-btn" id="tab-hypothesis" onclick="switchTab('hypothesis')" style="border-left:1px solid var(--border)">🔬 仮説モデル入力</button>
+      <button class="tab-btn" id="tab-hypothesis" onclick="switchTab('hypothesis')">🔬 仮説モデル入力</button>
+      <button class="tab-btn active" id="tab-customer" onclick="switchTab('customer')" style="border-left:1px solid var(--border)">👤 お客様ヒアリング入力</button>
     </div>
     <div id="tab-cust-banner" style="padding:10px 14px;background:var(--pg);border:1px solid var(--border);border-radius:8px;margin-bottom:12px;font-size:12px;display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <b style="color:var(--mg)">👤 お客様ヒアリング入力</b>
@@ -388,14 +388,32 @@ canvas#mini-chart { height: 150px !important; }
             ✏️ 手動入力
           </button>
         </div>
+        <!-- 支払回数（常時表示） -->
+        <div class="field" style="margin-bottom:12px">
+          <label>支払回数（回）</label>
+          <select id="lc" onchange="calc()">
+            <option value="12">12回（1年）</option>
+            <option value="24">24回（2年）</option>
+            <option value="36">36回（3年）</option>
+            <option value="48">48回（4年）</option>
+            <option value="60">60回（5年）</option>
+            <option value="72">72回（6年）</option>
+            <option value="84">84回（7年）</option>
+            <option value="96">96回（8年）</option>
+            <option value="108">108回（9年）</option>
+            <option value="120">120回（10年）</option>
+            <option value="132">132回（11年）</option>
+            <option value="144">144回（12年）</option>
+            <option value="156">156回（13年）</option>
+            <option value="168">168回（14年）</option>
+            <option value="180" selected>180回（15年）</option>
+          </select>
+        </div>
         <!-- 手動入力エリア -->
         <div id="loan-manual-area" style="display:none;margin-bottom:12px">
-          <div class="field" style="margin-bottom:8px">
+          <div class="field">
             <label>月々返済額（円）<span style="font-size:10px;color:var(--mg);margin-left:6px">金融機関提示の実際の返済額</span></label>
             <input type="number" id="lp-manual" value="0" min="0" step="100" oninput="calc()">
-          </div>
-          <div style="font-size:11px;color:var(--muted);padding:6px 10px;background:#f9f9f9;border-radius:6px;border:1px solid var(--border)">
-            ✏️ 入力した月々返済額をそのまま試算に使用します。支払回数は自動計算側の設定値（回数）を参照します。
           </div>
         </div>
         <!-- 自動計算エリア -->
@@ -435,7 +453,7 @@ canvas#mini-chart { height: 150px !important; }
           </table>
           <div style="font-size:10px;color:var(--muted);margin-top:4px">※元金均等は初回月々返済額を表示。返済が進むにつれて減少します。</div>
         </div>
-        <div class="grid3" style="margin-bottom:8px">
+        <div class="grid2" style="margin-bottom:8px">
           <div class="field">
             <label>借入金額（万円）</label>
             <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calc()">
@@ -443,26 +461,6 @@ canvas#mini-chart { height: 150px !important; }
           <div class="field">
             <label>金利（年率 %）</label>
             <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calc()">
-          </div>
-          <div class="field">
-            <label>支払回数（回）</label>
-            <select id="lc" onchange="calc()">
-              <option value="12">12回（1年）</option>
-              <option value="24">24回（2年）</option>
-              <option value="36">36回（3年）</option>
-              <option value="48">48回（4年）</option>
-              <option value="60">60回（5年）</option>
-              <option value="72">72回（6年）</option>
-              <option value="84">84回（7年）</option>
-              <option value="96">96回（8年）</option>
-              <option value="108">108回（9年）</option>
-              <option value="120">120回（10年）</option>
-              <option value="132">132回（11年）</option>
-              <option value="144">144回（12年）</option>
-              <option value="156">156回（13年）</option>
-              <option value="168">168回（14年）</option>
-              <option value="180" selected>180回（15年）</option>
-            </select>
           </div>
         </div>
 
