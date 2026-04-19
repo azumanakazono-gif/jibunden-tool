@@ -343,6 +343,10 @@ canvas#mini-chart { height: 150px !important; }
             <label>追加費用（万円）</label>
             <input type="number" id="pkg-extra" value="0" min="0" step="10" oninput="onPkgExtraChange()">
           </div>
+          <div class="field" id="pkg-extra-note-field" style="min-width:180px">
+            <label>追加費用の内容（任意）</label>
+            <input type="text" id="pkg-extra-note" placeholder="例：配線延長工事・足場追加など" oninput="calc()">
+          </div>
         </div>
         <div id="pkg-cost-summary" style="margin-top:8px;font-size:12px;color:var(--dg);display:none"></div>
         <!-- 手動入力時のみ表示 -->
@@ -639,6 +643,7 @@ function onPkgChange() {
   const isManual = !key;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
   document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
+  document.getElementById('pkg-extra-note-field').style.display = isManual ? 'none' : '';
   if (!isManual && PACKAGES[key]) {
     const p = PACKAGES[key];
     const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
@@ -695,6 +700,7 @@ function saveFormToData(data) {
   data.lpManual = v('lp-manual');
   data.pkgSelect = document.getElementById('pkg-select').value;
   data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
+  data.pkgExtraNote = document.getElementById('pkg-extra-note').value;
   data.sysName = document.getElementById('sys-name').value;
 }
 
@@ -715,11 +721,13 @@ function loadDataToForm(data) {
   const ps = data.pkgSelect !== undefined ? data.pkgSelect : '7+7';
   document.getElementById('pkg-select').value = ps;
   document.getElementById('pkg-extra').value = data.pkgExtra || 0;
+  document.getElementById('pkg-extra-note').value = data.pkgExtraNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
   if (ps && PACKAGES[ps]) pkgBaseCost = PACKAGES[ps].cost;
   const isManual = !ps;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
   document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
+  document.getElementById('pkg-extra-note-field').style.display = isManual ? 'none' : '';
   updatePkgSummary();
   toggleLoan();
   calc();
@@ -1288,6 +1296,7 @@ function loadCustomer(id) {
     lpManual:    entry.lpManual    || 0,
     pkgSelect:   entry.pkgSelect   !== undefined ? entry.pkgSelect : '',
     pkgExtra:    entry.pkgExtra    || 0,
+    pkgExtraNote: entry.pkgExtraNote || '',
   };
   loanAmountEdited = false;
   if (activeTab === 'customer') {
