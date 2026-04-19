@@ -740,6 +740,23 @@ function switchTab(tab) {
   cb.style.display = tab === 'customer' ? 'flex' : 'none';
   hb.style.display = tab === 'hypothesis' ? 'flex' : 'none';
   document.getElementById('pkg-area').style.display = tab === 'customer' ? '' : 'none';
+  applyTabTheme(tab);
+}
+
+function applyTabTheme(tab) {
+  const el = document.getElementById('section-form');
+  if (tab === 'hypothesis') {
+    el.style.setProperty('--dg', '#1e3a8a');
+    el.style.setProperty('--mg', '#1d4ed8');
+    el.style.setProperty('--lg', '#3b82f6');
+    el.style.setProperty('--ac', '#93c5fd');
+    el.style.setProperty('--pg', '#dbeafe');
+    el.style.setProperty('--border', '#bfdbfe');
+    el.style.setProperty('--bg', '#eff6ff');
+  } else {
+    ['--dg','--mg','--lg','--ac','--pg','--border','--bg']
+      .forEach(v => el.style.removeProperty(v));
+  }
 }
 
 function resetToDefaults() {
