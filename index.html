@@ -2019,11 +2019,22 @@ calc();
 renderSidebarHistory();
 
 document.getElementById('scroll-top-btn').addEventListener('click', () => {
-  const main = document.querySelector('.main');
-  if (main) {
-    main.scrollTo({ top: 0, behavior: 'smooth' });
+  const candidates = [
+    document.querySelector('.main'),
+    document.querySelector('.app'),
+    document.documentElement,
+    document.body,
+  ];
+  const scrolled = candidates.find(el => el && el.scrollTop > 0);
+  if (scrolled) {
+    scrolled.scrollTo({ top: 0, behavior: 'smooth' });
   } else {
+    // スクロール位置を検出できなかった場合は全候補に適用
     window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const main = document.querySelector('.main');
+    if (main) main.scrollTop = 0;
   }
 });
 </script>
