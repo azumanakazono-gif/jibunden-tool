@@ -380,11 +380,11 @@ canvas#mini-chart { height: 150px !important; }
         <!-- 計算方式切り替え -->
         <div style="display:flex;gap:6px;margin-bottom:10px">
           <button id="btn-addon"   onclick="setLoanMethod('addon')"
-            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--mg);background:var(--mg);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
+            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
             アドオン方式
           </button>
           <button id="btn-zansai" onclick="setLoanMethod('zansai')"
-            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--border);background:#fff;color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
+            style="flex:1;padding:7px 4px;border-radius:8px;border:2px solid var(--mg);background:var(--mg);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;line-height:1.3">
             残債方式<br>元利均等
           </button>
           <button id="btn-gankin" onclick="setLoanMethod('gankin')"
@@ -843,7 +843,7 @@ function onLifestyleChange() {
 // ══════════════════════════════════════════
 // スライダー同期
 // ══════════════════════════════════════════
-let loanMethod = 'addon'; // 'addon' | 'zansai' | 'gankin'
+let loanMethod = 'zansai'; // 'addon' | 'zansai' | 'gankin'
 
 // 各方式の計算ロジック（共通）
 function calcLoanValues(borrowAmt, annualRate, count) {
@@ -1157,7 +1157,7 @@ function clearForm() {
   loanAmountEdited = false;
   document.getElementById('lr').value=4.1;
   document.getElementById('lc').value=180;
-  document.getElementById('le').checked=false; toggleLoan(); calc();
+  document.getElementById('le').checked=false; setLoanMethod('zansai'); toggleLoan(); calc();
 }
 
 // ══════════════════════════════════════════
