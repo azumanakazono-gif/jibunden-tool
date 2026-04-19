@@ -2019,7 +2019,12 @@ calc();
 renderSidebarHistory();
 
 document.getElementById('scroll-top-btn').addEventListener('click', () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const main = document.querySelector('.main');
+  if (main) {
+    main.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 });
 </script>
 <button id="scroll-top-btn" title="上へ戻る">↑</button>
