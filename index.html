@@ -235,18 +235,21 @@ canvas#mini-chart { height: 150px !important; }
     <div class="section-card">
       <div class="section-title">⚡ 電気使用状況</div>
       <div class="field" style="margin-bottom:10px">
-        <label>九州電力 料金プラン <span style="font-size:10px;color:var(--mg);margin-left:4px">選択すると単価を自動反映（手動上書き可）</span></label>
+        <label>電力会社・料金プラン <span style="font-size:10px;color:var(--mg);margin-left:4px">選択すると単価を自動反映（手動上書き可）</span></label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px">
+          <input type="text" id="utility-company" placeholder="電力会社名（任意）例：○○電力" style="flex:1;min-width:140px;border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;font-family:inherit">
+        </div>
         <select id="kyuden-plan" onchange="onKyudenPlanChange()">
           <option value="">手動入力</option>
-          <optgroup label="▼ 固定単価プラン（目安）">
+          <optgroup label="▼ 固定単価プラン（参考目安）">
             <!-- 固定単価マスタ：見直す場合は value の数値を変更 -->
-            <option value="30">従量電灯B</option>
-            <option value="30">スマートファミリープラン</option>
+            <option value="30">従量電灯B（目安 30円/kWh）</option>
+            <option value="30">スマートファミリープラン（目安 30円/kWh）</option>
           </optgroup>
           <optgroup label="▼ 請求書から平均単価算出">
             <!-- 時間帯別・季節別など複雑な料金体系は請求書ベースで実効平均単価を算出 -->
-            <option value="avg:smart_gas">スマートファミリープラン［ガスセット］（請求書から平均単価算出）</option>
-            <option value="avg:denka">電化でナイト・セレクト（請求書から平均単価算出）</option>
+            <option value="avg:smart_gas">時間帯別プラン・ガスセット（請求書から平均単価算出）</option>
+            <option value="avg:denka">オール電化プラン（請求書から平均単価算出）</option>
           </optgroup>
         </select>
       </div>
@@ -641,6 +644,7 @@ function saveFormToData(data) {
   TAB_FIELDS.forEach(id => { data[id] = parseFloat(document.getElementById(id).value)||0; });
   data.le = document.getElementById('le').checked;
   data.kyudenPlan = document.getElementById('kyuden-plan').value;
+  data.utilityCompany = document.getElementById('utility-company').value;
   data.lp = parseFloat(document.getElementById('lp').value)||0;
   data.ly = parseFloat(document.getElementById('ly').value)||15;
   data.loanMethod = loanMethod;
@@ -657,6 +661,7 @@ function loadDataToForm(data) {
   TAB_FIELDS.forEach(id => { const el=document.getElementById(id); if(el && data[id]!==undefined) el.value=data[id]; });
   document.getElementById('le').checked = data.le || false;
   document.getElementById('kyuden-plan').value = data.kyudenPlan || '';
+  document.getElementById('utility-company').value = data.utilityCompany || '';
   const kp = data.kyudenPlan || '';
   showAvgRateSection(kp.startsWith('avg:'));
   if (data.loanMethod) setLoanMethod(data.loanMethod);
@@ -1528,9 +1533,11 @@ async function generatePPTX() {
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,presR);
-      const planLabel = custData.kyudenPlan
-        ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
-        : '手動入力';
+      const companyName = custData.utilityCompany ? custData.utilityCompany : '電力会社';
+      const planLabel = (custData.utilityCompany ? custData.utilityCompany + '　' : '') +
+        (custData.kyudenPlan
+          ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
+          : '手動入力');
       const hItems=[
         {label:"お客様名",       value:cfg.customerName},
         {label:"家族構成",       value:cfg.familyComposition},
