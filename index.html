@@ -388,26 +388,36 @@ canvas#mini-chart { height: 150px !important; }
             ✏️ 手動入力
           </button>
         </div>
-        <!-- 支払回数（常時表示） -->
-        <div class="field" style="margin-bottom:12px">
-          <label>支払回数（回）</label>
-          <select id="lc" onchange="calc()">
-            <option value="12">12回（1年）</option>
-            <option value="24">24回（2年）</option>
-            <option value="36">36回（3年）</option>
-            <option value="48">48回（4年）</option>
-            <option value="60">60回（5年）</option>
-            <option value="72">72回（6年）</option>
-            <option value="84">84回（7年）</option>
-            <option value="96">96回（8年）</option>
-            <option value="108">108回（9年）</option>
-            <option value="120">120回（10年）</option>
-            <option value="132">132回（11年）</option>
-            <option value="144">144回（12年）</option>
-            <option value="156">156回（13年）</option>
-            <option value="168">168回（14年）</option>
-            <option value="180" selected>180回（15年）</option>
-          </select>
+        <!-- 借入金額・金利・支払回数（常時表示） -->
+        <div class="grid3" style="margin-bottom:12px">
+          <div class="field">
+            <label>借入金額（万円）</label>
+            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calc()">
+          </div>
+          <div class="field">
+            <label>金利（年率 %）</label>
+            <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calc()">
+          </div>
+          <div class="field">
+            <label>支払回数（回）</label>
+            <select id="lc" onchange="calc()">
+              <option value="12">12回（1年）</option>
+              <option value="24">24回（2年）</option>
+              <option value="36">36回（3年）</option>
+              <option value="48">48回（4年）</option>
+              <option value="60">60回（5年）</option>
+              <option value="72">72回（6年）</option>
+              <option value="84">84回（7年）</option>
+              <option value="96">96回（8年）</option>
+              <option value="108">108回（9年）</option>
+              <option value="120">120回（10年）</option>
+              <option value="132">132回（11年）</option>
+              <option value="144">144回（12年）</option>
+              <option value="156">156回（13年）</option>
+              <option value="168">168回（14年）</option>
+              <option value="180" selected>180回（15年）</option>
+            </select>
+          </div>
         </div>
         <!-- 手動入力エリア -->
         <div id="loan-manual-area" style="display:none;margin-bottom:12px">
@@ -453,17 +463,6 @@ canvas#mini-chart { height: 150px !important; }
           </table>
           <div style="font-size:10px;color:var(--muted);margin-top:4px">※元金均等は初回月々返済額を表示。返済が進むにつれて減少します。</div>
         </div>
-        <div class="grid2" style="margin-bottom:8px">
-          <div class="field">
-            <label>借入金額（万円）</label>
-            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calc()">
-          </div>
-          <div class="field">
-            <label>金利（年率 %）</label>
-            <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calc()">
-          </div>
-        </div>
-
         <!-- 計算結果 -->
         <div id="loan-calc-result" style="background:var(--pg);border-radius:8px;padding:10px 14px;margin-bottom:12px;border:1px solid var(--border);font-size:13px">
           <div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center">
