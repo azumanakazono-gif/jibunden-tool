@@ -118,7 +118,7 @@ canvas#mini-chart { height: 150px !important; }
 
 /* ── トースト ── */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
-#scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 48px; height: 48px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 20px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.2); z-index: 190; align-items: center; justify-content: center; }
+#scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 9999; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
 @media (max-width: 900px) { #scroll-top-btn { display: flex; } }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
@@ -2018,19 +2018,28 @@ onPkgChange(); // 7+7パッケージのデフォルト値を適用
 calc();
 renderSidebarHistory();
 
-document.getElementById('scroll-top-btn').addEventListener('click', () => {
-  // [DEBUG] クリック発火確認
-  const dbg = [
-    'window.scrollY=' + window.scrollY,
-    'html.scrollTop=' + document.documentElement.scrollTop,
-    'body.scrollTop=' + document.body.scrollTop,
-    '.main.scrollTop=' + (document.querySelector('.main') ? document.querySelector('.main').scrollTop : 'n/a'),
-    '.app.scrollTop=' + (document.querySelector('.app') ? document.querySelector('.app').scrollTop : 'n/a'),
-  ].join(' / ');
-  toast('▲ クリック確認 ' + dbg);
-  console.log('[scroll-top]', dbg);
-});
+function scrollToTopHandler(e) {
+  if (e && e.type === 'touchstart') e.preventDefault();
+  toast('▲ タップ確認 – スクロール中…');
+  const candidates = [
+    document.querySelector('.main'),
+    document.querySelector('.app'),
+    document.documentElement,
+    document.body,
+  ];
+  const scrolled = candidates.find(el => el && el.scrollTop > 0);
+  if (scrolled) {
+    scrolled.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+}
+const _stb = document.getElementById('scroll-top-btn');
+_stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
+_stb.addEventListener('click', scrollToTopHandler);
 </script>
-<button id="scroll-top-btn" title="上へ戻る">↑</button>
+<button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
 </body>
 </html>
