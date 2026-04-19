@@ -277,9 +277,12 @@ canvas#mini-chart { height: 150px !important; }
           <div style="font-size:10px;color:var(--muted);margin-top:4px">※請求書の明細を入力した場合は明細合計÷使用量で算出。未入力時は上記「月間電気代」÷使用量で簡易算出。</div>
         </details>
       </div>
-      <div class="grid2" style="margin-bottom:8px">
-        <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="5000" max="80000" step="1000" oninput="calc()"></div>
-        <div class="field"><label>現在の単価（円/kWh）<span style="font-size:10px;color:var(--mg);margin-left:4px">プラン選択 or 手動入力</span></label><input type="number" id="up" value="30" min="20" max="50" step="1" oninput="calc()"></div>
+      <div class="grid2" style="margin-bottom:4px">
+        <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="1000" max="200000" step="1000" oninput="calc()"></div>
+        <div class="field"><label>月間使用量（kWh）</label><input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="calc()"></div>
+      </div>
+      <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
+        現在の単価（自動計算）：<b id="up-auto" style="color:var(--dg)">-</b>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -529,7 +532,7 @@ const v = id => parseFloat(document.getElementById(id).value) || 0;
 const HYPOTHESIS_DEFAULTS = {
   cn:'モデルケース', fm:'5人以上の大家族',
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
-  mb:20000, up:30, ag:7700, sk:7, bk:7, ck:280,
+  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:5000, bc:2500, sub:0, wy:20, er:0,
   la2:280, lr:3.5, lc:180, le:false, kyudenPlan:'',
   lp:0, ly:15, loanMethod:'addon',
@@ -537,7 +540,7 @@ const HYPOTHESIS_DEFAULTS = {
 const CUSTOMER_DEFAULTS = {
   cn:'○○様', fm:'4人家族（夫婦＋子ども2人）',
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
-  mb:20000, up:30, ag:7700, sk:7, bk:7, ck:280,
+  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
   la2:280, lr:3.5, lc:180, le:false, kyudenPlan:'',
   lp:0, ly:15, loanMethod:'addon',
@@ -546,7 +549,7 @@ let hypData = {...HYPOTHESIS_DEFAULTS};
 let custData = {...CUSTOMER_DEFAULTS};
 let activeTab = 'customer';
 
-const TAB_FIELDS = ['mb','up','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
+const TAB_FIELDS = ['mb','mkwh','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
 
 const PACKAGES = {
   '5+7' :{panels:14,sk:5.46, bk:7.7, cost:265,ag:6006, bc:1967},
@@ -572,13 +575,13 @@ function buildCfg(data, lp, ly) {
     familyComposition: data.fm || '',
     lifestyleNote: data.ls || '',
     monthlyElectricBill: data.mb || 0,
-    currentUnitPrice: data.up || 0,
+    currentUnitPrice: data.mkwh > 0 ? Math.round(data.mb / data.mkwh * 10) / 10 : 0,
     annualGenerationKWh: data.ag || 0,
     solarCapacityKW: data.sk || 0,
     batteryCapacityKWh: data.bk || 0,
     directConsumptionKWh: data.dc || 0,
     batteryConsumptionKWh: data.bc || 0,
-    annualConsumptionKWh: Math.round((data.mb||0) / Math.max(1, data.up||1) * 12),
+    annualConsumptionKWh: (data.mkwh||0) * 12,
     totalConstructionCost: (data.ck||0) * 10000,
     subsidyAmount: data.sub || 0,
     warrantyYears: data.wy || 20,
@@ -734,16 +737,8 @@ function showSection(s) {
 // ── 実効平均単価プランは avg: プレフィックスで判別 ──
 // ══════════════════════════════════════════
 function onKyudenPlanChange() {
-  const val = document.getElementById('kyuden-plan').value;
-  if (!val) { showAvgRateSection(false); return; }
-  if (val.startsWith('avg:')) {
-    showAvgRateSection(true);
-    calcAvgUnitPrice();
-  } else {
-    showAvgRateSection(false);
-    document.getElementById('up').value = val;
-    calc();
-  }
+  // 単価は常にmb/mkwhから自動計算するため、プラン選択はラベルのみ
+  calc();
 }
 
 function showAvgRateSection(show) {
@@ -778,7 +773,7 @@ function calcAvgUnitPrice() {
   const avg  = Math.round(base / kwh * 10) / 10;
 
   dispEl.textContent = `約${avg}円/kWh${hasBreakdown ? '（明細から算出）' : '（月間電気代÷使用量）'}`;
-  document.getElementById('up').value = avg;
+  // avg-rate-section は現在非使用（単価はmb/mkwhから自動計算）
   calc();
 }
 
@@ -813,7 +808,7 @@ function applyDaytimeRate() {
   const textEl = document.getElementById('daytime-auto-text');
   if (rate === null) { noteEl.style.display = 'none'; calc(); return; }
   const pct = Math.round(rate * 100);
-  const annualConsumption = Math.round(v('mb') / Math.max(1, v('up')) * 12);
+  const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
   const dc  = Math.round(Math.min(ag * 0.65, annualConsumption * rate));
   const bcMax = Math.max(0, ag * 0.65 - dc);
@@ -1020,11 +1015,15 @@ function calcMetrics(c) {
 }
 
 function calc() {
-  const mb=v('mb'),up=v('up'),ag=v('ag'),sk=v('sk'),wy=v('wy');
+  const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   const dc=v('dc'), bc=v('bc'), er=v('er');
-  const totalConstructionCost = v('ck') * 10000; // 税込総工事費用（万円→円）
-  const subsidyAmount = v('sub'); // 補助金（万円）
-  const annualConsumptionKWh = Math.round(mb / up * 12);
+  const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
+  const totalConstructionCost = v('ck') * 10000;
+  const subsidyAmount = v('sub');
+  const annualConsumptionKWh = mkwh * 12;
+  // 単価自動表示
+  const upEl = document.getElementById('up-auto');
+  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
   // 昼間使用率・使用量表示（手動上書きも即時反映）
   const daytimePct = annualConsumptionKWh > 0 ? Math.round(dc / annualConsumptionKWh * 100) : 0;
   const dcMonthly  = Math.round(dc / 12);
@@ -1138,7 +1137,7 @@ function clearForm() {
   showAvgRateSection(false);
   document.getElementById('daytime-rate-disp').textContent='';
   document.getElementById('daytime-auto-note').style.display='none';
-  document.getElementById('mb').value=20000; document.getElementById('up').value=30;
+  document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
   document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
   document.getElementById('bk').value=7; document.getElementById('ck').value=40;
   document.getElementById('dc').value=2310; document.getElementById('bc').value=2520;
@@ -1176,7 +1175,7 @@ function loadCustomer(id) {
   if (!fmSel.value) fmSel.value = '4人家族（夫婦＋子ども2人）';
   document.getElementById('ls').value = entry.lifestyleNote||'';
   document.getElementById('mb').value = entry.monthlyElectricBill||20000;
-  document.getElementById('up').value = entry.currentUnitPrice||30;
+  document.getElementById('mkwh').value = entry.mkwh || Math.round((entry.monthlyElectricBill||20000) / (entry.currentUnitPrice||30));
   document.getElementById('ag').value = entry.annualGenerationKWh||7700;
   document.getElementById('sk').value = entry.solarCapacityKW||7;
   document.getElementById('bk').value = entry.batteryCapacityKWh||7;
