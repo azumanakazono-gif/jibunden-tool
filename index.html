@@ -2019,23 +2019,16 @@ calc();
 renderSidebarHistory();
 
 document.getElementById('scroll-top-btn').addEventListener('click', () => {
-  const candidates = [
-    document.querySelector('.main'),
-    document.querySelector('.app'),
-    document.documentElement,
-    document.body,
-  ];
-  const scrolled = candidates.find(el => el && el.scrollTop > 0);
-  if (scrolled) {
-    scrolled.scrollTo({ top: 0, behavior: 'smooth' });
-  } else {
-    // スクロール位置を検出できなかった場合は全候補に適用
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    const main = document.querySelector('.main');
-    if (main) main.scrollTop = 0;
-  }
+  // [DEBUG] クリック発火確認
+  const dbg = [
+    'window.scrollY=' + window.scrollY,
+    'html.scrollTop=' + document.documentElement.scrollTop,
+    'body.scrollTop=' + document.body.scrollTop,
+    '.main.scrollTop=' + (document.querySelector('.main') ? document.querySelector('.main').scrollTop : 'n/a'),
+    '.app.scrollTop=' + (document.querySelector('.app') ? document.querySelector('.app').scrollTop : 'n/a'),
+  ].join(' / ');
+  toast('▲ クリック確認 ' + dbg);
+  console.log('[scroll-top]', dbg);
 });
 </script>
 <button id="scroll-top-btn" title="上へ戻る">↑</button>
