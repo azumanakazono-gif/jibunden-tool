@@ -423,7 +423,23 @@ canvas#mini-chart { height: 150px !important; }
           </div>
           <div class="field">
             <label>支払回数（回）</label>
-            <input type="number" id="lc" value="180" min="12" max="240" step="12" oninput="calcLoan()">
+            <select id="lc" onchange="calcLoan()">
+              <option value="12">12回（1年）</option>
+              <option value="24">24回（2年）</option>
+              <option value="36">36回（3年）</option>
+              <option value="48">48回（4年）</option>
+              <option value="60">60回（5年）</option>
+              <option value="72">72回（6年）</option>
+              <option value="84">84回（7年）</option>
+              <option value="96">96回（8年）</option>
+              <option value="108">108回（9年）</option>
+              <option value="120">120回（10年）</option>
+              <option value="132">132回（11年）</option>
+              <option value="144">144回（12年）</option>
+              <option value="156">156回（13年）</option>
+              <option value="168">168回（14年）</option>
+              <option value="180" selected>180回（15年）</option>
+            </select>
           </div>
         </div>
 
