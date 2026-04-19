@@ -415,15 +415,15 @@ canvas#mini-chart { height: 150px !important; }
         <div class="grid3" style="margin-bottom:8px">
           <div class="field">
             <label>借入金額（万円）</label>
-            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calcLoan()">
+            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calc()">
           </div>
           <div class="field">
             <label>金利（年率 %）</label>
-            <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calcLoan()">
+            <input type="number" id="lr" value="4.1" min="0.1" max="15" step="0.1" oninput="calc()">
           </div>
           <div class="field">
             <label>支払回数（回）</label>
-            <select id="lc" onchange="calcLoan()">
+            <select id="lc" onchange="calc()">
               <option value="12">12回（1年）</option>
               <option value="24">24回（2年）</option>
               <option value="36">36回（3年）</option>
@@ -691,7 +691,6 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
   updatePkgSummary();
   toggleLoan();
-  calcLoan();
   calc();
 }
 
@@ -906,7 +905,7 @@ function setLoanMethod(method) {
   };
   document.getElementById('loan-method-desc').textContent = descs[method];
   document.getElementById('loan-warning').textContent     = warnings[method];
-  calcLoan();
+  calc();
 }
 
 function calcLoan() {
@@ -946,15 +945,12 @@ function calcLoan() {
     </tr>`;
   }).join('');
   document.getElementById('loan-compare-table').style.display = '';
-
-  calc();
 }
 
 function toggleLoan() {
   const on=document.getElementById('le').checked;
   document.getElementById('loan-fields').className='loan-fields'+(on?' on':'');
-  if(on) calcLoan();
-  else calc();
+  calc();
 }
 
 function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
@@ -1032,7 +1028,8 @@ function calc() {
   const dc=v('dc'), bc=v('bc'), er=v('er');
   const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
   const totalConstructionCost = v('ck') * 10000;
-  if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); calcLoan(); }
+  if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); }
+  calcLoan();
   const subsidyAmount = v('sub');
   const annualConsumptionKWh = mkwh * 12;
   // 単価自動表示
@@ -1940,7 +1937,6 @@ async function generatePPTX(mode) {
 
 // ── 初期化 ──
 onPkgChange(); // 7+7パッケージのデフォルト値を適用
-calcLoan();
 calc();
 renderSidebarHistory();
 </script>
