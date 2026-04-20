@@ -996,15 +996,14 @@ function onHearingChange(data) {
   const guide = document.getElementById('billing-guide');
   const noteEl = document.getElementById('mkwh-label-note');
   if (hasBill) {
-    guide.style.display = '';
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#f0fdf4;color:var(--mg)';
     guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力してください。';
     noteEl.textContent = '';
+    document.getElementById('estimated-price-disp').style.display = 'none';
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
     guide.innerHTML = '📝 <b>明細なし</b>：月間電気代と料金プランから使用量を概算推定します。数値は修正可能です。';
     noteEl.textContent = '（概算）';
-    // 概算使用量を自動推定
     const mb = parseFloat(document.getElementById('mb').value) || 20000;
     const kp = document.getElementById('kyuden-plan').value;
     let unitPrice = 30;
@@ -1026,8 +1025,6 @@ function onHearingChange(data) {
     epDisp.textContent = priceLabel;
     document.getElementById('mkwh').value = Math.round(mb / unitPrice);
     calc();
-  } else {
-    document.getElementById('estimated-price-disp').style.display = 'none';
   }
 }
 
