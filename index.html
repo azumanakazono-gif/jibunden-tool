@@ -123,6 +123,11 @@ canvas#mini-chart { height: 150px !important; }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
 .toast.error { background: var(--danger); }
+.hearing-row { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--pg); border-radius:8px; border:1px solid var(--border); }
+.hearing-lbl { font-size:13px; font-weight:600; color:var(--text); }
+.hearing-btns { display:flex; gap:4px; }
+.htgl { padding:5px 16px; border-radius:6px; border:1.5px solid var(--border); background:#fff; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+.htgl.active { background:var(--mg); color:#fff; border-color:var(--mg); }
 
 .tab-btn { flex:1; padding:11px 16px; background:#fff; border:none; border-bottom:3px solid transparent; cursor:pointer; font-size:14px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
@@ -202,6 +207,40 @@ canvas#mini-chart { height: 150px !important; }
       <b style="color:#1d4ed8">🔬 仮説モデル入力</b>
       <span style="color:#1e40af">一般的なご家庭モデルの説明用</span>
       <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid #1d4ed8;background:#fff;color:#1d4ed8;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
+    </div>
+
+    <div class="section-card">
+      <div class="section-title">📋 冒頭ヒアリング</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="hearing-row">
+          <span class="hearing-lbl">📄 電気料金明細</span>
+          <div class="hearing-btns">
+            <button id="htgl-hasBill-n" class="htgl active" onclick="setHearing('hasBill',false)">なし</button>
+            <button id="htgl-hasBill-y" class="htgl" onclick="setHearing('hasBill',true)">あり</button>
+          </div>
+        </div>
+        <div class="hearing-row">
+          <span class="hearing-lbl">☀️ 太陽光（PV）</span>
+          <div class="hearing-btns">
+            <button id="htgl-hasPV-n" class="htgl active" onclick="setHearing('hasPV',false)">なし</button>
+            <button id="htgl-hasPV-y" class="htgl" onclick="setHearing('hasPV',true)">あり</button>
+          </div>
+        </div>
+        <div class="hearing-row">
+          <span class="hearing-lbl">🔋 蓄電池</span>
+          <div class="hearing-btns">
+            <button id="htgl-hasBattery-n" class="htgl active" onclick="setHearing('hasBattery',false)">なし</button>
+            <button id="htgl-hasBattery-y" class="htgl" onclick="setHearing('hasBattery',true)">あり</button>
+          </div>
+        </div>
+        <div class="hearing-row">
+          <span class="hearing-lbl">🏡 オール電化</span>
+          <div class="hearing-btns">
+            <button id="htgl-isAllElectric-n" class="htgl active" onclick="setHearing('isAllElectric',false)">なし</button>
+            <button id="htgl-isAllElectric-y" class="htgl" onclick="setHearing('isAllElectric',true)">あり</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="section-card">
@@ -571,6 +610,8 @@ const v = id => parseFloat(document.getElementById(id).value) || 0;
 // ══════════════════════════════════════════
 // 2タブ データ管理
 // ══════════════════════════════════════════
+const HEARING_KEYS = ['hasBill','hasPV','hasBattery','isAllElectric'];
+const HEARING_DEFAULTS = { hasBill:false, hasPV:false, hasBattery:false, isAllElectric:false };
 const HYPOTHESIS_DEFAULTS = {
   cn:'モデルケース', fm:'5人以上の大家族',
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
@@ -578,6 +619,7 @@ const HYPOTHESIS_DEFAULTS = {
   dc:5000, bc:2500, sub:0, wy:20, er:0,
   la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
+  ...HEARING_DEFAULTS,
 };
 const CUSTOMER_DEFAULTS = {
   cn:'○○様', fm:'4人家族（夫婦＋子ども2人）',
@@ -586,6 +628,7 @@ const CUSTOMER_DEFAULTS = {
   dc:2310, bc:2520, sub:0, wy:20, er:0,
   la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
+  ...HEARING_DEFAULTS,
 };
 let hypData = {...HYPOTHESIS_DEFAULTS};
 let custData = {...CUSTOMER_DEFAULTS};
@@ -702,6 +745,7 @@ function saveFormToData(data) {
   data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
   data.pkgExtraNote = document.getElementById('pkg-extra-note').value;
   data.sysName = document.getElementById('sys-name').value;
+  HEARING_KEYS.forEach(k => { data[k] = data[k] || false; }); // preserve current values
 }
 
 function loadDataToForm(data) {
@@ -723,6 +767,7 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra').value = data.pkgExtra || 0;
   document.getElementById('pkg-extra-note').value = data.pkgExtraNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
+  updateHearingUI(data);
   if (ps && PACKAGES[ps]) pkgBaseCost = PACKAGES[ps].cost;
   const isManual = !ps;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
@@ -902,6 +947,19 @@ function onLifestyleChange() {
 // ══════════════════════════════════════════
 let loanMethod = 'zansai'; // 'addon' | 'zansai' | 'gankin'
 let loanInputMode = 'auto'; // 'auto' | 'manual'
+
+function setHearing(key, val) {
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  data[key] = val;
+  updateHearingUI(data);
+}
+function updateHearingUI(data) {
+  HEARING_KEYS.forEach(k => {
+    const val = data ? !!data[k] : false;
+    document.getElementById('htgl-'+k+'-y').classList.toggle('active', val);
+    document.getElementById('htgl-'+k+'-n').classList.toggle('active', !val);
+  });
+}
 
 function setLoanInputMode(mode) {
   loanInputMode = mode;
@@ -1297,6 +1355,10 @@ function loadCustomer(id) {
     pkgSelect:   entry.pkgSelect   !== undefined ? entry.pkgSelect : '',
     pkgExtra:    entry.pkgExtra    || 0,
     pkgExtraNote: entry.pkgExtraNote || '',
+    hasBill:      entry.hasBill      || false,
+    hasPV:        entry.hasPV        || false,
+    hasBattery:   entry.hasBattery   || false,
+    isAllElectric:entry.isAllElectric|| false,
   };
   loanAmountEdited = false;
   if (activeTab === 'customer') {
