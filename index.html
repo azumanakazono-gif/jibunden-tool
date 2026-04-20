@@ -883,8 +883,8 @@ function showAvgRateSection(show) {
   const el = document.getElementById('avg-rate-section');
   el.style.display = show ? '' : 'none';
   if (show) {
-    // 月間電気代÷現在単価で月間使用量を初期推定
-    const est = Math.round(v('mb') / Math.max(1, v('up')));
+    // mkwhを使用量の初期値として転記
+    const est = v('mkwh');
     if (est > 0 && !document.getElementById('monthly-kwh').value)
       document.getElementById('monthly-kwh').value = est;
     calcAvgUnitPrice();
@@ -1000,6 +1000,7 @@ function onHearingChange(data) {
     guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力してください。';
     noteEl.textContent = '';
     document.getElementById('estimated-price-disp').style.display = 'none';
+    calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
     guide.innerHTML = '📝 <b>明細なし</b>：月間電気代と料金プランから使用量を概算推定します。数値は修正可能です。';
