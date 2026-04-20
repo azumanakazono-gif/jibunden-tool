@@ -1239,14 +1239,16 @@ function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   const dc=v('dc'), bc=v('bc'), er=v('er');
   const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
+  const annualConsumptionKWh = mkwh * 12;
+  // 最優先表示：mb/mkwhがあれば何があっても必ず更新
+  const upEl = document.getElementById('up-auto');
+  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
+  document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
+  document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
   if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); }
   calcLoan();
   const subsidyAmount = v('sub');
-  const annualConsumptionKWh = mkwh * 12;
-  // 単価自動表示
-  const upEl = document.getElementById('up-auto');
-  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
   // 昼間使用率・使用量表示（手動上書きも即時反映）
   const daytimePct = annualConsumptionKWh > 0 ? Math.round(dc / annualConsumptionKWh * 100) : 0;
   const dcMonthly  = Math.round(dc / 12);
@@ -1257,9 +1259,6 @@ function calc() {
                solarCapacityKW:sk, totalConstructionCost, subsidyAmount, warrantyYears:wy,
                directConsumptionKWh:dc, batteryConsumptionKWh:bc,
                annualConsumptionKWh, escalationRate:er };
-  // 年間電気代・年間消費電力量の表示更新
-  document.getElementById('annual-bill-disp').textContent = '¥' + fmt(mb * 12);
-  document.getElementById('annual-kwh-disp').textContent = fmt(annualConsumptionKWh) + ' kWh';
   const m = calcMetrics(c);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
