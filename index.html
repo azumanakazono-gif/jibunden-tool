@@ -318,8 +318,9 @@ canvas#mini-chart { height: 150px !important; }
       </div>
       <div class="grid2" style="margin-bottom:4px">
         <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="1000" max="200000" step="1000" oninput="calc()"></div>
-        <div class="field"><label>月間使用量（kWh）</label><input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="calc()"></div>
+        <div class="field"><label>月間使用量（kWh）<span id="mkwh-label-note" style="font-size:10px;margin-left:4px;color:var(--muted)"></span></label><input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="calc()"></div>
       </div>
+      <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
       <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
         現在の単価（自動計算）：<b id="up-auto" style="color:var(--dg)">-</b>
       </div>
@@ -775,6 +776,7 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra-note-field').style.display = isManual ? 'none' : '';
   updatePkgSummary();
   toggleLoan();
+  onHearingChange(data);
   calc();
 }
 
@@ -952,6 +954,7 @@ function setHearing(key, val) {
   const data = activeTab === 'hypothesis' ? hypData : custData;
   data[key] = val;
   updateHearingUI(data);
+  onHearingChange(data);
 }
 function updateHearingUI(data) {
   HEARING_KEYS.forEach(k => {
@@ -959,6 +962,29 @@ function updateHearingUI(data) {
     document.getElementById('htgl-'+k+'-y').classList.toggle('active', val);
     document.getElementById('htgl-'+k+'-n').classList.toggle('active', !val);
   });
+}
+function onHearingChange(data) {
+  if (!data) data = activeTab === 'hypothesis' ? hypData : custData;
+  const hasBill = !!data.hasBill;
+  const guide = document.getElementById('billing-guide');
+  const noteEl = document.getElementById('mkwh-label-note');
+  if (hasBill) {
+    guide.style.display = '';
+    guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#f0fdf4;color:var(--mg)';
+    guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力してください。';
+    noteEl.textContent = '';
+  } else {
+    guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
+    guide.innerHTML = '📝 <b>明細なし</b>：月間電気代と料金プランから使用量を概算推定します。数値は修正可能です。';
+    noteEl.textContent = '（概算）';
+    // 概算使用量を自動推定
+    const mb = parseFloat(document.getElementById('mb').value) || 20000;
+    const kp = document.getElementById('kyuden-plan').value;
+    let unitPrice = 30;
+    if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) unitPrice = parseFloat(kp);
+    document.getElementById('mkwh').value = Math.round(mb / unitPrice);
+    calc();
+  }
 }
 
 function setLoanInputMode(mode) {
