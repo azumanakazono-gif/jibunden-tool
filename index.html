@@ -288,6 +288,9 @@ canvas#mini-chart { height: 150px !important; }
             <option value="25">夜間割引・深夜電力優遇プラン（目安 25円/kWh）</option>
             <option value="33">高圧・大容量プラン（目安 33円/kWh）</option>
           </optgroup>
+          <optgroup label="▼ 九州電力 オール電化（生活スタイル別概算）">
+            <option value="kyushu_denka_night">電化でナイト・セレクト（生活スタイル別概算単価）</option>
+          </optgroup>
           <optgroup label="▼ 請求書から平均単価算出（複雑な料金体系）">
             <option value="avg:smart_gas">時間帯別・季節別プラン（請求書から平均算出）</option>
             <option value="avg:denka">オール電化・エコキュート（請求書から平均算出）</option>
@@ -616,6 +619,19 @@ const v = id => parseFloat(document.getElementById(id).value) || 0;
 // 2タブ データ管理
 // ══════════════════════════════════════════
 const HEARING_KEYS = ['hasBill','hasPV','hasBattery','isAllElectric'];
+// ── 九州電力 電化でナイト・セレクト 概算単価マスタ ──
+// 単価・比率を変更する場合は tariff と styles の数値を更新してください
+const KYUSHU_DENKA_NIGHT = {
+  tariff: { day:26.5, hol:20.5, ngt:14.6 },
+  styles: {
+    even:        { day:0.30, hol:0.20, ngt:0.50, label:'標準（ナイト22想定）' },
+    away:        { day:0.20, hol:0.15, ngt:0.65, label:'共働き・夜間中心' },
+    home:        { day:0.40, hol:0.15, ngt:0.45, label:'在宅ワーク多め' },
+    allelectric: { day:0.50, hol:0.15, ngt:0.35, label:'高齢者在宅多め' },
+    night:       { day:0.15, hol:0.15, ngt:0.70, label:'夜型・深夜利用多め' },
+    custom:      { day:0.30, hol:0.20, ngt:0.50, label:'標準（ナイト22想定）' },
+  },
+};
 const HEARING_DEFAULTS = { hasBill:false, hasPV:false, hasBattery:false, isAllElectric:false };
 const HYPOTHESIS_DEFAULTS = {
   cn:'モデルケース', fm:'5人以上の大家族',
@@ -948,6 +964,11 @@ function onLifestyleChange() {
   const lsInput = document.getElementById('ls');
   if (preset !== 'custom') lsInput.value = LIFESTYLE_LABEL[preset] || '';
   applyDaytimeRate();
+  // 電化でナイト選択中かつ明細なし → 生活スタイル変更で概算単価を再推定
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  if (!data.hasBill && document.getElementById('kyuden-plan').value === 'kyushu_denka_night') {
+    onHearingChange(data);
+  }
 }
 
 // ══════════════════════════════════════════
@@ -987,10 +1008,22 @@ function onHearingChange(data) {
     const mb = parseFloat(document.getElementById('mb').value) || 20000;
     const kp = document.getElementById('kyuden-plan').value;
     let unitPrice = 30;
-    if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) unitPrice = parseFloat(kp);
+    let priceLabel = '';
+    if (kp === 'kyushu_denka_night') {
+      const ls = document.getElementById('ls-preset').value;
+      const s = KYUSHU_DENKA_NIGHT.styles[ls] || KYUSHU_DENKA_NIGHT.styles.custom;
+      const t = KYUSHU_DENKA_NIGHT.tariff;
+      unitPrice = Math.round((s.day*t.day + s.hol*t.hol + s.ngt*t.ngt)*10)/10;
+      priceLabel = `💡 九州電力 電化でナイト・セレクト概算単価（目安）：${unitPrice}円/kWh（${s.label}）`;
+    } else if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) {
+      unitPrice = parseFloat(kp);
+      priceLabel = `💡 概算単価（目安）：${unitPrice}円/kWh を使用`;
+    } else {
+      priceLabel = `💡 概算単価（目安）：${unitPrice}円/kWh（デフォルト）を使用`;
+    }
     const epDisp = document.getElementById('estimated-price-disp');
     epDisp.style.display = '';
-    epDisp.textContent = `💡 概算単価（目安）：${unitPrice}円/kWh を使用`;
+    epDisp.textContent = priceLabel;
     document.getElementById('mkwh').value = Math.round(mb / unitPrice);
     calc();
   } else {
