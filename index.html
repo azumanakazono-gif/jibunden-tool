@@ -2208,6 +2208,20 @@ function scrollToTopHandler(e) {
     document.body.scrollTop = 0;
   }
 }
+// ページが完全に読み込まれてから実行するようにします
+window.addEventListener('DOMContentLoaded', () => {
+    const _stb = document.getElementById('scroll-top-btn');
+    if (_stb) {
+        _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
+        _stb.addEventListener('click', scrollToTopHandler);
+    }
+});
+</script>
+
+<button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
+</body>
+</html>
+ 
 const _stb = document.getElementById('scroll-top-btn');
 _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
 }  
