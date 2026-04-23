@@ -329,7 +329,7 @@ canvas#mini-chart { height: 150px !important; }
       </div>
       <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
       <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
-        現在の単価（自動計算）：<b id="up-auto" style="color:var(--dg)">-</b>
+        現在の平均単価（自動計算・税込）：<b id="up-auto" style="color:var(--dg)">-</b>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -997,13 +997,13 @@ function onHearingChange(data) {
   const noteEl = document.getElementById('mkwh-label-note');
   if (hasBill) {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#f0fdf4;color:var(--mg)';
-    guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力してください。';
+    guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力。月間電気代÷使用量＝実質平均単価（再エネ賦課金等含む）として自動計算します。';
     noteEl.textContent = '';
     document.getElementById('estimated-price-disp').style.display = 'none';
     calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
-    guide.innerHTML = '📝 <b>明細なし</b>：月間電気代と料金プランから使用量を概算推定します。数値は修正可能です。';
+    guide.innerHTML = '📝 <b>明細なし</b>：料金プランの概算単価から使用量を推定し、概算の実質平均単価（目安）として計算します。数値は修正可能です。';
     noteEl.textContent = '（概算）';
     const mb = parseFloat(document.getElementById('mb').value) || 20000;
     const kp = document.getElementById('kyuden-plan').value;
@@ -1014,12 +1014,12 @@ function onHearingChange(data) {
       const s = KYUSHU_DENKA_NIGHT.styles[ls] || KYUSHU_DENKA_NIGHT.styles.custom;
       const t = KYUSHU_DENKA_NIGHT.tariff;
       unitPrice = Math.round((s.day*t.day + s.hol*t.hol + s.ngt*t.ngt)*10)/10;
-      priceLabel = `💡 九州電力 電化でナイト・セレクト概算単価（目安）：${unitPrice}円/kWh（${s.label}）`;
+      priceLabel = `💡 九州電力 電化でナイト・セレクト概算の実質単価（目安）：${unitPrice}円/kWh（${s.label}）`;
     } else if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) {
       unitPrice = parseFloat(kp);
-      priceLabel = `💡 概算単価（目安）：${unitPrice}円/kWh を使用`;
+      priceLabel = `💡 概算の実質単価（目安）：${unitPrice}円/kWh を使用`;
     } else {
-      priceLabel = `💡 概算単価（目安）：${unitPrice}円/kWh（デフォルト）を使用`;
+      priceLabel = `💡 概算の実質単価（目安）：${unitPrice}円/kWh（デフォルト）を使用`;
     }
     const epDisp = document.getElementById('estimated-price-disp');
     epDisp.style.display = '';
@@ -1585,7 +1585,7 @@ async function generatePPTX(mode) {
         sl.addText(card.sub,{x,y:2.8,w:2.1,h:0.6,fontSize:10,color:C.gray,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       });
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.1,w:9.2,h:1.15,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-      sl.addText([{text:"現在の電気単価：",options:{color:C.darkGreen}},{text:`${hCfg.currentUnitPrice}円/kWh`,options:{color:C.darkGreen,bold:true,fontSize:22}},{text:`　　年間消費量：${fmt(hCfg.annualConsumptionKWh)} kWh`,options:{color:C.gray,fontSize:14}}],{x:0.4,y:4.1,w:9.2,h:1.15,fontSize:16,fontFace:"Meiryo",align:"center",valign:"middle"});
+      sl.addText([{text:"現在の平均単価：",options:{color:C.darkGreen}},{text:`${hCfg.currentUnitPrice}円/kWh`,options:{color:C.darkGreen,bold:true,fontSize:22}},{text:`　　年間消費量：${fmt(hCfg.annualConsumptionKWh)} kWh`,options:{color:C.gray,fontSize:14}}],{x:0.4,y:4.1,w:9.2,h:1.15,fontSize:16,fontFace:"Meiryo",align:"center",valign:"middle"});
     }
     // ── Slide 4（前半: モデルケース 構成プラン）──
     {
@@ -1801,7 +1801,7 @@ async function generatePPTX(mode) {
         {label:"お客様名",       value:cn + '様'},
         {label:"家族構成",       value:cfg.familyComposition},
         {label:"月間電気代",     value:`¥${fmt(cfg.monthlyElectricBill)}`},
-        {label:"現在の単価",     value:`${cfg.currentUnitPrice} 円/kWh`},
+        {label:"現在の平均単価",  value:`${cfg.currentUnitPrice} 円/kWh`},
         {label:"年間消費量",     value:`${fmt(cfg.annualConsumptionKWh)} kWh`},
         {label:"料金プラン",     value:planLabel},
       ];
@@ -1848,7 +1848,7 @@ async function generatePPTX(mode) {
         sl.addText(card.sub,{x,y:2.8,w:2.1,h:0.6,fontSize:10,color:C.gray,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       });
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.1,w:9.2,h:1.15,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-      sl.addText([{text:"現在の電気単価：",options:{color:C.darkGreen}},{text:`${cfg.currentUnitPrice}円/kWh`,options:{color:C.darkGreen,bold:true,fontSize:22}},{text:`　　年間消費量：${fmt(cfg.annualConsumptionKWh)} kWh`,options:{color:C.gray,fontSize:14}}],{x:0.4,y:4.1,w:9.2,h:1.15,fontSize:16,fontFace:"Meiryo",align:"center",valign:"middle"});
+      sl.addText([{text:"現在の平均単価：",options:{color:C.darkGreen}},{text:`${cfg.currentUnitPrice}円/kWh`,options:{color:C.darkGreen,bold:true,fontSize:22}},{text:`　　年間消費量：${fmt(cfg.annualConsumptionKWh)} kWh`,options:{color:C.gray,fontSize:14}}],{x:0.4,y:4.1,w:9.2,h:1.15,fontSize:16,fontFace:"Meiryo",align:"center",valign:"middle"});
     }
     // ── 実データ B：構成プラン ──
     {
