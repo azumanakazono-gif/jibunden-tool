@@ -883,8 +883,8 @@ function showAvgRateSection(show) {
   const el = document.getElementById('avg-rate-section');
   el.style.display = show ? '' : 'none';
   if (show) {
-    // 月間電気代÷現在単価で月間使用量を初期推定
-    const est = Math.round(v('mb') / Math.max(1, v('up')));
+    // mkwhを使用量の初期値として転記
+    const est = v('mkwh');
     if (est > 0 && !document.getElementById('monthly-kwh').value)
       document.getElementById('monthly-kwh').value = est;
     calcAvgUnitPrice();
@@ -996,15 +996,15 @@ function onHearingChange(data) {
   const guide = document.getElementById('billing-guide');
   const noteEl = document.getElementById('mkwh-label-note');
   if (hasBill) {
-    guide.style.display = '';
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#f0fdf4;color:var(--mg)';
     guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力してください。';
     noteEl.textContent = '';
+    document.getElementById('estimated-price-disp').style.display = 'none';
+    calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
     guide.innerHTML = '📝 <b>明細なし</b>：月間電気代と料金プランから使用量を概算推定します。数値は修正可能です。';
     noteEl.textContent = '（概算）';
-    // 概算使用量を自動推定
     const mb = parseFloat(document.getElementById('mb').value) || 20000;
     const kp = document.getElementById('kyuden-plan').value;
     let unitPrice = 30;
@@ -1026,9 +1026,9 @@ function onHearingChange(data) {
     epDisp.textContent = priceLabel;
     document.getElementById('mkwh').value = Math.round(mb / unitPrice);
     calc();
-　} 
-} 
-  
+  }
+}
+
 function setLoanInputMode(mode) {
   loanInputMode = mode;
   const isManual = mode === 'manual';
@@ -1239,14 +1239,16 @@ function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   const dc=v('dc'), bc=v('bc'), er=v('er');
   const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
+  const annualConsumptionKWh = mkwh * 12;
+  // 最優先表示：mb/mkwhがあれば何があっても必ず更新
+  const upEl = document.getElementById('up-auto');
+  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
+  document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
+  document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
   if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); }
   calcLoan();
   const subsidyAmount = v('sub');
-  const annualConsumptionKWh = mkwh * 12;
-  // 単価自動表示
-  const upEl = document.getElementById('up-auto');
-  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
   // 昼間使用率・使用量表示（手動上書きも即時反映）
   const daytimePct = annualConsumptionKWh > 0 ? Math.round(dc / annualConsumptionKWh * 100) : 0;
   const dcMonthly  = Math.round(dc / 12);
@@ -1257,9 +1259,6 @@ function calc() {
                solarCapacityKW:sk, totalConstructionCost, subsidyAmount, warrantyYears:wy,
                directConsumptionKWh:dc, batteryConsumptionKWh:bc,
                annualConsumptionKWh, escalationRate:er };
-  // 年間電気代・年間消費電力量の表示更新
-  document.getElementById('annual-bill-disp').textContent = '¥' + fmt(mb * 12);
-  document.getElementById('annual-kwh-disp').textContent = fmt(annualConsumptionKWh) + ' kWh';
   const m = calcMetrics(c);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
