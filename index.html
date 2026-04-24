@@ -287,15 +287,16 @@ canvas#mini-chart { height: 150px !important; }
             <option value="30">従量電灯B・C / スタンダードプラン（目安 30円/kWh）</option>
             <option value="32">プレミアム・エコプラン / 新電力標準（目安 32円/kWh）</option>
             <option value="29">ガス・電気セット割引プラン（目安 29円/kWh）</option>
-            <option value="27">オール電化プラン / ナイト8系（目安 27円/kWh）</option>
-            <option value="25">夜間割引・深夜電力優遇プラン（目安 25円/kWh）</option>
-            <option value="33">高圧・大容量プラン（目安 33円/kWh）</option>
+          </optgroup>
+          <optgroup label="▼ 九州電力 従量電灯">
+            <option value="30">従量電灯B（目安 30円/kWh）</option>
+          </optgroup>
+          <optgroup label="▼ 九州電力 時間帯別・太陽光向け（概算）">
+            <option value="kyushu_kiji">季時別電灯（概算単価 31円/kWh）</option>
+            <option value="kyushu_ohisama">おひさま昼トクプラン（概算単価 30円/kWh）</option>
           </optgroup>
           <optgroup label="▼ 九州電力 オール電化（生活スタイル別概算）">
             <option value="kyushu_denka_night">電化でナイト・セレクト（生活スタイル別概算単価）</option>
-          </optgroup>
-          <optgroup label="▼ 九州電力 時間帯別（概算）">
-            <option value="kyushu_kiji">季時別電灯（概算単価 31円/kWh）</option>
           </optgroup>
           <optgroup label="▼ 請求書から平均単価算出（複雑な料金体系）">
             <option value="avg:smart_gas">時間帯別・季節別プラン（請求書から平均算出）</option>
@@ -648,6 +649,12 @@ const HEARING_KEYS = ['hasBill','hasPV','hasBattery','isAllElectric'];
 // 目安単価のみ。将来的に生活スタイル別へ拡張する場合は styles を追加してください
 const KYUSHU_KIJI = {
   unitPrice: 31, // 円/kWh（概算・仮置き。季節・時間帯の加重平均目安）
+};
+
+// ── 九州電力 おひさま昼トクプラン 概算単価マスタ ──
+// 太陽光設置前提のプラン。昼間安・夜間高。実購入単価は自家消費分を除いた加重平均目安
+const KYUSHU_OHISAMA = {
+  unitPrice: 30, // 円/kWh（概算・仮置き）
 };
 
 // ── 九州電力 電化でナイト・セレクト 概算単価マスタ ──
@@ -1049,6 +1056,9 @@ function onHearingChange(data) {
     } else if (kp === 'kyushu_kiji') {
       unitPrice = KYUSHU_KIJI.unitPrice;
       priceLabel = `💡 九州電力 季時別電灯 概算の実質単価（目安）：${unitPrice}円/kWh`;
+    } else if (kp === 'kyushu_ohisama') {
+      unitPrice = KYUSHU_OHISAMA.unitPrice;
+      priceLabel = `💡 九州電力 おひさま昼トクプラン 概算の実質単価（目安）：${unitPrice}円/kWh`;
     } else if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) {
       unitPrice = parseFloat(kp);
       priceLabel = `💡 概算の実質単価（目安）：${unitPrice}円/kWh を使用`;
