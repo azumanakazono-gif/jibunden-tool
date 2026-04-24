@@ -330,6 +330,7 @@ canvas#mini-chart { height: 150px !important; }
       <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
       <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
         現在の平均単価（自動計算・税込）：<b id="up-auto" style="color:var(--dg)">-</b>
+        <span style="font-size:10px;margin-left:6px;color:var(--muted)">※再エネ賦課金・燃料費調整額含む実質単価</span>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -359,6 +360,16 @@ canvas#mini-chart { height: 150px !important; }
       </div>
       <div id="daytime-rate-disp" style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
       <div id="self-summary" style="margin-top:8px;padding:8px 12px;background:var(--pg);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--mg);display:flex;gap:24px;flex-wrap:wrap"></div>
+      <div id="bk-error" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;background:#FEF2F2;border:1.5px solid #DC2626;font-size:12px;font-weight:700;color:#DC2626">
+        ⚠️ 蓄電池放電量が容量を超えています。蓄電池容量（kWh）または蓄電池で賄う量（kWh/年）を見直してください。
+      </div>
+      <div id="remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:#f0fdf4;border-radius:10px;border:2px solid var(--mg)">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">⚡ 導入後に電力会社から買う電気（概算）</div>
+        <div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap">
+          <span id="remain-kwh-big" style="font-size:24px;font-weight:900;color:var(--dg)">-</span>
+          <span id="remain-bill-big" style="font-size:20px;font-weight:700;color:var(--mg)">-</span>
+        </div>
+      </div>
     </div>
 
     <div class="section-card">
@@ -1183,6 +1194,21 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
     `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
     (over ? `<span style="color:#DC2626;font-weight:700;width:100%;margin-top:4px">⚠️ 自家消費率が100%を超えています。昼間直接使用量と蓄電池放電量の設定を見直してください。</span>` : '') +
     (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。自家消費重視か売電重視かをご確認ください。</span>` : '');
+
+  // 蓄電池容量超エラー（1日平均放電 > 蓄電池容量）
+  const bk = parseFloat(document.getElementById('bk').value) || 0;
+  const batteryOver = bk > 0 && bc > bk * 365;
+  document.getElementById('bk-error').style.display = batteryOver ? '' : 'none';
+
+  // 残り購入量を強調表示
+  const hasData = remainKWh >= 0 && mb > 0;
+  const rdEl = document.getElementById('remain-disp');
+  rdEl.style.display = hasData ? '' : 'none';
+  if (hasData) {
+    const monthKwh = Math.round(remainKWh / 12);
+    document.getElementById('remain-kwh-big').textContent = `${fmt(remainKWh)} kWh/年（月平均 ${fmt(monthKwh)} kWh）`;
+    document.getElementById('remain-bill-big').textContent = `月平均 ¥${fmt(remainBill)}`;
+  }
 }
 
 // ══════════════════════════════════════════
