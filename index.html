@@ -294,6 +294,9 @@ canvas#mini-chart { height: 150px !important; }
           <optgroup label="▼ 九州電力 オール電化（生活スタイル別概算）">
             <option value="kyushu_denka_night">電化でナイト・セレクト（生活スタイル別概算単価）</option>
           </optgroup>
+          <optgroup label="▼ 九州電力 時間帯別（概算）">
+            <option value="kyushu_kiji">季時別電灯（概算単価 31円/kWh）</option>
+          </optgroup>
           <optgroup label="▼ 請求書から平均単価算出（複雑な料金体系）">
             <option value="avg:smart_gas">時間帯別・季節別プラン（請求書から平均算出）</option>
             <option value="avg:denka">オール電化・エコキュート（請求書から平均算出）</option>
@@ -641,6 +644,12 @@ const v = id => parseFloat(document.getElementById(id).value) || 0;
 // 2タブ データ管理
 // ══════════════════════════════════════════
 const HEARING_KEYS = ['hasBill','hasPV','hasBattery','isAllElectric'];
+// ── 九州電力 季時別電灯 概算単価マスタ ──
+// 目安単価のみ。将来的に生活スタイル別へ拡張する場合は styles を追加してください
+const KYUSHU_KIJI = {
+  unitPrice: 31, // 円/kWh（概算・仮置き。季節・時間帯の加重平均目安）
+};
+
 // ── 九州電力 電化でナイト・セレクト 概算単価マスタ ──
 // 単価・比率を変更する場合は tariff と styles の数値を更新してください
 const KYUSHU_DENKA_NIGHT = {
@@ -1037,6 +1046,9 @@ function onHearingChange(data) {
       const t = KYUSHU_DENKA_NIGHT.tariff;
       unitPrice = Math.round((s.day*t.day + s.hol*t.hol + s.ngt*t.ngt)*10)/10;
       priceLabel = `💡 九州電力 電化でナイト・セレクト概算の実質単価（目安）：${unitPrice}円/kWh（${s.label}）`;
+    } else if (kp === 'kyushu_kiji') {
+      unitPrice = KYUSHU_KIJI.unitPrice;
+      priceLabel = `💡 九州電力 季時別電灯 概算の実質単価（目安）：${unitPrice}円/kWh`;
     } else if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) {
       unitPrice = parseFloat(kp);
       priceLabel = `💡 概算の実質単価（目安）：${unitPrice}円/kWh を使用`;
