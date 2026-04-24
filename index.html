@@ -363,12 +363,12 @@ canvas#mini-chart { height: 150px !important; }
       <div id="bk-error" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;background:#FEF2F2;border:1.5px solid #DC2626;font-size:12px;font-weight:700;color:#DC2626">
         ⚠️ 蓄電池放電量が容量を超えています。蓄電池容量（kWh）または蓄電池で賄う量（kWh/年）を見直してください。
       </div>
-      <div id="remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:#f0fdf4;border-radius:10px;border:2px solid var(--mg)">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">⚡ 導入後に電力会社から買う電気（概算）</div>
-        <div style="display:flex;gap:24px;align-items:baseline;flex-wrap:wrap">
-          <span id="remain-kwh-big" style="font-size:24px;font-weight:900;color:var(--dg)">-</span>
-          <span id="remain-bill-big" style="font-size:20px;font-weight:700;color:var(--mg)">-</span>
+      <div id="remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:#fffbeb;border-radius:10px;border:2px solid #f59e0b">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">☀️ 自家消費としてまだ活用できる余地</div>
+        <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
+          <span id="remain-kwh-big" style="font-size:26px;font-weight:900;color:#d97706">-</span>
         </div>
+        <div id="remain-sub-text" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
       </div>
     </div>
 
@@ -1200,14 +1200,21 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill) {
   const batteryOver = bk > 0 && bc > bk * 365;
   document.getElementById('bk-error').style.display = batteryOver ? '' : 'none';
 
-  // 残り購入量を強調表示
-  const hasData = remainKWh >= 0 && mb > 0;
+  // 自家消費余地 = 年間発電量 - 現在の自家消費量
+  const selfKWh = total; // dc + bc
+  const potential = ag > 0 ? Math.max(0, ag - selfKWh) : 0;
   const rdEl = document.getElementById('remain-disp');
-  rdEl.style.display = hasData ? '' : 'none';
-  if (hasData) {
-    const monthKwh = Math.round(remainKWh / 12);
-    document.getElementById('remain-kwh-big').textContent = `${fmt(remainKWh)} kWh/年（月平均 ${fmt(monthKwh)} kWh）`;
-    document.getElementById('remain-bill-big').textContent = `月平均 ¥${fmt(remainBill)}`;
+  if (ag > 0 && !over) {
+    rdEl.style.display = '';
+    if (potential > 0) {
+      document.getElementById('remain-kwh-big').textContent = `約 ${fmt(potential)} kWh/年`;
+      document.getElementById('remain-sub-text').textContent = 'この分を使い切れると、さらに買電を減らせます';
+    } else {
+      document.getElementById('remain-kwh-big').textContent = '余地なし（発電量をフル自家消費中）';
+      document.getElementById('remain-sub-text').textContent = '昼間直接使用量や蓄電池放電量がすでに発電量に達しています';
+    }
+  } else {
+    rdEl.style.display = 'none';
   }
 }
 
