@@ -367,13 +367,6 @@ canvas#mini-chart { height: 150px !important; }
       </div>
       <div id="daytime-rate-disp" style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
       <div id="self-kpi" style="margin-top:8px"></div>
-      <div id="remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:#fffbeb;border-radius:10px;border:2px solid #f59e0b">
-        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">☀️ 自家消費としてまだ活用できる余地</div>
-        <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
-          <span id="remain-kwh-big" style="font-size:26px;font-weight:900;color:#d97706">-</span>
-        </div>
-        <div id="remain-sub-text" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
-      </div>
       <div id="bk-remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:var(--pg);border-radius:10px;border:2px solid var(--border)">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px">🔋 蓄電池の残容量余地（年間）</div>
         <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
@@ -384,6 +377,13 @@ canvas#mini-chart { height: 150px !important; }
       <div id="bk-error" style="display:none;margin-top:8px;padding:12px 14px;border-radius:8px;background:#FEF2F2;border:3px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
         ⚠️ 蓄電池の放電量設定が上限を超えています<br>
         <span style="font-size:12px;font-weight:400;margin-top:4px;display:inline-block">蓄電池容量（kWh）×365日を超える放電量は物理的に不可能です。「蓄電池で賄う量（kWh/年）」または「蓄電池容量（kWh）」を見直してください。</span>
+      </div>
+      <div id="remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:#fffbeb;border-radius:10px;border:2px solid #f59e0b">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:6px">☀️ 自家消費としてまだ活用できる余地</div>
+        <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
+          <span id="remain-kwh-big" style="font-size:26px;font-weight:900;color:#d97706">-</span>
+        </div>
+        <div id="remain-sub-text" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
       </div>
       <div id="self-detail" style="margin-top:10px;display:none"></div>
     </div>
