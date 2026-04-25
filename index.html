@@ -384,6 +384,11 @@ canvas#mini-chart { height: 150px !important; }
       <div id="result-area" style="margin-top:12px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
         <div id="daytime-rate-disp" style="padding:6px 10px;background:var(--pg);border-radius:6px;font-size:12px;color:var(--mg);font-weight:600"></div>
         <div id="self-kpi"></div>
+        <div id="surplus-disp" style="display:none;padding:12px 14px;background:#f0fdf4;border-radius:8px;border-left:4px solid #16a34a">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">📤 余剰電力量（年間発電 − 自家消費）</div>
+          <div><span id="surplus-big" style="font-size:26px;font-weight:900;color:#15803d">-</span></div>
+          <div id="surplus-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+        </div>
         <div id="bk-remain-disp" style="display:none;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid var(--mg)">
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
           <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
@@ -1302,6 +1307,17 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       `<div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em">${selfRate}<span style="font-size:28px;font-weight:700">%</span></div>` +
       (over ? `<div style="margin-top:10px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 10px;display:inline-block">⚠️ 100%超過 — 昼間直接使用量・蓄電池放電量を見直してください</div>` : '') +
     `</div>`;
+
+  // ── 余剰電力量カード ──
+  const surplusKwh = Math.max(0, ag - total);
+  const surplusEl  = document.getElementById('surplus-disp');
+  surplusEl.style.display = '';
+  document.getElementById('surplus-big').textContent =
+    surplusKwh > 0 ? `約 ${fmt(surplusKwh)} kWh/年` : '余剰ほぼなし';
+  document.getElementById('surplus-sub').textContent =
+    surplusKwh > 0
+      ? `約 ${Math.round(surplusKwh/12).toLocaleString()} kWh/月・約 ${(surplusKwh/365).toFixed(1)} kWh/日`
+      : '自家消費が発電量の範囲内に収まっています';
 
   // ── 詳細内訳（補助情報）── remain-disp の下に表示
   const detailEl = document.getElementById('self-detail');
