@@ -137,7 +137,6 @@ canvas#mini-chart { height: 150px !important; }
 .form-locked .section-card,
 .form-locked #pkg-area,
 .form-locked #result-area { opacity:.25; pointer-events:none; user-select:none; }
-#hyp-lock-overlay { display:none; background:#fff; border:2px solid #bfdbfe; border-radius:12px; padding:36px 24px; text-align:center; margin-bottom:16px; }
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { position: relative; height: auto; }
@@ -217,19 +216,6 @@ canvas#mini-chart { height: 150px !important; }
       <span id="hyp-unlock-badge" style="display:none;padding:2px 8px;border-radius:12px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700">🔓 編集解除済み</span>
       <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid #1d4ed8;background:#fff;color:#1d4ed8;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
       <button id="hyp-relock-btn" onclick="lockModel()" style="display:none;padding:4px 10px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">🔒 再ロック</button>
-    </div>
-    <div id="hyp-lock-overlay">
-      <div style="font-size:44px;margin-bottom:14px">🔒</div>
-      <div style="font-size:17px;font-weight:900;color:#1d4ed8;margin-bottom:6px">仮説モデル入力 — 編集ロック中</div>
-      <div style="font-size:13px;color:#6b7280;margin-bottom:22px">パスワードを入力して編集を解除してください</div>
-      <div style="display:flex;gap:8px;max-width:320px;margin:0 auto">
-        <input type="password" id="model-pw-input" placeholder="パスワード"
-               style="flex:1;border:1.5px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit"
-               onkeydown="if(event.key==='Enter')unlockModel()">
-        <button onclick="unlockModel()"
-                style="padding:10px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
-      </div>
-      <div id="model-pw-error" style="display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:600">❌ パスワードが正しくありません</div>
     </div>
 
     <div class="section-card">
@@ -901,7 +887,7 @@ function switchTab(tab) {
   const lockEl = document.getElementById('hyp-lock-overlay');
   const sf = document.getElementById('section-form');
   if (tab === 'hypothesis' && !modelUnlocked) {
-    lockEl.style.display = 'block';
+    lockEl.style.display = 'flex';
     sf.classList.add('form-locked');
     setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
   } else {
@@ -929,7 +915,7 @@ function unlockModel() {
 
 function lockModel() {
   modelUnlocked = false;
-  document.getElementById('hyp-lock-overlay').style.display = 'block';
+  document.getElementById('hyp-lock-overlay').style.display = 'flex';
   document.getElementById('section-form').classList.add('form-locked');
   updateLockBadge('hypothesis');
   setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
@@ -2395,5 +2381,24 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
+
+<!-- ── 仮説モデル入力 ロックモーダル ── -->
+<div id="hyp-lock-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:40px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    <div style="font-size:44px;margin-bottom:14px">🔒</div>
+    <div style="font-size:17px;font-weight:900;color:#1d4ed8;margin-bottom:6px">仮説モデル編集にはパスワードが必要です</div>
+    <div style="font-size:13px;color:#6b7280;margin-bottom:22px">パスワードを入力して編集を解除してください</div>
+    <div style="display:flex;gap:8px;margin:0 auto;max-width:300px">
+      <input type="password" id="model-pw-input" placeholder="パスワード"
+             style="flex:1;border:1.5px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit"
+             onkeydown="if(event.key==='Enter')unlockModel()">
+      <button onclick="unlockModel()"
+              style="padding:10px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
+    </div>
+    <div id="model-pw-error" style="display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:600">❌ パスワードが正しくありません</div>
+    <button onclick="switchTab('customer')"
+            style="margin-top:18px;padding:7px 18px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit">キャンセル</button>
+  </div>
+</div>
 </body>
 </html>
