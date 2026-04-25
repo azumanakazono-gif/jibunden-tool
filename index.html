@@ -365,10 +365,12 @@ canvas#mini-chart { height: 150px !important; }
         <div class="field">
           <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
           <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="calc()">
+          <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
         </div>
         <div class="field">
           <label>蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">夜間・曇天時に放電</span></label>
           <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="calc()">
+          <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
         </div>
       </div>
       <!-- ── 結果エリア（入力直後のひとまとまりブロック） ── -->
@@ -1300,8 +1302,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   detailEl.innerHTML =
     `<div style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">` +
       `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
-      `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
-      `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
+      `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh/年</b><span style="font-size:11px;color:var(--muted);margin-left:4px">（約${Math.round(dc/12)}kWh/月）</span></span>` +
+      `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh/年</b><span style="font-size:11px;color:var(--muted);margin-left:4px">（約${Math.round(bc/12)}kWh/月）</span></span>` +
       `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b></span>` +
       `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
       (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:2px">ℹ️ 年間発電量が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。</span>` : '') +
@@ -1402,6 +1404,8 @@ function calcMetrics(c) {
 function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   const dc=v('dc'), bc=v('bc'), bk=v('bk'), er=v('er');
+  document.getElementById('dc-monthly-hint').textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月` : '';
+  document.getElementById('bc-monthly-hint').textContent = bc > 0 ? `約 ${Math.round(bc/12).toLocaleString()} kWh/月` : '';
   const up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
   const annualConsumptionKWh = mkwh * 12;
   // 最優先表示：mb/mkwhがあれば何があっても必ず更新
