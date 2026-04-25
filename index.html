@@ -1233,25 +1233,27 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const annualConsumption = Math.round(mb / Math.max(1, up) * 12);
   const surplus = ag > annualConsumption;
   const el = document.getElementById('self-summary');
-  el.style.background = over ? '#FFF3CD' : 'var(--pg)';
-  el.style.borderColor = over ? '#F59E0B' : 'var(--border)';
-  const badgeBg    = over ? '#DC2626' : 'var(--mg)';
-  const badgeExtra = over ? 'font-size:13px;margin-top:2px;display:block' : '';
+  el.style.background = 'transparent';
+  el.style.borderColor = 'transparent';
+  el.style.padding = '0';
+  const kpiBg  = over ? '#DC2626' : 'var(--mg)';
+  const kpiBdr = over ? '#B91C1C' : 'var(--dg)';
   el.innerHTML =
-    // ── 自家消費率バッジ（最優先KPI）──
-    `<span style="width:100%;display:flex;align-items:center;gap:10px;margin-bottom:4px">` +
-      `<span style="background:${badgeBg};color:#fff;border-radius:8px;padding:6px 16px;font-size:22px;font-weight:900;letter-spacing:.02em">${selfRate}%</span>` +
-      `<span style="font-size:13px;font-weight:700;color:${over ? '#DC2626' : 'var(--dg)'}">自家消費率` +
-        (over ? `<span style="${badgeExtra}">⚠️ 100%超過 — 設定を見直してください</span>` : '') +
-      `</span>` +
-    `</span>` +
-    // ── 詳細数値 ──
-    `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
-    `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
-    `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
-    `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b></span>` +
-    `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
-    (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。</span>` : '');
+    // ── KPIカード：自家消費率（最優先） ──
+    `<div style="width:100%;background:${kpiBg};border-radius:12px;padding:16px 20px;margin-bottom:10px;border:2px solid ${kpiBdr};box-shadow:0 2px 8px rgba(0,0,0,.12)">` +
+      `<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">自家消費率</div>` +
+      `<div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em">${selfRate}<span style="font-size:28px;font-weight:700">%</span></div>` +
+      (over ? `<div style="margin-top:8px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 10px;display:inline-block">⚠️ 100%超過 — 昼間直接使用量・蓄電池放電量を見直してください</div>` : '') +
+    `</div>` +
+    // ── 詳細内訳（補助情報） ──
+    `<div style="width:100%;background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">` +
+      `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
+      `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
+      `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
+      `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b></span>` +
+      `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
+      (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:2px">ℹ️ 年間発電量が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。</span>` : '') +
+    `</div>`;
 
   // 蓄電池実効容量ベースで判定（公称容量 bk は表示専用）
   const bkEff = effectiveBatteryKwh(bk); // 実効容量 kWh/日
