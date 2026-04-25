@@ -619,8 +619,12 @@ canvas#mini-chart { height: 150px !important; }
           <div class="bar-track"><div class="bar-fill or" id="bb" style="width:100%"><span id="bbv"></span></div></div>
         </div>
         <div class="bar-row" style="margin-top:8px">
-          <div class="bar-label">じぶん電気 初期投資</div>
+          <div class="bar-label">現金購入（初期費用）</div>
           <div class="bar-track"><div class="bar-fill gr" id="bi" style="width:58%"><span id="biv"></span></div></div>
+        </div>
+        <div class="bar-row loan-bar-only" style="display:none;margin-top:8px">
+          <div class="bar-label">ローン活用（返済総額）</div>
+          <div class="bar-track"><div class="bar-fill" id="bl" style="width:50%;background:#7c3aed"><span id="blv"></span></div></div>
         </div>
       </div>
       <div class="diff-banner">
@@ -1493,6 +1497,10 @@ function calc() {
   const lon = document.getElementById('le').checked;
   if (lon) {
     const lp=v('lp'), ly=v('ly')||10;
+    const loanTotalMan = Math.round(lp * ly * 12 / 10000);
+    document.getElementById('bl').style.width = Math.min(Math.round(loanTotalMan / bill20Show * 100), 100) + '%';
+    document.getElementById('blv').textContent = loanTotalMan + '万円';
+    document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const mred = Math.round(m.annualSaving/12);
     const re = Math.max(0, mb-mred);
     const mt = lp+re;
@@ -1543,6 +1551,7 @@ function calc() {
       : '';
   } else {
     document.getElementById('loan-preview-box').style.display='none';
+    document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
   }
 }
 
