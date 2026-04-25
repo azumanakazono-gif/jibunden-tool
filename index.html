@@ -901,7 +901,7 @@ function switchTab(tab) {
   const lockEl = document.getElementById('hyp-lock-overlay');
   const sf = document.getElementById('section-form');
   if (tab === 'hypothesis' && !modelUnlocked) {
-    lockEl.style.display = '';
+    lockEl.style.display = 'block';
     sf.classList.add('form-locked');
     setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
   } else {
@@ -929,7 +929,7 @@ function unlockModel() {
 
 function lockModel() {
   modelUnlocked = false;
-  document.getElementById('hyp-lock-overlay').style.display = '';
+  document.getElementById('hyp-lock-overlay').style.display = 'block';
   document.getElementById('section-form').classList.add('form-locked');
   updateLockBadge('hypothesis');
   setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
