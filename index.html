@@ -645,6 +645,22 @@ const v = id => parseFloat(document.getElementById(id).value) || 0;
 // 2タブ データ管理
 // ══════════════════════════════════════════
 const HEARING_KEYS = ['hasBill','hasPV','hasBattery','isAllElectric'];
+
+// ── 蓄電池実効容量マスタ（長州産業 Smart PV Plus）──
+// 変更する場合はここのみ更新。未収録機種は BATTERY_EFFECTIVE_RATIO で按分
+const SMART_PV_PLUS_EFFECTIVE = {
+  5.4:  3.8,  // 公称5.4kWh
+  7.7:  5.4,  // 公称7.7kWh  → 1967kWh/年 ÷ 365日
+  10.2: 7.1,  // 公称10.2kWh
+  15.4: 10.8, // 公称15.4kWh → 3935kWh/年 ÷ 365日
+};
+const BATTERY_EFFECTIVE_RATIO = 0.70; // 未収録機種のフォールバック比率
+
+function effectiveBatteryKwh(nominalKwh) {
+  const key = Math.round(nominalKwh * 10) / 10; // 小数ブレ対策
+  return SMART_PV_PLUS_EFFECTIVE[key] ?? nominalKwh * BATTERY_EFFECTIVE_RATIO;
+}
+
 // ── 九州電力 季時別電灯 概算単価マスタ ──
 // 目安単価のみ。将来的に生活スタイル別へ拡張する場合は styles を追加してください
 const KYUSHU_KIJI = {
@@ -1229,23 +1245,26 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     (over ? `<span style="color:#DC2626;font-weight:700;width:100%;margin-top:4px">⚠️ 自家消費率が100%を超えています。昼間直接使用量と蓄電池放電量の設定を見直してください。</span>` : '') +
     (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。自家消費重視か売電重視かをご確認ください。</span>` : '');
 
-  // 蓄電池容量超エラー（1日平均放電 > 蓄電池容量）
-  const batteryOver = bk > 0 && bc > bk * 365;
+  // 蓄電池実効容量ベースで判定（公称容量 bk は表示専用）
+  const bkEff = effectiveBatteryKwh(bk); // 実効容量 kWh/日
+  const bkEffYearMax = bkEff * 365;      // 年間理論上限（実効）
+
+  // 上限超過判定（実効容量ベース）
+  const batteryOver = bk > 0 && bc > bkEffYearMax;
   document.getElementById('bk-error').style.display = batteryOver ? '' : 'none';
 
-  // 蓄電池残容量カード
+  // 蓄電池残容量カード（実効容量ベース）
   const bkRemainEl = document.getElementById('bk-remain-disp');
   if (bk > 0) {
-    const bkYearMax = bk * 365;
-    const bkRemain = Math.max(0, bkYearMax - bc);
-    const bkUsageRate = Math.min(100, Math.round(bc / bkYearMax * 100));
+    const bkRemain = Math.max(0, bkEffYearMax - bc);
+    const bkUsageRate = Math.min(100, Math.round(bc / bkEffYearMax * 100));
     bkRemainEl.style.display = '';
     document.getElementById('bk-remain-big').textContent = batteryOver
       ? '0 kWh/年（上限超過）'
       : `あと ${fmt(bkRemain)} kWh/年`;
     document.getElementById('bk-remain-big').style.color = batteryOver ? '#DC2626' : 'var(--mg)';
     document.getElementById('bk-remain-sub').textContent =
-      `年間理論上限：${fmt(bkYearMax)} kWh　活用率：${bkUsageRate}% / 残り：${100 - bkUsageRate}%`;
+      `年間理論上限（実効）：${fmt(bkEffYearMax)} kWh　活用率：${bkUsageRate}% / 残り：${100 - bkUsageRate}%`;
   } else {
     bkRemainEl.style.display = 'none';
   }
