@@ -1235,15 +1235,23 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const el = document.getElementById('self-summary');
   el.style.background = over ? '#FFF3CD' : 'var(--pg)';
   el.style.borderColor = over ? '#F59E0B' : 'var(--border)';
-  const rateColor = over ? '#DC2626' : 'inherit';
+  const badgeBg    = over ? '#DC2626' : 'var(--mg)';
+  const badgeExtra = over ? 'font-size:13px;margin-top:2px;display:block' : '';
   el.innerHTML =
+    // ── 自家消費率バッジ（最優先KPI）──
+    `<span style="width:100%;display:flex;align-items:center;gap:10px;margin-bottom:4px">` +
+      `<span style="background:${badgeBg};color:#fff;border-radius:8px;padding:6px 16px;font-size:22px;font-weight:900;letter-spacing:.02em">${selfRate}%</span>` +
+      `<span style="font-size:13px;font-weight:700;color:${over ? '#DC2626' : 'var(--dg)'}">自家消費率` +
+        (over ? `<span style="${badgeExtra}">⚠️ 100%超過 — 設定を見直してください</span>` : '') +
+      `</span>` +
+    `</span>` +
+    // ── 詳細数値 ──
     `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
     `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
     `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
-    `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b>（自家消費率 <b style="color:${rateColor}">${selfRate}%</b>）</span>` +
+    `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b></span>` +
     `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
-    (over ? `<span style="color:#DC2626;font-weight:700;width:100%;margin-top:4px">⚠️ 自家消費率が100%を超えています。昼間直接使用量と蓄電池放電量の設定を見直してください。</span>` : '') +
-    (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。自家消費重視か売電重視かをご確認ください。</span>` : '');
+    (surplus && !over ? `<span style="color:#1D4ED8;width:100%;margin-top:4px">ℹ️ 年間発電量（${fmt(ag)} kWh）が年間消費量（${fmt(annualConsumption)} kWh）を上回っています。余剰発電が発生する可能性があります。</span>` : '');
 
   // 蓄電池実効容量ベースで判定（公称容量 bk は表示専用）
   const bkEff = effectiveBatteryKwh(bk); // 実効容量 kWh/日
