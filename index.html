@@ -214,7 +214,9 @@ canvas#mini-chart { height: 150px !important; }
       <b style="color:#1d4ed8">🔬 仮説モデル入力</b>
       <span style="color:#1e40af">一般的なご家庭モデルの説明用</span>
       <span id="hyp-lock-badge" style="padding:2px 8px;border-radius:12px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700">🔒 ロック中</span>
+      <span id="hyp-unlock-badge" style="display:none;padding:2px 8px;border-radius:12px;background:#f0fdf4;color:#15803d;font-size:11px;font-weight:700">🔓 編集解除済み</span>
       <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid #1d4ed8;background:#fff;color:#1d4ed8;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
+      <button id="hyp-relock-btn" onclick="lockModel()" style="display:none;padding:4px 10px;border-radius:6px;border:1px solid #dc2626;background:#fff;color:#dc2626;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">🔒 再ロック</button>
     </div>
     <div id="hyp-lock-overlay">
       <div style="font-size:44px;margin-bottom:14px">🔒</div>
@@ -726,7 +728,7 @@ const CUSTOMER_DEFAULTS = {
 let hypData = {...HYPOTHESIS_DEFAULTS};
 let custData = {...CUSTOMER_DEFAULTS};
 let activeTab = 'customer';
-const MODEL_EDIT_PASSWORD = 'jibunden2024';
+const MODEL_EDIT_PASSWORD = 'azuma4001';
 let modelUnlocked = false;
 
 const TAB_FIELDS = ['mb','mkwh','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
@@ -906,8 +908,7 @@ function switchTab(tab) {
     lockEl.style.display = 'none';
     sf.classList.remove('form-locked');
   }
-  document.getElementById('hyp-lock-badge').style.display =
-    tab === 'hypothesis' && !modelUnlocked ? '' : 'none';
+  updateLockBadge(tab);
 }
 
 function unlockModel() {
@@ -916,14 +917,30 @@ function unlockModel() {
     modelUnlocked = true;
     document.getElementById('hyp-lock-overlay').style.display = 'none';
     document.getElementById('section-form').classList.remove('form-locked');
-    document.getElementById('hyp-lock-badge').style.display = 'none';
     document.getElementById('model-pw-input').value = '';
     document.getElementById('model-pw-error').style.display = 'none';
+    updateLockBadge('hypothesis');
   } else {
     document.getElementById('model-pw-error').style.display = '';
     document.getElementById('model-pw-input').value = '';
     document.getElementById('model-pw-input').focus();
   }
+}
+
+function lockModel() {
+  modelUnlocked = false;
+  document.getElementById('hyp-lock-overlay').style.display = '';
+  document.getElementById('section-form').classList.add('form-locked');
+  updateLockBadge('hypothesis');
+  setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
+}
+
+function updateLockBadge(tab) {
+  const onHyp = tab === 'hypothesis';
+  const locked = !modelUnlocked;
+  document.getElementById('hyp-lock-badge').style.display   = onHyp && locked  ? '' : 'none';
+  document.getElementById('hyp-unlock-badge').style.display = onHyp && !locked ? '' : 'none';
+  document.getElementById('hyp-relock-btn').style.display   = onHyp && !locked ? '' : 'none';
 }
 
 function applyTabTheme(tab) {
