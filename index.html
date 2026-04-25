@@ -17,7 +17,7 @@
   --text: #1a1a1a; --muted: #6B7280; --danger: #991B1B;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
 
 /* ── レイアウト ── */
 .app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
@@ -30,7 +30,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .sidebar-logo .sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; }
 .sidebar-nav { padding: 12px 0; flex: 1; }
 .nav-section { padding: 8px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.35); font-weight: 600; }
-.nav-btn { width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; color: rgba(255,255,255,.75); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .15s; font-family: inherit; }
+.nav-btn { width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; color: rgba(255,255,255,.75); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .15s; font-family: inherit; }
 .nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
 .nav-btn.active { background: rgba(82,183,136,.2); color: var(--ac); border-left: 3px solid var(--ac); }
 .nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
@@ -47,18 +47,18 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 /* ── メインエリア ── */
 .main-header { background: var(--dg); padding: 20px 32px; display: flex; align-items: center; justify-content: space-between; }
 .main-header h1 { color: #fff; font-size: 18px; font-weight: 700; }
-.main-header .sub { color: var(--ac); font-size: 12px; margin-top: 2px; }
+.main-header .sub { color: var(--ac); font-size: 13px; margin-top: 2px; }
 .gen-btn { background: var(--lg); color: var(--dg); border: none; border-radius: 8px; padding: 12px 28px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; font-family: inherit; display: flex; align-items: center; gap: 8px; }
 .gen-btn:hover { background: var(--ac); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
 .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
 .form-body { padding: 24px 32px; }
 .section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
-.section-title { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
+.section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
-.field label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.field label { font-size: 14px; color: var(--muted); font-weight: 500; }
 .field input[type=text], .field input[type=number] {
   border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px;
   font-size: 15px; background: #fff; color: var(--text); font-family: inherit;
@@ -68,9 +68,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .field select { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 15px; background: #fff; color: var(--text); font-family: inherit; transition: border-color .15s; }
 .field select:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
-.slider-row label { font-size: 13px; color: var(--muted); min-width: 100px; font-weight: 500; }
+.slider-row label { font-size: 14px; color: var(--muted); min-width: 100px; font-weight: 500; }
 .slider-row input[type=range] { flex: 1; accent-color: var(--mg); }
-.slider-val { font-size: 14px; font-weight: 700; color: var(--mg); min-width: 38px; text-align: right; }
+.slider-val { font-size: 15px; font-weight: 700; color: var(--mg); min-width: 38px; text-align: right; }
 .toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .toggle-row input[type=checkbox] { width: 18px; height: 18px; accent-color: var(--mg); cursor: pointer; }
 .toggle-row label { font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; }
@@ -80,23 +80,23 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 /* ── プレビューカード ── */
 .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
 .prev-card { background: var(--pg); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid var(--border); }
-.prev-card .p-label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.prev-card .p-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
 .prev-card .p-val { font-size: 20px; font-weight: 700; color: var(--dg); }
 .prev-card.orange .p-val { color: var(--or); }
 .bar-compare { margin-top: 14px; }
 .bar-row { margin-bottom: 8px; }
-.bar-label { font-size: 12px; color: var(--muted); margin-bottom: 3px; }
+.bar-label { font-size: 13px; color: var(--muted); margin-bottom: 3px; }
 .bar-track { height: 28px; background: #e5e7eb; border-radius: 6px; overflow: hidden; }
-.bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 13px; font-weight: 700; color: #fff; transition: width .4s ease; }
+.bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 14px; font-weight: 700; color: #fff; transition: width .4s ease; }
 .bar-fill.or { background: var(--or); }
 .bar-fill.gr { background: var(--mg); }
 .diff-banner { background: var(--dg); border-radius: 10px; padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
-.diff-banner .d-label { font-size: 14px; color: var(--ac); }
+.diff-banner .d-label { font-size: 15px; color: var(--ac); }
 .diff-banner .d-val { font-size: 22px; font-weight: 700; color: #fff; }
 
 /* ── ローンプレビュー ── */
 .loan-preview { background: var(--pg); border-radius: 10px; padding: 14px 16px; margin-top: 14px; border: 1px solid var(--border); }
-.loan-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 14px; }
+.loan-row { display: flex; justify-content: space-between; padding: 5px 0; font-size: 15px; }
 .loan-row span:first-child { color: var(--muted); }
 .loan-row span:last-child { font-weight: 600; color: var(--text); }
 .loan-row.tot span:last-child { color: var(--mg); font-size: 17px; }
@@ -104,10 +104,10 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .loan-row.neg span:last-child { color: var(--or); }
 .loan-divider { border: none; border-top: 1px solid var(--border); margin: 6px 0; }
 .cum-chart-wrap { margin-top: 14px; background: #fff; border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
-.cum-chart-wrap .ct { font-size: 12px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
+.cum-chart-wrap .ct { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
 canvas#mini-chart { height: 150px !important; }
 .legend { display: flex; gap: 16px; margin-top: 8px; }
-.legend span { font-size: 11px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.legend span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
 .legend b { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
 
 /* ── 進捗 ── */
@@ -120,19 +120,19 @@ canvas#mini-chart { height: 150px !important; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ── トースト ── */
-.toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 13px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
 #scroll-top-btn { display: none; position: fixed; bottom: 80px; right: 20px; width: 52px; height: 52px; border-radius: 50%; background: var(--mg); color: #fff; border: none; font-size: 22px; cursor: pointer; box-shadow: 0 3px 10px rgba(0,0,0,.25); z-index: 9999; align-items: center; justify-content: center; -webkit-tap-highlight-color: rgba(0,0,0,0); touch-action: manipulation; }
 @media (max-width: 900px) { #scroll-top-btn { display: flex; } }
 .toast.show { transform: translateY(0); opacity: 1; }
 .toast.success { background: var(--mg); }
 .toast.error { background: var(--danger); }
 .hearing-row { display:flex; align-items:center; justify-content:space-between; padding:9px 12px; background:var(--pg); border-radius:8px; border:1px solid var(--border); }
-.hearing-lbl { font-size:13px; font-weight:600; color:var(--text); }
+.hearing-lbl { font-size:14px; font-weight:600; color:var(--text); }
 .hearing-btns { display:flex; gap:4px; }
-.htgl { padding:5px 16px; border-radius:6px; border:1.5px solid var(--border); background:#fff; color:var(--muted); font-size:12px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
+.htgl { padding:5px 16px; border-radius:6px; border:1.5px solid var(--border); background:#fff; color:var(--muted); font-size:13px; font-weight:700; cursor:pointer; font-family:inherit; transition:all .15s; }
 .htgl.active { background:var(--mg); color:#fff; border-color:var(--mg); }
 
-.tab-btn { flex:1; padding:11px 16px; background:#fff; border:none; border-bottom:3px solid transparent; cursor:pointer; font-size:14px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; }
+.tab-btn { flex:1; padding:11px 16px; background:#fff; border:none; border-bottom:3px solid transparent; cursor:pointer; font-size:15px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
 .form-locked .section-card,
 .form-locked #pkg-area,
@@ -146,6 +146,13 @@ canvas#mini-chart { height: 150px !important; }
 @media (max-width: 520px) {
   .grid2 { grid-template-columns: 1fr; }
   .grid3 { grid-template-columns: 1fr; }
+  body { font-size: 16px; }
+  .field label { font-size: 15px; }
+  .field input[type=text], .field input[type=number], .field select { font-size: 16px; padding: 12px 14px; }
+  .htgl { font-size: 14px; padding: 7px 18px; }
+  .hearing-lbl { font-size: 15px; }
+  .tab-btn { font-size: 15px; }
+  .prev-card .p-label { font-size: 13px; }
 }
 </style>
 </head>
