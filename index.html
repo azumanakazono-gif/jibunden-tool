@@ -1314,7 +1314,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       `<span>🏠 合計自家消費：<b>${fmt(total)} kWh</b></span>` +
       `<span style="color:var(--or)">🛒 残り購入：<b>${fmt(remainKWh)} kWh/年</b> → 月平均 <b>¥${fmt(remainBill)}</b></span>` +
       (surplus && !over
-        ? `<div style="width:100%;margin-top:6px;background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;padding:12px 14px;border-left:5px solid #d97706">` +
+        ? `<div style="width:100%;margin-top:12px;margin-bottom:4px;background:#fffbeb;border:2px solid #f59e0b;border-radius:10px;padding:16px 16px;border-left:5px solid #d97706">` +
           `<div style="font-size:15px;font-weight:800;color:#92400e;margin-bottom:4px">⚠️ 余剰発電の可能性あり</div>` +
           `<div style="font-size:14px;color:#78350f;line-height:1.5">年間発電量が年間消費量（${fmt(annualConsumption)} kWh）を<b>上回っています</b>。<br>余剰売電が発生する可能性があります。</div>` +
           `</div>`
