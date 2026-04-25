@@ -366,7 +366,7 @@ canvas#mini-chart { height: 150px !important; }
         </div>
       </div>
       <div id="daytime-rate-disp" style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:6px;border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
-      <div id="self-summary" style="margin-top:8px;padding:8px 12px;background:var(--pg);border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--mg);display:flex;gap:24px;flex-wrap:wrap"></div>
+      <div id="self-kpi" style="margin-top:8px"></div>
       <div id="bk-remain-disp" style="display:none;margin-top:10px;padding:14px 16px;background:var(--pg);border-radius:10px;border:2px solid var(--border)">
         <div style="font-size:11px;color:var(--muted);margin-bottom:6px">🔋 蓄電池の残容量余地（年間）</div>
         <div style="display:flex;gap:16px;align-items:baseline;flex-wrap:wrap">
@@ -385,6 +385,7 @@ canvas#mini-chart { height: 150px !important; }
         </div>
         <div id="remain-sub-text" style="font-size:11px;color:var(--muted);margin-top:4px"></div>
       </div>
+      <div id="self-detail" style="margin-top:10px;display:none"></div>
     </div>
 
     <div class="section-card">
@@ -1232,21 +1233,22 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const over = selfRate > 100;
   const annualConsumption = Math.round(mb / Math.max(1, up) * 12);
   const surplus = ag > annualConsumption;
-  const el = document.getElementById('self-summary');
-  el.style.background = 'transparent';
-  el.style.borderColor = 'transparent';
-  el.style.padding = '0';
   const kpiBg  = over ? '#DC2626' : 'var(--mg)';
   const kpiBdr = over ? '#B91C1C' : 'var(--dg)';
-  el.innerHTML =
-    // ── KPIカード：自家消費率（最優先） ──
-    `<div style="width:100%;background:${kpiBg};border-radius:12px;padding:22px 24px;margin-bottom:10px;border:2px solid ${kpiBdr};box-shadow:0 2px 8px rgba(0,0,0,.12)">` +
-      `<div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px">自家消費率</div>` +
+
+  // ── KPIカード：自家消費率（最優先） ──
+  document.getElementById('self-kpi').innerHTML =
+    `<div style="background:${kpiBg};border-radius:12px;padding:22px 24px;border:2px solid ${kpiBdr};box-shadow:0 2px 8px rgba(0,0,0,.12)">` +
+      `<div style="font-size:16px;font-weight:900;color:#fff;letter-spacing:.04em;margin-bottom:6px">自家消費率</div>` +
       `<div style="font-size:52px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em">${selfRate}<span style="font-size:28px;font-weight:700">%</span></div>` +
-      (over ? `<div style="margin-top:8px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 10px;display:inline-block">⚠️ 100%超過 — 昼間直接使用量・蓄電池放電量を見直してください</div>` : '') +
-    `</div>` +
-    // ── 詳細内訳（補助情報） ──
-    `<div style="width:100%;background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">` +
+      (over ? `<div style="margin-top:10px;font-size:13px;font-weight:700;color:#fff;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 10px;display:inline-block">⚠️ 100%超過 — 昼間直接使用量・蓄電池放電量を見直してください</div>` : '') +
+    `</div>`;
+
+  // ── 詳細内訳（補助情報）── remain-disp の下に表示
+  const detailEl = document.getElementById('self-detail');
+  detailEl.style.display = '';
+  detailEl.innerHTML =
+    `<div style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">` +
       `<span>⚡ 年間発電量：<b>${fmt(ag)} kWh</b></span>` +
       `<span>☀️ 昼間直接使用：<b>${fmt(dc)} kWh</b></span>` +
       `<span>🔋 蓄電池放電：<b>${fmt(bc)} kWh</b></span>` +
