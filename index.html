@@ -134,6 +134,10 @@ canvas#mini-chart { height: 150px !important; }
 
 .tab-btn { flex:1; padding:11px 16px; background:#fff; border:none; border-bottom:3px solid transparent; cursor:pointer; font-size:14px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
+.form-locked .section-card,
+.form-locked #pkg-area,
+.form-locked #result-area { opacity:.25; pointer-events:none; user-select:none; }
+#hyp-lock-overlay { display:none; background:#fff; border:2px solid #bfdbfe; border-radius:12px; padding:36px 24px; text-align:center; margin-bottom:16px; }
 @media (max-width: 900px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { position: relative; height: auto; }
@@ -209,7 +213,21 @@ canvas#mini-chart { height: 150px !important; }
     <div id="tab-hyp-banner" style="display:none;padding:10px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;margin-bottom:12px;font-size:12px;align-items:center;gap:8px;flex-wrap:wrap">
       <b style="color:#1d4ed8">🔬 仮説モデル入力</b>
       <span style="color:#1e40af">一般的なご家庭モデルの説明用</span>
+      <span id="hyp-lock-badge" style="padding:2px 8px;border-radius:12px;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:700">🔒 ロック中</span>
       <button onclick="resetToDefaults()" style="margin-left:auto;padding:4px 10px;border-radius:6px;border:1px solid #1d4ed8;background:#fff;color:#1d4ed8;font-size:11px;cursor:pointer;font-family:inherit;white-space:nowrap">デフォルト値に戻す</button>
+    </div>
+    <div id="hyp-lock-overlay">
+      <div style="font-size:44px;margin-bottom:14px">🔒</div>
+      <div style="font-size:17px;font-weight:900;color:#1d4ed8;margin-bottom:6px">仮説モデル入力 — 編集ロック中</div>
+      <div style="font-size:13px;color:#6b7280;margin-bottom:22px">パスワードを入力して編集を解除してください</div>
+      <div style="display:flex;gap:8px;max-width:320px;margin:0 auto">
+        <input type="password" id="model-pw-input" placeholder="パスワード"
+               style="flex:1;border:1.5px solid #bfdbfe;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit"
+               onkeydown="if(event.key==='Enter')unlockModel()">
+        <button onclick="unlockModel()"
+                style="padding:10px 20px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">解除</button>
+      </div>
+      <div id="model-pw-error" style="display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:600">パスワードが違います</div>
     </div>
 
     <div class="section-card">
@@ -708,6 +726,8 @@ const CUSTOMER_DEFAULTS = {
 let hypData = {...HYPOTHESIS_DEFAULTS};
 let custData = {...CUSTOMER_DEFAULTS};
 let activeTab = 'customer';
+const MODEL_EDIT_PASSWORD = 'jibunden2024';
+let modelUnlocked = false;
 
 const TAB_FIELDS = ['mb','mkwh','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
 
@@ -876,6 +896,34 @@ function switchTab(tab) {
   hb.style.display = tab === 'hypothesis' ? 'flex' : 'none';
   document.getElementById('pkg-area').style.display = tab === 'customer' ? '' : 'none';
   applyTabTheme(tab);
+  const lockEl = document.getElementById('hyp-lock-overlay');
+  const sf = document.getElementById('section-form');
+  if (tab === 'hypothesis' && !modelUnlocked) {
+    lockEl.style.display = '';
+    sf.classList.add('form-locked');
+    setTimeout(() => document.getElementById('model-pw-input').focus(), 80);
+  } else {
+    lockEl.style.display = 'none';
+    sf.classList.remove('form-locked');
+  }
+  document.getElementById('hyp-lock-badge').style.display =
+    tab === 'hypothesis' && !modelUnlocked ? '' : 'none';
+}
+
+function unlockModel() {
+  const pw = document.getElementById('model-pw-input').value;
+  if (pw === MODEL_EDIT_PASSWORD) {
+    modelUnlocked = true;
+    document.getElementById('hyp-lock-overlay').style.display = 'none';
+    document.getElementById('section-form').classList.remove('form-locked');
+    document.getElementById('hyp-lock-badge').style.display = 'none';
+    document.getElementById('model-pw-input').value = '';
+    document.getElementById('model-pw-error').style.display = 'none';
+  } else {
+    document.getElementById('model-pw-error').style.display = '';
+    document.getElementById('model-pw-input').value = '';
+    document.getElementById('model-pw-input').focus();
+  }
 }
 
 function applyTabTheme(tab) {
