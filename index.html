@@ -1534,7 +1534,9 @@ function calc() {
   const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
-  document.getElementById('rb-up').textContent = up > 0 ? `現在の平均単価 ${up.toFixed(1)}円/kWh` : '';
+  document.getElementById('rb-up').innerHTML = up > 0
+    ? `<span style="font-size:11px;font-weight:500;opacity:.8">現在の平均単価</span><br><span style="font-size:20px;font-weight:800">${up.toFixed(1)}円/kWh</span>`
+    : '';
   document.getElementById('diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
 
   const lon = document.getElementById('le').checked;
