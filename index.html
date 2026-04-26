@@ -2331,9 +2331,6 @@ async function generatePPTX(mode) {
         const loanTotal7a=cfg.monthlyLoanPayment*loanYrs*12;
         sl.addShape(presR.ShapeType.rect,{x:c3x+0.3,y:cy+3.18,w:c3w-0.6,h:0.4,fill:{color:"F5F3FF"},line:{color:"C4B5FD"}});
         sl.addText(`20年累計 約${fmt(Math.round((loanTotal7a+m.remain20Y_rise)/10000))}万円`,{x:c3x+0.3,y:cy+3.18,w:c3w-0.6,h:0.4,fontSize:10,bold:true,color:"5B21B6",align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        // 矢印
-        sl.addText("→",{x:3.24,y:cy+1.68,w:0.22,h:0.55,fontSize:18,bold:true,color:"9CA3AF",align:"center",valign:"middle"});
-        sl.addText("→",{x:6.49,y:cy+1.68,w:0.2,h:0.55,fontSize:18,bold:true,color:"9CA3AF",align:"center",valign:"middle"});
         // フッター
         sl.addShape(presR.ShapeType.rect,{x:0,y:4.82,w:10,h:0.8,fill:{color:C.paleGreen},line:{color:C.lightGreen,width:0.5}});
         const dCol7a=mdiff>=0?C.midGreen:C.orange;
