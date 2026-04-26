@@ -610,7 +610,7 @@ canvas#mini-chart { height: 150px !important; }
     <div class="section-card">
       <div class="section-title">📊 シミュレーション結果</div>
       <div class="preview-grid">
-        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:4px" id="rb-note"></div></div>
+        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:4px" id="rb-note"></div><div style="font-size:12px;color:rgba(234,88,12,.75);margin-top:5px;font-weight:600" id="rb-up"></div></div>
         <div class="prev-card"><div class="p-label">初期費用</div><div class="p-val" id="rc">-</div></div>
         <div class="prev-card">
           <div style="display:flex;flex-direction:column;gap:8px">
@@ -1527,13 +1527,14 @@ function calc() {
   document.getElementById('bi').style.width = biCostW + '%';
   document.getElementById('biv').textContent = m.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
-  document.getElementById('biv-r').textContent = biRemainW >= 8 ? remain20Man+'万円' : '';
+  document.getElementById('biv-r').textContent = biRemainW >= 4 ? remain20Man+'万' : '';
   document.getElementById('bi-detail').textContent =
     `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${m.totalCostMan+remain20Man}万円`;
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代20年分) ← er=0でも costDiff_with_rise が正しく機能
   const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
+  document.getElementById('rb-up').textContent = up > 0 ? `現在の平均単価 ${up.toFixed(1)}円/kWh` : '';
   document.getElementById('diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
 
   const lon = document.getElementById('le').checked;
@@ -1545,7 +1546,7 @@ function calc() {
     document.getElementById('bl').style.width = blW + '%';
     document.getElementById('blv').textContent = loanTotalMan + '万円';
     document.getElementById('bl-r').style.width = blRemainW + '%';
-    document.getElementById('blv-r').textContent = blRemainW >= 8 ? remain20Man+'万円' : '';
+    document.getElementById('blv-r').textContent = blRemainW >= 4 ? remain20Man+'万' : '';
     document.getElementById('bl-detail').textContent =
       `ローン総額 ${loanTotalMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${loanTotalMan+remain20Man}万円`;
     document.getElementById('stacked-legend-loan').style.display = 'flex';
