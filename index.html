@@ -610,7 +610,18 @@ canvas#mini-chart { height: 150px !important; }
       <div class="section-title">📊 シミュレーション結果</div>
       <div class="preview-grid">
         <div class="prev-card"><div class="p-label">初期費用</div><div class="p-val" id="rc">-</div></div>
-        <div class="prev-card"><div class="p-label">実質発電単価</div><div class="p-val" id="rk">-</div></div>
+        <div class="prev-card">
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div>
+              <div class="p-label">発電単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（100%活用の理論値）</span></div>
+              <div class="p-val" id="rk">-</div>
+            </div>
+            <div style="border-top:1px solid var(--border);padding-top:6px">
+              <div class="p-label">自家消費単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（実消費分ベース）</span></div>
+              <div class="p-val" id="rk-self" style="color:var(--mg)">-</div>
+            </div>
+          </div>
+        </div>
         <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:2px" id="rb-note"></div></div>
         <div class="prev-card"><div class="p-label">年間削減効果</div><div class="p-val" id="rs">-</div></div>
       </div>
@@ -1441,6 +1452,7 @@ function calcMetrics(c) {
     saving20Y_rise: Math.round(saving20Y_with_rise), // 上昇考慮
     remain20Y_rise: Math.round(remain20Y_with_rise), // 残り電気代累計（上昇考慮）
     costDiff_with_rise,
+    selfCostPerKWh: selfKWh > 0 ? Math.round(totalCost / (selfKWh * c.warrantyYears)) : 0,
     totalCostMan: Math.round(totalCost/10000),
     grossCostMan: Math.round(c.totalConstructionCost/10000), // 補助金前の総工事費
     subsidyMan: Math.round(subsidyAmt/10000),                // 補助金額
@@ -1499,6 +1511,7 @@ function calc() {
   }
   document.getElementById('rc').textContent = m.totalCostMan+'万円'+(subAmt>0?' （補助金適用後）':'');
   document.getElementById('rk').textContent = m.costPerKWh+'円/kWh';
+  document.getElementById('rk-self').textContent = m.selfCostPerKWh > 0 ? m.selfCostPerKWh+'円/kWh' : '-';
   // 20年電気代：上昇率があれば上昇後の数値を表示
   document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
   document.getElementById('rs').textContent = fmt(m.annualSaving)+'円';
