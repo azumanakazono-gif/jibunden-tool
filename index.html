@@ -1439,6 +1439,7 @@ function calcMetrics(c) {
     annualSaving: monthlySaving*12,
     saving20Y: monthlySaving*12*c.warrantyYears,   // 上昇なし
     saving20Y_rise: Math.round(saving20Y_with_rise), // 上昇考慮
+    remain20Y_rise: Math.round(remain20Y_with_rise), // 残り電気代累計（上昇考慮）
     costDiff_with_rise,
     totalCostMan: Math.round(totalCost/10000),
     grossCostMan: Math.round(c.totalConstructionCost/10000), // 補助金前の総工事費
@@ -1502,10 +1503,11 @@ function calc() {
   document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
   document.getElementById('rs').textContent = fmt(m.annualSaving)+'円';
   document.getElementById('bbv').textContent = bill20Show+'万円';
-  // 積み上げ棒グラフ：残り電気代計算
-  const mredForBar = Math.round(m.annualSaving/12);
-  const reForBar = Math.max(0, mb - mredForBar);
-  const remain20Man = Math.round(reForBar * 12 * wy / 10000);
+  // 積み上げ棒グラフ：残り電気代（残り購入電力量 × 平均単価 ベース）
+  // m.remainBill = remainKWh × currentUnitPrice / 12（月額）
+  const remain20Man = er > 0
+    ? Math.round(m.remain20Y_rise / 10000)          // 上昇率考慮の累計
+    : Math.round(m.remainBill * 12 * wy / 10000);   // 上昇なし
   const biCostW = Math.min(Math.round(m.totalCostMan / bill20Show * 100), 100);
   const biRemainW = Math.min(Math.round(remain20Man / bill20Show * 100), 100 - biCostW);
   document.getElementById('bi').style.width = biCostW + '%';
@@ -1535,8 +1537,7 @@ function calc() {
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
-    const mred = Math.round(m.annualSaving/12);
-    const re = Math.max(0, mb-mred);
+    const re = m.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
     const mt = lp+re;
     const mdiff = mb-mt;
     document.getElementById('loan-preview-box').style.display='';
@@ -1558,8 +1559,7 @@ function calc() {
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
-    const reOff = Math.max(0, mb - Math.round(m.annualSaving/12));
-    renderMiniChart(m, mb, wy, reOff, 0, 0, 0, false);
+    renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false);
   }
 }
 
