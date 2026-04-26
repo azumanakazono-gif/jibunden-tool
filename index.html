@@ -595,9 +595,10 @@ canvas#mini-chart { height: 150px !important; }
           <div class="cum-chart-wrap">
             <div class="ct">20年間 累計支出イメージ</div>
             <canvas id="mini-chart"></canvas>
-            <div class="legend">
-              <span><b style="background:var(--or)"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
-              <span><b style="background:var(--mg)"></b>じぶん電気（ローン）</span>
+            <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
+              <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
+              <span><b style="background:#2D6A4F"></b>現金購入</span>
+              <span id="legend-loan-item"><b style="background:#7c3aed"></b>ローン活用</span>
             </div>
             <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
           </div>
@@ -1518,16 +1519,20 @@ function calc() {
     // ミニチャート（電気代上昇率を考慮）
     const er = v('er') / 100; // 年間上昇率
     // er-note は電気使用状況セクションで管理
-    const labels=[], nowD=[], loanD=[];
+    const labels=[], nowD=[], cashD=[], loanD=[];
     for(let y=0;y<=wy;y++){
       labels.push(y+'年');
-      // 現状：毎年er%ずつ電気代が上昇（複利）
       let cumNow = 0;
       for(let i=1;i<=y;i++) cumNow += mb * 12 * Math.pow(1+er, i-1);
       nowD.push(Math.round(cumNow/10000));
+      // 現金購入：初期費用＋残り電気代累計
+      if(y===0){ cashD.push(Math.round(m.totalCost/10000)); }
+      else {
+        const reYear = re * Math.pow(1+er, y-1);
+        cashD.push(Math.round(cashD[y-1] + reYear*12/10000));
+      }
       if(y===0){loanD.push(0);continue;}
       const prev=loanD[y-1];
-      // ローン側も残り電気代は上昇率に連動
       const reYear = re * Math.pow(1+er, y-1);
       loanD.push(Math.round(prev+(y<=ly?mt+(reYear-re):reYear)*12/10000));
     }
@@ -1535,8 +1540,9 @@ function calc() {
     if(miniChart)miniChart.destroy();
     miniChart=new Chart(ctx,{
       type:'line', data:{labels,datasets:[
-        {label:'現状',data:nowD,borderColor:'#EA580C',backgroundColor:'rgba(234,88,12,.07)',borderWidth:2.5,pointRadius:0,tension:0},
-        {label:'じぶん電気',data:loanD,borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.07)',borderWidth:2.5,pointRadius:0,tension:0},
+        {label:'電力会社', data:nowD, borderColor:'#EA580C',backgroundColor:'rgba(234,88,12,.07)',borderWidth:2.5,pointRadius:0,tension:0},
+        {label:'現金購入', data:cashD,borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.07)',borderWidth:2.5,pointRadius:0,tension:0},
+        {label:'ローン活用',data:loanD,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.07)',borderWidth:2.5,pointRadius:0,tension:0},
       ]},
       options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
         scales:{x:{ticks:{maxTicksLimit:6,font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
