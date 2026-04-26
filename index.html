@@ -79,9 +79,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 
 /* ── プレビューカード ── */
 .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
-.prev-card { background: var(--pg); border-radius: 10px; padding: 12px; text-align: center; border: 1px solid var(--border); }
-.prev-card .p-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
-.prev-card .p-val { font-size: 20px; font-weight: 700; color: var(--dg); }
+.prev-card { background: var(--pg); border-radius: 12px; padding: 20px 16px; text-align: center; border: 1px solid var(--border); }
+.prev-card .p-label { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.prev-card .p-val { font-size: 44px; font-weight: 800; color: var(--dg); line-height: 1.1; }
 .prev-card.orange .p-val { color: var(--or); }
 .bar-compare { margin-top: 14px; }
 .bar-row { margin-bottom: 8px; }
@@ -609,20 +609,20 @@ canvas#mini-chart { height: 150px !important; }
     <div class="section-card">
       <div class="section-title">📊 シミュレーション結果</div>
       <div class="preview-grid">
+        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:4px" id="rb-note"></div></div>
         <div class="prev-card"><div class="p-label">初期費用</div><div class="p-val" id="rc">-</div></div>
         <div class="prev-card">
-          <div style="display:flex;flex-direction:column;gap:6px">
+          <div style="display:flex;flex-direction:column;gap:8px">
             <div>
               <div class="p-label">発電単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（100%活用の理論値）</span></div>
               <div class="p-val" id="rk">-</div>
             </div>
-            <div style="border-top:1px solid var(--border);padding-top:6px">
+            <div style="border-top:1px solid var(--border);padding-top:8px">
               <div class="p-label">自家消費単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（実消費分ベース）</span></div>
               <div class="p-val" id="rk-self" style="color:var(--mg)">-</div>
             </div>
           </div>
         </div>
-        <div class="prev-card orange"><div class="p-label">20年間の電気代</div><div class="p-val" id="rb">-</div><div style="font-size:9px;color:var(--muted);margin-top:2px" id="rb-note"></div></div>
         <div class="prev-card"><div class="p-label">年間削減効果</div><div class="p-val" id="rs">-</div></div>
       </div>
       <div class="bar-compare">
