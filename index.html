@@ -2260,146 +2260,181 @@ async function generatePPTX(mode) {
       const mt = cfg.monthlyLoanPayment + re;
       const mdiff = cfg.monthlyElectricBill - mt;
 
-      // Slide 7a 月々比較
+      // Slide 7a 月々3比較（電力会社 / 現金購入 / ローン活用）
       {
         const sl=presR.addSlide(); sl.background={color:C.offWhite};
-        sl.addShape(presR.ShapeType.rect,{x:0,y:0,w:10,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-        sl.addText("ローン活用なら、月々の負担はこう変わります",{x:0.3,y:0,w:7.9,h:0.9,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-        sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
-        sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        addBrand(sl,presR);
-        sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:3.7,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.08}});
-        sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.05,w:4.0,h:0.55,fill:{color:C.orange},line:{color:C.orange}});
-        sl.addText("現状　電気代のみ",{x:0.4,y:1.05,w:4.0,h:0.55,fontSize:13,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addShape(presR.ShapeType.rect,{x:0.7,y:1.75,w:3.4,h:0.55,fill:{color:C.orange,transparency:20},line:{color:C.orange}});
-        sl.addText(`電気代　¥${fmt(cfg.monthlyElectricBill)}`,{x:0.7,y:1.75,w:3.4,h:0.55,fontSize:13,bold:true,color:"7C2D12",align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addText("月々の支出",{x:0.4,y:2.45,w:4.0,h:0.35,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
-        sl.addText(`¥${fmt(cfg.monthlyElectricBill)}`,{x:0.4,y:2.78,w:4.0,h:0.85,fontSize:36,bold:true,color:C.orange,align:"center",valign:"middle",fontFace:"Meiryo"});
-        sl.addText("毎月支払い続けても\n資産にはなりません",{x:0.4,y:3.65,w:4.0,h:0.9,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
-        sl.addText("→",{x:4.45,y:2.5,w:0.7,h:0.7,fontSize:24,bold:true,color:C.lightGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
-        sl.addShape(presR.ShapeType.rect,{x:5.2,y:1.05,w:4.4,h:3.7,fill:{color:C.white},line:{color:C.lightGreen},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.08}});
-        sl.addShape(presR.ShapeType.rect,{x:5.2,y:1.05,w:4.4,h:0.55,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
-        sl.addText(`じぶん電気　${loanYrs}年ローン活用`,{x:5.2,y:1.05,w:4.4,h:0.55,fontSize:13,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addShape(presR.ShapeType.rect,{x:5.5,y:1.75,w:3.8,h:0.55,fill:{color:C.midGreen},line:{color:C.midGreen}});
-        sl.addText(`ローン返済　¥${fmt(cfg.monthlyLoanPayment)}`,{x:5.5,y:1.75,w:3.8,h:0.55,fontSize:13,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addShape(presR.ShapeType.rect,{x:5.5,y:2.37,w:3.8,h:0.5,fill:{color:C.accent},line:{color:C.accent}});
-        sl.addText(`残り電気代　¥${fmt(re)}`,{x:5.5,y:2.37,w:3.8,h:0.5,fontSize:12,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addText("月々の支出合計",{x:5.2,y:2.97,w:4.4,h:0.35,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
-        sl.addText(`¥${fmt(mt)}`,{x:5.2,y:3.3,w:4.4,h:0.7,fontSize:32,bold:true,color:C.midGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
-        sl.addText(`${loanYrs}年返済後は電気代が\n大幅に下がります`,{x:5.2,y:3.97,w:4.4,h:0.65,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
-        const dCol=mdiff>=0?C.midGreen:C.orange;
-        const dLbl=mdiff>=0?`月々 約${fmt(mdiff)}円 おトク！`:`月々 約${fmt(Math.abs(mdiff))}円 増えますが、${loanYrs}年返済後は電気代が約${fmt(mred)}円/月 減少`;
-        sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.75,w:9.2,h:0.58,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-        sl.addText([{text:"🌿  ",options:{fontSize:13}},{text:"現状と比べると、",options:{color:C.charcoal,fontSize:13}},{text:dLbl,options:{bold:true,color:dCol,fontSize:13}}],{x:0.5,y:4.75,w:9.1,h:0.58,fontFace:"Meiryo",valign:"middle"});
-      }
-
-      // Slide 7b 累計グラフ（リデザイン版：addChart折れ線）
-      {
-        const sl=presR.addSlide(); sl.background={color:C.white};
-
-        // タイトル帯（深緑）
         sl.addShape(presR.ShapeType.rect,{x:0,y:0,w:10,h:0.75,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-        const erLabel = cfg.escalationRate > 0 ? `・電気代年${cfg.escalationRate}%上昇想定` : '・電気代現状維持';
-        sl.addText(`20年間の累計支出比較　〜ローン${loanYrs}年払い${erLabel}〜`,{
-          x:0.4,y:0,w:7.5,h:0.75,fontSize:16,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0
-        });
+        sl.addText("月々の支出比較　3つの選択肢",{x:0.3,y:0,w:7.5,h:0.75,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
         sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.1,w:1.55,h:0.55,fill:{color:C.midGreen},line:{color:C.midGreen}});
         sl.addText("実データ",{x:8.2,y:0.1,w:1.55,h:0.55,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        addBrand(sl,presR);
+        const c1x=0.2,c2x=3.43,c3x=6.65,cw=2.9,c3w=3.1,cy=0.87,ch=3.78;
+        // カード背景
+        sl.addShape(presR.ShapeType.rect,{x:c1x,y:cy,w:cw,h:ch,fill:{color:C.white},line:{color:"FED7AA"},shadow:{type:"outer",blur:6,offset:2,angle:135,color:"000000",opacity:0.08}});
+        sl.addShape(presR.ShapeType.rect,{x:c2x,y:cy,w:cw,h:ch,fill:{color:C.white},line:{color:C.accent},shadow:{type:"outer",blur:6,offset:2,angle:135,color:"000000",opacity:0.08}});
+        sl.addShape(presR.ShapeType.rect,{x:c3x,y:cy,w:c3w,h:ch,fill:{color:C.white},line:{color:"C4B5FD"},shadow:{type:"outer",blur:6,offset:2,angle:135,color:"000000",opacity:0.08}});
+        // ヘッダー
+        sl.addShape(presR.ShapeType.rect,{x:c1x,y:cy,w:cw,h:0.48,fill:{color:C.orange},line:{color:C.orange}});
+        sl.addText("電力会社のまま",{x:c1x,y:cy,w:cw,h:0.48,fontSize:13,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:c2x,y:cy,w:cw,h:0.48,fill:{color:C.midGreen},line:{color:C.midGreen}});
+        sl.addText("じぶん電気（現金購入）",{x:c2x,y:cy,w:cw,h:0.48,fontSize:12,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:c3x,y:cy,w:c3w,h:0.48,fill:{color:"5B21B6"},line:{color:"5B21B6"}});
+        sl.addText(`じぶん電気（${loanYrs}年ローン）`,{x:c3x,y:cy,w:c3w,h:0.48,fontSize:12,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        // Col1 内容
+        sl.addShape(presR.ShapeType.rect,{x:c1x+0.12,y:cy+0.58,w:cw-0.24,h:0.44,fill:{color:"FFF7ED"},line:{color:"FED7AA"}});
+        sl.addText(`電気代　¥${fmt(cfg.monthlyElectricBill)}`,{x:c1x+0.12,y:cy+0.58,w:cw-0.24,h:0.44,fontSize:12,bold:true,color:"7C2D12",align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText("月々の支出",{x:c1x,y:cy+1.18,w:cw,h:0.3,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addText(`¥${fmt(cfg.monthlyElectricBill)}`,{x:c1x,y:cy+1.48,w:cw,h:0.75,fontSize:30,bold:true,color:C.orange,align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText("毎月払い続けても\n資産にはなりません",{x:c1x,y:cy+2.38,w:cw,h:0.65,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addShape(presR.ShapeType.rect,{x:c1x+0.3,y:cy+3.18,w:cw-0.6,h:0.4,fill:{color:"FFF7ED"},line:{color:"FED7AA"}});
+        sl.addText(`20年累計 約${fmt(Math.round(m.bill20Y_rise/10000))}万円`,{x:c1x+0.3,y:cy+3.18,w:cw-0.6,h:0.4,fontSize:10,bold:true,color:C.orange,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        // Col2 内容
+        sl.addShape(presR.ShapeType.rect,{x:c2x+0.12,y:cy+0.58,w:cw-0.24,h:0.44,fill:{color:"ECFDF5"},line:{color:C.accent}});
+        sl.addText(`残り電気代　¥${fmt(re)}`,{x:c2x+0.12,y:cy+0.58,w:cw-0.24,h:0.44,fontSize:12,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:c2x+0.12,y:cy+1.1,w:cw-0.24,h:0.38,fill:{color:"F9FAFB"},line:{color:C.lightGray}});
+        sl.addText(`初期費用　${m.totalCostMan}万円（別途）`,{x:c2x+0.12,y:cy+1.1,w:cw-0.24,h:0.38,fontSize:10,color:C.gray,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText("月々の残電気代",{x:c2x,y:cy+1.58,w:cw,h:0.3,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addText(`¥${fmt(re)}`,{x:c2x,y:cy+1.88,w:cw,h:0.75,fontSize:30,bold:true,color:C.midGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText(`初期費用 ${m.totalCostMan}万円を除く\n月々の電気代支出`,{x:c2x,y:cy+2.72,w:cw,h:0.58,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addShape(presR.ShapeType.rect,{x:c2x+0.3,y:cy+3.18,w:cw-0.6,h:0.4,fill:{color:"ECFDF5"},line:{color:C.lightGreen}});
+        sl.addText(`20年累計 約${fmt(Math.round((m.totalCost+m.remain20Y_rise)/10000))}万円`,{x:c2x+0.3,y:cy+3.18,w:cw-0.6,h:0.4,fontSize:10,bold:true,color:C.midGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        // Col3 内容
+        sl.addShape(presR.ShapeType.rect,{x:c3x+0.12,y:cy+0.58,w:c3w-0.24,h:0.44,fill:{color:"F5F3FF"},line:{color:"C4B5FD"}});
+        sl.addText(`ローン返済　¥${fmt(cfg.monthlyLoanPayment)}`,{x:c3x+0.12,y:cy+0.58,w:c3w-0.24,h:0.44,fontSize:12,bold:true,color:"4C1D95",align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:c3x+0.12,y:cy+1.1,w:c3w-0.24,h:0.38,fill:{color:"ECFDF5"},line:{color:C.accent}});
+        sl.addText(`残り電気代　¥${fmt(re)}`,{x:c3x+0.12,y:cy+1.1,w:c3w-0.24,h:0.38,fontSize:11,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        sl.addText("月々の支出合計",{x:c3x,y:cy+1.58,w:c3w,h:0.3,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addText(`¥${fmt(mt)}`,{x:c3x,y:cy+1.88,w:c3w,h:0.75,fontSize:30,bold:true,color:"7C3AED",align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText(`${loanYrs}年完済後は\n残電気代のみ ¥${fmt(re)}/月`,{x:c3x,y:cy+2.72,w:c3w,h:0.58,fontSize:10,color:C.gray,align:"center",fontFace:"Meiryo"});
+        const loanTotal7a=cfg.monthlyLoanPayment*loanYrs*12;
+        sl.addShape(presR.ShapeType.rect,{x:c3x+0.3,y:cy+3.18,w:c3w-0.6,h:0.4,fill:{color:"F5F3FF"},line:{color:"C4B5FD"}});
+        sl.addText(`20年累計 約${fmt(Math.round((loanTotal7a+m.remain20Y_rise)/10000))}万円`,{x:c3x+0.3,y:cy+3.18,w:c3w-0.6,h:0.4,fontSize:10,bold:true,color:"5B21B6",align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        // 矢印
+        sl.addText("→",{x:3.24,y:cy+1.68,w:0.22,h:0.55,fontSize:18,bold:true,color:"9CA3AF",align:"center",valign:"middle"});
+        sl.addText("→",{x:6.49,y:cy+1.68,w:0.2,h:0.55,fontSize:18,bold:true,color:"9CA3AF",align:"center",valign:"middle"});
+        // フッター
+        sl.addShape(presR.ShapeType.rect,{x:0,y:4.82,w:10,h:0.8,fill:{color:C.paleGreen},line:{color:C.lightGreen,width:0.5}});
+        const dCol7a=mdiff>=0?C.midGreen:C.orange;
+        const dLbl7a=mdiff>=0
+          ?`ローン活用：月々 約${fmt(mdiff)}円おトク（vs 電力会社）`
+          :`ローン活用：月々 約${fmt(Math.abs(mdiff))}円増（${loanYrs}年完済後は 約${fmt(mred)}円/月 削減）`;
+        sl.addText([{text:"🌿  "},{text:dLbl7a,options:{bold:true,color:dCol7a,fontSize:12}}],{x:0.4,y:4.84,w:9.2,h:0.55,fontFace:"Meiryo",valign:"middle",fontSize:12,color:C.charcoal});
+      }
 
-        // グラフデータ計算（電気代上昇率考慮）
+      // Slide 7b 累計グラフ（3系列：電力会社・現金購入・ローン活用）
+      {
+        const sl=presR.addSlide(); sl.background={color:C.white};
+        sl.addShape(presR.ShapeType.rect,{x:0,y:0,w:10,h:0.75,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+        const erLabel=cfg.escalationRate>0?`・電気代年${cfg.escalationRate}%上昇想定`:'・電気代現状維持';
+        sl.addText(`20年間の累計支出比較　〜3つの選択肢${erLabel}〜`,{x:0.4,y:0,w:7.5,h:0.75,fontSize:16,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.1,w:1.55,h:0.55,fill:{color:C.midGreen},line:{color:C.midGreen}});
+        sl.addText("実データ",{x:8.2,y:0.1,w:1.55,h:0.55,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         const wY=cfg.warrantyYears;
         const aBN=cfg.monthlyElectricBill*12;
-        const aDL=mt*12, aDLA=re*12;
+        const aDLA=re*12, aDL=mt*12;
         const er=(cfg.escalationRate||0)/100;
-        // 5年刻みのデータポイント
-        const labels=[], nowVals=[], loanVals=[];
         const steps=[0,5,10,15,20].filter(y=>y<=wY);
+        const labels=[], nowVals=[], cashVals=[], loanVals=[];
         steps.forEach(y=>{
           labels.push(`${y}年`);
-          // 現状累計
-          let cumNow=0;
-          for(let i=1;i<=y;i++) cumNow+=aBN*Math.pow(1+er,i-1);
+          let cumNow=0; for(let i=1;i<=y;i++) cumNow+=aBN*Math.pow(1+er,i-1);
           nowVals.push(Math.round(cumNow/10000));
-          // ローン累計
+          if(y===0){cashVals.push(Math.round(m.totalCost/10000));}
+          else{let cumCash=m.totalCost;for(let i=1;i<=y;i++)cumCash+=aDLA*Math.pow(1+er,i-1);cashVals.push(Math.round(cumCash/10000));}
           let cumLoan=0;
-          for(let i=1;i<=y;i++){
-            const reY=re*12*Math.pow(1+er,i-1);
-            cumLoan+=(i<=loanYrs?aDL+(reY-aDLA):reY);
-          }
+          for(let i=1;i<=y;i++){const reY=re*12*Math.pow(1+er,i-1);cumLoan+=(i<=loanYrs?aDL+(reY-aDLA):reY);}
           loanVals.push(Math.round(cumLoan/10000));
         });
-
-        // addChart で折れ線グラフ
-        const chartData=[
-          {name:"電力会社の電気代（現状）", labels, values:nowVals},
+        sl.addChart(presR.charts.LINE,[
+          {name:"電力会社のまま",           labels, values:nowVals},
+          {name:"じぶん電気（現金購入）",    labels, values:cashVals},
           {name:`じぶん電気（${loanYrs}年ローン）`, labels, values:loanVals},
-        ];
-        sl.addChart(presR.charts.LINE, chartData, {
-          x:0.4, y:0.85, w:8.6, h:3.85,
-          chartColors:["9CA3AF","1B4332"],
-          lineSize:2.5,
-          lineDataSymbol:"circle",
-          lineDataSymbolSize:8,
+        ],{
+          x:0.4,y:0.85,w:8.0,h:3.85,
+          chartColors:["EA580C","2D6A4F","7C3AED"],
+          lineSize:2.5,lineDataSymbol:"circle",lineDataSymbolSize:7,
           chartArea:{fill:{color:C.white},border:{color:"FFFFFF"}},
           plotArea:{fill:{color:C.white}},
-          catAxisLabelColor:"6B7280",
-          valAxisLabelColor:"6B7280",
-          catAxisLabelFontSize:11,
-          valAxisLabelFontSize:11,
+          catAxisLabelColor:"6B7280",valAxisLabelColor:"6B7280",
+          catAxisLabelFontSize:11,valAxisLabelFontSize:11,
           valAxisMinVal:0,
-          valAxisMaxVal:Math.ceil(Math.max(...nowVals,...loanVals)/100)*100+100,
-          valGridLine:{color:"E5E7EB",size:0.5,style:"solid"},
-          catGridLine:{style:"none"},
-          showLegend:true,
-          legendPos:"b",
-          legendFontSize:11,
-          showValue:false,
-          valAxisTitle:"万円",
-          showValAxisTitle:true,
+          valAxisMaxVal:Math.ceil(Math.max(...nowVals,...cashVals,...loanVals)/100)*100+100,
+          valGridLine:{color:"E5E7EB",size:0.5,style:"solid"},catGridLine:{style:"none"},
+          showLegend:true,legendPos:"b",legendFontSize:11,
+          showValue:false,valAxisTitle:"万円",showValAxisTitle:true,
         });
-
-        // 15年完済ライン（縦破線）
         if(loanYrs<wY){
-          const stepCount=steps.length-1; // 0〜stepCount の間隔
-          const loanStep=steps.indexOf(loanYrs); // 15年は index 3
+          const stepCount=steps.length-1, loanStep=steps.indexOf(loanYrs);
           if(loanStep>=0){
-            // グラフ描画エリア内の相対位置（目安）
-            const graphLeft=0.85, graphRight=8.85; // プロットエリア左右端の目安
+            const graphLeft=0.85,graphRight=8.1;
             const lxP=graphLeft+(loanStep/stepCount)*(graphRight-graphLeft);
-            sl.addShape(presR.ShapeType.line,{x:lxP,y:0.9,w:0,h:3.5,line:{color:C.lightGreen,width:1.5,dashType:"dash"}});
-            sl.addText(`${loanYrs}年でローン完済`,{x:lxP-0.85,y:0.92,w:1.7,h:0.32,fontSize:9,bold:true,color:C.midGreen,align:"center",fontFace:"Meiryo"});
+            sl.addShape(presR.ShapeType.line,{x:lxP,y:0.9,w:0,h:3.5,line:{color:"7C3AED",width:1.5,dashType:"dash"}});
+            sl.addText(`${loanYrs}年でローン完済`,{x:lxP-0.85,y:0.92,w:1.7,h:0.32,fontSize:9,bold:true,color:"5B21B6",align:"center",fontFace:"Meiryo"});
           }
         }
-
-        // 終点ラベル（手動テキスト）
-        const eN=nowVals[nowVals.length-1], eL=loanVals[loanVals.length-1];
-        const tDiff=Math.round(eN-eL), tPos=tDiff>=0;
-        // ラベル位置：グラフ右端近く
-        const labelX=8.65;
-        const eNpct=(eN/(Math.ceil(Math.max(eN,eL)/100)*100+100));
-        const eLpct=(eL/(Math.ceil(Math.max(eN,eL)/100)*100+100));
-        const graphTop=0.9, graphH=3.3;
-        let lNY=graphTop+graphH*(1-eNpct)-0.2;
-        let lLY=graphTop+graphH*(1-eLpct)-0.2;
-        if(Math.abs(lNY-lLY)<0.45){const mid=(lNY+lLY)/2;lNY=mid+0.25;lLY=mid-0.25;}
-        sl.addShape(presR.ShapeType.rect,{x:labelX,y:lNY,w:1.1,h:0.38,fill:{color:"9CA3AF"},line:{color:"9CA3AF"}});
-        sl.addText(`${eN}万円`,{x:labelX,y:lNY,w:1.1,h:0.38,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addShape(presR.ShapeType.rect,{x:labelX,y:lLY,w:1.1,h:0.38,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-        sl.addText(`${eL}万円`,{x:labelX,y:lLY,w:1.1,h:0.38,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-
-        // 注釈帯（薄緑）
+        const eN=nowVals[nowVals.length-1],eC=cashVals[cashVals.length-1],eL=loanVals[loanVals.length-1];
+        const maxV=Math.ceil(Math.max(eN,eC,eL)/100)*100+100;
+        const graphTop=0.9,graphH=3.3,labelX=8.55;
+        const endPts=[[eN,"EA580C"],[eC,"2D6A4F"],[eL,"7C3AED"]]
+          .map(([v,col])=>[graphTop+graphH*(1-v/maxV)-0.18,col,`${v}万`])
+          .sort((a,b)=>a[0]-b[0]);
+        endPts.forEach((_,i)=>{if(i>0&&endPts[i][0]-endPts[i-1][0]<0.45)endPts[i][0]=endPts[i-1][0]+0.45;});
+        endPts.forEach(([y,col,txt])=>{
+          sl.addShape(presR.ShapeType.rect,{x:labelX,y,w:1.1,h:0.36,fill:{color:col},line:{color:col}});
+          sl.addText(txt,{x:labelX,y,w:1.1,h:0.36,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        });
         sl.addShape(presR.ShapeType.rect,{x:0,y:4.88,w:10,h:0.745,fill:{color:C.paleGreen},line:{color:C.lightGreen,width:0.5}});
-        const dMsg=tPos
-          ?`じぶん電気のほうが 約${fmt(Math.abs(tDiff))}万円 おトク`
-          :`現状のほうが 約${fmt(Math.abs(tDiff))}万円 少ない`;
-        const riseNote=cfg.escalationRate>0
-          ?`　※電気代が毎年${cfg.escalationRate}%上昇した場合の試算です。`
-          :`　※電力会社の電気代は現状維持として試算しています。`;
+        const diffC=Math.round(eN-eC),diffL=Math.round(eN-eL);
         sl.addText([
-          {text:"🌿　20年間の累計比較：",options:{color:C.charcoal,fontSize:12}},
-          {text:` ${dMsg}`,options:{bold:true,fontSize:14,color:tPos?C.midGreen:C.orange}},
-          {text:riseNote,options:{fontSize:10,color:C.gray}},
+          {text:"🌿　20年間の累計：",options:{color:C.charcoal,fontSize:11}},
+          {text:`現金購入 約${fmt(Math.abs(diffC))}万円${diffC>=0?'おトク':'増'}　`,options:{bold:true,fontSize:12,color:diffC>=0?C.midGreen:C.orange}},
+          {text:`ローン活用 約${fmt(Math.abs(diffL))}万円${diffL>=0?'おトク':'増'}（vs 電力会社）`,options:{bold:true,fontSize:12,color:diffL>=0?"5B21B6":C.orange}},
         ],{x:0.4,y:4.9,w:9.2,h:0.65,fontFace:"Meiryo",valign:"middle"});
+      }
+
+      // Slide 7c コスト差・単価サマリー（新規）
+      {
+        const sl=presR.addSlide(); sl.background={color:C.offWhite};
+        sl.addShape(presR.ShapeType.rect,{x:0,y:0,w:10,h:0.75,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+        sl.addText("20年間のコスト比較まとめ",{x:0.3,y:0,w:7.9,h:0.75,fontSize:22,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
+        sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.1,w:1.55,h:0.55,fill:{color:C.midGreen},line:{color:C.midGreen}});
+        sl.addText("実データ",{x:8.2,y:0.1,w:1.55,h:0.55,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+        addBrand(sl,presR);
+        const loanTotalC=cfg.monthlyLoanPayment*loanYrs*12;
+        const loanDiffManC=Math.round((m.bill20Y_rise-loanTotalC-m.remain20Y_rise)/10000);
+        const loanCPKC=m.selfKWh>0?Math.round(loanTotalC/(m.selfKWh*cfg.warrantyYears)):0;
+        const bill20Man=Math.round(m.bill20Y_rise/10000);
+        const remain20ManC=Math.round(m.remain20Y_rise/10000);
+        // 左パネル：コスト差
+        sl.addShape(presR.ShapeType.rect,{x:0.2,y:0.87,w:4.55,h:4.3,fill:{color:C.white},line:{color:C.lightGray}});
+        sl.addShape(presR.ShapeType.rect,{x:0.2,y:0.87,w:4.55,h:0.44,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+        sl.addText("📊 電力会社と比べたコスト差（20年間）",{x:0.25,y:0.87,w:4.45,h:0.44,fontSize:11,bold:true,color:C.white,valign:"middle",fontFace:"Meiryo"});
+        sl.addShape(presR.ShapeType.rect,{x:0.35,y:1.4,w:4.25,h:0.36,fill:{color:"ECFDF5"},line:{color:C.lightGreen}});
+        sl.addText("現金購入ベース",{x:0.4,y:1.4,w:4.15,h:0.36,fontSize:11,color:C.darkGreen,bold:true,valign:"middle",fontFace:"Meiryo",margin:4});
+        sl.addText(`約 ${fmt(m.costDiff_with_rise)} 万円 おトク`,{x:0.35,y:1.8,w:4.25,h:0.6,fontSize:24,bold:true,color:C.midGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText(`電力会社 ${bill20Man}万 ー（初期費用 ${m.totalCostMan}万 ＋ 残電気代 ${remain20ManC}万）`,{x:0.35,y:2.42,w:4.25,h:0.3,fontSize:9,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addShape(presR.ShapeType.line,{x:0.35,y:2.82,w:4.25,h:0,line:{color:C.lightGray,width:0.5}});
+        sl.addShape(presR.ShapeType.rect,{x:0.35,y:2.92,w:4.25,h:0.36,fill:{color:"F5F3FF"},line:{color:"C4B5FD"}});
+        sl.addText("ローン活用ベース",{x:0.4,y:2.92,w:4.15,h:0.36,fontSize:11,color:"4C1D95",bold:true,valign:"middle",fontFace:"Meiryo",margin:4});
+        sl.addText(`約 ${fmt(loanDiffManC)} 万円 おトク`,{x:0.35,y:3.32,w:4.25,h:0.6,fontSize:24,bold:true,color:"5B21B6",align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText(`電力会社 ${bill20Man}万 ー（ローン総額 ${Math.round(loanTotalC/10000)}万 ＋ 残電気代 ${remain20ManC}万）`,{x:0.35,y:3.95,w:4.25,h:0.3,fontSize:9,color:C.gray,align:"center",fontFace:"Meiryo"});
+        sl.addShape(presR.ShapeType.rect,{x:0.35,y:4.35,w:4.25,h:0.64,fill:{color:"FFF7ED"},line:{color:"FED7AA"}});
+        const cashBetter=m.costDiff_with_rise-loanDiffManC;
+        sl.addText(cashBetter>0?`現金購入の方が 約${fmt(cashBetter)}万円おトクですが、初期費用が必要です`:`ローン活用でも十分おトクです（初期費用不要）`,{x:0.35,y:4.35,w:4.25,h:0.64,fontSize:10,color:C.orange,align:"center",valign:"middle",fontFace:"Meiryo"});
+        // 右パネル：単価比較
+        sl.addShape(presR.ShapeType.rect,{x:5.1,y:0.87,w:4.7,h:4.3,fill:{color:C.white},line:{color:C.lightGray}});
+        sl.addShape(presR.ShapeType.rect,{x:5.1,y:0.87,w:4.7,h:0.44,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+        sl.addText("💡 1kWhあたりの実質単価比較",{x:5.15,y:0.87,w:4.6,h:0.44,fontSize:11,bold:true,color:C.white,valign:"middle",fontFace:"Meiryo"});
+        [{label:"現在の電気代単価（比較基準）",val:`${cfg.currentUnitPrice}円/kWh`,bg:"FFF7ED",border:"FED7AA",vc:C.orange},
+         {label:"発電単価（100%活用・理論値）",val:`${m.costPerKWh}円/kWh`,bg:"ECFDF5",border:C.accent,vc:C.midGreen},
+         {label:"自家消費単価（現金購入ベース）",val:m.selfCostPerKWh>0?`${m.selfCostPerKWh}円/kWh`:'-',bg:"ECFDF5",border:"86EFAC",vc:C.darkGreen},
+         {label:"ローン活用時の単価（総返済額）",val:loanCPKC>0?`${loanCPKC}円/kWh`:'-',bg:"F5F3FF",border:"C4B5FD",vc:"5B21B6"},
+        ].forEach((r,i)=>{
+          const ry=1.42+i*0.92;
+          sl.addShape(presR.ShapeType.rect,{x:5.25,y:ry,w:4.4,h:0.84,fill:{color:r.bg},line:{color:r.border}});
+          sl.addText(r.label,{x:5.3,y:ry+0.04,w:4.3,h:0.3,fontSize:10,color:C.gray,fontFace:"Meiryo",valign:"middle"});
+          sl.addText(r.val,{x:5.3,y:ry+0.38,w:4.3,h:0.38,fontSize:19,bold:true,color:r.vc,fontFace:"Meiryo",valign:"middle"});
+        });
       }
     }
 
