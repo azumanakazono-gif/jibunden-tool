@@ -153,6 +153,7 @@ canvas#mini-chart { height: 150px !important; }
   .hearing-lbl { font-size: 15px; }
   .tab-btn { font-size: 15px; }
   .prev-card .p-label { font-size: 13px; }
+  .prev-card .p-val { font-size: 32px; }
 }
 </style>
 </head>
@@ -615,11 +616,11 @@ canvas#mini-chart { height: 150px !important; }
           <div style="display:flex;flex-direction:column;gap:8px">
             <div>
               <div class="p-label">発電単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（100%活用の理論値）</span></div>
-              <div class="p-val" id="rk">-</div>
+              <div class="p-val" id="rk" style="font-size:30px">-</div>
             </div>
             <div style="border-top:1px solid var(--border);padding-top:8px">
               <div class="p-label">自家消費単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（実消費分ベース）</span></div>
-              <div class="p-val" id="rk-self" style="color:var(--mg)">-</div>
+              <div class="p-val" id="rk-self" style="color:var(--mg);font-size:30px">-</div>
             </div>
           </div>
         </div>
