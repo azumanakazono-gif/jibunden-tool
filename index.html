@@ -1516,8 +1516,8 @@ function calc() {
   document.getElementById('biv-r').textContent = biRemainW >= 8 ? remain20Man+'万円' : '';
   document.getElementById('bi-detail').textContent =
     `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${m.totalCostMan+remain20Man}万円`;
-  // コスト差も上昇率考慮
-  const diffShow = er > 0 ? m.costDiff_with_rise : Math.round((m.bill20Y-m.totalCost)/10000);
+  // コスト差：電力会社20年総額 - (初期費用 + 残り電気代20年分) ← er=0でも costDiff_with_rise が正しく機能
+  const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
   document.getElementById('diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
@@ -1950,7 +1950,7 @@ async function generatePPTX(mode) {
         sl.addShape(presM.ShapeType.rect,{x:0.4,y:y+0.42,w:mBW*item.ratio,h:0.7,fill:{color:item.color},line:{color:item.color}});
         sl.addText(`${fmt(item.val)} 万円`,{x:0.4+mBW*item.ratio+0.1,y:y+0.42,w:2.5,h:0.7,fontSize:18,bold:true,color:item.color,valign:"middle",fontFace:"Meiryo"});
       });
-      const diff=hM.bill20YMan-hM.totalCostMan;
+      const diff=hM.costDiff_with_rise;
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.0,w:9.2,h:1.35,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${hCfg.warrantyYears}年間で 約${fmt(diff)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.05,w:9.0,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
       sl.addText("※本スライドはモデルケースによる試算です。実際のコストは設置条件等により異なります。",{x:0.3,y:5.35,w:8.2,h:0.24,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
@@ -1987,7 +1987,7 @@ async function generatePPTX(mode) {
       sl.addText("じぶん電気 モデルケースまとめ",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       [
         {num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},
-        {num:"02",icon:"💰",text:(()=>{const diff=Math.round(hM.bill20YMan-hM.totalCostMan);return diff>=10?`${hCfg.warrantyYears}年間で約${fmt(diff)}万円のコスト差が見込めます（モデルケース試算）`:diff>=-10?`${hCfg.warrantyYears}年間のコスト差はほぼ同水準になる場合があります（条件次第）`:`条件によっては電力会社と大きな差が出ない場合があります（ご確認ください）`;})()},
+        {num:"02",icon:"💰",text:(()=>{const diff=hM.costDiff_with_rise;return diff>=10?`${hCfg.warrantyYears}年間で約${fmt(diff)}万円のコスト差が見込めます（モデルケース試算）`:diff>=-10?`${hCfg.warrantyYears}年間のコスト差はほぼ同水準になる場合があります（条件次第）`:`条件によっては電力会社と大きな差が出ない場合があります（ご確認ください）`;})()},
         {num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},
         {num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"},
       ].forEach((item,i)=>{
@@ -2209,7 +2209,7 @@ async function generatePPTX(mode) {
         sl.addShape(presR.ShapeType.rect,{x:0.4,y:y+0.42,w:mBWE*item.ratio,h:0.7,fill:{color:item.color},line:{color:item.color}});
         sl.addText(`${fmt(item.val)} 万円`,{x:0.4+mBWE*item.ratio+0.1,y:y+0.42,w:2.5,h:0.7,fontSize:18,bold:true,color:item.color,valign:"middle",fontFace:"Meiryo"});
       });
-      const diffE=m.bill20YMan-m.totalCostMan;
+      const diffE=m.costDiff_with_rise;
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.0,w:9.2,h:1.35,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${cfg.warrantyYears}年間で 約${fmt(diffE)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.05,w:9.0,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
       sl.addText(`※${cn}様のヒアリング情報をもとにした試算です。実際のコストは設置条件等により異なります。`,{x:0.3,y:5.35,w:8.2,h:0.24,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
@@ -2401,7 +2401,7 @@ async function generatePPTX(mode) {
       sl.addShape(presR.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
       sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText(`${cn}様へのご提案まとめ`,{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-      [{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${cfg.warrantyYears}年間のコスト差　約${fmt(m.bill20YMan - m.totalCostMan)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
+      [{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${cfg.warrantyYears}年間のコスト差　約${fmt(m.costDiff_with_rise)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
         const y=1.05+i*1.0;
         sl.addShape(presR.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
         sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
