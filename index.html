@@ -1995,11 +1995,11 @@ async function generatePPTX(mode) {
       sl.addShape(presM.ShapeType.rect,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fill:{color:C.accent},line:{color:C.accent}});
       if(remWH>0.9)sl.addText(`残電気代\n${remain20ManH}万`,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addText(`計 ${fmt(hM.totalCostMan+remain20ManH)} 万円`,{x:0.4+costWH+remWH+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
-      sl.addText(`■ 初期費用 ${hM.totalCostMan}万円　＋　■ 残り電気代 ${remain20ManH}万円　＝　計 ${fmt(hM.totalCostMan+remain20ManH)}万円`,{x:0.4,y:4.06,w:8.0,h:0.3,fontSize:10,color:C.gray,fontFace:"Meiryo"});
+      sl.addText(`■ 初期費用 ${hM.totalCostMan}万円　＋　■ 残り電気代 ${remain20ManH}万円　＝　計 ${fmt(hM.totalCostMan+remain20ManH)}万円`,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,color:C.gray,fontFace:"Meiryo",valign:"middle"});
       const diff=hM.costDiff_with_rise;
-      sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.0,w:9.2,h:1.35,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-      sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${hCfg.warrantyYears}年間で 約${fmt(diff)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.05,w:9.0,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
-      sl.addText("※本スライドはモデルケースによる試算です。実際のコストは設置条件等により異なります。",{x:0.3,y:5.35,w:8.2,h:0.24,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
+      sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.4,w:9.2,h:0.96,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+      sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${hCfg.warrantyYears}年間で 約${fmt(diff)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.4,w:9.0,h:0.96,fontSize:16,fontFace:"Meiryo",valign:"middle"});
+      sl.addText("※本スライドはモデルケースによる試算です。実際のコストは設置条件等により異なります。",{x:0.3,y:5.4,w:8.2,h:0.22,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
     }
     // ── Slide 保証 ──
     {
@@ -2265,11 +2265,11 @@ async function generatePPTX(mode) {
       sl.addShape(presR.ShapeType.rect,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fill:{color:C.accent},line:{color:C.accent}});
       if(remWE>0.9)sl.addText(`残電気代\n${remain20ManE}万`,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addText(`計 ${fmt(m.totalCostMan+remain20ManE)} 万円`,{x:0.4+costWE+remWE+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
-      sl.addText(`■ 初期費用 ${m.totalCostMan}万円　＋　■ 残り電気代 ${remain20ManE}万円　＝　計 ${fmt(m.totalCostMan+remain20ManE)}万円`,{x:0.4,y:4.06,w:8.0,h:0.3,fontSize:10,color:C.gray,fontFace:"Meiryo"});
+      sl.addText(`■ 初期費用 ${m.totalCostMan}万円　＋　■ 残り電気代 ${remain20ManE}万円　＝　計 ${fmt(m.totalCostMan+remain20ManE)}万円`,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,color:C.gray,fontFace:"Meiryo",valign:"middle"});
       const diffE=m.costDiff_with_rise;
-      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.0,w:9.2,h:1.35,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
-      sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${cfg.warrantyYears}年間で 約${fmt(diffE)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.05,w:9.0,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
-      sl.addText(`※${cn}様のヒアリング情報をもとにした試算です。実際のコストは設置条件等により異なります。`,{x:0.3,y:5.35,w:8.2,h:0.24,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
+      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.4,w:9.2,h:0.96,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
+      sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${cfg.warrantyYears}年間で 約${fmt(diffE)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.4,w:9.0,h:0.96,fontSize:16,fontFace:"Meiryo",valign:"middle"});
+      sl.addText(`※${cn}様のヒアリング情報をもとにした試算です。実際のコストは設置条件等により異なります。`,{x:0.3,y:5.4,w:8.2,h:0.22,fontSize:8,color:C.gray,fontFace:"Meiryo",italic:true,valign:"middle"});
     }
 
     // ── Slide 7・8（ローン） ──
