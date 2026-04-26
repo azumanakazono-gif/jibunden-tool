@@ -619,8 +619,12 @@ canvas#mini-chart { height: 150px !important; }
               <div class="p-val" id="rk" style="font-size:30px">-</div>
             </div>
             <div style="border-top:1px solid var(--border);padding-top:8px">
-              <div class="p-label">自家消費単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（実消費分ベース）</span></div>
+              <div class="p-label">自家消費単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（現金購入ベース）</span></div>
               <div class="p-val" id="rk-self" style="color:var(--mg);font-size:30px">-</div>
+            </div>
+            <div id="rk-loan-row" style="border-top:1px solid var(--border);padding-top:8px;display:none">
+              <div class="p-label">ローン活用時の単価<span style="font-size:10px;color:var(--muted);margin-left:4px">（総返済額ベース）</span></div>
+              <div class="p-val" id="rk-loan" style="color:#7c3aed;font-size:30px">-</div>
             </div>
           </div>
         </div>
@@ -1553,6 +1557,9 @@ function calc() {
       `ローン総額 ${loanTotalMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${loanTotalMan+remain20Man}万円`;
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
+    const loanCostPerKWh = m.selfKWh > 0 ? Math.round(lp * ly * 12 / (m.selfKWh * wy)) : 0;
+    document.getElementById('rk-loan').textContent = loanCostPerKWh > 0 ? loanCostPerKWh + '円/kWh' : '-';
+    document.getElementById('rk-loan-row').style.display = '';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const re = m.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
     const mt = lp+re;
@@ -1575,6 +1582,7 @@ function calc() {
     document.getElementById('legend-loan-item').style.display = 'none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
+    document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
     renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false);
   }
