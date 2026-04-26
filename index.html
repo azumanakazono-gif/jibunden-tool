@@ -666,6 +666,10 @@ canvas#mini-chart { height: 150px !important; }
         <span class="d-label">20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
       </div>
+      <div class="diff-banner loan-bar-only" id="loan-diff-banner" style="display:none;background:#5b21b6;margin-top:8px">
+        <span class="d-label">ローン活用時の20年コスト差<br><span id="loan-diff-note" style="font-size:10px;opacity:.7"></span></span>
+        <span class="d-val" id="rd-loan">-</span>
+      </div>
     </div>
 
   </div><!-- /form-body -->
@@ -1563,6 +1567,9 @@ function calc() {
     const loanCostPerKWh = m.selfKWh > 0 ? Math.round(lp * ly * 12 / (m.selfKWh * wy)) : 0;
     document.getElementById('rk-loan').textContent = loanCostPerKWh > 0 ? loanCostPerKWh + '円/kWh' : '-';
     document.getElementById('rk-loan-row').style.display = '';
+    const loanDiffMan = Math.round((m.bill20Y_rise - lp * ly * 12 - m.remain20Y_rise) / 10000);
+    document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
+    document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const re = m.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
     const mt = lp+re;
