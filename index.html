@@ -322,17 +322,8 @@ canvas#mini-chart { height: 150px !important; }
           </optgroup>
         </select>
         <div id="estimated-price-disp" style="display:none;margin-top:5px;padding:5px 10px;border-radius:6px;background:var(--pg);border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
-        <!-- 単価根拠 内訳パネル（時間帯別プラン選択時） -->
+        <!-- 単価根拠 内訳パネル（時間帯別プラン選択時・innerHTML は showUnitPriceBreakdown() が生成） -->
         <div id="unit-price-breakdown" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid var(--border);font-size:12px">
-          <div style="font-weight:700;color:var(--mg);margin-bottom:6px">📊 単価の内訳</div>
-          <div id="upb-ratios" style="color:var(--muted);margin-bottom:6px;font-size:11px"></div>
-          <table style="width:100%;border-collapse:collapse;font-size:12px">
-            <tr><td style="padding:2px 0;color:var(--muted)">電力量のみ平均単価</td><td id="upb-base" style="text-align:right;font-weight:700;color:var(--dg)">-</td></tr>
-            <tr><td style="padding:2px 0;color:var(--muted)">燃料費等調整単価</td><td style="text-align:right;color:var(--or)">+<span id="upb-fuel"></span>円/kWh</td></tr>
-            <tr><td style="padding:2px 0;color:var(--muted)">再エネ賦課金</td><td style="text-align:right;color:var(--or)">+<span id="upb-saiene"></span>円/kWh</td></tr>
-            <tr><td style="padding:2px 0;color:var(--muted)">離島ユニバーサルサービス調整</td><td style="text-align:right;color:var(--muted)">+<span id="upb-island"></span>円/kWh</td></tr>
-            <tr style="border-top:1px solid var(--border)"><td style="padding:4px 0;font-weight:700;color:var(--dg)">調整・賦課金込み実質単価</td><td id="upb-effective" style="text-align:right;font-size:15px;font-weight:800;color:var(--dg)">-</td></tr>
-          </table>
         </div>
         <!-- カスタム時間帯割合（電化でナイト） -->
         <div id="custom-ratio-dn" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:12px">
@@ -764,8 +755,32 @@ const ADJUSTMENT_TOTAL = FUEL_ADJUSTMENT_UNIT_PRICE + RENEWABLE_ENERGY_SURCHARGE
 
 // ── 九州電力 季時別電灯 ──
 const KYUSHU_KIJI = { unitPrice: 31 }; // フォールバック（概算）
+
+// A案：公式季節別電力量単価（九州電力公式ページ準拠）
+// 計算式: baseAverage = Σ(季節加重単価 × 生活スタイル比率)
+//        effective = baseAverage + ADJUSTMENT_TOTAL
+
+// 電化でナイト・セレクト 公式電力量単価
+// 平日昼間年間平均 = 27.63 × 4/12 + 24.74 × 8/12
+// 休日昼間年間平均 = 22.01 × 4/12 + 18.61 × 8/12
+const DENKA_NIGHT_OFFICIAL = {
+  weekday:     { summer:27.63, other:24.74 }, // 平日昼間 夏冬/春秋（円/kWh）
+  holiday:     { summer:22.01, other:18.61 }, // 休日昼間 夏冬/春秋（円/kWh）
+  night:       14.59,                          // 夜間（通年・円/kWh）
+  seasonRatio: { summer:4/12, other:8/12 },   // 夏冬4か月 / 春秋8か月
+};
+
+// 季時別電灯 公式電力量単価
+// デイタイム年間平均 = 33.57 × 3/12 + 27.71 × 9/12
+const KIJI_OFFICIAL = {
+  daytime:     { summer:33.57, other:27.71 }, // デイタイム 夏季/その他季（円/kWh）
+  living:      26.03,                          // リビングタイム（通年・円/kWh）
+  night:       14.59,                          // ナイトタイム（通年・円/kWh）
+  seasonRatio: { summer:3/12, other:9/12 },   // 夏季3か月 / その他季9か月
+};
+
 const KYUSHU_KIJI_SEASONAL = {
-  tariff: { dt:29.2, lv:25.95, ngt:14.6 },
+  // tariff は KIJI_OFFICIAL から季節加重計算（calcEffectiveUnitPrice 参照）
   timeLabels: ['デイタイム','リビングタイム','ナイトタイム'],
   timeKeys:   ['dt','lv','ngt'],
   styles: {
@@ -784,10 +799,9 @@ const KYUSHU_OHISAMA = {
   unitPrice: 30, // 円/kWh（概算・仮置き）
 };
 
-// ── 九州電力 電化でナイト・セレクト 概算単価マスタ ──
-// 単価・比率を変更する場合は tariff と styles の数値を更新してください
+// ── 九州電力 電化でナイト・セレクト ──
+// tariff は DENKA_NIGHT_OFFICIAL から季節加重計算（calcEffectiveUnitPrice 参照）
 const KYUSHU_DENKA_NIGHT = {
-  tariff: { day:26.21, hol:20.21, ngt:14.61 }, // 調整前電力量単価（実測値ベース）
   timeLabels: ['平日昼間','休日昼間','夜間'],
   timeKeys:   ['day','hol','ngt'],
   styles: {
@@ -1085,58 +1099,125 @@ function showSection(s) {
 // ── 実効平均単価プランは avg: プレフィックスで判別 ──
 // ══════════════════════════════════════════
 // ── 実質単価計算（調整・賦課金込み）──
+// ── 実質単価計算（A案：公式季節別単価ベース）──
+// step1: 公式単価 × 季節比率 → 時間帯別年間平均単価
+// step2: 時間帯別年間平均単価 × 生活スタイル使用割合 → baseAverage
+// step3: effectiveUnitPrice = baseAverage + ADJUSTMENT_TOTAL
 function calcEffectiveUnitPrice(plan, lifestyle) {
-  let base = 0, ratios = null, tariff = null, labels = null;
+  let seasonalAvg = null, ratios = null, ratioLabels = null;
+
   if (plan === 'kyushu_denka_night') {
-    const cfg = KYUSHU_DENKA_NIGHT;
-    tariff = cfg.tariff; labels = cfg.timeLabels;
+    const o = DENKA_NIGHT_OFFICIAL;
+    // step1: 季節加重後の時間帯別年間平均単価
+    const dayAvg = o.weekday.summer * o.seasonRatio.summer + o.weekday.other * o.seasonRatio.other;
+    const holAvg = o.holiday.summer * o.seasonRatio.summer + o.holiday.other * o.seasonRatio.other;
+    seasonalAvg = { day:dayAvg, hol:holAvg, ngt:o.night };
+    // step2: 生活スタイル割合
     if (lifestyle === 'custom') {
       const d = parseFloat(document.getElementById('cr-dn-day').value)||0;
       const h = parseFloat(document.getElementById('cr-dn-hol').value)||0;
       const n = parseFloat(document.getElementById('cr-dn-ngt').value)||0;
-      if (Math.abs(d+h+n-100) < 0.5) ratios = { day:d/100, hol:h/100, ngt:n/100 };
+      if (Math.abs(d+h+n-100) < 0.5) {
+        ratios = { day:d/100, hol:h/100, ngt:n/100 };
+        ratioLabels = [`平日昼間 ${d}%`, `休日昼間 ${h}%`, `夜間 ${n}%`];
+      }
     } else {
-      const s = cfg.styles[lifestyle] || cfg.styles.even;
+      const s = KYUSHU_DENKA_NIGHT.styles[lifestyle] || KYUSHU_DENKA_NIGHT.styles.even;
       ratios = s;
+      ratioLabels = [`平日昼間 ${Math.round(s.day*100)}%`, `休日昼間 ${Math.round(s.hol*100)}%`, `夜間 ${Math.round(s.ngt*100)}%`];
     }
-    if (ratios) base = ratios.day*tariff.day + ratios.hol*tariff.hol + ratios.ngt*tariff.ngt;
-    if (ratios) labels = [`平日昼間 ${Math.round(ratios.day*100)}%`, `休日昼間 ${Math.round(ratios.hol*100)}%`, `夜間 ${Math.round(ratios.ngt*100)}%`];
+    if (!ratios) return { base:0, effective:0, seasonalAvg, ratioLabels:null, valid:false };
+    const base = seasonalAvg.day*ratios.day + seasonalAvg.hol*ratios.hol + seasonalAvg.ngt*ratios.ngt;
+    return { base:Math.round(base*100)/100, effective:Math.round((base+ADJUSTMENT_TOTAL)*100)/100, seasonalAvg, ratios, ratioLabels, valid:true };
+
   } else if (plan === 'kyushu_kiji') {
-    const cfg = KYUSHU_KIJI_SEASONAL;
-    tariff = cfg.tariff; labels = cfg.timeLabels;
+    const o = KIJI_OFFICIAL;
+    // step1: 季節加重後のデイタイム年間平均単価
+    const dtAvg = o.daytime.summer * o.seasonRatio.summer + o.daytime.other * o.seasonRatio.other;
+    seasonalAvg = { dt:dtAvg, lv:o.living, ngt:o.night };
+    // step2: 生活スタイル割合
     if (lifestyle === 'custom') {
       const d = parseFloat(document.getElementById('cr-kj-dt').value)||0;
       const l = parseFloat(document.getElementById('cr-kj-lv').value)||0;
       const n = parseFloat(document.getElementById('cr-kj-ngt').value)||0;
-      if (Math.abs(d+l+n-100) < 0.5) ratios = { dt:d/100, lv:l/100, ngt:n/100 };
+      if (Math.abs(d+l+n-100) < 0.5) {
+        ratios = { dt:d/100, lv:l/100, ngt:n/100 };
+        ratioLabels = [`デイタイム ${d}%`, `リビング ${l}%`, `ナイト ${n}%`];
+      }
     } else {
-      const s = cfg.styles[lifestyle] || cfg.styles.even;
+      const s = KYUSHU_KIJI_SEASONAL.styles[lifestyle] || KYUSHU_KIJI_SEASONAL.styles.even;
       ratios = s;
+      ratioLabels = [`デイタイム ${Math.round(s.dt*100)}%`, `リビング ${Math.round(s.lv*100)}%`, `ナイト ${Math.round(s.ngt*100)}%`];
     }
-    if (ratios) base = ratios.dt*tariff.dt + ratios.lv*tariff.lv + ratios.ngt*tariff.ngt;
-    if (ratios) labels = [`デイタイム ${Math.round(ratios.dt*100)}%`, `リビング ${Math.round(ratios.lv*100)}%`, `ナイト ${Math.round(ratios.ngt*100)}%`];
+    if (!ratios) return { base:0, effective:0, seasonalAvg, ratioLabels:null, valid:false };
+    const base = seasonalAvg.dt*ratios.dt + seasonalAvg.lv*ratios.lv + seasonalAvg.ngt*ratios.ngt;
+    return { base:Math.round(base*100)/100, effective:Math.round((base+ADJUSTMENT_TOTAL)*100)/100, seasonalAvg, ratios, ratioLabels, valid:true };
   }
-  const baseR   = Math.round(base*100)/100;
-  const effective = Math.round((base + ADJUSTMENT_TOTAL)*100)/100;
-  return { base:baseR, effective, ratioLabels:labels, valid: base > 0 };
+  return { base:0, effective:0, valid:false };
 }
 
 function showUnitPriceBreakdown(plan, lifestyle) {
   const panel = document.getElementById('unit-price-breakdown');
-  // カスタムUI表示切替
   document.getElementById('custom-ratio-dn').style.display = (plan==='kyushu_denka_night' && lifestyle==='custom') ? '' : 'none';
   document.getElementById('custom-ratio-kj').style.display = (plan==='kyushu_kiji' && lifestyle==='custom') ? '' : 'none';
   const isTimePlan = plan==='kyushu_denka_night' || plan==='kyushu_kiji';
   if (!isTimePlan) { panel.style.display='none'; return; }
   const r = calcEffectiveUnitPrice(plan, lifestyle);
-  if (!r.valid) { panel.style.display='none'; return; }
   panel.style.display = '';
-  document.getElementById('upb-ratios').textContent = r.ratioLabels ? r.ratioLabels.join('　') : '';
-  document.getElementById('upb-base').textContent = r.base.toFixed(2)+'円/kWh';
-  document.getElementById('upb-fuel').textContent = FUEL_ADJUSTMENT_UNIT_PRICE.toFixed(2);
-  document.getElementById('upb-saiene').textContent = RENEWABLE_ENERGY_SURCHARGE.toFixed(2);
-  document.getElementById('upb-island').textContent = ISLAND_UNIVERSAL_ADJUSTMENT.toFixed(2);
-  document.getElementById('upb-effective').textContent = r.effective.toFixed(2)+'円/kWh';
+  if (!r.valid) {
+    panel.innerHTML = '<div style="color:var(--or);font-size:12px;font-weight:700">⚠️ カスタム割合が未確定です（合計100%になるよう調整してください）</div>';
+    return;
+  }
+  const F='font-size:11px', M='color:var(--muted)', DG='color:var(--dg)', OR='color:var(--or)';
+  const row=(l,v,bold,color)=>
+    `<tr><td style="padding:2px 0;${F};${M}">${l}</td>` +
+    `<td style="text-align:right;${F};${bold?'font-weight:700;':''}${color||DG}">${v}</td></tr>`;
+
+  let officialRows='', seasonalRows='';
+  if (plan==='kyushu_denka_night') {
+    const o=DENKA_NIGHT_OFFICIAL, sa=r.seasonalAvg;
+    officialRows =
+      row('平日昼間 夏冬', o.weekday.summer.toFixed(2)+'円/kWh') +
+      row('平日昼間 春秋', o.weekday.other.toFixed(2)+'円/kWh') +
+      row('休日昼間 夏冬', o.holiday.summer.toFixed(2)+'円/kWh') +
+      row('休日昼間 春秋', o.holiday.other.toFixed(2)+'円/kWh') +
+      row('夜間（通年）',  o.night.toFixed(2)+'円/kWh');
+    seasonalRows =
+      row('平日昼間 年間平均', sa.day.toFixed(2)+'円/kWh', true) +
+      row('休日昼間 年間平均', sa.hol.toFixed(2)+'円/kWh', true) +
+      row('夜間',             sa.ngt.toFixed(2)+'円/kWh', true);
+  } else {
+    const o=KIJI_OFFICIAL, sa=r.seasonalAvg;
+    officialRows =
+      row('デイタイム 夏季',    o.daytime.summer.toFixed(2)+'円/kWh') +
+      row('デイタイム その他季', o.daytime.other.toFixed(2)+'円/kWh') +
+      row('リビングタイム（通年）', o.living.toFixed(2)+'円/kWh') +
+      row('ナイトタイム（通年）',   o.night.toFixed(2)+'円/kWh');
+    seasonalRows =
+      row('デイタイム 年間平均', sa.dt.toFixed(2)+'円/kWh', true) +
+      row('リビングタイム',      sa.lv.toFixed(2)+'円/kWh', true) +
+      row('ナイトタイム',        sa.ngt.toFixed(2)+'円/kWh', true);
+  }
+  const sec=(title,rows)=>
+    `<div style="${F};font-weight:700;${M};margin:7px 0 2px">${title}</div>` +
+    `<table style="width:100%;border-collapse:collapse">${rows}</table>`;
+
+  panel.innerHTML =
+    `<div style="font-weight:700;color:var(--mg);margin-bottom:4px">📊 単価の内訳（公式単価ベース）</div>` +
+    `<div style="${F};${M};margin-bottom:6px;line-height:1.5">` +
+      `九州電力の公式時間帯別電力量単価に、生活スタイル別の時間帯使用割合を掛け合わせ、燃料費等調整単価と再エネ賦課金を加えたシミュレーション用の実質単価です。</div>` +
+    `<div style="${F};${M};margin-bottom:4px">生活スタイル想定：<b style="${DG}">${(r.ratioLabels||[]).join('　')}</b></div>` +
+    sec('公式電力量単価', officialRows) +
+    sec('季節加重後の時間帯別年間平均単価', seasonalRows) +
+    sec('単価算出', [
+      row('電力量のみ平均単価', r.base.toFixed(2)+'円/kWh', true),
+      row('燃料費等調整単価',   '＋'+FUEL_ADJUSTMENT_UNIT_PRICE.toFixed(2)+'円/kWh', false, OR),
+      row('再エネ賦課金',       '＋'+RENEWABLE_ENERGY_SURCHARGE.toFixed(2)+'円/kWh',  false, OR),
+      row('離島ユニバーサルサービス調整', '＋'+ISLAND_UNIVERSAL_ADJUSTMENT.toFixed(2)+'円/kWh', false, M),
+      `<tr style="border-top:1px solid var(--border)"><td style="padding:4px 0;font-weight:700;${DG}">調整・賦課金込み実質単価</td>` +
+      `<td style="text-align:right;font-size:15px;font-weight:800;${DG}">${r.effective.toFixed(2)}円/kWh</td></tr>`
+    ].join('')) +
+    `<div style="font-size:10px;${M};margin-top:6px">実際の請求額は、契約内容・使用月・燃料費等調整単価・再エネ賦課金等により変動します。</div>`;
 }
 
 function onCustomRatioChange(type) {
