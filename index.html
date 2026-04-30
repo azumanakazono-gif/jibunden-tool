@@ -477,10 +477,15 @@ canvas#mini-chart { height: 150px !important; }
         <div class="field"><label>月間使用量（kWh）<span id="mkwh-label-note" style="font-size:10px;margin-left:4px;color:var(--muted)"></span></label><input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="calc()"></div>
       </div>
       <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
-      <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
+      <div id="up-status-panel" style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
+        <div id="up-status-bar" style="display:none;font-size:12px;font-weight:700;margin-bottom:4px"></div>
         現在の平均単価（シミュレーション使用値）：<b id="up-auto" style="color:var(--dg)">-</b>
         <span id="up-source-badge" style="font-size:10px;margin-left:8px;padding:1px 6px;border-radius:10px;background:var(--pg);color:var(--mg);font-weight:700"></span>
         <div id="up-explain" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid var(--border);font-size:11px;line-height:1.6;color:var(--muted)"></div>
+      </div>
+      <div id="up-manual-warn" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:12px;color:#9a3412">
+        ⚠️ <b>単価の手動入力が必要です</b><br>
+        <span style="font-size:11px">この料金プランは単価を自動計算できません。月間電気代・月間使用量を入力することで実質平均単価を自動算出します。</span>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -1368,7 +1373,7 @@ function _markCustomAndUpdate(type) {
   } else {
     if (document.getElementById('unit-price-breakdown').style.display !== 'none') showUnitPriceBreakdown(kp, ls);
     _applyDaytimeRateValues();
-    _setUnitPriceExplain('bill-custom');
+    _updateUnitPriceInputState('bill-custom');
     calc();
   }
 }
@@ -1448,6 +1453,7 @@ function resetToPreset(type) {
   const data = activeTab === 'hypothesis' ? hypData : custData;
   showUnitPriceBreakdown(kp, ls);
   if (!data.hasBill) onHearingChange(data);
+  else _updateUnitPriceInputState('bill');
 }
 
 function _saveRatio(type) {
@@ -1642,9 +1648,8 @@ function onHearingChange(data) {
     document.getElementById('ra-kj-bill-note').style.display = isKjPlan ? '' : 'none';
     if (isDnPlan) updateRatioDisplay('dn');
     if (isKjPlan) updateRatioDisplay('kj');
-    if (badge) { badge.textContent = '実績単価を使用中'; badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
     const _billIsCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
-    _setUnitPriceExplain(isTimePlanCur && _billIsCustom ? 'bill-custom' : 'bill');
+    _updateUnitPriceInputState(isTimePlanCur && _billIsCustom ? 'bill-custom' : 'bill');
     _updateLifestyleStatus();
     _applyDaytimeRateValues();
     calc();
@@ -1686,12 +1691,13 @@ function onHearingChange(data) {
     epDisp.style.display = '';
     epDisp.textContent = priceLabel;
     document.getElementById('mkwh').value = Math.round(mb / unitPrice);
-    if (badge) {
+    {
       const isCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
-      badge.textContent = isCustom ? 'カスタム割合単価を使用中' : (isTimePlanCur ? '調整・賦課金込み推定単価を使用中' : '推定単価を使用中');
-      badge.style.background = '#fff7ed'; badge.style.color = '#9a3412';
-      const isCustomFinal = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
-      _setUnitPriceExplain(isTimePlanCur ? (isCustomFinal ? 'custom' : 'estimated') : 'other');
+      let upStatus;
+      if (isTimePlanCur)                             upStatus = isCustom ? 'custom' : 'auto';
+      else if (kp === '' || kp.startsWith('avg:'))   upStatus = 'manual-required';
+      else                                           upStatus = 'manual-ok';
+      _updateUnitPriceInputState(upStatus);
     }
     _updateLifestyleStatus();
     _applyDaytimeRateValues();
@@ -1736,13 +1742,40 @@ function _setUnitPriceExplain(mode) {
     custom:
       '現在は、お客様の使い方に合わせて調整した時間帯別使用割合から、推定実質単価を算出しています。<br>' +
       '生活スタイルのプリセットをベースに、昼間・夜間の使い方をヒアリング内容に合わせて調整できます。',
+    'manual-ok':
+      '現在は選択されたプランの概算単価（目安）をシミュレーションに使用しています。<br>' +
+      'より正確な試算のため、実際の月間電気代・月間使用量を確認・入力してください。',
+    'manual-required':
+      '現在のプランでは単価を自動計算できません。<br>' +
+      '月間電気代と月間使用量を入力することで、実質平均単価（月間電気代÷月間使用量）を自動算出してシミュレーションします。',
   };
   if (mode === 'other') {
     el.style.display = 'none';
     return;
   }
   el.innerHTML = texts[mode] || '';
-  el.style.display = '';
+  el.style.display = texts[mode] != null ? '' : 'none';
+}
+
+function _updateUnitPriceInputState(status) {
+  const panel  = document.getElementById('up-status-panel');
+  const bar    = document.getElementById('up-status-bar');
+  const badge  = document.getElementById('up-source-badge');
+  const warnEl = document.getElementById('up-manual-warn');
+  const S = {
+    'bill':            { bg:'#f0fdf4', bd:'#86efac', barText:'📄 実績単価を使用中',           barColor:'#065f46', badgeBg:'#d1fae5', badgeColor:'#065f46', badgeText:'実績単価を使用中',              explain:'bill' },
+    'bill-custom':     { bg:'#f0fdf4', bd:'#86efac', barText:'📄 実績単価を使用中',           barColor:'#065f46', badgeBg:'#d1fae5', badgeColor:'#065f46', badgeText:'実績単価を使用中',              explain:'bill-custom' },
+    'auto':            { bg:'#eff6ff', bd:'#93c5fd', barText:'🟢 単価自動反映中',             barColor:'#1d4ed8', badgeBg:'#dbeafe', badgeColor:'#1e40af', badgeText:'調整・賦課金込み推定単価を使用中', explain:'estimated' },
+    'custom':          { bg:'#faf5ff', bd:'#c4b5fd', barText:'🟣 カスタム割合単価を使用中',   barColor:'#6d28d9', badgeBg:'#ede9fe', badgeColor:'#5b21b6', badgeText:'カスタム割合単価を使用中',        explain:'custom' },
+    'manual-ok':       { bg:'#fefce8', bd:'#fde68a', barText:'🟠 手動入力単価を使用中',       barColor:'#92400e', badgeBg:'#fef3c7', badgeColor:'#92400e', badgeText:'推定単価を使用中',              explain:'manual-ok' },
+    'manual-required': { bg:'#fff7ed', bd:'#fed7aa', barText:'🔴 単価の手動入力が必要です',   barColor:'#c2410c', badgeBg:'#ffedd5', badgeColor:'#9a3412', badgeText:'単価未設定',                    explain:'manual-required' },
+  };
+  const s = S[status] || S['manual-ok'];
+  if (panel) { panel.style.background = s.bg; panel.style.borderColor = s.bd; }
+  if (bar)   { bar.textContent = s.barText; bar.style.color = s.barColor; bar.style.display = ''; }
+  if (badge) { badge.textContent = s.badgeText; badge.style.background = s.badgeBg; badge.style.color = s.badgeColor; }
+  if (warnEl) warnEl.style.display = (status === 'manual-required') ? '' : 'none';
+  _setUnitPriceExplain(s.explain);
 }
 
 function setLoanInputMode(mode) {
