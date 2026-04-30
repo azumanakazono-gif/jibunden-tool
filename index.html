@@ -484,8 +484,8 @@ canvas#mini-chart { height: 150px !important; }
         <div id="up-explain" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid var(--border);font-size:11px;line-height:1.6;color:var(--muted)"></div>
       </div>
       <div id="up-manual-warn" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:12px;color:#9a3412">
-        ⚠️ <b>単価の手動入力が必要です</b><br>
-        <span style="font-size:11px">この料金プランは単価を自動計算できません。月間電気代・月間使用量を入力することで実質平均単価を自動算出します。</span>
+        ⚠️ <b>月間電気代・月間使用量の入力が必要です</b><br>
+        <span style="font-size:11px">この料金プランでは単価を自動反映できません。月間電気代と月間使用量を入力すると、平均買電単価を自動算出します。</span>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -1743,11 +1743,10 @@ function _setUnitPriceExplain(mode) {
       '現在は、お客様の使い方に合わせて調整した時間帯別使用割合から、推定実質単価を算出しています。<br>' +
       '生活スタイルのプリセットをベースに、昼間・夜間の使い方をヒアリング内容に合わせて調整できます。',
     'manual-ok':
-      '現在は選択されたプランの概算単価（目安）をシミュレーションに使用しています。<br>' +
-      'より正確な試算のため、実際の月間電気代・月間使用量を確認・入力してください。',
+      '入力された月間電気代と月間使用量から算出した平均買電単価をもとにシミュレーションしています。<br>' +
+      '数値を変更するとシミュレーション結果に即時反映されます。',
     'manual-required':
-      '現在のプランでは単価を自動計算できません。<br>' +
-      '月間電気代と月間使用量を入力することで、実質平均単価（月間電気代÷月間使用量）を自動算出してシミュレーションします。',
+      'この料金プランは単価を自動反映できないため、月間電気代と月間使用量を入力すると、実質平均単価を算出できます。',
   };
   if (mode === 'other') {
     el.style.display = 'none';
@@ -1767,8 +1766,8 @@ function _updateUnitPriceInputState(status) {
     'bill-custom':     { bg:'#f0fdf4', bd:'#86efac', barText:'📄 実績単価を使用中',           barColor:'#065f46', badgeBg:'#d1fae5', badgeColor:'#065f46', badgeText:'実績単価を使用中',              explain:'bill-custom' },
     'auto':            { bg:'#eff6ff', bd:'#93c5fd', barText:'🟢 単価自動反映中',             barColor:'#1d4ed8', badgeBg:'#dbeafe', badgeColor:'#1e40af', badgeText:'調整・賦課金込み推定単価を使用中', explain:'estimated' },
     'custom':          { bg:'#faf5ff', bd:'#c4b5fd', barText:'🟣 カスタム割合単価を使用中',   barColor:'#6d28d9', badgeBg:'#ede9fe', badgeColor:'#5b21b6', badgeText:'カスタム割合単価を使用中',        explain:'custom' },
-    'manual-ok':       { bg:'#fefce8', bd:'#fde68a', barText:'🟠 手動入力単価を使用中',       barColor:'#92400e', badgeBg:'#fef3c7', badgeColor:'#92400e', badgeText:'推定単価を使用中',              explain:'manual-ok' },
-    'manual-required': { bg:'#fff7ed', bd:'#fed7aa', barText:'🔴 単価の手動入力が必要です',   barColor:'#c2410c', badgeBg:'#ffedd5', badgeColor:'#9a3412', badgeText:'単価未設定',                    explain:'manual-required' },
+    'manual-ok':       { bg:'#fefce8', bd:'#fde68a', barText:'🟠 入力値から算出した単価を使用中', barColor:'#92400e', badgeBg:'#fef3c7', badgeColor:'#92400e', badgeText:'入力値から算出した単価を使用中', explain:'manual-ok' },
+    'manual-required': { bg:'#fff7ed', bd:'#fed7aa', barText:'🔴 月間電気代・月間使用量の入力が必要です', barColor:'#c2410c', badgeBg:'#ffedd5', badgeColor:'#9a3412', badgeText:'単価未設定', explain:'manual-required' },
   };
   const s = S[status] || S['manual-ok'];
   if (panel) { panel.style.background = s.bg; panel.style.borderColor = s.bd; }
