@@ -322,28 +322,110 @@ canvas#mini-chart { height: 150px !important; }
           </optgroup>
         </select>
         <div id="estimated-price-disp" style="display:none;margin-top:5px;padding:5px 10px;border-radius:6px;background:var(--pg);border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
+        <!-- 使用比率調整パネル（電化でナイト・セレクト） -->
+        <div id="ratio-adjust-dn" style="display:none;margin-top:8px;padding:12px 14px;border-radius:8px;background:#f0fdf4;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--mg);margin-bottom:2px">⏰ お客様の使い方に合わせた時間帯別使用割合</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">割合を変えると実質単価とシミュレーションに即時反映されます</div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">平日昼間</span>
+              <span style="font-size:10px;color:var(--muted)">平日の日中に在宅・使用する電気</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-dn-day-sl" min="0" max="100" step="1" value="30" oninput="onRatioSlider('dn','day')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-dn-day" min="0" max="100" step="1" value="30" oninput="onRatioInput('dn','day')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">休日昼間</span>
+              <span style="font-size:10px;color:var(--muted)">土日祝の日中に使用する電気</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-dn-hol-sl" min="0" max="100" step="1" value="20" oninput="onRatioSlider('dn','hol')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-dn-hol" min="0" max="100" step="1" value="20" oninput="onRatioInput('dn','hol')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">夜間</span>
+              <span style="font-size:10px;color:var(--muted)">夜間時間帯に使用する電気</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-dn-ngt-sl" min="0" max="100" step="1" value="50" oninput="onRatioSlider('dn','ngt')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-dn-ngt" min="0" max="100" step="1" value="50" oninput="onRatioInput('dn','ngt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <span id="ra-dn-total" style="font-size:12px;font-weight:700;color:var(--mg)">合計：100%</span>
+            <span id="ra-dn-warn" style="display:none;font-size:11px;color:var(--or)">⚠️ 合計が100%になるよう調整してください</span>
+            <div style="margin-left:auto;display:flex;gap:4px">
+              <button onclick="autoAdjustLast('dn')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--mg);font-weight:600">夜間で自動調整</button>
+              <button onclick="resetToPreset('dn')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--muted)">標準に戻す</button>
+            </div>
+          </div>
+          <div style="padding:7px 10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">電力量のみ平均：<b id="ra-dn-base" style="color:var(--dg)">-</b></span>
+            <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-dn-eff" style="color:var(--dg);font-size:14px">-</b></span>
+          </div>
+          <div id="ra-dn-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
+        </div>
+        <!-- 使用比率調整パネル（季時別電灯） -->
+        <div id="ratio-adjust-kj" style="display:none;margin-top:8px;padding:12px 14px;border-radius:8px;background:#f0fdf4;border:1px solid var(--border)">
+          <div style="font-size:12px;font-weight:700;color:var(--mg);margin-bottom:2px">⏰ お客様の使い方に合わせた時間帯別使用割合</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:10px">割合を変えると実質単価とシミュレーションに即時反映されます</div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">デイタイム</span>
+              <span style="font-size:10px;color:var(--muted)">昼間時間帯の使用</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-kj-dt-sl" min="0" max="100" step="1" value="30" oninput="onRatioSlider('kj','dt')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-kj-dt" min="0" max="100" step="1" value="30" oninput="onRatioInput('kj','dt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="margin-bottom:8px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">リビングタイム</span>
+              <span style="font-size:10px;color:var(--muted)">朝夕など生活時間帯の使用</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-kj-lv-sl" min="0" max="100" step="1" value="20" oninput="onRatioSlider('kj','lv')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-kj-lv" min="0" max="100" step="1" value="20" oninput="onRatioInput('kj','lv')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:12px;font-weight:600">ナイトタイム</span>
+              <span style="font-size:10px;color:var(--muted)">夜間時間帯の使用</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <input type="range" id="ra-kj-ngt-sl" min="0" max="100" step="1" value="50" oninput="onRatioSlider('kj','ngt')" style="flex:1;accent-color:var(--mg)">
+              <input type="number" id="ra-kj-ngt" min="0" max="100" step="1" value="50" oninput="onRatioInput('kj','ngt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
+              <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+            <span id="ra-kj-total" style="font-size:12px;font-weight:700;color:var(--mg)">合計：100%</span>
+            <span id="ra-kj-warn" style="display:none;font-size:11px;color:var(--or)">⚠️ 合計が100%になるよう調整してください</span>
+            <div style="margin-left:auto;display:flex;gap:4px">
+              <button onclick="autoAdjustLast('kj')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--mg);font-weight:600">ナイトで自動調整</button>
+              <button onclick="resetToPreset('kj')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--muted)">標準に戻す</button>
+            </div>
+          </div>
+          <div style="padding:7px 10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px">
+            <span style="color:var(--muted)">電力量のみ平均：<b id="ra-kj-base" style="color:var(--dg)">-</b></span>
+            <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-kj-eff" style="color:var(--dg);font-size:14px">-</b></span>
+          </div>
+          <div id="ra-kj-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
+        </div>
         <!-- 単価根拠 内訳パネル（時間帯別プラン選択時・innerHTML は showUnitPriceBreakdown() が生成） -->
-        <div id="unit-price-breakdown" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#f0fdf4;border:1px solid var(--border);font-size:12px">
-        </div>
-        <!-- カスタム時間帯割合（電化でナイト） -->
-        <div id="custom-ratio-dn" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:12px">
-          <div style="font-weight:700;color:#9a3412;margin-bottom:8px">⏰ カスタム時間帯割合（電化でナイト・セレクト）</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px">
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">平日昼間（%）</label><input type="number" id="cr-dn-day" value="30" min="0" max="100" step="1" oninput="onCustomRatioChange('dn')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">休日昼間（%）</label><input type="number" id="cr-dn-hol" value="20" min="0" max="100" step="1" oninput="onCustomRatioChange('dn')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">夜間（%）</label><input type="number" id="cr-dn-ngt" value="50" min="0" max="100" step="1" oninput="onCustomRatioChange('dn')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-          </div>
-          <div id="cr-dn-msg" style="font-size:11px;font-weight:700"></div>
-        </div>
-        <!-- カスタム時間帯割合（季時別電灯） -->
-        <div id="custom-ratio-kj" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#fff7ed;border:1px solid #fed7aa;font-size:12px">
-          <div style="font-weight:700;color:#9a3412;margin-bottom:8px">⏰ カスタム時間帯割合（季時別電灯）</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:6px">
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">デイタイム（%）</label><input type="number" id="cr-kj-dt" value="30" min="0" max="100" step="1" oninput="onCustomRatioChange('kj')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">リビングタイム（%）</label><input type="number" id="cr-kj-lv" value="20" min="0" max="100" step="1" oninput="onCustomRatioChange('kj')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-            <div><label style="font-size:11px;color:var(--muted);display:block;margin-bottom:2px">ナイトタイム（%）</label><input type="number" id="cr-kj-ngt" value="50" min="0" max="100" step="1" oninput="onCustomRatioChange('kj')" style="width:100%;border:1.5px solid var(--border);border-radius:6px;padding:6px 8px;font-size:13px;font-family:inherit"></div>
-          </div>
-          <div id="cr-kj-msg" style="font-size:11px;font-weight:700"></div>
+        <div id="unit-price-breakdown" style="display:none;margin-top:8px;padding:10px 14px;border-radius:8px;background:#f8fffe;border:1px solid var(--border);font-size:12px">
         </div>
       </div>
       <!-- 実効平均単価 入力エリア（実効平均単価プラン選択時のみ表示） -->
@@ -1108,23 +1190,15 @@ function calcEffectiveUnitPrice(plan, lifestyle) {
 
   if (plan === 'kyushu_denka_night') {
     const o = DENKA_NIGHT_OFFICIAL;
-    // step1: 季節加重後の時間帯別年間平均単価
     const dayAvg = o.weekday.summer * o.seasonRatio.summer + o.weekday.other * o.seasonRatio.other;
     const holAvg = o.holiday.summer * o.seasonRatio.summer + o.holiday.other * o.seasonRatio.other;
     seasonalAvg = { day:dayAvg, hol:holAvg, ngt:o.night };
-    // step2: 生活スタイル割合
-    if (lifestyle === 'custom') {
-      const d = parseFloat(document.getElementById('cr-dn-day').value)||0;
-      const h = parseFloat(document.getElementById('cr-dn-hol').value)||0;
-      const n = parseFloat(document.getElementById('cr-dn-ngt').value)||0;
-      if (Math.abs(d+h+n-100) < 0.5) {
-        ratios = { day:d/100, hol:h/100, ngt:n/100 };
-        ratioLabels = [`平日昼間 ${d}%`, `休日昼間 ${h}%`, `夜間 ${n}%`];
-      }
-    } else {
-      const s = KYUSHU_DENKA_NIGHT.styles[lifestyle] || KYUSHU_DENKA_NIGHT.styles.even;
-      ratios = s;
-      ratioLabels = [`平日昼間 ${Math.round(s.day*100)}%`, `休日昼間 ${Math.round(s.hol*100)}%`, `夜間 ${Math.round(s.ngt*100)}%`];
+    const d = parseFloat(document.getElementById('ra-dn-day').value)||0;
+    const h = parseFloat(document.getElementById('ra-dn-hol').value)||0;
+    const n = parseFloat(document.getElementById('ra-dn-ngt').value)||0;
+    if (Math.abs(d+h+n-100) < 0.5) {
+      ratios = { day:d/100, hol:h/100, ngt:n/100 };
+      ratioLabels = [`平日昼間 ${d}%`, `休日昼間 ${h}%`, `夜間 ${n}%`];
     }
     if (!ratios) return { base:0, effective:0, seasonalAvg, ratioLabels:null, valid:false };
     const base = seasonalAvg.day*ratios.day + seasonalAvg.hol*ratios.hol + seasonalAvg.ngt*ratios.ngt;
@@ -1132,22 +1206,14 @@ function calcEffectiveUnitPrice(plan, lifestyle) {
 
   } else if (plan === 'kyushu_kiji') {
     const o = KIJI_OFFICIAL;
-    // step1: 季節加重後のデイタイム年間平均単価
     const dtAvg = o.daytime.summer * o.seasonRatio.summer + o.daytime.other * o.seasonRatio.other;
     seasonalAvg = { dt:dtAvg, lv:o.living, ngt:o.night };
-    // step2: 生活スタイル割合
-    if (lifestyle === 'custom') {
-      const d = parseFloat(document.getElementById('cr-kj-dt').value)||0;
-      const l = parseFloat(document.getElementById('cr-kj-lv').value)||0;
-      const n = parseFloat(document.getElementById('cr-kj-ngt').value)||0;
-      if (Math.abs(d+l+n-100) < 0.5) {
-        ratios = { dt:d/100, lv:l/100, ngt:n/100 };
-        ratioLabels = [`デイタイム ${d}%`, `リビング ${l}%`, `ナイト ${n}%`];
-      }
-    } else {
-      const s = KYUSHU_KIJI_SEASONAL.styles[lifestyle] || KYUSHU_KIJI_SEASONAL.styles.even;
-      ratios = s;
-      ratioLabels = [`デイタイム ${Math.round(s.dt*100)}%`, `リビング ${Math.round(s.lv*100)}%`, `ナイト ${Math.round(s.ngt*100)}%`];
+    const d = parseFloat(document.getElementById('ra-kj-dt').value)||0;
+    const l = parseFloat(document.getElementById('ra-kj-lv').value)||0;
+    const n = parseFloat(document.getElementById('ra-kj-ngt').value)||0;
+    if (Math.abs(d+l+n-100) < 0.5) {
+      ratios = { dt:d/100, lv:l/100, ngt:n/100 };
+      ratioLabels = [`デイタイム ${d}%`, `リビング ${l}%`, `ナイト ${n}%`];
     }
     if (!ratios) return { base:0, effective:0, seasonalAvg, ratioLabels:null, valid:false };
     const base = seasonalAvg.dt*ratios.dt + seasonalAvg.lv*ratios.lv + seasonalAvg.ngt*ratios.ngt;
@@ -1158,8 +1224,10 @@ function calcEffectiveUnitPrice(plan, lifestyle) {
 
 function showUnitPriceBreakdown(plan, lifestyle) {
   const panel = document.getElementById('unit-price-breakdown');
-  document.getElementById('custom-ratio-dn').style.display = (plan==='kyushu_denka_night' && lifestyle==='custom') ? '' : 'none';
-  document.getElementById('custom-ratio-kj').style.display = (plan==='kyushu_kiji' && lifestyle==='custom') ? '' : 'none';
+  document.getElementById('ratio-adjust-dn').style.display = (plan==='kyushu_denka_night') ? '' : 'none';
+  document.getElementById('ratio-adjust-kj').style.display = (plan==='kyushu_kiji') ? '' : 'none';
+  if (plan==='kyushu_denka_night') updateRatioDisplay('dn');
+  if (plan==='kyushu_kiji') updateRatioDisplay('kj');
   const isTimePlan = plan==='kyushu_denka_night' || plan==='kyushu_kiji';
   if (!isTimePlan) { panel.style.display='none'; return; }
   const r = calcEffectiveUnitPrice(plan, lifestyle);
@@ -1220,29 +1288,123 @@ function showUnitPriceBreakdown(plan, lifestyle) {
     `<div style="font-size:10px;${M};margin-top:6px">実際の請求額は、契約内容・使用月・燃料費等調整単価・再エネ賦課金等により変動します。</div>`;
 }
 
-function onCustomRatioChange(type) {
-  const ids = type==='dn' ? ['cr-dn-day','cr-dn-hol','cr-dn-ngt'] : ['cr-kj-dt','cr-kj-lv','cr-kj-ngt'];
-  const vals = ids.map(id => parseFloat(document.getElementById(id).value)||0);
-  const total = vals.reduce((a,b)=>a+b,0);
-  const msgId = type==='dn' ? 'cr-dn-msg' : 'cr-kj-msg';
-  const msg = document.getElementById(msgId);
-  if (Math.abs(total-100) < 0.5) {
-    msg.textContent = `合計：${total}%　✓`;
-    msg.style.color = 'var(--mg)';
-    const data = activeTab === 'hypothesis' ? hypData : custData;
-    if (!data.hasBill) onHearingChange(data);
-  } else {
-    msg.textContent = `合計：${total}%　（100%になるよう調整してください）`;
-    msg.style.color = 'var(--or)';
+// ── 使用比率調整UI ──
+let _dnCustom = false, _kjCustom = false;
+
+function _raFields(type) { return type==='dn' ? ['day','hol','ngt'] : ['dt','lv','ngt']; }
+function _raVal(type, f)  { return parseFloat(document.getElementById(`ra-${type}-${f}`).value)||0; }
+function _setRaVal(type, f, val) {
+  document.getElementById(`ra-${type}-${f}`).value = val;
+  document.getElementById(`ra-${type}-${f}-sl`).value = val;
+}
+
+function fillRatioPanel(plan, lifestyle) {
+  if (plan === 'kyushu_denka_night') {
+    const s = KYUSHU_DENKA_NIGHT.styles[lifestyle];
+    const ev = KYUSHU_DENKA_NIGHT.styles.even;
+    const src = (s && s.day !== null) ? s : ev;
+    _setRaVal('dn','day', Math.round(src.day*100));
+    _setRaVal('dn','hol', Math.round(src.hol*100));
+    _setRaVal('dn','ngt', Math.round(src.ngt*100));
+    _dnCustom = false;
+    updateRatioDisplay('dn');
+  } else if (plan === 'kyushu_kiji') {
+    const s = KYUSHU_KIJI_SEASONAL.styles[lifestyle];
+    const ev = KYUSHU_KIJI_SEASONAL.styles.even;
+    const src = (s && s.dt !== null) ? s : ev;
+    _setRaVal('kj','dt',  Math.round(src.dt*100));
+    _setRaVal('kj','lv',  Math.round(src.lv*100));
+    _setRaVal('kj','ngt', Math.round(src.ngt*100));
+    _kjCustom = false;
+    updateRatioDisplay('kj');
   }
+}
+
+function onRatioSlider(type, field) {
+  document.getElementById(`ra-${type}-${field}`).value = document.getElementById(`ra-${type}-${field}-sl`).value;
+  _markCustomAndUpdate(type);
+}
+
+function onRatioInput(type, field) {
+  const inp = document.getElementById(`ra-${type}-${field}`);
+  const v = Math.max(0, Math.min(100, parseInt(inp.value)||0));
+  inp.value = v;
+  document.getElementById(`ra-${type}-${field}-sl`).value = v;
+  _markCustomAndUpdate(type);
+}
+
+function _markCustomAndUpdate(type) {
+  if (type==='dn') _dnCustom = true; else _kjCustom = true;
+  updateRatioDisplay(type);
+  _saveRatio(type);
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  const kp = document.getElementById('kyuden-plan').value;
+  const ls = document.getElementById('ls-preset').value;
+  if (!data.hasBill) {
+    onHearingChange(data);
+  } else {
+    // hasBill: only update breakdown panel display
+    if (document.getElementById('unit-price-breakdown').style.display !== 'none') showUnitPriceBreakdown(kp, ls);
+  }
+}
+
+function updateRatioDisplay(type) {
+  const vals = _raFields(type).map(f => _raVal(type, f));
+  const total = vals.reduce((a,b)=>a+b,0);
+  const totalEl = document.getElementById(`ra-${type}-total`);
+  const warnEl  = document.getElementById(`ra-${type}-warn`);
+  const valid = Math.abs(total-100) < 0.5;
+  totalEl.textContent = `合計：${Math.round(total)}%`;
+  totalEl.style.color = valid ? 'var(--mg)' : 'var(--or)';
+  warnEl.style.display = valid ? 'none' : '';
+  const kp = document.getElementById('kyuden-plan').value;
+  const r = calcEffectiveUnitPrice(kp, document.getElementById('ls-preset').value);
+  document.getElementById(`ra-${type}-base`).textContent = r.valid ? `${r.base.toFixed(2)}円/kWh` : '-';
+  document.getElementById(`ra-${type}-eff`).textContent  = r.valid ? `${r.effective.toFixed(2)}円/kWh` : '-';
+}
+
+function autoAdjustLast(type) {
+  const fields = _raFields(type);
+  const sum = fields.slice(0,-1).reduce((a,f)=>a+_raVal(type,f),0);
+  _setRaVal(type, fields[fields.length-1], Math.max(0, Math.min(100, Math.round(100-sum))));
+  _markCustomAndUpdate(type);
+}
+
+function resetToPreset(type) {
+  const kp = document.getElementById('kyuden-plan').value;
+  const ls = document.getElementById('ls-preset').value;
+  fillRatioPanel(kp, ls);
+  if (type==='dn') _dnCustom = false; else _kjCustom = false;
+  _saveRatio(type);
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  showUnitPriceBreakdown(kp, ls);
+  if (!data.hasBill) onHearingChange(data);
+}
+
+function _saveRatio(type) {
+  try {
+    const obj = Object.fromEntries(_raFields(type).map(f=>[f,_raVal(type,f)]));
+    localStorage.setItem(`jibunden_ratio_${type}`, JSON.stringify(obj));
+  } catch(e) {}
+}
+
+function _loadRatio(type) {
+  try {
+    const saved = localStorage.getItem(`jibunden_ratio_${type}`);
+    if (!saved) return false;
+    const obj = JSON.parse(saved);
+    _raFields(type).forEach(f=>{ if(obj[f]!==undefined) _setRaVal(type,f,obj[f]); });
+    return true;
+  } catch(e) {}
+  return false;
 }
 
 function onKyudenPlanChange() {
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const kp = document.getElementById('kyuden-plan').value;
   const ls = document.getElementById('ls-preset').value;
+  fillRatioPanel(kp, ls);
   showUnitPriceBreakdown(kp, ls);
-  // 明細なし時は料金プラン変更で概算単価・使用量を再推定
   if (!data.hasBill) onHearingChange(data);
   calc();
 }
@@ -1334,8 +1496,8 @@ function onLifestyleChange() {
   applyDaytimeRate();
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const kp = document.getElementById('kyuden-plan').value;
+  fillRatioPanel(kp, preset);
   showUnitPriceBreakdown(kp, preset);
-  // 時間帯別プラン選択中かつ明細なし → 生活スタイル変更で概算単価を再推定
   if (!data.hasBill && (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji')) {
     onHearingChange(data);
   }
@@ -1366,37 +1528,47 @@ function onHearingChange(data) {
   const guide = document.getElementById('billing-guide');
   const noteEl = document.getElementById('mkwh-label-note');
   const badge = document.getElementById('up-source-badge');
+  const kpCur = document.getElementById('kyuden-plan').value;
+  const isDnPlan = kpCur === 'kyushu_denka_night';
+  const isKjPlan = kpCur === 'kyushu_kiji';
+  const isTimePlanCur = isDnPlan || isKjPlan;
   if (hasBill) {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px;background:#f0fdf4;color:var(--mg)';
     guide.innerHTML = '📄 <b>明細あり</b>：請求書・検針票の数値をそのまま入力。月間電気代÷使用量＝実質平均単価（再エネ賦課金等含む）として自動計算します。';
     noteEl.textContent = '';
     document.getElementById('estimated-price-disp').style.display = 'none';
     document.getElementById('unit-price-breakdown').style.display = 'none';
-    document.getElementById('custom-ratio-dn').style.display = 'none';
-    document.getElementById('custom-ratio-kj').style.display = 'none';
+    document.getElementById('ratio-adjust-dn').style.display = isDnPlan ? '' : 'none';
+    document.getElementById('ratio-adjust-kj').style.display = isKjPlan ? '' : 'none';
+    document.getElementById('ra-dn-bill-note').style.display = isDnPlan ? '' : 'none';
+    document.getElementById('ra-kj-bill-note').style.display = isKjPlan ? '' : 'none';
+    if (isDnPlan) updateRatioDisplay('dn');
+    if (isKjPlan) updateRatioDisplay('kj');
     if (badge) { badge.textContent = '実績単価を使用中'; badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
     calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
     guide.innerHTML = '📝 <b>明細なし</b>：料金プランの概算単価から使用量を推定し、概算の実質平均単価（目安）として計算します。数値は修正可能です。';
     noteEl.textContent = '（概算）';
+    document.getElementById('ra-dn-bill-note').style.display = 'none';
+    document.getElementById('ra-kj-bill-note').style.display = 'none';
     const mb = parseFloat(document.getElementById('mb').value) || 20000;
-    const kp = document.getElementById('kyuden-plan').value;
+    const kp = kpCur;
     let unitPrice = 30;
     let priceLabel = '';
-    if (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji') {
+    if (isTimePlanCur) {
       const ls = document.getElementById('ls-preset').value;
       const r = calcEffectiveUnitPrice(kp, ls);
       if (r.valid) {
         unitPrice = r.effective;
-        const planName = kp==='kyushu_denka_night' ? '電化でナイト・セレクト' : '季時別電灯';
-        const s = kp==='kyushu_denka_night'
-          ? (KYUSHU_DENKA_NIGHT.styles[ls]||KYUSHU_DENKA_NIGHT.styles.even)
-          : (KYUSHU_KIJI_SEASONAL.styles[ls]||KYUSHU_KIJI_SEASONAL.styles.even);
-        priceLabel = `💡 九州電力 ${planName}（${s.label}）　調整・賦課金込み実質単価：${unitPrice.toFixed(2)}円/kWh`;
+        const planName = isDnPlan ? '電化でナイト・セレクト' : '季時別電灯';
+        const isCustom = isDnPlan ? _dnCustom : _kjCustom;
+        priceLabel = isCustom
+          ? `💡 九州電力 ${planName}（カスタム割合）　調整・賦課金込み実質単価：${unitPrice.toFixed(2)}円/kWh`
+          : `💡 九州電力 ${planName}　調整・賦課金込み実質単価：${unitPrice.toFixed(2)}円/kWh`;
       } else {
-        unitPrice = kp==='kyushu_kiji' ? KYUSHU_KIJI.unitPrice : 25;
-        priceLabel = `💡 カスタム割合が未確定です（合計100%に設定してください）`;
+        unitPrice = isKjPlan ? KYUSHU_KIJI.unitPrice : 25;
+        priceLabel = `💡 割合の合計が100%になるよう調整してください`;
       }
       showUnitPriceBreakdown(kp, ls);
     } else if (kp === 'kyushu_ohisama') {
@@ -1412,10 +1584,9 @@ function onHearingChange(data) {
     epDisp.style.display = '';
     epDisp.textContent = priceLabel;
     document.getElementById('mkwh').value = Math.round(mb / unitPrice);
-    const kp2 = document.getElementById('kyuden-plan').value;
-    const isTimePlan = kp2==='kyushu_denka_night' || kp2==='kyushu_kiji';
     if (badge) {
-      badge.textContent = isTimePlan ? '調整・賦課金込み推定単価を使用中' : '推定単価を使用中';
+      const isCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
+      badge.textContent = isCustom ? 'カスタム割合単価を使用中' : (isTimePlanCur ? '調整・賦課金込み推定単価を使用中' : '推定単価を使用中');
       badge.style.background = '#fff7ed'; badge.style.color = '#9a3412';
     }
     calc();
@@ -2772,6 +2943,8 @@ function scrollToTopHandler(e) {
 // ページが完全に読み込まれてから実行するようにします
 window.addEventListener('DOMContentLoaded', () => {
     setLoanMethod('zansai');
+    _loadRatio('dn');
+    _loadRatio('kj');
     const _stb = document.getElementById('scroll-top-btn');
     if (_stb) {
         _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
