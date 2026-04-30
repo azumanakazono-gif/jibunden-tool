@@ -322,6 +322,8 @@ canvas#mini-chart { height: 150px !important; }
           </optgroup>
         </select>
         <div id="estimated-price-disp" style="display:none;margin-top:5px;padding:5px 10px;border-radius:6px;background:var(--pg);border:1px solid var(--border);font-size:12px;color:var(--mg);font-weight:600"></div>
+        <!-- 生活スタイル状態表示（時間帯別プラン選択時のみ表示） -->
+        <div id="lifestyle-status" style="display:none;margin-top:6px;padding:5px 12px;border-radius:6px;background:var(--pg);border:1px solid var(--border);font-size:12px;color:var(--text)"></div>
         <!-- 使用比率調整パネル（電化でナイト・セレクト） -->
         <div id="ratio-adjust-dn" style="display:none;margin-top:8px;padding:12px 14px;border-radius:8px;background:#f0fdf4;border:1px solid var(--border)">
           <div style="font-size:12px;font-weight:700;color:var(--mg);margin-bottom:2px">⏰ お客様の使い方に合わせた時間帯別使用割合</div>
@@ -1329,6 +1331,7 @@ function fillRatioPanel(plan, lifestyle) {
     _kjCustom = false;
     updateRatioDisplay('kj');
   }
+  _updateLifestyleStatus();
 }
 
 function onRatioSlider(type, field) {
@@ -1348,14 +1351,16 @@ function _markCustomAndUpdate(type) {
   if (type==='dn') _dnCustom = true; else _kjCustom = true;
   updateRatioDisplay(type);
   _saveRatio(type);
+  _updateLifestyleStatus();
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const kp = document.getElementById('kyuden-plan').value;
   const ls = document.getElementById('ls-preset').value;
   if (!data.hasBill) {
-    onHearingChange(data); // mkwh更新→_applyDaytimeRateValues→calc の順は onHearingChange 内で実施
+    onHearingChange(data);
   } else {
     if (document.getElementById('unit-price-breakdown').style.display !== 'none') showUnitPriceBreakdown(kp, ls);
     _applyDaytimeRateValues();
+    _setUnitPriceExplain('bill-custom');
     calc();
   }
 }
@@ -1488,6 +1493,10 @@ const LIFESTYLE_LABEL = {
   night:'夜間に電気使用が集中', even:'昼夜バランスよく電気を使用',
   allelectric:'オール電化・昼夜問わず電気を多用',
 };
+const LIFESTYLE_DISPLAY_NAME = {
+  even:'標準', away:'共働き・夜間中心', home:'在宅ワーク多め',
+  allelectric:'高齢者在宅多め', night:'夜型・深夜利用多め', custom:'カスタム',
+};
 
 // 時間帯別プラン選択中は ratio-adjust パネル値から昼間率を算出
 function getDaytimeRateFromPlan() {
@@ -1597,7 +1606,9 @@ function onHearingChange(data) {
     if (isDnPlan) updateRatioDisplay('dn');
     if (isKjPlan) updateRatioDisplay('kj');
     if (badge) { badge.textContent = '実績単価を使用中'; badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
-    _setUnitPriceExplain('bill');
+    const _billIsCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
+    _setUnitPriceExplain(isTimePlanCur && _billIsCustom ? 'bill-custom' : 'bill');
+    _updateLifestyleStatus();
     _applyDaytimeRateValues();
     calc();
   } else {
@@ -1645,9 +1656,31 @@ function onHearingChange(data) {
       const isCustomFinal = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
       _setUnitPriceExplain(isTimePlanCur ? (isCustomFinal ? 'custom' : 'estimated') : 'other');
     }
+    _updateLifestyleStatus();
     _applyDaytimeRateValues();
     calc();
   }
+}
+
+function _updateLifestyleStatus() {
+  const el = document.getElementById('lifestyle-status');
+  if (!el) return;
+  const kp = document.getElementById('kyuden-plan').value;
+  const isTimePlan = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji';
+  if (!isTimePlan) { el.style.display = 'none'; return; }
+  const preset = document.getElementById('ls-preset').value;
+  const name = LIFESTYLE_DISPLAY_NAME[preset] || preset;
+  const isCustom = (kp === 'kyushu_denka_night') ? _dnCustom : _kjCustom;
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  if (isCustom) {
+    const note = data.hasBill
+      ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">単価は請求書実績値を使用し、昼間直接消費量は調整後の使用割合を反映しています。</div>`
+      : '';
+    el.innerHTML = `現在の使用割合：<b style="color:var(--mg)">${name}をベースに調整中</b>${note}`;
+  } else {
+    el.innerHTML = `現在の使用割合：<b style="color:var(--mg)">${name}の既定比率を使用中</b>`;
+  }
+  el.style.display = '';
 }
 
 function _setUnitPriceExplain(mode) {
@@ -1657,12 +1690,15 @@ function _setUnitPriceExplain(mode) {
     bill:
       '現在は、請求書明細から算出した実績単価を使用しています。<br>' +
       'この単価には燃料費等調整額・再エネ賦課金等が含まれている前提のため、追加加算は行っていません。',
+    'bill-custom':
+      '現在は、請求書明細から算出した実績単価を使用しています。<br>' +
+      '単価には追加加算を行わず、昼間直接消費量のみ、調整後の使用割合を反映しています。',
     estimated:
       '現在は、九州電力の公式時間帯別単価に、生活スタイル別の使用割合を掛け合わせた推定単価を使用しています。<br>' +
       '燃料費等調整単価（+1.33円/kWh）・再エネ賦課金（+4.18円/kWh）を加えた「調整・賦課金込み実質単価」をシミュレーションに反映しています。',
     custom:
       '現在は、お客様の使い方に合わせて調整した時間帯別使用割合から、推定実質単価を算出しています。<br>' +
-      '割合を変更すると、電力量のみ平均単価と調整・賦課金込み実質単価が自動で再計算されます。',
+      '生活スタイルのプリセットをベースに、昼間・夜間の使い方をヒアリング内容に合わせて調整できます。',
   };
   if (mode === 'other') {
     el.style.display = 'none';
