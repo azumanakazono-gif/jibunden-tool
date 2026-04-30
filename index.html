@@ -338,6 +338,7 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-dn-day" min="0" max="100" step="1" value="30" oninput="onRatioInput('dn','day')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-dn-day-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
           <div style="margin-bottom:8px">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px">
@@ -349,6 +350,7 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-dn-hol" min="0" max="100" step="1" value="20" oninput="onRatioInput('dn','hol')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-dn-hol-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
           <div style="margin-bottom:10px">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px">
@@ -360,8 +362,9 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-dn-ngt" min="0" max="100" step="1" value="50" oninput="onRatioInput('dn','ngt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-dn-ngt-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
-          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
             <span id="ra-dn-total" style="font-size:12px;font-weight:700;color:var(--mg)">合計：100%</span>
             <span id="ra-dn-warn" style="display:none;font-size:11px;color:var(--or)">⚠️ 合計が100%になるよう調整してください</span>
             <div style="margin-left:auto;display:flex;gap:4px">
@@ -369,14 +372,15 @@ canvas#mini-chart { height: 150px !important; }
               <button onclick="resetToPreset('dn')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--muted)">標準に戻す</button>
             </div>
           </div>
+          <div id="ra-dn-total-bkwh" style="font-size:11px;color:var(--muted);margin-bottom:8px">-</div>
           <div style="padding:7px 10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px">
             <span style="color:var(--muted)">電力量のみ平均：<b id="ra-dn-base" style="color:var(--dg)">-</b></span>
             <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-dn-eff" style="color:var(--dg);font-size:14px">-</b></span>
           </div>
           <div style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:5px;font-size:11px">
-            <span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-dn-dt-pct">-</b></span>
-            <span style="margin-left:12px;color:var(--muted)">昼間需要量（参考）：<b id="ra-dn-dt-kwh" style="color:var(--dg)">-</b></span>
-            <div style="color:var(--muted);margin-top:2px">平日昼間・休日昼間の使用割合をもとに、太陽光をその場で使える昼間需要を推定しています。</div>
+            <div style="margin-bottom:3px"><span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-dn-dt-pct">-</b></span></div>
+            <div style="color:var(--muted)">昼間需要量（参考）：<span id="ra-dn-dt-kwh" style="color:var(--dg)">-</span></div>
+            <div style="color:var(--muted);margin-top:2px;font-size:10px">平日昼間・休日昼間の使用割合をもとに、太陽光をその場で使える昼間需要を推定しています。</div>
           </div>
           <div id="ra-dn-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
         </div>
@@ -394,6 +398,7 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-kj-dt" min="0" max="100" step="1" value="30" oninput="onRatioInput('kj','dt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-kj-dt-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
           <div style="margin-bottom:8px">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px">
@@ -405,6 +410,7 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-kj-lv" min="0" max="100" step="1" value="20" oninput="onRatioInput('kj','lv')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-kj-lv-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
           <div style="margin-bottom:10px">
             <div style="display:flex;justify-content:space-between;margin-bottom:3px">
@@ -416,8 +422,9 @@ canvas#mini-chart { height: 150px !important; }
               <input type="number" id="ra-kj-ngt" min="0" max="100" step="1" value="50" oninput="onRatioInput('kj','ngt')" style="width:52px;border:1.5px solid var(--border);border-radius:6px;padding:5px 6px;font-size:13px;font-family:inherit;text-align:center">
               <span style="font-size:12px;color:var(--muted);min-width:12px">%</span>
             </div>
+            <div id="ra-kj-ngt-bkwh" style="font-size:11px;color:var(--muted);margin-top:2px">-</div>
           </div>
-          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+          <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:4px">
             <span id="ra-kj-total" style="font-size:12px;font-weight:700;color:var(--mg)">合計：100%</span>
             <span id="ra-kj-warn" style="display:none;font-size:11px;color:var(--or)">⚠️ 合計が100%になるよう調整してください</span>
             <div style="margin-left:auto;display:flex;gap:4px">
@@ -425,14 +432,15 @@ canvas#mini-chart { height: 150px !important; }
               <button onclick="resetToPreset('kj')" style="font-size:11px;padding:3px 9px;border:1px solid var(--border);border-radius:5px;background:#fff;cursor:pointer;font-family:inherit;color:var(--muted)">標準に戻す</button>
             </div>
           </div>
+          <div id="ra-kj-total-bkwh" style="font-size:11px;color:var(--muted);margin-bottom:8px">-</div>
           <div style="padding:7px 10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px">
             <span style="color:var(--muted)">電力量のみ平均：<b id="ra-kj-base" style="color:var(--dg)">-</b></span>
             <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-kj-eff" style="color:var(--dg);font-size:14px">-</b></span>
           </div>
           <div style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:5px;font-size:11px">
-            <span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-kj-dt-pct">-</b></span>
-            <span style="margin-left:12px;color:var(--muted)">昼間需要量（参考）：<b id="ra-kj-dt-kwh" style="color:var(--dg)">-</b></span>
-            <div style="color:var(--muted);margin-top:2px">デイタイムとリビングタイムの一部を、太陽光をその場で使える昼間需要として推定しています。</div>
+            <div style="margin-bottom:3px"><span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-kj-dt-pct">-</b></span></div>
+            <div style="color:var(--muted)">昼間需要量（参考）：<span id="ra-kj-dt-kwh" style="color:var(--dg)">-</span></div>
+            <div style="color:var(--muted);margin-top:2px;font-size:10px">デイタイムとリビングタイムの一部を、太陽光をその場で使える昼間需要として推定しています。</div>
           </div>
           <div id="ra-kj-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
         </div>
@@ -1374,6 +1382,30 @@ function updateRatioDisplay(type) {
   totalEl.textContent = `合計：${Math.round(total)}%`;
   totalEl.style.color = valid ? 'var(--mg)' : 'var(--or)';
   warnEl.style.display = valid ? 'none' : '';
+  // 月間・年間kWh表示
+  const mkwh = v('mkwh');
+  const annualKwh = mkwh * 12;
+  function _fmtBkwh(pct) {
+    if (!(mkwh > 0)) return '-';
+    const mo = Math.round(mkwh * pct / 100);
+    const yr = Math.round(annualKwh * pct / 100);
+    return `月平均：約${mo.toLocaleString()} kWh / 年間：約${yr.toLocaleString()} kWh`;
+  }
+  _raFields(type).forEach((f, i) => {
+    const el = document.getElementById(`ra-${type}-${f}-bkwh`);
+    if (el) el.textContent = _fmtBkwh(vals[i]);
+  });
+  const totalBkwhEl = document.getElementById(`ra-${type}-total-bkwh`);
+  if (totalBkwhEl) {
+    if (mkwh > 0) {
+      const mo = Math.round(mkwh * total / 100);
+      const yr = Math.round(annualKwh * total / 100);
+      totalBkwhEl.textContent = `合計：月平均 約${mo.toLocaleString()} kWh / 年間 約${yr.toLocaleString()} kWh`;
+      totalBkwhEl.style.color = valid ? 'var(--muted)' : 'var(--or)';
+    } else {
+      totalBkwhEl.textContent = '-';
+    }
+  }
   const kp = document.getElementById('kyuden-plan').value;
   const r = calcEffectiveUnitPrice(kp, document.getElementById('ls-preset').value);
   document.getElementById(`ra-${type}-base`).textContent = r.valid ? `${r.base.toFixed(2)}円/kWh` : '-';
@@ -1386,8 +1418,13 @@ function updateRatioDisplay(type) {
     if (dtRate !== null) {
       const pct = Math.round(dtRate * 100);
       pctEl.textContent = `${pct}%`;
-      const annualKwh = v('mkwh') * 12;
-      kwhEl.textContent = annualKwh > 0 ? `${Math.round(annualKwh * dtRate).toLocaleString()} kWh/年` : '-';
+      if (mkwh > 0) {
+        const dtMo = Math.round(mkwh * dtRate);
+        const dtYr = Math.round(annualKwh * dtRate);
+        kwhEl.textContent = `月平均：約${dtMo.toLocaleString()} kWh / 年間：約${dtYr.toLocaleString()} kWh`;
+      } else {
+        kwhEl.textContent = '-';
+      }
     } else {
       pctEl.textContent = '-';
       kwhEl.textContent = '-';
@@ -2107,6 +2144,10 @@ function calc() {
     // ミニチャート（ローンOFF: 2系列）
     renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false);
   }
+  // ratio-adjust パネルのkWh表示を月間使用量変化に合わせて更新
+  const _kpNow = document.getElementById('kyuden-plan').value;
+  if (_kpNow === 'kyushu_denka_night') updateRatioDisplay('dn');
+  else if (_kpNow === 'kyushu_kiji') updateRatioDisplay('kj');
 }
 
 function renderMiniChart(m, mb, wy, re, lp, ly, mt, showLoan) {
