@@ -371,6 +371,11 @@ canvas#mini-chart { height: 150px !important; }
             <span style="color:var(--muted)">電力量のみ平均：<b id="ra-dn-base" style="color:var(--dg)">-</b></span>
             <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-dn-eff" style="color:var(--dg);font-size:14px">-</b></span>
           </div>
+          <div style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:5px;font-size:11px">
+            <span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-dn-dt-pct">-</b></span>
+            <span style="margin-left:12px;color:var(--muted)">昼間需要量（参考）：<b id="ra-dn-dt-kwh" style="color:var(--dg)">-</b></span>
+            <div style="color:var(--muted);margin-top:2px">平日昼間・休日昼間の使用割合をもとに、太陽光をその場で使える昼間需要を推定しています。</div>
+          </div>
           <div id="ra-dn-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
         </div>
         <!-- 使用比率調整パネル（季時別電灯） -->
@@ -421,6 +426,11 @@ canvas#mini-chart { height: 150px !important; }
           <div style="padding:7px 10px;background:#fff;border-radius:6px;border:1px solid var(--border);font-size:12px">
             <span style="color:var(--muted)">電力量のみ平均：<b id="ra-kj-base" style="color:var(--dg)">-</b></span>
             <span style="margin-left:14px;color:var(--muted)">調整・賦課金込み実質：<b id="ra-kj-eff" style="color:var(--dg);font-size:14px">-</b></span>
+          </div>
+          <div style="margin-top:6px;padding:6px 10px;background:var(--pg);border-radius:5px;font-size:11px">
+            <span style="color:var(--mg);font-weight:600">☀️ 昼間直接消費対象：<b id="ra-kj-dt-pct">-</b></span>
+            <span style="margin-left:12px;color:var(--muted)">昼間需要量（参考）：<b id="ra-kj-dt-kwh" style="color:var(--dg)">-</b></span>
+            <div style="color:var(--muted);margin-top:2px">デイタイムとリビングタイムの一部を、太陽光をその場で使える昼間需要として推定しています。</div>
           </div>
           <div id="ra-kj-bill-note" style="display:none;margin-top:6px;font-size:11px;color:var(--muted)">※ 現在は請求書から算出した実績単価を使用中です。上記割合は請求書がない場合の推定単価の参考値です。</div>
         </div>
@@ -1342,10 +1352,11 @@ function _markCustomAndUpdate(type) {
   const kp = document.getElementById('kyuden-plan').value;
   const ls = document.getElementById('ls-preset').value;
   if (!data.hasBill) {
-    onHearingChange(data);
+    onHearingChange(data); // mkwh更新→_applyDaytimeRateValues→calc の順は onHearingChange 内で実施
   } else {
-    // hasBill: only update breakdown panel display
     if (document.getElementById('unit-price-breakdown').style.display !== 'none') showUnitPriceBreakdown(kp, ls);
+    _applyDaytimeRateValues();
+    calc();
   }
 }
 
@@ -1362,6 +1373,21 @@ function updateRatioDisplay(type) {
   const r = calcEffectiveUnitPrice(kp, document.getElementById('ls-preset').value);
   document.getElementById(`ra-${type}-base`).textContent = r.valid ? `${r.base.toFixed(2)}円/kWh` : '-';
   document.getElementById(`ra-${type}-eff`).textContent  = r.valid ? `${r.effective.toFixed(2)}円/kWh` : '-';
+  // 昼間直接消費対象の更新
+  const dtRate = getDaytimeRateFromPlan();
+  const pctEl = document.getElementById(`ra-${type}-dt-pct`);
+  const kwhEl = document.getElementById(`ra-${type}-dt-kwh`);
+  if (pctEl) {
+    if (dtRate !== null) {
+      const pct = Math.round(dtRate * 100);
+      pctEl.textContent = `${pct}%`;
+      const annualKwh = v('mkwh') * 12;
+      kwhEl.textContent = annualKwh > 0 ? `${Math.round(annualKwh * dtRate).toLocaleString()} kWh/年` : '-';
+    } else {
+      pctEl.textContent = '-';
+      kwhEl.textContent = '-';
+    }
+  }
 }
 
 function autoAdjustLast(type) {
@@ -1463,7 +1489,29 @@ const LIFESTYLE_LABEL = {
   allelectric:'オール電化・昼夜問わず電気を多用',
 };
 
+// 時間帯別プラン選択中は ratio-adjust パネル値から昼間率を算出
+function getDaytimeRateFromPlan() {
+  const kp = document.getElementById('kyuden-plan').value;
+  if (kp === 'kyushu_denka_night') {
+    const day = parseFloat(document.getElementById('ra-dn-day').value)||0;
+    const hol = parseFloat(document.getElementById('ra-dn-hol').value)||0;
+    const ngt = parseFloat(document.getElementById('ra-dn-ngt').value)||0;
+    if (Math.abs(day+hol+ngt-100) >= 0.5) return null;
+    return (day + hol) / 100;
+  }
+  if (kp === 'kyushu_kiji') {
+    const dt  = parseFloat(document.getElementById('ra-kj-dt').value)||0;
+    const lv  = parseFloat(document.getElementById('ra-kj-lv').value)||0;
+    const ngt = parseFloat(document.getElementById('ra-kj-ngt').value)||0;
+    if (Math.abs(dt+lv+ngt-100) >= 0.5) return null;
+    return dt/100 + lv/100 * 0.5;
+  }
+  return null;
+}
+
 function getDaytimeRate() {
+  const fromPlan = getDaytimeRateFromPlan();
+  if (fromPlan !== null) return fromPlan;
   const preset = document.getElementById('ls-preset').value;
   const base   = LIFESTYLE_RATE[preset];
   if (base === null) return null;
@@ -1471,11 +1519,12 @@ function getDaytimeRate() {
   return Math.min(0.60, Math.max(0.10, base * mod));
 }
 
-function applyDaytimeRate() {
+// dc/bc を更新するが calc() は呼ばない（onHearingChange 内で mkwh 確定後に呼ぶため）
+function _applyDaytimeRateValues() {
   const rate   = getDaytimeRate();
   const noteEl = document.getElementById('daytime-auto-note');
   const textEl = document.getElementById('daytime-auto-text');
-  if (rate === null) { noteEl.style.display = 'none'; calc(); return; }
+  if (rate === null) { noteEl.style.display = 'none'; return; }
   const pct = Math.round(rate * 100);
   const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
@@ -1486,6 +1535,10 @@ function applyDaytimeRate() {
   document.getElementById('bc').value = bc;
   noteEl.style.display = '';
   textEl.textContent = `昼間使用率 約${pct}% をもとに自動計算：昼間直接 ${dc.toLocaleString()} kWh、蓄電池 ${bc.toLocaleString()} kWh`;
+}
+
+function applyDaytimeRate() {
+  _applyDaytimeRateValues();
   calc();
 }
 
@@ -1545,6 +1598,7 @@ function onHearingChange(data) {
     if (isKjPlan) updateRatioDisplay('kj');
     if (badge) { badge.textContent = '実績単価を使用中'; badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
     _setUnitPriceExplain('bill');
+    _applyDaytimeRateValues();
     calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
@@ -1591,6 +1645,7 @@ function onHearingChange(data) {
       const isCustomFinal = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
       _setUnitPriceExplain(isTimePlanCur ? (isCustomFinal ? 'custom' : 'estimated') : 'other');
     }
+    _applyDaytimeRateValues();
     calc();
   }
 }
