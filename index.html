@@ -460,6 +460,7 @@ canvas#mini-chart { height: 150px !important; }
       <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
         現在の平均単価（シミュレーション使用値）：<b id="up-auto" style="color:var(--dg)">-</b>
         <span id="up-source-badge" style="font-size:10px;margin-left:8px;padding:1px 6px;border-radius:10px;background:var(--pg);color:var(--mg);font-weight:700"></span>
+        <div id="up-explain" style="display:none;margin-top:5px;padding-top:5px;border-top:1px solid var(--border);font-size:11px;line-height:1.6;color:var(--muted)"></div>
       </div>
       <!-- 年間電気代・年間消費電力量の自動表示 -->
       <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:14px;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -1405,7 +1406,7 @@ function onKyudenPlanChange() {
   const ls = document.getElementById('ls-preset').value;
   fillRatioPanel(kp, ls);
   showUnitPriceBreakdown(kp, ls);
-  if (!data.hasBill) onHearingChange(data);
+  onHearingChange(data);
   calc();
 }
 
@@ -1498,9 +1499,7 @@ function onLifestyleChange() {
   const kp = document.getElementById('kyuden-plan').value;
   fillRatioPanel(kp, preset);
   showUnitPriceBreakdown(kp, preset);
-  if (!data.hasBill && (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji')) {
-    onHearingChange(data);
-  }
+  if (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji') onHearingChange(data);
 }
 
 // ══════════════════════════════════════════
@@ -1545,6 +1544,7 @@ function onHearingChange(data) {
     if (isDnPlan) updateRatioDisplay('dn');
     if (isKjPlan) updateRatioDisplay('kj');
     if (badge) { badge.textContent = '実績単価を使用中'; badge.style.background='#d1fae5'; badge.style.color='#065f46'; }
+    _setUnitPriceExplain('bill');
     calc();
   } else {
     guide.style.cssText = 'display:;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid #fed7aa;font-size:12px;background:#fff7ed;color:#9a3412';
@@ -1588,9 +1588,33 @@ function onHearingChange(data) {
       const isCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
       badge.textContent = isCustom ? 'カスタム割合単価を使用中' : (isTimePlanCur ? '調整・賦課金込み推定単価を使用中' : '推定単価を使用中');
       badge.style.background = '#fff7ed'; badge.style.color = '#9a3412';
+      const isCustomFinal = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
+      _setUnitPriceExplain(isTimePlanCur ? (isCustomFinal ? 'custom' : 'estimated') : 'other');
     }
     calc();
   }
+}
+
+function _setUnitPriceExplain(mode) {
+  const el = document.getElementById('up-explain');
+  if (!el) return;
+  const texts = {
+    bill:
+      '現在は、請求書明細から算出した実績単価を使用しています。<br>' +
+      'この単価には燃料費等調整額・再エネ賦課金等が含まれている前提のため、追加加算は行っていません。',
+    estimated:
+      '現在は、九州電力の公式時間帯別単価に、生活スタイル別の使用割合を掛け合わせた推定単価を使用しています。<br>' +
+      '燃料費等調整単価（+1.33円/kWh）・再エネ賦課金（+4.18円/kWh）を加えた「調整・賦課金込み実質単価」をシミュレーションに反映しています。',
+    custom:
+      '現在は、お客様の使い方に合わせて調整した時間帯別使用割合から、推定実質単価を算出しています。<br>' +
+      '割合を変更すると、電力量のみ平均単価と調整・賦課金込み実質単価が自動で再計算されます。',
+  };
+  if (mode === 'other') {
+    el.style.display = 'none';
+    return;
+  }
+  el.innerHTML = texts[mode] || '';
+  el.style.display = '';
 }
 
 function setLoanInputMode(mode) {
