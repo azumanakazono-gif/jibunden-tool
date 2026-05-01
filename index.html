@@ -1421,8 +1421,10 @@ function updateRatioDisplay(type) {
   const kwhEl = document.getElementById(`ra-${type}-dt-kwh`);
   if (pctEl) {
     if (dtRate !== null) {
-      const pct = Math.round(dtRate * 100);
-      pctEl.textContent = `${pct}%`;
+      const pctStr = ((dtRate * 100).toFixed(1).endsWith('.0'))
+        ? `${Math.round(dtRate * 100)}%`
+        : `${(dtRate * 100).toFixed(1)}%`;
+      pctEl.textContent = pctStr;
       if (mkwh > 0) {
         const dtMo = Math.round(mkwh * dtRate);
         const dtYr = Math.round(annualKwh * dtRate);
@@ -1577,7 +1579,9 @@ function _applyDaytimeRateValues() {
   const noteEl = document.getElementById('daytime-auto-note');
   const textEl = document.getElementById('daytime-auto-text');
   if (rate === null) { noteEl.style.display = 'none'; return; }
-  const pct = Math.round(rate * 100);
+  const pctStr = ((rate * 100).toFixed(1).endsWith('.0'))
+    ? `${Math.round(rate * 100)}%`
+    : `${(rate * 100).toFixed(1)}%`;
   const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
   const dc  = Math.round(Math.min(ag * 0.65, annualConsumption * rate));
@@ -1586,7 +1590,7 @@ function _applyDaytimeRateValues() {
   document.getElementById('dc').value = dc;
   document.getElementById('bc').value = bc;
   noteEl.style.display = '';
-  textEl.textContent = `昼間使用率 約${pct}% をもとに自動計算：昼間直接 ${dc.toLocaleString()} kWh、蓄電池 ${bc.toLocaleString()} kWh`;
+  textEl.textContent = `昼間使用率 約${pctStr} をもとに自動計算：昼間直接 ${dc.toLocaleString()} kWh、蓄電池 ${bc.toLocaleString()} kWh`;
 }
 
 function applyDaytimeRate() {
