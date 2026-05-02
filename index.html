@@ -811,16 +811,15 @@ canvas#mini-chart { height: 150px !important; }
           <div class="bar-label">ローン活用</div>
           <div class="bar-track" style="display:flex">
             <div class="bar-fill" id="bl" style="width:40%;border-radius:0;background:#7c3aed"><span id="blv"></span></div>
-            <div id="bl-r" style="width:20%;height:100%;background:#c4b5fd;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#4c1d95;transition:width .4s ease;overflow:hidden"><span id="blv-r"></span></div>
+            <div id="bl-r" style="width:20%;height:100%;background:#86efac;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#14532d;transition:width .4s ease;overflow:hidden"><span id="blv-r"></span></div>
           </div>
           <div id="bl-detail" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:11px;color:var(--muted)">
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#EA580C"></span>電気料金（電力会社）</span>
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#2D6A4F"></span>初期費用</span>
-          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代（現金）</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代</span>
           <span id="stacked-legend-loan" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#7c3aed"></span>ローン返済総額</span>
-          <span id="stacked-legend-loan-r" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#c4b5fd"></span>残り電気代（ローン）</span>
         </div>
       </div>
       <div class="diff-banner">
@@ -2307,7 +2306,6 @@ function calc() {
     document.getElementById('bl-detail').textContent =
       `ローン総額 ${loanTotalMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${loanTotalMan+remain20Man}万円`;
     document.getElementById('stacked-legend-loan').style.display = 'flex';
-    document.getElementById('stacked-legend-loan-r').style.display = 'flex';
     const loanCostPerKWh = m.selfKWh > 0 ? Math.round(lp * ly * 12 / (m.selfKWh * wy)) : 0;
     document.getElementById('rk-loan').textContent = loanCostPerKWh > 0 ? loanCostPerKWh + '円/kWh' : '-';
     document.getElementById('rk-loan-row').style.display = '';
@@ -2335,7 +2333,6 @@ function calc() {
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
     document.getElementById('legend-loan-item').style.display = 'none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
-    document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
     renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false);
