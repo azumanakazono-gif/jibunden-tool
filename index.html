@@ -542,7 +542,7 @@ canvas#mini-chart { height: 150px !important; }
         <div id="juuryo-panel-title" style="font-size:12px;font-weight:700;color:var(--mg);margin-bottom:8px">📋 従量電灯B 段階料金内訳</div>
         <div id="juuryo-contract-b" style="margin-bottom:6px;display:flex;align-items:center;gap:6px">
           <span style="font-size:11px;color:var(--muted)">契約アンペア：</span>
-          <select id="juuryo-amp" onchange="updateJuuryoPanel();autoEstimateJyuryoKwh()" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:4px">
+          <select id="juuryo-amp" onchange="updateJyuryoPanel();autoEstimateJyuryoKwh()" style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:4px">
             <option value="10">10A</option><option value="15">15A</option><option value="20">20A</option>
             <option value="30" >30A</option><option value="40">40A</option>
             <option value="50">50A</option><option value="60" selected>60A</option>
@@ -551,7 +551,7 @@ canvas#mini-chart { height: 150px !important; }
         <div id="juuryo-contract-c" style="margin-bottom:6px;align-items:center;gap:6px;display:none">
           <span style="font-size:11px;color:var(--muted)">契約容量：</span>
           <input type="number" id="juuryo-kva" value="10" min="6" step="0.5" placeholder="例：10"
-            oninput="updateJuuryoPanel();autoEstimateJyuryoKwh()"
+            oninput="updateJyuryoPanel();autoEstimateJyuryoKwh()"
             style="width:60px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;font-size:12px">
           <span style="font-size:11px;color:var(--muted)">kVA</span>
         </div>
@@ -1950,6 +1950,9 @@ function calcEffectiveUnitPrice(plan, lifestyle) {
 
 function showUnitPriceBreakdown(plan, lifestyle) {
   const panel = document.getElementById('unit-price-breakdown');
+  const isJyuryoPlan = plan === 'kyushu_jyuryo_b' || plan === 'kyushu_jyuryo_c';
+  const _jp = document.getElementById('juuryo-panel');
+  if (_jp) _jp.style.display = isJyuryoPlan ? '' : 'none';
   document.getElementById('ratio-adjust-dn').style.display = (plan==='kyushu_denka_night') ? '' : 'none';
   document.getElementById('ratio-adjust-kj').style.display = (plan==='kyushu_kiji') ? '' : 'none';
   document.getElementById('ratio-adjust-jb').style.display = (plan==='kyushu_jyuryo_b') ? '' : 'none';
@@ -2889,6 +2892,7 @@ function onHearingChange(data) {
       else                                           upStatus = 'manual-ok';
       _updateUnitPriceInputState(upStatus);
     }
+    { const _jp = document.getElementById('juuryo-panel'); if (_jp) _jp.style.display = 'none'; }
     updatePriceStatus(data);
     _updateLifestyleStatus();
     _applyDaytimeRateValues();
@@ -2972,24 +2976,40 @@ function updateJyuryoPanel() {
   const kp = document.getElementById('kyuden-plan').value;
   const isJb = kp === 'kyushu_jyuryo_b';
   const isJc = kp === 'kyushu_jyuryo_c';
-  if (!isJb && !isJc) return;
+  const jp = document.getElementById('juuryo-panel');
+  if (!isJb && !isJc) {
+    if (jp) jp.style.display = 'none';
+    return;
+  }
+  // juuryo-panel を表示し契約種別に応じた入力欄を切り替える
+  if (jp) {
+    jp.style.display = '';
+    const titleEl = document.getElementById('juuryo-panel-title');
+    if (titleEl) titleEl.textContent = isJb ? '📋 従量電灯B 段階料金内訳' : '📋 従量電灯C 段階料金内訳';
+    const contB = document.getElementById('juuryo-contract-b');
+    const contC = document.getElementById('juuryo-contract-c');
+    if (contB) contB.style.display = isJb ? 'flex' : 'none';
+    if (contC) contC.style.display = isJc ? 'flex' : 'none';
+  }
   const bodyId = isJb ? 'jb-breakdown-body' : 'jc-breakdown-body';
   const body = document.getElementById(bodyId);
-  if (!body) return;
+  const jb = document.getElementById('juuryo-breakdown');
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const mkwh = v('mkwh');
   const r = calcJyuryoUnitPrice(mkwh);
   if (!r) {
-    body.innerHTML = '<div style="color:var(--or);font-size:12px">⚠️ 月間使用量を入力してください</div>';
+    const warn = '<div style="color:var(--or);font-size:12px">⚠️ 月間使用量を入力してください</div>';
+    if (body) body.innerHTML = warn;
+    if (jb)   jb.innerHTML   = warn;
     _updateUnitPriceInputState(data.hasBill ? 'bill' : 'jyuryo-required');
     return;
   }
   let basicCharge = 0;
   if (isJb) {
-    const amp = parseInt(document.getElementById('ra-jb-amp').value) || 30;
+    const amp = parseInt(document.getElementById('juuryo-amp').value) || 30;
     basicCharge = KYUSHU_JYURYO.basicB[amp] || 0;
   } else {
-    const kva = parseFloat(document.getElementById('ra-jc-kva').value) || 0;
+    const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
     basicCharge = kva > 0 ? kva * KYUSHU_JYURYO.basicCperKVA : 0;
   }
   const adjustCharge = Math.round(mkwh * ADJUSTMENT_TOTAL * 10) / 10;
@@ -3013,7 +3033,8 @@ function updateJyuryoPanel() {
     html += `<div style="display:flex;justify-content:space-between;font-weight:700;${DG}"><span>概算月額（基本＋電力量＋調整）</span><span>${totalBill.toLocaleString()}円/月</span></div>`;
     html += `</div>`;
   }
-  body.innerHTML = html;
+  if (body) body.innerHTML = html;
+  if (jb)   jb.innerHTML   = html;
   _updateUnitPriceInputState(data.hasBill ? 'bill' : 'jyuryo-auto');
 }
 
@@ -3341,12 +3362,12 @@ function calc() {
   document.getElementById('dc-monthly-hint').textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月・約 ${(dc/365).toFixed(1)} kWh/日` : '';
   document.getElementById('bc-monthly-hint').textContent = bc > 0 ? `約 ${Math.round(bc/12).toLocaleString()} kWh/月・約 ${(bc/365).toFixed(1)} kWh/日` : '';
   const _kpCalc = document.getElementById('kyuden-plan').value;
-  const _isJuuryoCalc = _kpCalc === 'kyushu_juuryo_b' || _kpCalc === 'kyushu_juuryo_c';
+  const _isJuuryoCalc = _kpCalc === 'kyushu_jyuryo_b' || _kpCalc === 'kyushu_jyuryo_c';
   const _calcData = activeTab === 'hypothesis' ? hypData : custData;
   let up;
   if (_isJuuryoCalc && !_calcData.hasBill) {
     up = mkwh > 0 ? calcJuuryoSteps(mkwh).eff : 0;
-    updateJuuryoPanel();
+    updateJyuryoPanel();
   } else {
     up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
   }
