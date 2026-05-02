@@ -3453,7 +3453,7 @@ function calc() {
     document.getElementById('rk-loan-row').style.display = '';
     document.getElementById('rk-self').textContent = loanCostPerKWh > 0 ? loanCostPerKWh+'円/kWh' : '-';
     document.getElementById('rk-self-label').textContent = '自家消費単価（ローン総額ベース）';
-    const _lcoeL = ag > 0 ? (loanTotal / (ag * wy)).toFixed(1) : '-';
+    const _lcoeL = ag > 0 ? (lp * ly * 12 / (ag * wy)).toFixed(1) : '-';
     document.getElementById('lcoe-label').textContent = '（ローン総額・20年発電量ベース）';
     document.getElementById('lcoe-sub').textContent = `ローン総支払額 ${loanTotalMan}万円 ÷ 20年総発電量 ${fmt(Math.round(ag*wy))} kWh`;
     _updateLcoeCompare(_lcoeL, up);
