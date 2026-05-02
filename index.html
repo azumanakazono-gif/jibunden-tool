@@ -2984,6 +2984,8 @@ function updateJyuryoPanel() {
   // juuryo-panel を表示し契約種別に応じた入力欄を切り替える
   if (jp) {
     jp.style.display = '';
+    const rp = document.getElementById('ratio-panel');
+    if (rp) rp.style.display = 'none';
     const titleEl = document.getElementById('juuryo-panel-title');
     if (titleEl) titleEl.textContent = isJb ? '📋 従量電灯B 段階料金内訳' : '📋 従量電灯C 段階料金内訳';
     const contB = document.getElementById('juuryo-contract-b');
