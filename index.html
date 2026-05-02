@@ -2196,8 +2196,19 @@ function onKyudenPlanChange() {
   isCustomRatio   = false;
   customRatios    = null;
   const _kpNew = document.getElementById('kyuden-plan').value;
-  if (_kpNew === 'kyushu_jyuryo_b') document.getElementById('juuryo-amp').value = '60';
-  if (_kpNew === 'kyushu_jyuryo_c') { const _kvaEl = document.getElementById('juuryo-kva'); if (!parseFloat(_kvaEl.value)) _kvaEl.value = '10'; }
+  if (_kpNew) {
+    _styleKyudenSelect(_kpNew);
+    const _psd = document.getElementById('price-status-disp');
+    if (_psd) _psd.style.display = 'none';
+  }
+  if (_kpNew === 'kyushu_jyuryo_b') {
+    document.getElementById('juuryo-amp').value = '60';
+    document.getElementById('ra-jb-amp').value  = '60';
+  }
+  if (_kpNew === 'kyushu_jyuryo_c') {
+    document.getElementById('juuryo-kva').value = '10';
+    document.getElementById('ra-jc-kva').value  = '10';
+  }
   if (!data.hasBill) {
     onHearingChange(data); // 内部でupdateRatioPanel + calc
   } else {
