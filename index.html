@@ -16,25 +16,23 @@
   --bg: #F0F7F4; --card: #fff; --border: #D1E8DC;
   --text: #1a1a1a; --muted: #6B7280; --danger: #991B1B;
 }
-
-/* 開発中リボン */
-.dev-ribbon {
-    position: fixed; top: 30px; right: -50px; width: 200px;
-    background: #EA580C; color: white; text-align: center;
-    line-height: 40px; font-weight: bold; font-size: 14px;
-    letter-spacing: 1px; transform: rotate(45deg); z-index: 10000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2); pointer-events: none;
-}
-@media (max-width: 520px) {
-    .dev-ribbon { font-size: 12px; line-height: 30px; top: 20px; right: -60px; }
-}
-</style>
-
-<div class="dev-ribbon">開発中</div>
-
-<style>
-/* ── 基本設定 ── */
 * { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+
+/* ── レイアウト ── */
+.app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
+.sidebar { background: var(--dg); color: #fff; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+.main { overflow-y: auto; }
+
+/* ── サイドバー ── */
+.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.12); }
+.sidebar-logo .brand { font-size: 22px; font-weight: 700; color: var(--ac); letter-spacing: .03em; }
+.sidebar-logo .sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; }
+.sidebar-nav { padding: 12px 0; flex: 1; }
+.nav-section { padding: 8px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.35); font-weight: 600; }
+.nav-btn { width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; color: rgba(255,255,255,.75); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .15s; font-family: inherit; }
+.nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
+.nav-btn.active { background: rgba(82,183,136,.2); color: var(--ac); border-left: 3px solid var(--ac); }
 .nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
 .history-list { padding: 0 12px 12px; flex: 1; }
 .history-item { background: rgba(255,255,255,.06); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
@@ -505,11 +503,6 @@ canvas#mini-chart { height: 150px !important; }
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
           <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
           <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-5px); }
-        }
         </div>
         <div id="self-detail-bk" style="display:none"></div>
         <div id="bk-error" style="display:none;padding:12px 14px;border-radius:8px;background:#FEF2F2;border-left:4px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
@@ -3969,37 +3962,5 @@ window.addEventListener('DOMContentLoaded', () => {
             style="margin-top:18px;padding:7px 18px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit">キャンセル</button>
   </div>
 </div>
-
-<style>
-/* ⚡ 発電単価メッセージを劇的に目立たせる */
-#unit-price-diff-msg {
-    display: block !important;
-    margin: 15px 0;
-    padding: 15px;
-    background: #FFF7ED !important; /* 鮮やかな薄オレンジ */
-    border: 3px solid #EA580C !important; /* じぶん電気カラーの太枠 */
-    border-radius: 12px;
-    color: #EA580C !important;
-    font-size: 20px !important;
-    font-weight: 900 !important;
-    text-align: center;
-    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2);
-    animation: bounce 2s infinite; /* ふわふわ動かす */
-}
-
-/* 数字部分（金額）をさらに大きく強調 */
-#unit-price-diff-msg b {
-    font-size: 32px !important;
-    color: #E11D48 !important; /* 差額を赤っぽくして強調 */
-    margin: 0 5px;
-}
-
-/* ふわふわ動くアニメーション */
-@keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
-}
-</style>
-<div class="dev-ribbon">開発中</div>
 </body>
 </html>
