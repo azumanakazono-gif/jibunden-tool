@@ -505,6 +505,11 @@ canvas#mini-chart { height: 150px !important; }
           <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
           <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
           <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
         </div>
         <div id="self-detail-bk" style="display:none"></div>
         <div id="bk-error" style="display:none;padding:12px 14px;border-radius:8px;background:#FEF2F2;border-left:4px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
@@ -3964,6 +3969,37 @@ window.addEventListener('DOMContentLoaded', () => {
             style="margin-top:18px;padding:7px 18px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit">キャンセル</button>
   </div>
 </div>
+
+<style>
+/* ⚡ 発電単価メッセージを劇的に目立たせる */
+#unit-price-diff-msg {
+    display: block !important;
+    margin: 15px 0;
+    padding: 15px;
+    background: #FFF7ED !important; /* 鮮やかな薄オレンジ */
+    border: 3px solid #EA580C !important; /* じぶん電気カラーの太枠 */
+    border-radius: 12px;
+    color: #EA580C !important;
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(234, 88, 12, 0.2);
+    animation: bounce 2s infinite; /* ふわふわ動かす */
+}
+
+/* 数字部分（金額）をさらに大きく強調 */
+#unit-price-diff-msg b {
+    font-size: 32px !important;
+    color: #E11D48 !important; /* 差額を赤っぽくして強調 */
+    margin: 0 5px;
+}
+
+/* ふわふわ動くアニメーション */
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+}
+</style>
+<div class="dev-ribbon">開発中</div>
 </body>
 </html>
-<div class="dev-ribbon">開発中</div>
