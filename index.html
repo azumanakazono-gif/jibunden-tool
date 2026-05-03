@@ -16,6 +16,7 @@
   --bg: #F0F7F4; --card: #fff; --border: #D1E8DC;
   --text: #1a1a1a; --muted: #6B7280; --danger: #991B1B;
 }
+
 /* 開発中リボン */
 .dev-ribbon {
     position: fixed; top: 30px; right: -50px; width: 200px;
@@ -27,23 +28,13 @@
 @media (max-width: 520px) {
     .dev-ribbon { font-size: 12px; line-height: 30px; top: 20px; right: -60px; }
 }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 15px; }
+</style>
 
-/* ── レイアウト ── */
-.app { display: grid; grid-template-columns: 260px 1fr; min-height: 100vh; }
-.sidebar { background: var(--dg); color: #fff; display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-.main { overflow-y: auto; }
+<div class="dev-ribbon">開発中</div>
 
-/* ── サイドバー ── */
-.sidebar-logo { padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,.12); }
-.sidebar-logo .brand { font-size: 22px; font-weight: 700; color: var(--ac); letter-spacing: .03em; }
-.sidebar-logo .sub { font-size: 11px; color: rgba(255,255,255,.5); margin-top: 4px; }
-.sidebar-nav { padding: 12px 0; flex: 1; }
-.nav-section { padding: 8px 20px 4px; font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.35); font-weight: 600; }
-.nav-btn { width: 100%; text-align: left; padding: 10px 20px; background: none; border: none; color: rgba(255,255,255,.75); font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .15s; font-family: inherit; }
-.nav-btn:hover { background: rgba(255,255,255,.08); color: #fff; }
-.nav-btn.active { background: rgba(82,183,136,.2); color: var(--ac); border-left: 3px solid var(--ac); }
+<style>
+/* ── 基本設定 ── */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 .nav-btn .icon { font-size: 15px; width: 20px; text-align: center; }
 .history-list { padding: 0 12px 12px; flex: 1; }
 .history-item { background: rgba(255,255,255,.06); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
