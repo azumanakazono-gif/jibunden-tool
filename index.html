@@ -176,9 +176,35 @@ canvas#mini-chart { height: 150px !important; }
   .prev-card .p-label { font-size: 13px; }
   .prev-card .p-val { font-size: 32px; }
 }
+#test-env-ribbon {
+  position: fixed;
+  top: 28px;
+  left: -36px;
+  width: 140px;
+  background: #d9534f;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  padding: 5px 0;
+  transform: rotate(-45deg);
+  z-index: 999999;
+  pointer-events: none;
+  letter-spacing: .05em;
+  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  user-select: none;
+}
 </style>
 </head>
 <body>
+<div id="test-env-ribbon" style="display:none">テスト環境</div>
+<script>
+(function(){
+  const h = location.hostname;
+  const isTest = h === 'localhost' || h === '127.0.0.1' || /test|dev|staging/.test(h) || /test|dev|staging/.test(location.pathname);
+  if (isTest) document.getElementById('test-env-ribbon').style.display = '';
+})();
+</script>
 <div class="app">
 
 <!-- ── サイドバー ── -->
@@ -214,15 +240,13 @@ canvas#mini-chart { height: 150px !important; }
       <h1 id="main-title">お客様情報を入力してください</h1>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
-    <div style="display:flex;flex-direction:column;align-items:flex-end;gap:10px">
-      <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end">
-        <button class="gen-btn" onclick="generatePPTX('model')" style="background:#1d4ed8;color:#fff;">
-          <span>🔬</span> モデルケース版を出力
-        </button>
-        <button class="gen-btn" onclick="generatePPTX('real')">
-          <span>👤</span> 実データ版を出力
-        </button>
-      </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <button onclick="generatePPTX('real')" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:320px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.35);letter-spacing:.03em">
+        <span style="font-size:18px">👤</span> 実データ版を出力
+      </button>
+      <button onclick="generatePPTX('model')" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:320px;padding:8px 16px;background:transparent;color:#9ca3af;font-size:12px;font-weight:400;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;font-family:inherit">
+        <span style="font-size:13px">🔬</span> モデルケース版を出力（サンプル）
+      </button>
     </div>
   </div>
 
@@ -432,7 +456,7 @@ canvas#mini-chart { height: 150px !important; }
         <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="1000" max="200000" step="1000" oninput="onMbInput()"></div>
         <div class="field">
           <label>月間使用量（kWh）<span id="mkwh-label-note" style="font-size:10px;margin-left:4px;color:var(--muted)"></span></label>
-          <input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="mkwhManualEdited=true;document.getElementById('mkwh-est-note').style.display='none';calc()">
+          <input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="onMkwhInput()">
           <span id="mkwh-est-note" style="font-size:11px;color:#0369a1;display:none">📊 電気代から自動推定
             <button onclick="reEstimateJyuryoKwh()" style="margin-left:4px;font-size:10px;padding:1px 6px;border:1px solid #93c5fd;border-radius:4px;background:#eff6ff;color:#1e40af;cursor:pointer;font-family:inherit">再推定</button>
           </span>
@@ -481,9 +505,14 @@ canvas#mini-chart { height: 150px !important; }
           <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
         </div>
         <div class="field" id="field-bc-wrap">
-          <label>蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">夜間・曇天時に放電</span></label>
-          <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="calc()">
+          <label style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:2px">夜間・曇天時に放電</span>
+            <span id="bc-manual-badge" style="display:none;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px">手動入力中</span>
+            <button id="bc-reset-btn" onclick="resetBcManual()" style="display:none;font-size:10px;padding:2px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--muted);cursor:pointer;font-family:inherit">自動計算に戻す</button>
+          </label>
+          <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="onBcInput()">
           <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+          <span id="bc-warn" style="display:none;font-size:11px;color:#dc2626;font-weight:600"></span>
         </div>
       </div>
       <!-- ── 結果エリア（入力直後のひとまとまりブロック） ── -->
@@ -830,6 +859,36 @@ canvas#mini-chart { height: 150px !important; }
         <span id="rk"></span><div id="rk-loan-row"><span id="rk-loan"></span></div>
       </div>
       <!-- KPI カード (2×2) -->
+      <!-- 単価比較カード：KPI グリッドの直上に配置 -->
+      <div id="unit-price-compare-card" style="border-radius:14px;padding:16px;border:2px solid #bae6fd;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:12px">
+        <div style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:10px">⚡ 買う電気 vs 作る電気 — 単価比較</div>
+        <div style="display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;gap:6px;margin-bottom:10px">
+          <!-- 左：電力会社 -->
+          <div style="border-radius:10px;padding:12px 10px;background:#fff;border:2px solid #fca5a5;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px">🏢 電力会社から<br>買う電気</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:2px">
+              <span id="upc-buy" style="font-size:26px;font-weight:900;color:#dc2626;line-height:1">-</span>
+              <span style="font-size:11px;font-weight:700;color:#dc2626">円/kWh</span>
+            </div>
+            <div style="font-size:10px;color:#ef4444;margin-top:4px">値上がりリスクあり</div>
+          </div>
+          <!-- VS -->
+          <div style="text-align:center;font-size:12px;font-weight:900;color:#94a3b8">VS</div>
+          <!-- 右：じぶん電気 -->
+          <div style="border-radius:10px;padding:12px 10px;background:#fff;border:2px solid #7dd3fc;text-align:center">
+            <div style="font-size:10px;font-weight:700;color:#0369a1;margin-bottom:4px">☀️ じぶんの屋根で<br>作る電気</div>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:2px">
+              <span id="upc-gen" style="font-size:26px;font-weight:900;color:#0369a1;line-height:1">-</span>
+              <span style="font-size:11px;font-weight:700;color:#0369a1">円/kWh</span>
+            </div>
+            <div id="upc-gen-years" style="font-size:10px;color:#0284c7;margin-top:4px">単価固定</div>
+          </div>
+        </div>
+        <!-- 差分バッジ -->
+        <div id="upc-diff-badge" style="display:none;text-align:center;padding:8px 14px;border-radius:8px;font-size:13px;font-weight:700;border:1.5px solid #86efac;background:linear-gradient(135deg,#dcfce7,#bbf7d0);color:#15803d;margin-bottom:8px"></div>
+        <!-- 補足テキスト -->
+        <div id="upc-desc" style="display:none;font-size:11px;color:#0369a1;line-height:1.6;padding:8px 10px;background:rgba(255,255,255,.6);border-radius:6px"></div>
+      </div>
       <div class="grid2" style="gap:10px;margin-bottom:12px">
         <div style="border-radius:12px;padding:16px 12px;border:2px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);box-shadow:0 2px 8px rgba(0,0,0,.08)">
           <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px">20年間の経済メリット目安</div>
@@ -867,34 +926,6 @@ canvas#mini-chart { height: 150px !important; }
             <div id="rk-self" style="font-size:20px;font-weight:800;color:var(--mg)">-</div>
           </div>
         </div>
-      </div>
-      <!-- 発電単価カード -->
-      <div id="lcoe-card" style="border-radius:12px;padding:14px 16px;border:2px solid #bae6fd;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);box-shadow:0 2px 8px rgba(0,0,0,.08);margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px">
-          <span style="font-size:13px;font-weight:700;color:#0369a1">⚡ 発電単価</span>
-          <span id="lcoe-label" style="font-size:11px;color:#0369a1">（20年発電量ベース）</span>
-        </div>
-        <div id="lcoe-sub" style="font-size:11px;color:#0369a1;margin-bottom:8px"></div>
-        <div id="lcoe-compare" style="display:none;margin-bottom:10px">
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
-            <div style="background:rgba(255,255,255,.75);border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">🏢 買電単価</div>
-              <div><span id="lcoe-grid-val" style="font-size:25px;font-weight:900;color:#dc2626">-</span><span style="font-size:11px;font-weight:700;color:#dc2626"> 円/kWh</span></div>
-              <div style="font-size:10px;color:#666;margin-top:3px">（電力会社から買う電気の単価）</div>
-            </div>
-            <div style="background:rgba(255,255,255,.75);border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;text-align:center">
-              <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">☀️ 発電単価</div>
-              <div><span id="lcoe-val" style="font-size:25px;font-weight:900;color:#0369a1">-</span><span style="font-size:11px;font-weight:700;color:#0369a1"> 円/kWh</span></div>
-              <div style="font-size:10px;color:#666;margin-top:3px">（屋根の設備で自給自足できる電気の単価）</div>
-            </div>
-          </div>
-          <div id="lcoe-diff" style="text-align:center;font-size:13px;font-weight:700;padding:5px 10px;background:rgba(255,255,255,.7);border-radius:6px;color:#0369a1"></div>
-        </div>
-        <div id="lcoe-solo" style="display:flex;align-items:baseline;gap:4px;margin-bottom:6px">
-          <span id="lcoe-val-solo" style="font-size:24px;font-weight:900;color:#0369a1">-</span>
-          <span style="font-size:13px;font-weight:700;color:#0369a1">円/kWh</span>
-        </div>
-        <div style="font-size:10px;color:var(--muted)">電力会社から買う単価と、太陽光でつくる単価の比較です。この差が自家消費メリットの目安になります。</div>
       </div>
       <!-- 棒グラフタイトル -->
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">📊 20年間の総コスト比較</div>
@@ -1331,6 +1362,7 @@ function _juuryoBasicCharge(kp) {
 }
 
 let mkwhManualEdited = false;
+let bcManualEdited = false;
 
 function estimateJyuryoKwhFromBill(monthlyBill, basicCharge) {
   let bestKwh = 0, bestDiff = Infinity;
@@ -1339,34 +1371,111 @@ function estimateJyuryoKwhFromBill(monthlyBill, basicCharge) {
     const calc = basicCharge + energy + kwh * ADJUSTMENT_UNIT_PRICE;
     const diff = Math.abs(calc - monthlyBill);
     if (diff < bestDiff) { bestDiff = diff; bestKwh = kwh; }
-    if (calc > monthlyBill + 2000) break; // 大幅超過で打ち切り
+    if (calc > monthlyBill + 2000) break;
   }
   return bestKwh;
 }
-function autoEstimateJyuryoKwh(force) {
-  const kp = document.getElementById('kyuden-plan').value;
-  if (kp !== 'kyushu_juuryo_b' && kp !== 'kyushu_juuryo_c') return;
+
+function autoEstimateKwhFromBill(force) {
+  const data = activeTab === 'hypothesis' ? hypData : custData;
+  if (data.hasBill) return; // 請求書実績モードは逆算しない
   const mb = parseFloat(document.getElementById('mb').value) || 0;
   if (mb <= 0) return;
   const mkwhEl = document.getElementById('mkwh');
   const curKwh = parseFloat(mkwhEl.value) || 0;
   if (!force && mkwhManualEdited && curKwh > 0) return;
-  const basic = _juuryoBasicCharge(kp);
-  if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
-  const est = estimateJyuryoKwhFromBill(mb, basic);
+  const kp = document.getElementById('kyuden-plan').value;
+  const isJuuryo = kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c';
+  let est = 0;
+  if (isJuuryo) {
+    const basic = _juuryoBasicCharge(kp);
+    if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
+    est = estimateJyuryoKwhFromBill(mb, basic);
+  } else {
+    // 他プラン：表示中の平均単価で線形推定、なければ30円/kWhで試算
+    const upText = document.getElementById('up-auto')?.textContent || '';
+    const up = parseFloat(upText) || parseFloat(kp) || 30;
+    est = Math.max(1, Math.min(3000, Math.round(mb / up)));
+  }
+  if (est <= 0) return;
   mkwhEl.value = est;
   mkwhManualEdited = false;
   const noteEl = document.getElementById('mkwh-est-note');
-  if (noteEl) noteEl.style.display = est > 0 ? '' : 'none';
+  if (noteEl) noteEl.style.display = '';
   calc();
 }
+
+// 後方互換エイリアス（juuryo-amp/kva onchange から呼ばれる）
+function autoEstimateJyuryoKwh(force) { autoEstimateKwhFromBill(force); }
+
 function reEstimateJyuryoKwh() {
   mkwhManualEdited = false;
-  autoEstimateJyuryoKwh(true);
+  autoEstimateKwhFromBill(true);
 }
 function onMbInput() {
-  autoEstimateJyuryoKwh();
+  autoEstimateKwhFromBill();
   calc();
+}
+function onMkwhInput() {
+  mkwhManualEdited = true;
+  const noteEl = document.getElementById('mkwh-est-note');
+  if (noteEl) noteEl.style.display = 'none';
+  // mbを逆算して更新（従量電灯B/C: 段階料金で正確に、他: 平均単価で線形）
+  const kp  = document.getElementById('kyuden-plan').value;
+  const kwh = parseFloat(document.getElementById('mkwh').value) || 0;
+  if (kwh > 0) {
+    const isJuuryo = kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c';
+    if (isJuuryo) {
+      const basic = _juuryoBasicCharge(kp);
+      if (basic > 0) {
+        const { energy } = calcJuuryoSteps(kwh);
+        document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
+      }
+    } else {
+      const upText = document.getElementById('up-auto')?.textContent || '';
+      const up = parseFloat(upText) || parseFloat(kp) || 0;
+      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up);
+    }
+  }
+  calc();
+}
+
+function onBcInput() {
+  bcManualEdited = true;
+  _updateBcManualUI();
+  const bcEl = document.getElementById('bc');
+  const bk   = parseFloat(document.getElementById('bk').value) || 0;
+  const kwh  = parseFloat(bcEl.value) || 0;
+  const warnEl = document.getElementById('bc-warn');
+  if (bk > 0 && warnEl) {
+    const { effectiveBatteryKwh: _eff } = window;
+    const effVal = typeof effectiveBatteryKwh === 'function' ? effectiveBatteryKwh(bk) : bk;
+    const maxAnnual = Math.round(effVal * 365);
+    if (kwh > maxAnnual) {
+      warnEl.textContent = `⚠ 実効容量 ${effVal} kWh の年間上限（${maxAnnual.toLocaleString()} kWh）を超えています`;
+      warnEl.style.display = '';
+    } else {
+      warnEl.style.display = 'none';
+    }
+  } else if (warnEl) {
+    warnEl.style.display = 'none';
+  }
+  calc();
+}
+
+function _updateBcManualUI() {
+  const badge  = document.getElementById('bc-manual-badge');
+  const btn    = document.getElementById('bc-reset-btn');
+  if (badge) badge.style.display = bcManualEdited ? '' : 'none';
+  if (btn)   btn.style.display   = bcManualEdited ? '' : 'none';
+}
+
+function resetBcManual() {
+  bcManualEdited = false;
+  _updateBcManualUI();
+  const warnEl = document.getElementById('bc-warn');
+  if (warnEl) warnEl.style.display = 'none';
+  applyDaytimeRate();
 }
 
 function updateJuuryoPanel() {
@@ -1530,6 +1639,8 @@ function buildCfg(data, lp, ly) {
 function onPkgChange() {
   loanAmountEdited = false;
   customDaytimeRate = null;
+  bcManualEdited = false;
+  _updateBcManualUI();
   const key = document.getElementById('pkg-select').value;
   const isManual = !key;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
@@ -1555,6 +1666,8 @@ function onPkgChange() {
 function onPkgChangePv() {
   loanAmountEdited = false;
   customDaytimeRate = null;
+  bcManualEdited = false;
+  _updateBcManualUI();
   const key = document.getElementById('pkg-select-pv').value;
   const isManual = !key;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
@@ -1643,6 +1756,8 @@ function saveFormToData(data) {
 }
 
 function loadDataToForm(data) {
+  bcManualEdited = false;
+  _updateBcManualUI();
   document.getElementById('cn').value = data.cn || '';
   document.getElementById('fm').value = data.fm || '4人家族（夫婦＋子ども2人）';
   document.getElementById('ls-preset').value = data.lsPreset || 'away';
@@ -1926,6 +2041,9 @@ function updateDaytimeRatePanel() {
 }
 function _applyCustomDaytimeRate(rate) {
   customDaytimeRate = rate;
+  // 昼間比率スライダーを明示的に動かした場合はbc手動フラグをリセット
+  bcManualEdited = false;
+  _updateBcManualUI();
   const ag  = parseFloat(document.getElementById('ag').value)   || 0;
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
   const annualKwh = mkwh * 12;
@@ -1935,6 +2053,8 @@ function _applyCustomDaytimeRate(rate) {
   const bc     = Math.round(Math.min(bcMax, annualKwh * (1 - rate) * 0.80));
   document.getElementById('dc').value = dc;
   document.getElementById('bc').value = bc;
+  const warnEl = document.getElementById('bc-warn');
+  if (warnEl) warnEl.style.display = 'none';
   updateDaytimeRatePanel();
   calc();
 }
@@ -1952,6 +2072,8 @@ function onDaytimeRateNum() {
 }
 function resetDaytimeRate() {
   customDaytimeRate = null;
+  bcManualEdited = false;
+  _updateBcManualUI();
   applyDaytimeRate();
   updateDaytimeRatePanel();
 }
@@ -1980,19 +2102,23 @@ function applyDaytimeRate() {
   const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
   const dc  = Math.round(Math.min(ag * 0.65, annualConsumption * rate));
-  const bcMax = Math.max(0, ag * 0.65 - dc);
-  const bc  = Math.round(Math.min(bcMax, annualConsumption * (1 - rate) * 0.80));
   document.getElementById('dc').value = dc;
-  document.getElementById('bc').value = bc;
+  if (!bcManualEdited) {
+    const bcMax = Math.max(0, ag * 0.65 - dc);
+    const bc  = Math.round(Math.min(bcMax, annualConsumption * (1 - rate) * 0.80));
+    document.getElementById('bc').value = bc;
+  }
   noteEl.style.display = '';
   textEl.textContent = `昼間使用率 約${pct}% をもとに自動計算：昼間直接 ${dc.toLocaleString()} kWh、蓄電池 ${bc.toLocaleString()} kWh`;
   updateDaytimeRatePanel();
   calc();
 }
 
-function onFamilyChange() { customDaytimeRate = null; applyDaytimeRate(); calc(); }
+function onFamilyChange() { customDaytimeRate = null; bcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
 function onLifestyleChange() {
   customDaytimeRate = null;
+  bcManualEdited = false;
+  _updateBcManualUI();
   const preset = document.getElementById('ls-preset').value;
   const lsInput = document.getElementById('ls');
   if (preset !== 'custom') lsInput.value = LIFESTYLE_LABEL[preset] || '';
@@ -2756,10 +2882,12 @@ function calc() {
     const _ann   = _mkwh * 12;
     const _dem   = Math.round(_ann * customDaytimeRate);
     const _dc    = Math.round(Math.min(_dem, _ag));
-    const _bcMax = Math.max(0, _ag * 0.65 - _dc);
-    const _bc    = Math.round(Math.min(_bcMax, _ann * (1 - customDaytimeRate) * 0.80));
     document.getElementById('dc').value = _dc;
-    document.getElementById('bc').value = _bc;
+    if (!bcManualEdited) {
+      const _bcMax = Math.max(0, _ag * 0.65 - _dc);
+      const _bc    = Math.round(Math.min(_bcMax, _ann * (1 - customDaytimeRate) * 0.80));
+      document.getElementById('bc').value = _bc;
+    }
   }
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
@@ -2768,8 +2896,20 @@ function calc() {
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
   if (_bkEffDispEl) _bkEffDispEl.textContent = bk > 0 ? `実効 ${_bkEffVal} kWh` : '';
   if (bk > 0 && bc > _bkEffVal * 365) {
-    bc = Math.round(_bkEffVal * 365);
-    document.getElementById('bc').value = bc;
+    if (!bcManualEdited) {
+      bc = Math.round(_bkEffVal * 365);
+      document.getElementById('bc').value = bc;
+    }
+    // 手動入力中は値を書き換えず bc-warn でインライン警告を表示（bk-error は別途）
+    const _warnEl = document.getElementById('bc-warn');
+    if (_warnEl && bcManualEdited) {
+      const _max = Math.round(_bkEffVal * 365);
+      _warnEl.textContent = `⚠ 実効容量 ${_bkEffVal} kWh の年間上限（${_max.toLocaleString()} kWh）を超えています`;
+      _warnEl.style.display = '';
+    }
+  } else {
+    const _warnEl = document.getElementById('bc-warn');
+    if (_warnEl && !bcManualEdited) _warnEl.style.display = 'none';
   }
   // pv_only モードでは蓄電池消費を 0 として計算（フィールド値は保持）
   const bc_eff = proposalMode === 'pv_only' ? 0 : bc;
@@ -2875,6 +3015,10 @@ function calc() {
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代20年分) ← er=0でも costDiff_with_rise が正しく機能
   const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
+  // 単価比較カード（買電単価 vs 発電単価）
+  const _genUP = (ag > 0 && wy > 0) ? parseFloat((m.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
+  _updateUnitPriceCompare(up, _genUP, wy);
+
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
   const _merit20Man = Math.round(_annualTotal * wy / 10000);
   document.getElementById('rd-top').textContent = _merit20Man;
@@ -2904,10 +3048,6 @@ function calc() {
     document.getElementById('rk-loan-row').style.display = '';
     document.getElementById('rk-self').textContent = loanCostPerKWh > 0 ? loanCostPerKWh+'円/kWh' : '-';
     document.getElementById('rk-self-label').textContent = '自家消費単価（ローン総額ベース）';
-    const _lcoeL = ag > 0 ? (loanTotal / (ag * wy)).toFixed(1) : '-';
-    document.getElementById('lcoe-label').textContent = '（ローン総額・20年発電量ベース）';
-    document.getElementById('lcoe-sub').textContent = `ローン総支払額 ${loanTotalMan}万円 ÷ 20年総発電量 ${fmt(Math.round(ag*wy))} kWh`;
-    _updateLcoeCompare(_lcoeL, up);
     const loanDiffMan = Math.round((m.bill20Y_rise - lp * ly * 12 - m.remain20Y_rise) / 10000);
     document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
@@ -2934,39 +3074,45 @@ function calc() {
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
-    const _netCostYen = m.totalCostMan * 10000;
-    const _lcoeC = ag > 0 ? (_netCostYen / (ag * wy)).toFixed(1) : '-';
-    document.getElementById('lcoe-label').textContent = '（20年発電量ベース）';
-    document.getElementById('lcoe-sub').textContent = `税込総工事費用（補助金後）${m.totalCostMan}万円 ÷ 20年総発電量 ${fmt(Math.round(ag*wy))} kWh`;
-    _updateLcoeCompare(_lcoeC, up);
     // ミニチャート（ローンOFF: 2系列）
     renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false, _surplusKwhChart);
   }
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
-function _updateLcoeCompare(lcoeStr, up) {
-  const hasData = lcoeStr !== '-' && up > 0;
-  const compareEl = document.getElementById('lcoe-compare');
-  const soloEl    = document.getElementById('lcoe-solo');
-  if (!compareEl || !soloEl) return;
+function _updateUnitPriceCompare(buyUP, genUP, years) {
+  const badge  = document.getElementById('upc-diff-badge');
+  const descEl = document.getElementById('upc-desc');
+  const buyEl  = document.getElementById('upc-buy');
+  const genEl  = document.getElementById('upc-gen');
+  const yearsEl = document.getElementById('upc-gen-years');
+  if (!badge || !buyEl || !genEl) return;
+  buyEl.textContent = buyUP > 0 ? buyUP.toFixed(1) : '-';
+  genEl.textContent = genUP !== null ? genUP.toFixed(1) : '-';
+  if (yearsEl) yearsEl.textContent = genUP !== null ? `${years}年間 固定` : '単価固定';
+  const hasData = buyUP > 0 && genUP !== null;
   if (hasData) {
-    const lcoe = parseFloat(lcoeStr);
-    const diff = (up - lcoe).toFixed(1);
-    const cheaper = up >= lcoe;
-    const diffText = cheaper
-      ? `発電単価の方が ▲${diff}円/kWh 安い`
-      : `発電単価の方が +${Math.abs(diff).toFixed ? Math.abs(up-lcoe).toFixed(1) : diff}円/kWh 高い`;
-    document.getElementById('lcoe-grid-val').textContent = up.toFixed(1);
-    document.getElementById('lcoe-val').textContent = lcoeStr;
-    document.getElementById('lcoe-diff').textContent = diffText;
-    document.getElementById('lcoe-diff').style.color = cheaper ? '#0369a1' : '#dc2626';
-    compareEl.style.display = '';
-    soloEl.style.display = 'none';
+    const diff    = buyUP - genUP;
+    const cheaper = diff > 0;
+    badge.style.display = '';
+    if (cheaper) {
+      badge.style.background = 'linear-gradient(135deg,#dcfce7,#bbf7d0)';
+      badge.style.color = '#15803d';
+      badge.style.borderColor = '#86efac';
+      badge.innerHTML = `作るほうが <strong style="font-size:17px">${diff.toFixed(1)}円/kWh</strong> 安い！`;
+    } else {
+      badge.style.background = '#fef2f2';
+      badge.style.color = '#dc2626';
+      badge.style.borderColor = '#fca5a5';
+      badge.innerHTML = `発電単価が <strong style="font-size:17px">${Math.abs(diff).toFixed(1)}円/kWh</strong> 高い`;
+    }
+    if (descEl) {
+      descEl.style.display = '';
+      descEl.textContent = `電力会社から買う電気は将来値上がりのリスクがありますが、じぶんの屋根で作る電気の単価は${years}年間 ${genUP.toFixed(1)}円/kWh で固定されます。`;
+    }
   } else {
-    document.getElementById('lcoe-val-solo').textContent = lcoeStr;
-    compareEl.style.display = 'none';
-    soloEl.style.display = 'flex';
+    badge.style.display = 'none';
+    if (descEl) descEl.style.display = 'none';
   }
 }
 
@@ -3938,6 +4084,7 @@ window.addEventListener('DOMContentLoaded', () => {
     loadDataToForm(custData); // 初期表示時にkyudenPlan='kyushu_juuryo_b'で従量電灯Bを初期表示
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
+    autoEstimateKwhFromBill(true); // mb→mkwh 初期整合性
     const _stb = document.getElementById('scroll-top-btn');
     if (_stb) {
         _stb.addEventListener('touchstart', scrollToTopHandler, { passive: false });
