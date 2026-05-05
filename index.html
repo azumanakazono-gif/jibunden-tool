@@ -861,7 +861,7 @@ canvas#mini-chart { height: 150px !important; }
       <!-- KPI カード (2×2) -->
       <!-- 単価比較カード：KPI グリッドの直上に配置 -->
       <div id="unit-price-compare-card" style="border-radius:14px;padding:16px;border:2px solid #bae6fd;background:linear-gradient(135deg,#f0f9ff,#e0f2fe);box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:12px">
-        <div style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:10px">⚡ 買う電気 vs 作る電気 — 単価比較</div>
+        <div id="upc-card-title" style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:10px">⚡ 買う電気 vs 作る電気 — 単価比較</div>
         <div style="display:grid;grid-template-columns:1fr 28px 1fr;align-items:center;gap:6px;margin-bottom:10px">
           <!-- 左：電力会社 -->
           <div style="border-radius:10px;padding:12px 10px;background:#fff;border:2px solid #fca5a5;text-align:center">
@@ -3015,9 +3015,6 @@ function calc() {
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代20年分) ← er=0でも costDiff_with_rise が正しく機能
   const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
-  // 単価比較カード（買電単価 vs 発電単価）
-  const _genUP = (ag > 0 && wy > 0) ? parseFloat((m.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
-  _updateUnitPriceCompare(up, _genUP, wy);
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
   const _merit20Man = Math.round(_annualTotal * wy / 10000);
@@ -3067,6 +3064,10 @@ function calc() {
 
     // ミニチャート（ローンON: 3系列）
     renderMiniChart(m, mb, wy, re, lp, ly, mt, true, _surplusKwhChart);
+    // 単価比較カード（ローン総額ベース）
+    const _genUP_loan = (ag > 0 && wy > 0) ? parseFloat((loanTotal / (ag * wy)).toFixed(1)) : null;
+    const _loanYears = Math.round(lp > 0 ? ly : wy);
+    _updateUnitPriceCompare(up, _genUP_loan, wy, { isLoan: true, loanYears: _loanYears });
   } else {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
@@ -3076,20 +3077,32 @@ function calc() {
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
     renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false, _surplusKwhChart);
+    // 単価比較カード（現金購入ベース）
+    const _genUP_cash = (ag > 0 && wy > 0) ? parseFloat((m.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
+    _updateUnitPriceCompare(up, _genUP_cash, wy, { isLoan: false });
   }
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
-function _updateUnitPriceCompare(buyUP, genUP, years) {
-  const badge  = document.getElementById('upc-diff-badge');
-  const descEl = document.getElementById('upc-desc');
-  const buyEl  = document.getElementById('upc-buy');
-  const genEl  = document.getElementById('upc-gen');
-  const yearsEl = document.getElementById('upc-gen-years');
+function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
+  const isLoan   = opts && opts.isLoan;
+  const badge    = document.getElementById('upc-diff-badge');
+  const descEl   = document.getElementById('upc-desc');
+  const buyEl    = document.getElementById('upc-buy');
+  const genEl    = document.getElementById('upc-gen');
+  const yearsEl  = document.getElementById('upc-gen-years');
+  const cardTitle = document.getElementById('upc-card-title');
   if (!badge || !buyEl || !genEl) return;
   buyEl.textContent = buyUP > 0 ? buyUP.toFixed(1) : '-';
   genEl.textContent = genUP !== null ? genUP.toFixed(1) : '-';
-  if (yearsEl) yearsEl.textContent = genUP !== null ? `${years}年間 固定` : '単価固定';
+  if (yearsEl) {
+    yearsEl.textContent = isLoan ? '金利込みの実質単価' : (genUP !== null ? `${years}年間 固定` : '単価固定');
+  }
+  if (cardTitle) {
+    cardTitle.textContent = isLoan
+      ? '⚡ 買う電気 vs 作る電気 — 単価比較（ローン金利込み）'
+      : '⚡ 買う電気 vs 作る電気 — 単価比較';
+  }
   const hasData = buyUP > 0 && genUP !== null;
   if (hasData) {
     const diff    = buyUP - genUP;
@@ -3108,7 +3121,11 @@ function _updateUnitPriceCompare(buyUP, genUP, years) {
     }
     if (descEl) {
       descEl.style.display = '';
-      descEl.textContent = `電力会社から買う電気は将来値上がりのリスクがありますが、じぶんの屋根で作る電気の単価は${years}年間 ${genUP.toFixed(1)}円/kWh で固定されます。`;
+      if (isLoan) {
+        descEl.textContent = `ローン金利を含めた実質的な取得コストで計算しています。電力会社の電気は将来の値上がりリスクがある一方、じぶんの屋根で作る電気の実質単価は ${genUP.toFixed(1)}円/kWh です。`;
+      } else {
+        descEl.textContent = `電力会社から買う電気は将来値上がりのリスクがありますが、じぶんの屋根で作る電気の単価は${years}年間 ${genUP.toFixed(1)}円/kWh で固定されます。`;
+      }
     }
   } else {
     badge.style.display = 'none';
