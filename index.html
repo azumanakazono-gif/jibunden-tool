@@ -1542,7 +1542,7 @@ const HYPOTHESIS_DEFAULTS = {
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:5000, bc:2500, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_jyuryo_b',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
@@ -1551,7 +1551,7 @@ const CUSTOMER_DEFAULTS = {
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_jyuryo_b',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
@@ -1951,16 +1951,27 @@ function calcEffectiveUnitPrice(plan, lifestyle) {
 function showUnitPriceBreakdown(plan, lifestyle) {
   const panel = document.getElementById('unit-price-breakdown');
   const isJyuryoPlan = plan === 'kyushu_jyuryo_b' || plan === 'kyushu_jyuryo_c';
+  const isTimePlan = plan === 'kyushu_denka_night' || plan === 'kyushu_kiji';
+  // 排他制御：juuryo-panel と ratio-panel の表示をここで一元管理
   const _jp = document.getElementById('juuryo-panel');
-  if (_jp) _jp.style.display = isJyuryoPlan ? '' : 'none';
+  const _rp = document.getElementById('ratio-panel');
+  if (isJyuryoPlan) {
+    if (_jp) _jp.style.display = 'block';
+    if (_rp) _rp.style.display = 'none';
+  } else if (isTimePlan) {
+    if (_jp) _jp.style.display = 'none';
+    if (_rp) _rp.style.display = 'block';
+  } else {
+    if (_jp) _jp.style.display = 'none';
+    if (_rp) _rp.style.display = 'none';
+  }
   document.getElementById('ratio-adjust-dn').style.display = (plan==='kyushu_denka_night') ? '' : 'none';
   document.getElementById('ratio-adjust-kj').style.display = (plan==='kyushu_kiji') ? '' : 'none';
   document.getElementById('ratio-adjust-jb').style.display = (plan==='kyushu_jyuryo_b') ? '' : 'none';
   document.getElementById('ratio-adjust-jc').style.display = (plan==='kyushu_jyuryo_c') ? '' : 'none';
   if (plan==='kyushu_denka_night') updateRatioDisplay('dn');
   if (plan==='kyushu_kiji') updateRatioDisplay('kj');
-  if (plan==='kyushu_jyuryo_b' || plan==='kyushu_jyuryo_c') { updateJyuryoPanel(); panel.style.display='none'; return; }
-  const isTimePlan = plan==='kyushu_denka_night' || plan==='kyushu_kiji';
+  if (isJyuryoPlan) { updateJyuryoPanel(); panel.style.display='none'; return; }
   if (!isTimePlan) { panel.style.display='none'; return; }
   const r = calcEffectiveUnitPrice(plan, lifestyle);
   panel.style.display = '';
@@ -2215,8 +2226,8 @@ function onKyudenPlanChange() {
   if (!data.hasBill) {
     onHearingChange(data); // 内部でupdateRatioPanel + calc
   } else {
-    updateRatioPanel();
-    updateJyuryoPanel();
+    showUnitPriceBreakdown(_kpNew, '');
+    updateRatioPanel(); // hasBill時はratio-panelを非表示に補正
     updatePriceStatus(data);
     calc();
   }
@@ -2807,7 +2818,9 @@ function onHearingChange(data) {
     document.getElementById('ra-kj-bill-note').style.display = isKjPlan ? '' : 'none';
     if (isDnPlan) updateRatioDisplay('dn');
     if (isKjPlan) updateRatioDisplay('kj');
-    if (isJyuryo) updateJyuryoPanel();
+    showUnitPriceBreakdown(kpCur, '');
+    updateRatioPanel(); // hasBill時はratio-panelを非表示に補正
+    document.getElementById('unit-price-breakdown').style.display = 'none';
     const _billIsCustom = (isDnPlan && _dnCustom) || (isKjPlan && _kjCustom);
     _updateUnitPriceInputState(isTimePlanCur && _billIsCustom ? 'bill-custom' : 'bill');
     _updateLifestyleStatus();
@@ -2977,15 +2990,9 @@ function updateJyuryoPanel() {
   const isJb = kp === 'kyushu_jyuryo_b';
   const isJc = kp === 'kyushu_jyuryo_c';
   const jp = document.getElementById('juuryo-panel');
-  if (!isJb && !isJc) {
-    if (jp) jp.style.display = 'none';
-    return;
-  }
-  // juuryo-panel を表示し契約種別に応じた入力欄を切り替える
+  if (!isJb && !isJc) return;
+  // 契約種別に応じた入力欄・タイトルを切り替える（display制御はshowUnitPriceBreakdownで一元管理）
   if (jp) {
-    jp.style.display = '';
-    const rp = document.getElementById('ratio-panel');
-    if (rp) rp.style.display = 'none';
     const titleEl = document.getElementById('juuryo-panel-title');
     if (titleEl) titleEl.textContent = isJb ? '📋 従量電灯B 段階料金内訳' : '📋 従量電灯C 段階料金内訳';
     const contB = document.getElementById('juuryo-contract-b');
@@ -4526,6 +4533,10 @@ function scrollToTopHandler(e) {
 window.addEventListener('DOMContentLoaded', () => {
     setLoanMethod('zansai');
     loadDataToForm(custData); // 初期表示時に plan-required 等のステータスを反映
+    // デフォルトで従量電灯Bを選択・表示
+    document.getElementById('kyuden-plan').value = 'kyushu_jyuryo_b';
+    document.getElementById('juuryo-amp').value = '60';
+    showUnitPriceBreakdown('kyushu_jyuryo_b', '');
     _applyWipLock();
     const _stb = document.getElementById('scroll-top-btn');
     if (_stb) {
