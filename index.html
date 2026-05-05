@@ -1450,7 +1450,7 @@ const HYPOTHESIS_DEFAULTS = {
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:5000, bc:2500, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
@@ -1459,7 +1459,7 @@ const CUSTOMER_DEFAULTS = {
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'',
+  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
@@ -3933,7 +3933,8 @@ function scrollToTopHandler(e) {
 // ページが完全に読み込まれてから実行するようにします
 window.addEventListener('DOMContentLoaded', () => {
     setLoanMethod('zansai');
-    loadDataToForm(custData); // 初期表示時に plan-required 等のステータスを反映
+    loadDataToForm(custData); // 初期表示時にkyudenPlan='kyushu_juuryo_b'で従量電灯Bを初期表示
+    _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
     const _stb = document.getElementById('scroll-top-btn');
     if (_stb) {
