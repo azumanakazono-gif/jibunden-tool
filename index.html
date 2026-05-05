@@ -863,7 +863,7 @@ canvas#mini-chart { height: 150px !important; }
         <div style="border-radius:12px;padding:16px 12px;border:2px solid var(--border);background:var(--surface);box-shadow:0 1px 4px rgba(0,0,0,.06)">
           <div id="rb-up"></div>
           <div style="border-top:1px solid var(--border);padding-top:8px;margin-top:8px">
-            <div id="rk-self-label" style="font-size:11px;font-weight:500;color:var(--muted)">自家消費単価（現金での設備導入の場合）</div>
+            <div id="rk-self-label" style="font-size:11px;font-weight:500;color:var(--muted)">自家消費単価（発電したうち自家消費する分の単価）</div>
             <div id="rk-self" style="font-size:20px;font-weight:800;color:var(--mg)">-</div>
           </div>
         </div>
@@ -879,11 +879,13 @@ canvas#mini-chart { height: 150px !important; }
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px">
             <div style="background:rgba(255,255,255,.75);border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;text-align:center">
               <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">🏢 買電単価</div>
-              <div><span id="lcoe-grid-val" style="font-size:22px;font-weight:900;color:#dc2626">-</span><span style="font-size:11px;font-weight:700;color:#dc2626"> 円/kWh</span></div>
+              <div><span id="lcoe-grid-val" style="font-size:25px;font-weight:900;color:#dc2626">-</span><span style="font-size:11px;font-weight:700;color:#dc2626"> 円/kWh</span></div>
+              <div style="font-size:10px;color:#666;margin-top:3px">（電力会社から買う電気の単価）</div>
             </div>
             <div style="background:rgba(255,255,255,.75);border:1px solid #bae6fd;border-radius:8px;padding:8px 10px;text-align:center">
               <div style="font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px">☀️ 発電単価</div>
-              <div><span id="lcoe-val" style="font-size:22px;font-weight:900;color:#0369a1">-</span><span style="font-size:11px;font-weight:700;color:#0369a1"> 円/kWh</span></div>
+              <div><span id="lcoe-val" style="font-size:25px;font-weight:900;color:#0369a1">-</span><span style="font-size:11px;font-weight:700;color:#0369a1"> 円/kWh</span></div>
+              <div style="font-size:10px;color:#666;margin-top:3px">（屋根の設備で自給自足する電気の単価）</div>
             </div>
           </div>
           <div id="lcoe-diff" style="text-align:center;font-size:13px;font-weight:700;padding:5px 10px;background:rgba(255,255,255,.7);border-radius:6px;color:#0369a1"></div>
@@ -2842,7 +2844,7 @@ function calc() {
   document.getElementById('rc').textContent = m.totalCostMan+'万円'+(subAmt>0?' （補助金適用後）':'');
   document.getElementById('rk').textContent = m.costPerKWh+'円/kWh';
   document.getElementById('rk-self').textContent = m.selfCostPerKWh > 0 ? m.selfCostPerKWh+'円/kWh' : '-';
-  document.getElementById('rk-self-label').textContent = '自家消費単価（現金での設備導入の場合）';
+  document.getElementById('rk-self-label').textContent = '自家消費単価（発電したうち自家消費する分の単価）';
   // 20年電気代：上昇率があれば上昇後の数値を表示
   document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
   const _surplusKwhChart = proposalMode !== 'battery_only' ? Math.max(0, ag - (dc + bc_eff)) : 0;
