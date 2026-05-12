@@ -70,6 +70,9 @@ canvas#po-chart { height: 220px !important; }
 .legend span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
 .legend b { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
 .dp-borrow { font-size: 12px; color: var(--mg); margin-bottom: 8px; padding: 5px 10px; background: var(--pg); border-radius: 6px; border: 1px solid var(--border); }
+.sale-auto-box { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #065f46; margin-bottom: 10px; line-height: 1.7; }
+.sale-auto-box b { font-weight: 700; }
+.sale-manual-wrap { margin-bottom: 10px; }
 @media print { .note { border: none; background: transparent; } }
 </style>
 </head>
@@ -217,10 +220,18 @@ canvas#po-chart { height: 220px !important; }
 
     <div class="chart-wrap">
       <div class="ct">📊 20年間 実質累計支出イメージ（万円）</div>
-      <div class="field" style="margin-bottom:10px">
-        <label>月間売電収入（円）<span style="font-size:11px;color:var(--muted);margin-left:6px">現金・ローンの支出から差し引く</span></label>
-        <input type="number" id="po-sale-income" value="0" min="0" step="100" oninput="calcLoan()">
+
+      <!-- 売電収入：自動取得 or 手動入力 -->
+      <div id="sale-auto-section" style="display:none">
+        <div class="sale-auto-box" id="sale-auto-box"></div>
       </div>
+      <div id="sale-manual-section" class="sale-manual-wrap">
+        <div class="field" style="margin-bottom:10px">
+          <label>月間売電収入（円）<span style="font-size:11px;color:var(--muted);margin-left:6px">現金・ローンの支出から差し引く</span></label>
+          <input type="number" id="po-sale-income" value="0" min="0" step="100" oninput="calcLoan()">
+        </div>
+      </div>
+
       <canvas id="po-chart"></canvas>
       <div class="legend">
         <span><b style="background:#EA580C"></b>電力会社（現状）</span>
@@ -266,6 +277,111 @@ const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
 const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
 let currentMode = 'preset';
 let poChart = null;
+
+// ── URL パラメータ解析 ──
+const _urlParams       = new URLSearchParams(location.search);
+const _urlSaleIncome   = _urlParams.get('saleIncome');
+const _surplusKwhYear  = parseFloat(_urlParams.get('surplusKwhYear')) || 0;
+const _fitPeriodId     = _urlParams.get('fitPeriodId') || 'fy2026';
+const _fitCapacity     = _urlParams.get('fitCapacity') || 'under10';
+const _saleMode        = _urlParams.get('saleMode') || 'fit';
+// 余剰kWhと FIT モードがある場合は自動計算を使う
+const _hasAutoParams   = _surplusKwhYear > 0 && _saleMode === 'fit';
+
+// ── FIT マスタ（index.html と同じ内容） ──
+const FIT_MASTER = [
+  {
+    id: 'fy2024',
+    rates: {
+      under10:     { price: 16,   years: 10 },
+      over10_roof: { price: 12,   years: 20 },
+      mid10_50:    { price: 10,   years: 20 },
+    }
+  },
+  {
+    id: 'fy2025_h1',
+    rates: {
+      under10:     { price: 15,   years: 10 },
+      over10_roof: { price: 11.5, years: 20 },
+      mid10_50:    { price: 8.9,  years: 20 },
+    }
+  },
+  {
+    id: 'fy2025_h2',
+    rates: {
+      under10:     { earlyPrice: 24,  earlyYears: 4,  latePrice: 8.3, lateYears: 6,  years: 10 },
+      over10_roof: { earlyPrice: 19,  earlyYears: 5,  latePrice: 8.3, lateYears: 15, years: 20 },
+      mid10_50:    null,
+    }
+  },
+  {
+    id: 'fy2026',
+    rates: {
+      under10:     { earlyPrice: 24,  earlyYears: 4,  latePrice: 8.3, lateYears: 6,  years: 10 },
+      over10_roof: { price: 9.9,  years: 20 },
+      mid10_50:    { price: 8.6,  years: 20 },
+    }
+  },
+];
+const POST_FIT_DEFAULT = 7;
+
+function getFitRate() {
+  const p = FIT_MASTER.find(p => p.id === _fitPeriodId) || FIT_MASTER[FIT_MASTER.length - 1];
+  return p ? p.rates[_fitCapacity] : null;
+}
+
+// 指定年（1始まり）の売電単価を返す
+function getSellPriceForYear(year) {
+  const rate = getFitRate();
+  if (!rate) return POST_FIT_DEFAULT;
+  if (rate.earlyPrice !== undefined) {
+    if (year <= rate.earlyYears) return rate.earlyPrice;
+    if (year <= rate.years)      return rate.latePrice;
+    return POST_FIT_DEFAULT;
+  }
+  return year <= rate.years ? rate.price : POST_FIT_DEFAULT;
+}
+
+// y年目までの累計売電収入（円）を返す
+function getCumulativeSaleIncomeYen(upToYear) {
+  if (_hasAutoParams) {
+    let total = 0;
+    for (let y = 1; y <= upToYear; y++) {
+      total += _surplusKwhYear * getSellPriceForYear(y);
+    }
+    return total;
+  }
+  // 自動パラメータなし → 手動入力を使ってフラット計算
+  const monthly = parseFloat(document.getElementById('po-sale-income').value) || 0;
+  return monthly * 12 * upToYear;
+}
+
+// 売電収入情報ボックスのHTML生成
+function buildSaleAutoBoxHtml() {
+  const rate = getFitRate();
+  let rateLines = '';
+  if (!rate) {
+    const mo = Math.round(_surplusKwhYear * POST_FIT_DEFAULT / 12);
+    rateLines = `全期間：${POST_FIT_DEFAULT}円/kWh（卒FIT）… 月約 ${mo.toLocaleString()}円`;
+  } else if (rate.earlyPrice !== undefined) {
+    const mo1 = Math.round(_surplusKwhYear * rate.earlyPrice   / 12);
+    const mo2 = Math.round(_surplusKwhYear * rate.latePrice    / 12);
+    const mo3 = Math.round(_surplusKwhYear * POST_FIT_DEFAULT  / 12);
+    rateLines =
+      `1〜${rate.earlyYears}年目：${rate.earlyPrice}円/kWh … 月約 ${mo1.toLocaleString()}円<br>` +
+      `${rate.earlyYears+1}〜${rate.years}年目：${rate.latePrice}円/kWh … 月約 ${mo2.toLocaleString()}円<br>` +
+      `${rate.years+1}〜20年目：${POST_FIT_DEFAULT}円/kWh（卒FIT）… 月約 ${mo3.toLocaleString()}円`;
+  } else {
+    const mo1 = Math.round(_surplusKwhYear * rate.price         / 12);
+    const mo2 = Math.round(_surplusKwhYear * POST_FIT_DEFAULT   / 12);
+    rateLines =
+      `1〜${rate.years}年目：${rate.price}円/kWh … 月約 ${mo1.toLocaleString()}円<br>` +
+      `${rate.years+1}〜20年目：${POST_FIT_DEFAULT}円/kWh（卒FIT）… 月約 ${mo2.toLocaleString()}円`;
+  }
+  return `<b>📡 売電収入（メイン画面から自動取得）</b><br>` +
+         `年間余剰電力：<b>${Math.round(_surplusKwhYear).toLocaleString()} kWh/年</b><br>` +
+         rateLines;
+}
 
 function setMode(mode) {
   currentMode = mode;
@@ -336,20 +452,69 @@ function calcKinri(principal, annualRate, count) {
   return monthly;
 }
 
+// 20年目の各終点に金額ラベルを描画するカスタムプラグイン
+const rightEndLabelsPlugin = {
+  id: 'rightEndLabels',
+  afterDraw(chart) {
+    const { ctx } = chart;
+    const entries = [];
+    chart.data.datasets.forEach((ds, i) => {
+      const meta = chart.getDatasetMeta(i);
+      if (meta.hidden || !meta.data.length) return;
+      const lastIdx = meta.data.length - 1;
+      const pt = meta.data[lastIdx];
+      const val = ds.data[lastIdx];
+      if (val == null) return;
+      entries.push({ rawY: pt.y, adjY: pt.y, x: pt.x, val, color: ds.borderColor });
+    });
+
+    // y座標（ピクセル）昇順にソートしてから重なり補正
+    entries.sort((a, b) => a.rawY - b.rawY);
+    const MIN_GAP = 20;
+    for (let i = 1; i < entries.length; i++) {
+      if (entries[i].adjY - entries[i - 1].adjY < MIN_GAP) {
+        entries[i].adjY = entries[i - 1].adjY + MIN_GAP;
+      }
+    }
+
+    ctx.save();
+    ctx.font = 'bold 14px "Hiragino Kaku Gothic ProN", Meiryo, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    entries.forEach(e => {
+      // 終点の丸
+      ctx.beginPath();
+      ctx.arc(e.x, e.rawY, 5, 0, Math.PI * 2);
+      ctx.fillStyle = e.color;
+      ctx.fill();
+      // 白い縁取りでグラフ線に重なっても読めるように
+      const text = Math.round(e.val) + '万円';
+      const tx = e.x + 10, ty = e.adjY;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineJoin = 'round';
+      ctx.strokeText(text, tx, ty);
+      ctx.fillStyle = e.color;
+      ctx.fillText(text, tx, ty);
+    });
+    ctx.restore();
+  }
+};
+
 function renderChart(inputs, monthly, loanCount) {
   const { totalMan, dpMan, monthlyBill } = inputs;
   if (totalMan <= 0) { return; }
   const YEARS = 20;
-  const monthlySaleIncome = parseFloat(document.getElementById('po-sale-income').value) || 0;
   const labels = [], nowD = [], cashD = [], loanD = [];
   for (let y = 0; y <= YEARS; y++) {
     labels.push(y + '年');
     nowD.push(Math.round(monthlyBill * 12 * y / 10000));
-    const saleDeduct = Math.round(monthlySaleIncome * Math.min(y * 12, 240)) / 10000;
-    cashD.push(Math.round((totalMan - saleDeduct) * 10) / 10);
+    // 年別FIT単価を反映した累計売電収入（万円）
+    const saleDeductMan = getCumulativeSaleIncomeYen(y) / 10000;
+    cashD.push(Math.round((totalMan - saleDeductMan) * 10) / 10);
     if (monthly > 0 && loanCount > 0) {
       const paid = Math.min(y * 12, loanCount) * monthly / 10000;
-      loanD.push(Math.round((dpMan + paid - saleDeduct) * 10) / 10);
+      loanD.push(Math.round((dpMan + paid - saleDeductMan) * 10) / 10);
     }
   }
   const showLoan = loanD.length > 0;
@@ -363,8 +528,14 @@ function renderChart(inputs, monthly, loanCount) {
   document.getElementById('legend-loan').style.display = showLoan ? '' : 'none';
   const ctx = document.getElementById('po-chart').getContext('2d');
   if (poChart) poChart.destroy();
-  poChart = new Chart(ctx, { type: 'line', data: { labels, datasets },
-    options: { responsive: true, maintainAspectRatio: false,
+  poChart = new Chart(ctx, {
+    type: 'line',
+    plugins: [rightEndLabelsPlugin],
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 80 } },
       plugins: { legend: { display: false } },
       scales: {
         x: { ticks: { maxTicksLimit: 5, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.05)' } },
@@ -440,11 +611,20 @@ function calcPpa() {
     ? fmt(rate * kwh) : '-';
 }
 
-const _urlSaleIncome = new URLSearchParams(location.search).get('saleIncome');
-if (_urlSaleIncome !== null) {
-  const el = document.getElementById('po-sale-income');
-  if (el) el.value = Math.max(0, parseInt(_urlSaleIncome) || 0);
+// ── 初期化 ──
+if (_hasAutoParams) {
+  // 自動取得モード：情報ボックスを表示、手動入力を非表示
+  document.getElementById('sale-auto-section').style.display  = '';
+  document.getElementById('sale-manual-section').style.display = 'none';
+  document.getElementById('sale-auto-box').innerHTML = buildSaleAutoBoxHtml();
+} else {
+  // 手動モード：saleIncome URL パラメータがあれば入力欄にセット
+  if (_urlSaleIncome !== null) {
+    const el = document.getElementById('po-sale-income');
+    if (el) el.value = Math.max(0, parseInt(_urlSaleIncome) || 0);
+  }
 }
+
 calcLoan();
 </script>
 </body>
