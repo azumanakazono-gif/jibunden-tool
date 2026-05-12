@@ -72,7 +72,6 @@ canvas#po-chart { height: 220px !important; }
 .dp-borrow { font-size: 12px; color: var(--mg); margin-bottom: 8px; padding: 5px 10px; background: var(--pg); border-radius: 6px; border: 1px solid var(--border); }
 .sale-auto-box { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #065f46; margin-bottom: 10px; line-height: 1.7; }
 .sale-auto-box b { font-weight: 700; }
-.sale-manual-wrap { margin-bottom: 10px; }
 @media print { .note { border: none; background: transparent; } }
 </style>
 </head>
@@ -134,7 +133,7 @@ canvas#po-chart { height: 220px !important; }
       </div>
       <div class="grid2" style="margin-bottom:8px">
         <div class="field">
-          <label>工事費用・借入総額（万円）</label>
+          <label>工事費用（万円）</label>
           <input type="number" id="po-la" value="280" min="1" step="1" oninput="calcLoan()">
         </div>
         <div class="field">
@@ -221,17 +220,6 @@ canvas#po-chart { height: 220px !important; }
     <div class="chart-wrap">
       <div class="ct">📊 20年間 実質累計支出イメージ（万円）</div>
 
-      <!-- 売電収入：自動取得 or 手動入力 -->
-      <div id="sale-auto-section" style="display:none">
-        <div class="sale-auto-box" id="sale-auto-box"></div>
-      </div>
-      <div id="sale-manual-section" class="sale-manual-wrap">
-        <div class="field" style="margin-bottom:10px">
-          <label>月間売電収入（円）<span style="font-size:11px;color:var(--muted);margin-left:6px">現金・ローンの支出から差し引く</span></label>
-          <input type="number" id="po-sale-income" value="0" min="0" step="100" oninput="calcLoan()">
-        </div>
-      </div>
-
       <canvas id="po-chart"></canvas>
       <div class="legend">
         <span><b style="background:#EA580C"></b>電力会社（現状）</span>
@@ -281,10 +269,12 @@ let poChart = null;
 // ── URL パラメータ解析 ──
 const _urlParams       = new URLSearchParams(location.search);
 const _urlSaleIncome   = _urlParams.get('saleIncome');
+let saleIncome = _urlSaleIncome;
 const _surplusKwhYear  = parseFloat(_urlParams.get('surplusKwhYear')) || 0;
 const _fitPeriodId     = _urlParams.get('fitPeriodId') || 'fy2026';
 const _fitCapacity     = _urlParams.get('fitCapacity') || 'under10';
 const _saleMode        = _urlParams.get('saleMode') || 'fit';
+let _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) || 0;
 // 余剰kWhと FIT モードがある場合は自動計算を使う
 const _hasAutoParams   = _surplusKwhYear > 0 && _saleMode === 'fit';
 
@@ -342,17 +332,9 @@ function getSellPriceForYear(year) {
   return year <= rate.years ? rate.price : POST_FIT_DEFAULT;
 }
 
-// y年目までの累計売電収入（円）を返す
+// y年目までの累計売電収入（円）を返す — URLパラメータ saleIncome のみ使用
 function getCumulativeSaleIncomeYen(upToYear) {
-  if (_hasAutoParams) {
-    let total = 0;
-    for (let y = 1; y <= upToYear; y++) {
-      total += _surplusKwhYear * getSellPriceForYear(y);
-    }
-    return total;
-  }
-  // 自動パラメータなし → 手動入力を使ってフラット計算
-  const monthly = parseFloat(document.getElementById('po-sale-income').value) || 0;
+  const monthly = parseFloat(_urlSaleIncome) || 0;
   return monthly * 12 * upToYear;
 }
 
@@ -505,16 +487,14 @@ function renderChart(inputs, monthly, loanCount) {
   const { totalMan, dpMan, monthlyBill } = inputs;
   if (totalMan <= 0) { return; }
   const YEARS = 20;
+  if (!_monthlyRemainingCost) _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) || 6224;
   const labels = [], nowD = [], cashD = [], loanD = [];
   for (let y = 0; y <= YEARS; y++) {
     labels.push(y + '年');
     nowD.push(Math.round(monthlyBill * 12 * y / 10000));
-    // 年別FIT単価を反映した累計売電収入（万円）
-    const saleDeductMan = getCumulativeSaleIncomeYen(y) / 10000;
-    cashD.push(Math.round((totalMan - saleDeductMan) * 10) / 10);
+    cashD.push(Math.round(totalMan + ((_monthlyRemainingCost * 12 * y) - getCumulativeSaleIncomeYen(y)) / 10000));
     if (monthly > 0 && loanCount > 0) {
-      const paid = Math.min(y * 12, loanCount) * monthly / 10000;
-      loanD.push(Math.round((dpMan + paid - saleDeductMan) * 10) / 10);
+      loanD.push(Math.round(dpMan + ((Math.min(y * 12, loanCount) * monthly) + (_monthlyRemainingCost * 12 * y) - getCumulativeSaleIncomeYen(y)) / 10000));
     }
   }
   const showLoan = loanD.length > 0;
@@ -612,19 +592,6 @@ function calcPpa() {
 }
 
 // ── 初期化 ──
-if (_hasAutoParams) {
-  // 自動取得モード：情報ボックスを表示、手動入力を非表示
-  document.getElementById('sale-auto-section').style.display  = '';
-  document.getElementById('sale-manual-section').style.display = 'none';
-  document.getElementById('sale-auto-box').innerHTML = buildSaleAutoBoxHtml();
-} else {
-  // 手動モード：saleIncome URL パラメータがあれば入力欄にセット
-  if (_urlSaleIncome !== null) {
-    const el = document.getElementById('po-sale-income');
-    if (el) el.value = Math.max(0, parseInt(_urlSaleIncome) || 0);
-  }
-}
-
 calcLoan();
 </script>
 </body>
