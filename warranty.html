@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>保証内容 (Warranty Details) — じぶん電気 提案書作成ツール</title>
+<style>
+:root {
+  --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
+  --ac: #95D5B2; --pg: #D8F3DC; --or: #EA580C;
+  --bg: #F0F7F4; --card: #fff; --border: #D1E8DC;
+  --text: #1a1a1a; --muted: #6B7280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+.header { background: var(--dg); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+.header h1 { color: #fff; font-size: 18px; font-weight: 700; }
+.header .sub { color: var(--ac); font-size: 13px; margin-top: 2px; }
+.back-btn { background: rgba(255,255,255,.12); border: none; border-radius: 8px; color: #fff; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.back-btn:hover { background: rgba(255,255,255,.22); }
+.body { padding: 28px 32px; max-width: 860px; margin: 0 auto; }
+.section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
+.section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
+@media print {
+  #warranty-notes { border: none; resize: none; background: transparent; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🛡️ 保証内容 (Warranty Details)</h1>
+    <div class="sub">じぶん電気 提案書作成ツール</div>
+  </div>
+  <a href="javascript:window.close()" class="back-btn">✕ 閉じる</a>
+</div>
+
+<div class="body">
+
+  <div class="section-card" id="warranty-section">
+    <div class="section-title">🛡️ 保証内容（任意）</div>
+    <div style="padding:12px;background:#f8fafc;border-radius:8px">
+      <textarea id="warranty-notes"
+        style="width:100%;min-height:120px;padding:8px;border:1px solid #cbd5e1;border-radius:4px;font-size:13px;font-family:inherit;resize:vertical">・システム保証 20年
+・出力保証 25年
+・パワコン保証 20年
+・蓄電池保証 20年
+・自然災害補償 15年付</textarea>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
