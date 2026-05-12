@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>導入手段 (Payment Options) — じぶん電気 提案書作成ツール</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root {
+  --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
+  --ac: #95D5B2; --pg: #D8F3DC; --or: #EA580C;
+  --bg: #F0F7F4; --card: #fff; --border: #D1E8DC;
+  --text: #1a1a1a; --muted: #6B7280;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
+.header { background: var(--dg); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
+.header h1 { color: #fff; font-size: 18px; font-weight: 700; }
+.header .sub { color: var(--ac); font-size: 13px; margin-top: 2px; }
+.back-btn { background: rgba(255,255,255,.12); border: none; border-radius: 8px; color: #fff; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
+.back-btn:hover { background: rgba(255,255,255,.22); }
+.body { padding: 28px 32px; max-width: 860px; margin: 0 auto; }
+.section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
+.section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
+.option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.option-card { background: var(--pg); border-radius: 10px; padding: 18px 20px; border: 1.5px solid var(--border); }
+.option-card h3 { font-size: 15px; font-weight: 700; color: var(--dg); margin-bottom: 8px; }
+.option-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.option-card .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
+.badge-cash { background: #d1fae5; color: #065f46; }
+.badge-loan { background: #ede9fe; color: #4c1d95; }
+.badge-lease { background: #fef3c7; color: #92400e; }
+.badge-ppa { background: #e0f2fe; color: #0c4a6e; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.field label { font-size: 13px; color: var(--muted); font-weight: 500; }
+.field input[type=number], .field input[type=text], .field select {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  font-size: 15px; background: #fff; color: var(--text); font-family: inherit;
+}
+.field input:focus, .field select:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.result-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; background: var(--pg); margin-bottom: 6px; }
+.result-row span:first-child { font-size: 13px; color: var(--muted); }
+.result-row span:last-child { font-size: 15px; font-weight: 700; color: var(--dg); }
+.result-row.highlight span:last-child { color: var(--or); }
+.note { font-size: 11px; color: var(--muted); margin-top: 10px; padding: 8px 12px; background: #f9fafb; border-radius: 6px; border: 1px solid var(--border); line-height: 1.6; }
+/* method toggle */
+.method-toggle { display: flex; gap: 0; margin-bottom: 16px; border: 1.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+.method-toggle label { flex: 1; text-align: center; padding: 9px 12px; font-size: 13px; font-weight: 700; cursor: pointer; color: var(--muted); background: #fff; transition: all .15s; }
+.method-toggle input[type=radio] { display: none; }
+.method-toggle input[type=radio]:checked + label { background: var(--mg); color: #fff; }
+/* mode toggle */
+.mode-tabs { display: flex; gap: 6px; margin-bottom: 16px; }
+.mode-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; color: var(--muted); font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; }
+.mode-tab.active { background: var(--dg); color: #fff; border-color: var(--dg); }
+.mode-panel { display: none; }
+.mode-panel.active { display: block; }
+/* 元金均等 schedule table */
+#gankin-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+#gankin-table th { background: var(--dg); color: #fff; padding: 5px 8px; text-align: right; }
+#gankin-table th:first-child { text-align: left; }
+#gankin-table td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--border); }
+#gankin-table td:first-child { text-align: left; color: var(--muted); }
+/* chart */
+.chart-wrap { margin-top: 14px; background: #fff; border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
+.chart-wrap .ct { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
+canvas#po-chart { height: 220px !important; }
+.legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
+.legend span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
+.legend b { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
+.dp-borrow { font-size: 12px; color: var(--mg); margin-bottom: 8px; padding: 5px 10px; background: var(--pg); border-radius: 6px; border: 1px solid var(--border); }
+@media print { .note { border: none; background: transparent; } }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🏦 導入手段 (Payment Options)</h1>
+    <div class="sub">じぶん電気 提案書作成ツール</div>
+  </div>
+  <a href="javascript:window.close()" class="back-btn">✕ 閉じる</a>
+</div>
+
+<div class="body">
+
+  <!-- 導入手段の概要 -->
+  <div class="section-card">
+    <div class="section-title">💡 導入手段の比較</div>
+    <div class="option-grid" style="grid-template-columns:1fr 1fr">
+      <div class="option-card">
+        <span class="badge badge-cash">現金購入</span>
+        <h3>💴 現金一括購入</h3>
+        <p>初期費用を全額自己負担。金利負担がなく長期的に最もコストが低い。補助金の適用も容易。</p>
+      </div>
+      <div class="option-card">
+        <span class="badge badge-loan">ローン</span>
+        <h3>🏦 ローン活用</h3>
+        <p>金融機関から借入し、月々返済。初期費用を抑えられるが、総支払額は増加。金利・返済期間に注意。</p>
+      </div>
+      <!-- リース・PPA は非表示（将来利用のためコード保持） -->
+      <div class="option-card" style="display:none">
+        <span class="badge badge-lease">リース</span>
+        <h3>📄 リース契約</h3>
+        <p>設備をリース会社から借りる形式。初期費用ゼロ・月々定額のリース料。所有権は移らない場合が多い。</p>
+      </div>
+      <div class="option-card" style="display:none">
+        <span class="badge badge-ppa">PPA</span>
+        <h3>☀️ PPA（電力購入）</h3>
+        <p>発電事業者が設備を設置・所有し、発電した電気を定額で購入する契約。初期費用ゼロ。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ローン試算 -->
+  <div class="section-card" id="loan-section">
+    <div class="section-title">🔢 ローン試算</div>
+
+    <!-- 入力モード：プリセット / 手動 -->
+    <div class="mode-tabs" style="margin-bottom:14px">
+      <button class="mode-tab active" onclick="setMode('preset')">📋 プリセット入力</button>
+      <button class="mode-tab" onclick="setMode('manual')">✏️ 自由入力 (Manual)</button>
+    </div>
+
+    <!-- プリセットモード -->
+    <div id="mode-preset" class="mode-panel active">
+      <div class="field" style="margin-bottom:10px">
+        <label>現在の月々電気代（円）</label>
+        <input type="number" id="po-mb" value="20000" min="0" step="1000" oninput="calcLoan()">
+      </div>
+      <div class="grid2" style="margin-bottom:8px">
+        <div class="field">
+          <label>工事費用・借入総額（万円）</label>
+          <input type="number" id="po-la" value="280" min="1" step="1" oninput="calcLoan()">
+        </div>
+        <div class="field">
+          <label>頭金（万円）</label>
+          <input type="number" id="po-dp" value="0" min="0" step="10" oninput="calcLoan()">
+        </div>
+      </div>
+      <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
+      <div class="grid2" style="margin-bottom:14px">
+        <div class="field">
+          <label>金利（年率 %）</label>
+          <input type="number" id="po-lr" value="4.0" min="0.01" max="30" step="0.1" oninput="calcLoan()">
+        </div>
+        <div class="field">
+          <label>返済期間</label>
+          <select id="po-lc" onchange="calcLoan()">
+            <option value="36">3年（36回）</option>
+            <option value="60">5年（60回）</option>
+            <option value="84">7年（84回）</option>
+            <option value="120">10年（120回）</option>
+            <option value="180" selected>15年（180回）</option>
+            <option value="240">20年（240回）</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 自由入力モード -->
+    <div id="mode-manual" class="mode-panel">
+      <div class="grid2" style="margin-bottom:14px">
+        <div class="field">
+          <label>借入金額（円・自由入力）</label>
+          <input type="number" id="po-la-m" placeholder="例: 2800000" min="0" step="10000" oninput="calcLoan()">
+        </div>
+        <div class="field">
+          <label>金利（年率 %）</label>
+          <input type="number" id="po-lr-m" placeholder="例: 3.5" min="0" step="0.01" oninput="calcLoan()">
+        </div>
+        <div class="field">
+          <label>返済回数（回）</label>
+          <input type="number" id="po-lc-m" placeholder="例: 180" min="1" step="1" oninput="calcLoan()">
+        </div>
+        <div class="field">
+          <label>メモ（任意）</label>
+          <input type="text" id="po-memo" placeholder="例: ○○銀行 フラット35相当" style="font-size:13px">
+        </div>
+      </div>
+    </div>
+
+    <!-- 返済方式トグル -->
+    <div class="method-toggle">
+      <input type="radio" id="m-kinri" name="po-method" value="kinri" checked onchange="calcLoan()">
+      <label for="m-kinri">元利均等 (Equal Installments)</label>
+      <input type="radio" id="m-gankin" name="po-method" value="gankin" onchange="calcLoan()">
+      <label for="m-gankin">元金均等 (Equal Principal)</label>
+    </div>
+
+    <!-- 元利均等 結果 -->
+    <div id="res-kinri">
+      <div class="result-row"><span id="lbl-monthly">月々の返済額（元利均等）</span><span id="po-monthly">-</span></div>
+      <div class="result-row"><span>総返済額</span><span id="po-total">-</span></div>
+      <div class="result-row highlight"><span>うち利息総額</span><span id="po-interest">-</span></div>
+    </div>
+
+    <!-- 元金均等 結果 -->
+    <div id="res-gankin" style="display:none">
+      <div class="result-row"><span>初回返済額（最大）</span><span id="po-gankin-first">-</span></div>
+      <div class="result-row"><span>最終返済額（最小）</span><span id="po-gankin-last">-</span></div>
+      <div class="result-row"><span>総返済額</span><span id="po-gankin-total">-</span></div>
+      <div class="result-row highlight"><span>うち利息総額</span><span id="po-gankin-interest">-</span></div>
+      <details style="margin-top:8px">
+        <summary style="cursor:pointer;font-size:12px;color:var(--muted);padding:4px 0">返済スケジュール（年次）を表示</summary>
+        <div style="overflow-x:auto;margin-top:6px">
+          <table id="gankin-table">
+            <thead><tr><th>年</th><th>月々元金</th><th>初月利息</th><th>初月合計</th><th>年間合計</th><th>残高</th></tr></thead>
+            <tbody id="gankin-tbody"></tbody>
+          </table>
+        </div>
+      </details>
+    </div>
+
+    <p class="note">⚠️ 概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。</p>
+
+    <div class="chart-wrap">
+      <div class="ct">📊 20年間 実質累計支出イメージ（万円）</div>
+      <div class="field" style="margin-bottom:10px">
+        <label>月間売電収入（円）<span style="font-size:11px;color:var(--muted);margin-left:6px">現金・ローンの支出から差し引く</span></label>
+        <input type="number" id="po-sale-income" value="0" min="0" step="100" oninput="calcLoan()">
+      </div>
+      <canvas id="po-chart"></canvas>
+      <div class="legend">
+        <span><b style="background:#EA580C"></b>電力会社（現状）</span>
+        <span><b style="background:#2D6A4F"></b>現金一括購入（売電差引後）</span>
+        <span id="legend-loan" style="display:none"><b style="background:#7c3aed"></b>ローン活用（売電差引後）</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- リース・PPA メモ欄（非表示・コードは保持） -->
+  <div class="section-card" id="lease-ppa-section" style="display:none">
+    <div class="section-title">📋 リース・PPA 条件メモ</div>
+    <div class="grid2">
+      <div>
+        <div class="field">
+          <label>月額リース料（円）</label>
+          <input type="number" id="po-lease-monthly" value="0" min="0" step="100" oninput="calcLease()">
+        </div>
+        <div class="field">
+          <label>リース期間（年）</label>
+          <input type="number" id="po-lease-years" value="10" min="1" max="30" oninput="calcLease()">
+        </div>
+        <div class="result-row" style="margin-top:4px"><span>リース総支払額</span><span id="po-lease-total">-</span></div>
+      </div>
+      <div>
+        <div class="field">
+          <label>PPA 単価（円/kWh）</label>
+          <input type="number" id="po-ppa-rate" value="20" min="1" max="50" step="0.5" oninput="calcPpa()">
+        </div>
+        <div class="field">
+          <label>月間使用量（kWh）</label>
+          <input type="number" id="po-ppa-kwh" value="400" min="0" step="10" oninput="calcPpa()">
+        </div>
+        <div class="result-row" style="margin-top:4px"><span>PPA 月額電力料金（概算）</span><span id="po-ppa-monthly">-</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
+const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
+let currentMode = 'preset';
+let poChart = null;
+
+function setMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach((b, i) =>
+    b.classList.toggle('active', (i === 0) === (mode === 'preset')));
+  document.getElementById('mode-preset').classList.toggle('active', mode === 'preset');
+  document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
+  calcLoan();
+}
+
+function getInputs() {
+  const method = document.querySelector('input[name="po-method"]:checked').value;
+  const monthlyBill = parseFloat(document.getElementById('po-mb') ? document.getElementById('po-mb').value : 0) || 0;
+  if (currentMode === 'preset') {
+    const totalMan  = parseFloat(document.getElementById('po-la').value) || 0;
+    const dpMan     = parseFloat(document.getElementById('po-dp').value) || 0;
+    const borrowMan = Math.max(0, totalMan - dpMan);
+    const principal = borrowMan * 10000;
+    const rate      = parseFloat(document.getElementById('po-lr').value) || 0;
+    const count     = parseInt(document.getElementById('po-lc').value) || 180;
+    const el = document.getElementById('po-borrow-val');
+    if (el) el.textContent = borrowMan.toLocaleString('ja-JP') + '万円';
+    return { principal, rate, count, method, totalMan, dpMan, borrowMan, monthlyBill };
+  } else {
+    const principal = parseFloat(document.getElementById('po-la-m').value) || 0;
+    const rate      = parseFloat(document.getElementById('po-lr-m').value) || 0;
+    const count     = parseInt(document.getElementById('po-lc-m').value) || 0;
+    return { principal, rate, count, method, totalMan: principal/10000, dpMan: 0, borrowMan: principal/10000, monthlyBill };
+  }
+}
+
+function calcLoan() {
+  const inputs = getInputs();
+  const { principal, rate, count, method } = inputs;
+  const isGankin = method === 'gankin';
+  document.getElementById('res-kinri').style.display  = isGankin ? 'none' : '';
+  document.getElementById('res-gankin').style.display = isGankin ? '' : 'none';
+
+  if (principal <= 0 || count <= 0) {
+    setKinri('-', '-', '-');
+    setGankin('-', '-', '-', '-');
+    renderChart(inputs, 0, 0);
+    return;
+  }
+
+  if (isGankin) {
+    calcGankin(principal, rate, count);
+    const gankin = Math.round(principal / count);
+    const r = rate / 100 / 12;
+    const firstInt = Math.round(principal * r);
+    renderChart(inputs, gankin + firstInt, count);
+  } else {
+    const monthly = calcKinri(principal, rate, count);
+    renderChart(inputs, monthly, count);
+  }
+}
+
+function calcKinri(principal, annualRate, count) {
+  if (annualRate <= 0) {
+    const m = Math.round(principal / count);
+    setKinri(fmt(m), fmt(principal), '0円');
+    return m;
+  }
+  const r = annualRate / 100 / 12;
+  const monthly = Math.round(principal * r * Math.pow(1+r, count) / (Math.pow(1+r, count) - 1));
+  const total = monthly * count;
+  setKinri(fmt(monthly), fmt(total), fmt(total - principal));
+  return monthly;
+}
+
+function renderChart(inputs, monthly, loanCount) {
+  const { totalMan, dpMan, monthlyBill } = inputs;
+  if (totalMan <= 0) { return; }
+  const YEARS = 20;
+  const monthlySaleIncome = parseFloat(document.getElementById('po-sale-income').value) || 0;
+  const labels = [], nowD = [], cashD = [], loanD = [];
+  for (let y = 0; y <= YEARS; y++) {
+    labels.push(y + '年');
+    nowD.push(Math.round(monthlyBill * 12 * y / 10000));
+    const saleDeduct = Math.round(monthlySaleIncome * Math.min(y * 12, 240)) / 10000;
+    cashD.push(Math.round((totalMan - saleDeduct) * 10) / 10);
+    if (monthly > 0 && loanCount > 0) {
+      const paid = Math.min(y * 12, loanCount) * monthly / 10000;
+      loanD.push(Math.round((dpMan + paid - saleDeduct) * 10) / 10);
+    }
+  }
+  const showLoan = loanD.length > 0;
+  const datasets = [
+    { label: '電力会社（現状）', data: nowD,  borderColor: '#EA580C', backgroundColor: 'rgba(234,88,12,.07)',  borderWidth: 2.5, pointRadius: 0, tension: 0 },
+    { label: '現金一括',         data: cashD, borderColor: '#2D6A4F', backgroundColor: 'rgba(45,106,79,.07)',  borderWidth: 2.5, pointRadius: 0, tension: 0 },
+  ];
+  if (showLoan) datasets.push(
+    { label: 'ローン活用', data: loanD, borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,.07)', borderWidth: 2.5, pointRadius: 0, tension: 0 }
+  );
+  document.getElementById('legend-loan').style.display = showLoan ? '' : 'none';
+  const ctx = document.getElementById('po-chart').getContext('2d');
+  if (poChart) poChart.destroy();
+  poChart = new Chart(ctx, { type: 'line', data: { labels, datasets },
+    options: { responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.05)' } },
+        y: { ticks: { callback: v => v + '万', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.05)' } }
+      }
+    }
+  });
+}
+
+function setKinri(monthly, total, interest) {
+  document.getElementById('po-monthly').textContent = monthly;
+  document.getElementById('po-total').textContent   = total;
+  document.getElementById('po-interest').textContent = interest;
+}
+
+function calcGankin(principal, annualRate, count) {
+  const gankin = Math.round(principal / count);
+  const r = annualRate / 100 / 12;
+  let balance = principal, totalInterest = 0;
+  const tbody = document.getElementById('gankin-tbody');
+  tbody.innerHTML = '';
+  let firstMonthly = 0, lastMonthly = 0;
+
+  for (let m = 1; m <= count; m++) {
+    const interest = Math.round(balance * r * 100) / 100;
+    totalInterest += interest;
+    const monthly = gankin + interest;
+    if (m === 1) firstMonthly = monthly;
+    if (m === count) lastMonthly = gankin + Math.round(balance * r * 100) / 100;
+    balance -= gankin;
+
+    if (m % 12 === 1) {
+      const yr = Math.ceil(m / 12);
+      let yrTotal = 0;
+      const start = m - 1;
+      let b2 = principal - gankin * start;
+      for (let k = 0; k < 12 && (start + k) < count; k++) {
+        const gi = Math.round(b2 * r * 100) / 100;
+        yrTotal += gankin + gi;
+        b2 -= gankin;
+      }
+      const firstInterest = Math.round((principal - gankin * start) * r * 100) / 100;
+      const firstTotal    = gankin + firstInterest;
+      const remainBalance = Math.max(0, principal - gankin * start);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `<td>${yr}年目</td><td>${fmt0(gankin)}</td><td>${fmt0(firstInterest)}</td><td>${fmt0(firstTotal)}</td><td>${fmt0(Math.round(yrTotal))}</td><td>${fmt0(remainBalance)}</td>`;
+      tbody.appendChild(tr);
+    }
+  }
+
+  const totalPayment = gankin * count + totalInterest;
+  setGankin(fmt(Math.round(firstMonthly)), fmt(Math.round(lastMonthly)), fmt(Math.round(totalPayment)), fmt(Math.round(totalInterest)));
+}
+
+function setGankin(first, last, total, interest) {
+  document.getElementById('po-gankin-first').textContent    = first;
+  document.getElementById('po-gankin-last').textContent     = last;
+  document.getElementById('po-gankin-total').textContent    = total;
+  document.getElementById('po-gankin-interest').textContent = interest;
+}
+
+function calcLease() {
+  const monthly = parseFloat(document.getElementById('po-lease-monthly').value) || 0;
+  const years   = parseFloat(document.getElementById('po-lease-years').value)   || 0;
+  document.getElementById('po-lease-total').textContent = monthly > 0 && years > 0
+    ? fmt(monthly * years * 12) : '-';
+}
+
+function calcPpa() {
+  const rate = parseFloat(document.getElementById('po-ppa-rate').value) || 0;
+  const kwh  = parseFloat(document.getElementById('po-ppa-kwh').value)  || 0;
+  document.getElementById('po-ppa-monthly').textContent = rate > 0 && kwh > 0
+    ? fmt(rate * kwh) : '-';
+}
+
+const _urlSaleIncome = new URLSearchParams(location.search).get('saleIncome');
+if (_urlSaleIncome !== null) {
+  const el = document.getElementById('po-sale-income');
+  if (el) el.value = Math.max(0, parseInt(_urlSaleIncome) || 0);
+}
+calcLoan();
+</script>
+</body>
+</html>
