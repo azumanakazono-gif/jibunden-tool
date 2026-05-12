@@ -753,8 +753,8 @@ canvas#mini-chart { height: 220px !important; }
         <div class="field" style="margin-bottom:10px">
           <label style="font-size:13px">売電方式</label>
           <div class="sale-mode-bar" style="margin-top:4px">
-            <button class="sm-btn active" id="sm-btn-fit" onclick="onSaleModeChange('fit')">FIT買取</button>
-            <button class="sm-btn" id="sm-btn-post_fit" onclick="onSaleModeChange('post_fit')">卒FIT</button>
+            <button class="sm-btn" id="sm-btn-fit" onclick="onSaleModeChange('fit')">FIT買取</button>
+            <button class="sm-btn active" id="sm-btn-post_fit" onclick="onSaleModeChange('post_fit')">非FIT</button>
             <button class="sm-btn" id="sm-btn-manual" onclick="onSaleModeChange('manual')">手動入力</button>
           </div>
         </div>
@@ -972,7 +972,7 @@ canvas#mini-chart { height: 220px !important; }
       <div class="section-title">📊 シミュレーション結果</div>
       <!-- 月額比較カード -->
       <div id="monthly-compare-card" style="border-radius:14px;padding:16px;border:2px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:12px">
-        <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #bbf7d0">💰 月額比較: 現在 → 導入後</div>
+        <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #bbf7d0">💰 月額電気代比較: 現在 → 導入後</div>
         <div style="display:grid;grid-template-columns:1fr 32px 1fr;align-items:center;gap:8px">
           <div style="text-align:center;padding:12px;background:#fff;border-radius:10px;border:2px solid #fca5a5">
             <div style="font-size:11px;font-weight:700;color:#dc2626;margin-bottom:4px">現在の月額</div>
@@ -1234,7 +1234,7 @@ const FIT_MASTER = [
 ];
 const POST_FIT_DEFAULT = 7;
 
-let saleMode        = 'fit';
+let saleMode        = 'post_fit';
 let fitPeriodId     = 'fy2026';
 let fitCapacity     = 'under10';
 let salePriceEdited = false;
@@ -1306,7 +1306,7 @@ function onSaleModeChange(mode) {
     _updateFitSteppedNote();
   } else if (mode === 'post_fit') {
     setSalePrice(POST_FIT_DEFAULT, true);
-    noteEl.textContent = '卒FIT後の買取目安単価（電力会社によって異なります）';
+    noteEl.textContent = '非FIT（卒FIT含む）の買取目安単価（電力会社によって異なります）';
     _updateFitSteppedNote();
   } else {
     document.getElementById('sale-price').value = '';
@@ -1373,7 +1373,7 @@ function fitSlideSaleInfo() {
   const rate = fitPeriodRate();
   const salePVal = parseFloat(document.getElementById('sale-price').value) || 0;
   if (saleMode === 'manual') return { value: `${salePVal}円`, sub: '/kWh（手動設定）' };
-  if (saleMode === 'post_fit') return { value: `${salePVal}円`, sub: '/kWh（卒FIT）' };
+  if (saleMode === 'post_fit') return { value: `${salePVal}円`, sub: '/kWh（非FIT）' };
   if (!rate) return { value: '---', sub: '/kWh（対象外）' };
   if (rate.earlyPrice !== undefined)
     return { value: `${rate.earlyPrice}→${rate.latePrice}円`, sub: `/kWh（${p.label}）\n1〜${rate.earlyYears}年目→${rate.earlyYears+1}〜${rate.years}年目` };
@@ -2022,7 +2022,7 @@ function loadDataToForm(data) {
   toggleLoan();
   onHearingChange(data);
   // 売電設定の復元
-  saleMode      = data.saleMode     || 'fit';
+  saleMode      = data.saleMode     || 'post_fit';
   fitPeriodId   = data.fitPeriodId  || 'fy2026';
   fitCapacity   = data.fitCapacity  || 'under10';
   if (fitCapacity === 'over10') fitCapacity = 'over10_roof'; // legacy migration
@@ -3629,7 +3629,20 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   document.getElementById('sell-revenue-card').style.opacity   = hasRevenue ? '1' : '0.4';
   const _monthlySaleIncome = hasRevenue ? Math.round(annualSurplusRevenue / 12) : 0;
   const _poLink = document.getElementById('payment-options-link');
-  if (_poLink) _poLink.href = 'payment-options.html' + (_monthlySaleIncome > 0 ? '?saleIncome=' + _monthlySaleIncome : '');
+  if (_poLink) {
+    if (hasRevenue) {
+      const _poParams = new URLSearchParams({
+        saleIncome:      _monthlySaleIncome,
+        surplusKwhYear:  Math.round(surplusKwh),
+        fitPeriodId:     fitPeriodId,
+        fitCapacity:     fitCapacity,
+        saleMode:        saleMode
+      });
+      _poLink.href = 'payment-options.html?' + _poParams.toString();
+    } else {
+      _poLink.href = 'payment-options.html';
+    }
+  }
 
   // ── 補足情報 ──
   const showBattery = proposalMode !== 'pv_only';
@@ -4203,7 +4216,7 @@ function loadCustomer(id) {
     hasBattery:   entry.hasBattery   || false,
     isAllElectric:entry.isAllElectric|| false,
     proposalMode: entry.proposalMode || 'pv_battery',
-    saleMode:     entry.saleMode     || 'fit',
+    saleMode:     entry.saleMode     || 'post_fit',
     fitPeriodId:  entry.fitPeriodId  || 'fy2026',
     fitCapacity:  entry.fitCapacity === 'over10' ? 'over10_roof' : (entry.fitCapacity || 'under10'),
     salePrice:    entry.salePrice    || 24,
