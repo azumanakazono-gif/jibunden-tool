@@ -1505,7 +1505,7 @@ function effectiveBatteryKwh(nominalKwh) {
 }
 
 // ── 電気単価 調整額（再エネ賦課金 + 燃料費調整額）──
-const SAIENE_LEVY  = 3.49; // 再エネ賦課金（2024年度）円/kWh
+const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
 const FUEL_ADJUST  = 0.00; // 燃料費調整額（九電2024概算）円/kWh
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
 
@@ -3629,19 +3629,20 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   document.getElementById('sell-revenue-card').style.opacity   = hasRevenue ? '1' : '0.4';
   const _monthlySaleIncome = hasRevenue ? Math.round(annualSurplusRevenue / 12) : 0;
   const _poLink = document.getElementById('payment-options-link');
+  localStorage.setItem('jibunden_subsidy', v('sub'));
   if (_poLink) {
+    const _poParams = new URLSearchParams({
+      totalCost: v('ck'),
+      subsidy:   v('sub'),
+    });
     if (hasRevenue) {
-      const _poParams = new URLSearchParams({
-        saleIncome:      _monthlySaleIncome,
-        surplusKwhYear:  Math.round(surplusKwh),
-        fitPeriodId:     fitPeriodId,
-        fitCapacity:     fitCapacity,
-        saleMode:        saleMode
-      });
-      _poLink.href = 'payment-options.html?' + _poParams.toString();
-    } else {
-      _poLink.href = 'payment-options.html';
+      _poParams.set('saleIncome',     _monthlySaleIncome);
+      _poParams.set('surplusKwhYear', Math.round(surplusKwh));
+      _poParams.set('fitPeriodId',    fitPeriodId);
+      _poParams.set('fitCapacity',    fitCapacity);
+      _poParams.set('saleMode',       saleMode);
     }
+    _poLink.href = 'payment-options.html?' + _poParams.toString();
   }
 
   // ── 補足情報 ──
