@@ -1163,6 +1163,10 @@ canvas#mini-chart { height: 220px !important; }
 <div class="toast" id="toast"></div>
 
 <script>
+// Chart.js グローバルアニメーション完全無効化
+Chart.defaults.animation = false;
+Chart.defaults.transitions.active.animation.duration = 0;
+
 // ══════════════════════════════════════════
 // ユーティリティ
 // ══════════════════════════════════════════
@@ -2075,6 +2079,8 @@ function switchTab(tab) {
     sf.classList.remove('form-locked');
   }
   updateLockBadge(tab);
+  if (window.myChart instanceof Chart) { window.myChart.destroy(); window.myChart = null; }
+  calc();
 }
 
 function unlockModel() {
@@ -3721,7 +3727,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
 // ══════════════════════════════════════════
 // 計算
 // ══════════════════════════════════════════
-let miniChart = null;
+window.myChart = null;
 
 function calcMetrics(c) {
   const subsidyAmt  = (c.subsidyAmount || 0) * 10000; // 補助金（万円→円）
@@ -3983,7 +3989,7 @@ function calc() {
     else{dd.textContent='月々 約'+fmt(Math.abs(mdiff))+'円 増加（返済後は削減）';dr.className='loan-row neg';}
 
     // ミニチャート（ローンON: 3系列）
-    renderMiniChart(m, mb, wy, re, lp, ly, mt, true, _surplusKwhChart);
+    _prepareChartData(m, mb, wy, re, lp, ly, mt, true, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（ローン総額ベース）
     const _genUP_loan = (ag > 0 && wy > 0) ? parseFloat((loanTotal / (ag * wy)).toFixed(1)) : null;
     const _loanYears = Math.round(lp > 0 ? ly : wy);
@@ -3996,7 +4002,7 @@ function calc() {
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
-    renderMiniChart(m, mb, wy, m.remainBill, 0, 0, 0, false, _surplusKwhChart);
+    _prepareChartData(m, mb, wy, m.remainBill, 0, 0, 0, false, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（現金購入ベース）
     const _genUP_cash = (ag > 0 && wy > 0) ? parseFloat((m.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
     _updateUnitPriceCompare(up, _genUP_cash, wy, { isLoan: false });
@@ -4098,7 +4104,7 @@ function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
   }
 }
 
-function renderMiniChart(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
+function _prepareChartData(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
   const er = v('er') / 100;
   const hasSell = proposalMode !== 'battery_only' && (surplusKwh || 0) > 0;
   const labels=[], nowD=[], cashD=[], loanD=[];
@@ -4121,13 +4127,35 @@ function renderMiniChart(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
   if(showLoan) datasets.push(
     {label:'ローン活用',data:loanD,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.07)',borderWidth:2.5,pointRadius:0,tension:0}
   );
-  const ctx=document.getElementById('mini-chart').getContext('2d');
-  if(miniChart)miniChart.destroy();
-  miniChart=new Chart(ctx,{type:'line',data:{labels,datasets},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-      scales:{x:{ticks:{maxTicksLimit:5,font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
-              y:{ticks:{callback:v=>v+'万',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}}
-  );
+  window.chartLabels   = labels;
+  window.chartDatasets = datasets;
+  window.chartShowLoan = showLoan;
+}
+
+Chart.defaults.animation = false;
+Chart.defaults.transitions.active.animation.duration = 0;
+function renderMiniChart() {
+  const ctx = document.getElementById('mini-chart').getContext('2d');
+  if (window.myChart instanceof Chart) {
+    window.myChart.destroy();
+  }
+  window.myChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: window.chartLabels || [], datasets: window.chartDatasets || [] },
+    options: {
+      animation: false,
+      hover: { animationDuration: 0 },
+      responsiveAnimationDuration: 0,
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } } },
+        y: { beginAtZero: true, ticks: { callback: v => v + '万', font: { size: 10 } } }
+      }
+    }
+  });
+  const showLoan = window.chartShowLoan;
   document.getElementById('legend-loan-item').style.display = showLoan ? '' : 'none';
   const erVal=v('er');
   document.getElementById('legend-now-label').textContent = erVal>0?`年${erVal}%上昇想定`:'現状維持';
@@ -5069,8 +5097,10 @@ window.addEventListener('DOMContentLoaded', () => {
     updateRatioPanel();           // 電化でナイト（導入後）スライダーを初期表示
     document.getElementById('kyuden-plan').addEventListener('change', updateRatioPanelVisibility);
     renderPostPlanBreakdown();    // 導入後内訳を即時表示
-    autoEstimateKwhFromBill(true); // mb→mkwh 初期整合性 → 内部で calc() を呼び出し
-    setTimeout(renderPostPlanBreakdown, 0); // 全同期処理完了後に確実に再描画（最終書き込みで勝利保証）
+    setTimeout(() => {
+      autoEstimateKwhFromBill(true); // mb→mkwh 初期整合性 → 内部で calc() / renderMiniChart を呼び出し
+      renderPostPlanBreakdown();     // 全同期処理完了後に確実に再描画（最終書き込みで勝利保証）
+    }, 50);
     updateRatioPanelVisibility();
     const _stb = document.getElementById('scroll-top-btn');
     if (_stb) {
@@ -5099,5 +5129,10 @@ window.addEventListener('DOMContentLoaded', () => {
             style="margin-top:18px;padding:7px 18px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#6b7280;font-size:12px;cursor:pointer;font-family:inherit">キャンセル</button>
   </div>
 </div>
+<script>
+window.onload = () => {
+  setTimeout(() => { renderMiniChart(); }, 0);
+};
+</script>
 </body>
 </html>
