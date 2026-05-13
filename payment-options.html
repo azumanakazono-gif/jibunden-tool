@@ -129,27 +129,27 @@ canvas#po-chart { height: 220px !important; }
     <div id="mode-preset" class="mode-panel active">
       <div class="field" style="margin-bottom:10px">
         <label>現在の月々電気代（円）</label>
-        <input type="number" id="po-mb" value="20000" min="0" step="1000" oninput="calcLoan()">
+        <input type="number" id="po-mb" value="20000" min="0" step="1000" oninput="updateLoan()">
       </div>
       <div class="grid2" style="margin-bottom:8px">
         <div class="field">
           <label>工事費用（万円）</label>
-          <input type="number" id="po-la" value="280" min="1" step="1" oninput="calcLoan()">
+          <input type="number" id="po-cost" value="280" min="1" step="1" oninput="updateLoan()">
         </div>
         <div class="field">
           <label>頭金（万円）</label>
-          <input type="number" id="po-dp" value="0" min="0" step="10" oninput="calcLoan()">
+          <input type="number" id="po-dp" value="0" min="0" step="10" oninput="updateLoan()">
         </div>
       </div>
       <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
       <div class="grid2" style="margin-bottom:14px">
         <div class="field">
           <label>金利（年率 %）</label>
-          <input type="number" id="po-lr" value="4.0" min="0.01" max="30" step="0.1" oninput="calcLoan()">
+          <input type="number" id="po-lr" value="4.0" min="0.01" max="30" step="0.1" oninput="updateLoan()">
         </div>
         <div class="field">
           <label>返済期間</label>
-          <select id="po-lc" onchange="calcLoan()">
+          <select id="po-lc" onchange="updateLoan()">
             <option value="36">3年（36回）</option>
             <option value="60">5年（60回）</option>
             <option value="84">7年（84回）</option>
@@ -165,29 +165,30 @@ canvas#po-chart { height: 220px !important; }
     <div id="mode-manual" class="mode-panel">
       <div class="grid2" style="margin-bottom:14px">
         <div class="field">
-          <label>借入金額（円・自由入力）</label>
-          <input type="number" id="po-la-m" placeholder="例: 2800000" min="0" step="10000" oninput="calcLoan()">
+          <label>借入金額（円）</label>
+          <input type="number" id="po-la-m" placeholder="例: 2800000" min="0" step="10000" oninput="updateLoan()">
         </div>
         <div class="field">
           <label>金利（年率 %）</label>
-          <input type="number" id="po-lr-m" placeholder="例: 3.5" min="0" step="0.01" oninput="calcLoan()">
+          <input type="number" id="po-lr-m" placeholder="例: 3.5" min="0" step="0.01" oninput="updateLoan()">
         </div>
         <div class="field">
           <label>返済回数（回）</label>
-          <input type="number" id="po-lc-m" placeholder="例: 180" min="1" step="1" oninput="calcLoan()">
+          <input type="number" id="po-lc-m" placeholder="例: 180" min="1" step="1" oninput="updateLoan()">
         </div>
         <div class="field">
-          <label>メモ（任意）</label>
-          <input type="text" id="po-memo" placeholder="例: ○○銀行 フラット35相当" style="font-size:13px">
+          <label>月々の返済額（円）</label>
+          <input type="number" id="po-monthly-m" placeholder="例: 18500" min="0" step="100" oninput="updateLoan()">
         </div>
       </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px">※ 月々の返済額を入力すると、借入金額・返済回数から総返済額・利息を自動表示します。</p>
     </div>
 
     <!-- 返済方式トグル -->
     <div class="method-toggle">
-      <input type="radio" id="m-kinri" name="po-method" value="kinri" checked onchange="calcLoan()">
+      <input type="radio" id="m-kinri" name="po-method" value="kinri" checked onchange="updateLoan()">
       <label for="m-kinri">元利均等 (Equal Installments)</label>
-      <input type="radio" id="m-gankin" name="po-method" value="gankin" onchange="calcLoan()">
+      <input type="radio" id="m-gankin" name="po-method" value="gankin" onchange="updateLoan()">
       <label for="m-gankin">元金均等 (Equal Principal)</label>
     </div>
 
@@ -275,6 +276,9 @@ const _fitPeriodId     = _urlParams.get('fitPeriodId') || 'fy2026';
 const _fitCapacity     = _urlParams.get('fitCapacity') || 'under10';
 const _saleMode        = _urlParams.get('saleMode') || 'fit';
 let _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) || 0;
+const _urlTotalCost       = parseFloat(_urlParams.get('totalCost')) || 0;
+const subsidy             = parseFloat(_urlParams.get('subsidy')) || parseFloat(localStorage.getItem('jibunden_subsidy')) || 0;
+console.log("Current subsidy:", _urlParams.get('subsidy'));
 // 余剰kWhと FIT モードがある場合は自動計算を使う
 const _hasAutoParams   = _surplusKwhYear > 0 && _saleMode === 'fit';
 
@@ -371,14 +375,15 @@ function setMode(mode) {
     b.classList.toggle('active', (i === 0) === (mode === 'preset')));
   document.getElementById('mode-preset').classList.toggle('active', mode === 'preset');
   document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
-  calcLoan();
+  document.querySelector('.method-toggle').style.display = mode === 'manual' ? 'none' : '';
+  updateLoan();
 }
 
 function getInputs() {
   const method = document.querySelector('input[name="po-method"]:checked').value;
   const monthlyBill = parseFloat(document.getElementById('po-mb') ? document.getElementById('po-mb').value : 0) || 0;
   if (currentMode === 'preset') {
-    const totalMan  = parseFloat(document.getElementById('po-la').value) || 0;
+    const totalMan  = parseFloat(document.getElementById('po-cost').value) || 0;
     const dpMan     = parseFloat(document.getElementById('po-dp').value) || 0;
     const borrowMan = Math.max(0, totalMan - dpMan);
     const principal = borrowMan * 10000;
@@ -388,19 +393,39 @@ function getInputs() {
     if (el) el.textContent = borrowMan.toLocaleString('ja-JP') + '万円';
     return { principal, rate, count, method, totalMan, dpMan, borrowMan, monthlyBill };
   } else {
-    const principal = parseFloat(document.getElementById('po-la-m').value) || 0;
-    const rate      = parseFloat(document.getElementById('po-lr-m').value) || 0;
-    const count     = parseInt(document.getElementById('po-lc-m').value) || 0;
-    return { principal, rate, count, method, totalMan: principal/10000, dpMan: 0, borrowMan: principal/10000, monthlyBill };
+    const principal    = parseFloat(document.getElementById('po-la-m').value) || 0;
+    const rate         = parseFloat(document.getElementById('po-lr-m').value) || 0;
+    const count        = parseInt(document.getElementById('po-lc-m').value) || 0;
+    const manualMonthly = parseFloat(document.getElementById('po-monthly-m').value) || 0;
+    return { principal, rate, count, method, totalMan: principal/10000, dpMan: 0, borrowMan: principal/10000, monthlyBill, manualMonthly };
   }
 }
 
-function calcLoan() {
+function updateLoan() {
   const inputs = getInputs();
-  const { principal, rate, count, method } = inputs;
-  const isGankin = method === 'gankin';
+  const { principal, rate, count, method, manualMonthly } = inputs;
+  const isManualMonthly = currentMode === 'manual' && manualMonthly > 0;
+  const isGankin = method === 'gankin' && !isManualMonthly;
+
   document.getElementById('res-kinri').style.display  = isGankin ? 'none' : '';
   document.getElementById('res-gankin').style.display = isGankin ? '' : 'none';
+
+  const lbl = document.getElementById('lbl-monthly');
+  if (isManualMonthly) {
+    lbl.textContent = '月々の返済額';
+    if (count > 0) {
+      const total    = manualMonthly * count;
+      const interest = principal > 0 ? total - principal : null;
+      setKinri(fmt(manualMonthly), fmt(total), interest !== null ? fmt(interest) : '-');
+      renderChart(inputs, manualMonthly, count);
+    } else {
+      setKinri(fmt(manualMonthly), '-', '-');
+      renderChart(inputs, 0, 0);
+    }
+    return;
+  }
+
+  lbl.textContent = '月々の返済額（元利均等）';
 
   if (principal <= 0 || count <= 0) {
     setKinri('-', '-', '-');
@@ -420,6 +445,15 @@ function calcLoan() {
     renderChart(inputs, monthly, count);
   }
 }
+
+setInterval(() => {
+  const costInput = document.getElementById('po-cost');
+  const subsidy = parseFloat(new URLSearchParams(window.location.search).get('subsidy')) || parseFloat(localStorage.getItem('jibunden_subsidy')) || 0;
+  if (costInput && _urlTotalCost > 0 && costInput.value == _urlTotalCost) {
+    costInput.value = Math.round(_urlTotalCost - subsidy);
+    updateLoan();
+  }
+}, 500);
 
 function calcKinri(principal, annualRate, count) {
   if (annualRate <= 0) {
@@ -507,19 +541,28 @@ function renderChart(inputs, monthly, loanCount) {
   );
   document.getElementById('legend-loan').style.display = showLoan ? '' : 'none';
   const ctx = document.getElementById('po-chart').getContext('2d');
+  Chart.defaults.animation = false;
   if (poChart) poChart.destroy();
   poChart = new Chart(ctx, {
     type: 'line',
     plugins: [rightEndLabelsPlugin],
     data: { labels, datasets },
     options: {
+      animation: false,
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: { right: 80 } },
+      layout: {
+        padding: {
+          top: 10,
+          right: 150,
+          bottom: 10,
+          left: 10
+        }
+      },
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.05)' } },
-        y: { ticks: { callback: v => v + '万', font: { size: 10 } }, grid: { color: 'rgba(0,0,0,.05)' } }
+        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } } },
+        y: { beginAtZero: true, ticks: { precision: 0, callback: v => v + '万', font: { size: 10 } } }
       }
     }
   });
@@ -592,7 +635,14 @@ function calcPpa() {
 }
 
 // ── 初期化 ──
-calcLoan();
+updateLoan();
+
+window.onload = () => {
+  setTimeout(() => {
+    document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
+    updateLoan();
+  }, 50);
+};
 </script>
 </body>
 </html>
