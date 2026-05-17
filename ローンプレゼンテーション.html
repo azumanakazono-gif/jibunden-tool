@@ -358,7 +358,21 @@ html,body{
 .sb-right{display:flex;align-items:baseline;gap:3px;flex-shrink:0}
 .sb-num{font-size:54px;font-weight:900;color:#fbbf24;line-height:1}
 .sb-unit{font-size:26px;font-weight:700;color:#fbbf24;line-height:1}
-.sb-caution{margin-top:12px;padding-top:10px;border-top:1px solid rgba(255,255,255,.18);font-size:11.5px;color:rgba(255,255,255,.65);line-height:1.7}
+.sb-notice{
+  margin-top:14px;
+  background:rgba(0,0,0,0.28);
+  border:1.5px solid rgba(251,191,36,0.55);
+  border-radius:10px;
+  padding:14px 20px;
+}
+.sb-notice-ttl{
+  font-size:20px;font-weight:900;color:#fbbf24;
+  margin-bottom:8px;letter-spacing:.03em;line-height:1.4;
+}
+.sb-notice-body{
+  font-size:20px;font-weight:700;color:rgba(255,255,255,.93);
+  line-height:1.75;
+}
 
 /* ── Back Button ── */
 .btn-back{
@@ -496,7 +510,8 @@ html,body{
   .sb-right{justify-content:center;margin-top:4px}
   .sb-num{font-size:48px}
   .sb-unit{font-size:22px}
-  .sb-caution{font-size:11px}
+  .sb-notice-ttl{font-size:15px}
+  .sb-notice-body{font-size:14px}
 
   /* Back button on mobile */
   .btn-back{font-size:12px;padding:6px 12px 6px 10px;top:12px;left:12px}
@@ -784,7 +799,10 @@ html,body{
               <span class="sb-num" id="s7-20y">466</span><span class="sb-unit">万円</span>
             </div>
           </div>
-          <div class="sb-caution">※20年目までは長期メーカー保証で守られます。20年目以降の機器更新や故障対応費用についても、この466万円の節約メリットの中からスマートに準備可能です。</div>
+          <div class="sb-notice">
+            <div class="sb-notice-ttl">💡【20年目以降のメンテナンスについて】</div>
+            <div class="sb-notice-body">20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は【現在の価格を基準とした目安】として、この466万円の節約メリットの中からスマートに準備・相殺が可能です。そのため、ご家庭からの新たな「持ち出し負担」を実質的にゼロへ抑える計画が立てられます。</div>
+          </div>
         </div>
       </div>
     </div>
