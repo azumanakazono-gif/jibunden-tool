@@ -1837,6 +1837,21 @@ function _applyMonthlyTouRatios() {
   }
 }
 
+function _updateMbLock(active, avgBill) {
+  const el = document.getElementById('mb');
+  if (!el) return;
+  if (active) {
+    if (avgBill > 0) el.value = avgBill;
+    el.readOnly = true;
+    el.style.background = '#e9ecef';
+    el.style.cursor = 'not-allowed';
+  } else {
+    el.readOnly = false;
+    el.style.background = '';
+    el.style.cursor = '';
+  }
+}
+
 function onMonthlyInput() {
   const bills = [], kwhArr = [];
   for (let i = 0; i < 12; i++) {
@@ -1870,6 +1885,9 @@ function onMonthlyInput() {
     if (bEl) bEl.style.background = bg;
     if (kEl) kEl.style.background = bg;
   }
+
+  // 月間電気代（#mb）の入力制御（詳細入力使用中は読み取り専用）
+  _updateMbLock(anyInput, avgBill);
 
   // 入力済み月がある場合のみ上部フィールドへ反映
   if (avgBill > 0) {
@@ -4564,6 +4582,7 @@ function clearForm() {
   document.getElementById('kyuden-plan').value='';
   showAvgRateSection(false);
   document.getElementById('daytime-rate-disp').textContent='';
+  _updateMbLock(false);
   document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
   document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
   document.getElementById('bk').value=7; document.getElementById('ck').value=40;
