@@ -1717,6 +1717,11 @@ function toggleMonthlyDetail() {
   }
 }
 
+const _MONTHLY_TOU_ZONES = {
+  kyushu_denka_night: ['デイ', 'リビング', 'ナイト'],
+  kyushu_kiji:        ['ピーク', '昼間', '夜間'],
+};
+
 function _buildMonthlyGrid() {
   const grid = document.getElementById('monthly-grid');
   grid.innerHTML = '';
@@ -1732,21 +1737,96 @@ function _buildMonthlyGrid() {
       <div class="m-field"><label>使用量（kWh）</label>
         <input type="number" id="m-kwh-${i}" min="0" step="10" placeholder="例 550" oninput="onMonthlyInput()">
       </div>
-      <div style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:4px">
+      <div id="m-tou-wrap-${i}" style="border-top:1px dashed #cbd5e1;margin-top:4px;padding-top:4px;display:none">
         <div style="font-size:9px;color:var(--muted);margin-bottom:3px">⏱ 時間帯別（kWh）</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px">
-          <div class="m-field" style="margin:0"><label>デイ</label>
-            <input type="number" id="m-day-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
+          <div class="m-field" style="margin:0"><label id="m-tou0-label-${i}">-</label>
+            <input type="number" id="m-tou0-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
           </div>
-          <div class="m-field" style="margin:0"><label>リビング</label>
-            <input type="number" id="m-living-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
+          <div class="m-field" style="margin:0"><label id="m-tou1-label-${i}">-</label>
+            <input type="number" id="m-tou1-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
           </div>
-          <div class="m-field" style="margin:0"><label>ナイト</label>
-            <input type="number" id="m-ngt-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
+          <div class="m-field" style="margin:0"><label id="m-tou2-label-${i}">-</label>
+            <input type="number" id="m-tou2-${i}" min="0" step="1" placeholder="0" oninput="onMonthlyTouInput(${i})">
           </div>
         </div>
       </div>`;
     grid.appendChild(card);
+  }
+  _updateMonthlyTouLabels();
+}
+
+function _updateMonthlyTouLabels() {
+  const kp    = document.getElementById('kyuden-plan')?.value || '';
+  const zones = _MONTHLY_TOU_ZONES[kp];
+  const show  = !!zones;
+  for (let i = 0; i < 12; i++) {
+    const wrap = document.getElementById(`m-tou-wrap-${i}`);
+    if (!wrap) continue;
+    wrap.style.display = show ? '' : 'none';
+    if (!show) continue;
+    [0, 1, 2].forEach(z => {
+      const lbl = document.getElementById(`m-tou${z}-label-${i}`);
+      if (lbl) lbl.textContent = zones[z];
+    });
+  }
+}
+
+function onMonthlyTouInput(i) {
+  const z0 = parseFloat(document.getElementById(`m-tou0-${i}`)?.value) || 0;
+  const z1 = parseFloat(document.getElementById(`m-tou1-${i}`)?.value) || 0;
+  const z2 = parseFloat(document.getElementById(`m-tou2-${i}`)?.value) || 0;
+  const sum = z0 + z1 + z2;
+  if (sum > 0) {
+    const kwhEl = document.getElementById(`m-kwh-${i}`);
+    if (kwhEl) kwhEl.value = Math.round(sum);
+  }
+  _applyMonthlyTouRatios();
+  onMonthlyInput();
+}
+
+function _applyMonthlyTouRatios() {
+  const kp = document.getElementById('kyuden-plan')?.value || '';
+  if (!_MONTHLY_TOU_ZONES[kp]) return;
+  let t0 = 0, t1 = 0, t2 = 0, hasTou = false;
+  for (let i = 0; i < 12; i++) {
+    const z0 = parseFloat(document.getElementById(`m-tou0-${i}`)?.value) || 0;
+    const z1 = parseFloat(document.getElementById(`m-tou1-${i}`)?.value) || 0;
+    const z2 = parseFloat(document.getElementById(`m-tou2-${i}`)?.value) || 0;
+    if (z0 + z1 + z2 > 0) { t0 += z0; t1 += z1; t2 += z2; hasTou = true; }
+  }
+  if (!hasTou) return;
+  const total = t0 + t1 + t2;
+  if (total <= 0) return;
+  const r0 = Math.round(t0 / total * 100);
+  const r1 = Math.round(t1 / total * 100);
+  const r2 = Math.max(0, 100 - r0 - r1);
+
+  const _buildRatios = (planKp) => {
+    if (planKp === 'kyushu_denka_night') return { day: r0/100, hol: 0, living: r1/100, ngt: r2/100, label: '月次実績' };
+    if (planKp === 'kyushu_kiji')        return { day: r0/100, living: r1/100, ngt: r2/100, label: '月次実績' };
+    if (planKp === 'kyushu_ohisama')     return { ohisama: r0/100, peak: r1/100, ngt: r2/100, label: '月次実績' };
+    return null;
+  };
+
+  const postKp = document.getElementById('post-kyuden-plan')?.value || '';
+
+  const beforeRatios = _buildRatios(kp);
+  if (beforeRatios) {
+    beforeCustomRatios  = beforeRatios;
+    isBeforeCustomRatio = true;
+    _beforeRatioPanelPlan = null;
+    updateBeforeRatioPanel();
+    updateBeforeRatioStyleStatus();
+  }
+
+  const afterRatios = _buildRatios(postKp);
+  if (afterRatios) {
+    customRatios  = afterRatios;
+    isCustomRatio = true;
+    _ratioPanelPlan = null;
+    updateRatioPanel();
+    updateRatioStyleStatus();
   }
 }
 
@@ -2485,6 +2565,7 @@ function onKyudenPlanChange() {
     autoEstimateJyuryoKwh();
   }
   renderPostPlanBreakdown();
+  if (monthlyDetailOpen) _updateMonthlyTouLabels();
 }
 
 function onPostKyudenPlanChange() {
