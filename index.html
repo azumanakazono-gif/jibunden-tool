@@ -1828,7 +1828,7 @@ function _applyMonthlyTouRatios() {
   }
 
   const afterRatios = _buildRatios(postKp);
-  if (afterRatios) {
+  if (afterRatios && !isAfterSlidersDirty) {
     customRatios  = afterRatios;
     isCustomRatio = true;
     _ratioPanelPlan = null;
@@ -2408,10 +2408,11 @@ function switchTab(tab) {
   if (tab === activeTab) return;
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   activeTab = tab;
-  loanAmountEdited = false;
-  isCustomRatio    = false;
-  customRatios     = null;
-  _ratioPanelPlan  = null;
+  loanAmountEdited    = false;
+  isCustomRatio       = false;
+  customRatios        = null;
+  _ratioPanelPlan     = null;
+  isAfterSlidersDirty = false;
   loadDataToForm(activeTab === 'hypothesis' ? hypData : custData);
   document.getElementById('tab-customer').classList.toggle('active', tab === 'customer');
   document.getElementById('tab-hypothesis').classList.toggle('active', tab === 'hypothesis');
@@ -2529,9 +2530,10 @@ function onKyudenPlanChange() {
   const _kpNew = document.getElementById('kyuden-plan').value;
   if (_kpNew === 'kyushu_juuryo_b') document.getElementById('juuryo-amp').value = '60';
   if (_kpNew === 'kyushu_juuryo_c') { const _kvaEl = document.getElementById('juuryo-kva'); if (!parseFloat(_kvaEl.value)) _kvaEl.value = '10'; }
-  _ratioPanelPlan = null;
-  isCustomRatio   = false;
-  customRatios    = null;
+  _ratioPanelPlan     = null;
+  isCustomRatio       = false;
+  customRatios        = null;
+  isAfterSlidersDirty = false;
   isBeforeCustomRatio   = false;
   beforeCustomRatios    = null;
   _beforeRatioPanelPlan = null;
@@ -2550,9 +2552,10 @@ function onKyudenPlanChange() {
 }
 
 function onPostKyudenPlanChange() {
-  _ratioPanelPlan = null;
-  isCustomRatio   = false;
-  customRatios    = null;
+  _ratioPanelPlan     = null;
+  isCustomRatio       = false;
+  customRatios        = null;
+  isAfterSlidersDirty = false;
   updateRatioPanel();
   updateRatioStyleStatus();
   renderPostPlanBreakdown();
@@ -2887,6 +2890,7 @@ let _ratioPanelPlan = null; // 導入後パネルが最後に初期化された�
 let isBeforeCustomRatio = false;
 let beforeCustomRatios  = null;
 let _beforeRatioPanelPlan = null; // 導入前パネル用
+let isAfterSlidersDirty = false; // 導入後スライダーが手動操作されたか
 
 function calcDenkiNightBaseRate(ratios) {
   const t  = KYUSHU_DENKA_NIGHT.tariff;
@@ -3413,6 +3417,7 @@ function autoAdjustNight() {
 }
 
 function onSliderChange(prefix, key) {
+  isAfterSlidersDirty = true;
   const slEl  = document.getElementById(`r-${prefix}-${key}-sl`);
   const numEl = document.getElementById(`r-${prefix}-${key}`);
   if (slEl && numEl) numEl.value = slEl.value;
@@ -3420,6 +3425,7 @@ function onSliderChange(prefix, key) {
 }
 
 function onRatioChange(prefix) {
+  isAfterSlidersDirty = true;
   const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
   const effKp  = postKp; // 導入後プランのみ対象
   const _sv = (id, v) => { const e=document.getElementById(id); if(e) e.value=v; };
@@ -3473,11 +3479,42 @@ function onRatioChange(prefix) {
 }
 
 function resetToPresetRatio() {
-  isCustomRatio   = false;
-  customRatios    = null;
-  _ratioPanelPlan = null;
+  isCustomRatio       = false;
+  customRatios        = null;
+  _ratioPanelPlan     = null;
+  isAfterSlidersDirty = false;
   const data = activeTab === 'hypothesis' ? hypData : custData;
   onHearingChange(data); // calls updateRatioStyleStatus internally
+}
+
+function _syncAfterRatiosFromBefore() {
+  if (isAfterSlidersDirty || !beforeCustomRatios) return;
+  const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
+  if (!postKp || !['kyushu_denka_night','kyushu_kiji','kyushu_ohisama'].includes(postKp)) return;
+  const r = beforeCustomRatios;
+  const _sv = (id, v) => { const e = document.getElementById(id); if (e) e.value = v; };
+  const prefix = postKp === 'kyushu_denka_night' ? 'dn' : postKp === 'kyushu_ohisama' ? 'oh' : 'kj';
+  if (postKp === 'kyushu_denka_night') {
+    const dv=Math.round((r.day||0)*100), hv=Math.round((r.hol||0)*100), lv=Math.round((r.living||0)*100), nv=Math.round((r.ngt||0)*100);
+    _sv('r-dn-day',dv); _sv('r-dn-day-sl',dv); _sv('r-dn-hol',hv); _sv('r-dn-hol-sl',hv);
+    _sv('r-dn-living',lv); _sv('r-dn-living-sl',lv); _sv('r-dn-ngt',nv); _sv('r-dn-ngt-sl',nv);
+    customRatios = { day: r.day||0, hol: r.hol||0, living: r.living||0, ngt: r.ngt||0, label: '導入前と同期中' };
+  } else if (postKp === 'kyushu_ohisama') {
+    const ov=Math.round((r.ohisama||0)*100), pv=Math.round((r.peak||0)*100), nv=Math.round((r.ngt||0)*100);
+    _sv('r-oh-ohisama',ov); _sv('r-oh-ohisama-sl',ov); _sv('r-oh-peak',pv); _sv('r-oh-peak-sl',pv);
+    _sv('r-oh-ngt',nv); _sv('r-oh-ngt-sl',nv);
+    customRatios = { ohisama: r.ohisama||0, peak: r.peak||0, ngt: r.ngt||0, label: '導入前と同期中' };
+  } else {
+    const dv=Math.round((r.day||0)*100), lv=Math.round((r.living||0)*100), nv=Math.round((r.ngt||0)*100);
+    _sv('r-kj-day',dv); _sv('r-kj-day-sl',dv); _sv('r-kj-living',lv); _sv('r-kj-living-sl',lv);
+    _sv('r-kj-ngt',nv); _sv('r-kj-ngt-sl',nv);
+    customRatios = { day: r.day||0, living: r.living||0, ngt: r.ngt||0, label: '導入前と同期中' };
+  }
+  isCustomRatio = true;
+  const mkwh = parseFloat(document.getElementById('mkwh').value) || 667;
+  _updateRatioKwhDisplay(postKp, prefix, mkwh * 12);
+  _updatePriceBreakdown(postKp);
+  updateRatioStyleStatus();
 }
 
 // ══════════════════════════════════════════
@@ -3652,6 +3689,7 @@ function onBeforeRatioChange(prefix) {
   _updateBeforePriceBreakdown(kp);
   _updateBeforePlanBreakdown(kp);
   _updateBeforeBreakdownToggleVisibility();
+  _syncAfterRatiosFromBefore();
   calc();
 }
 
@@ -4583,6 +4621,7 @@ function clearForm() {
   showAvgRateSection(false);
   document.getElementById('daytime-rate-disp').textContent='';
   _updateMbLock(false);
+  isAfterSlidersDirty = false;
   document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
   document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
   document.getElementById('bk').value=7; document.getElementById('ck').value=40;
