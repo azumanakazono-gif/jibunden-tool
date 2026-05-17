@@ -3647,6 +3647,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       totalCost:   v('ck'),
       subsidy:     v('sub'),
       downPayment: v('dp') || 0,
+      monthlyBill: v('mb') || 0,
     });
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);

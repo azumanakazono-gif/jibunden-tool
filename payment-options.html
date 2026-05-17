@@ -269,6 +269,11 @@ let _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) |
 const _urlTotalCost       = parseFloat(_urlParams.get('totalCost')) || 0;
 const subsidy             = parseFloat(_urlParams.get('subsidy')) || parseFloat(localStorage.getItem('jibunden_subsidy')) || 0;
 console.log("Current subsidy:", _urlParams.get('subsidy'));
+const _urlMonthlyBill     = parseFloat(_urlParams.get('monthlyBill')) || 0;
+if (_urlMonthlyBill > 0) {
+  const _mbEl = document.getElementById('po-mb');
+  if (_mbEl) _mbEl.value = _urlMonthlyBill;
+}
 // 余剰kWhと FIT モードがある場合は自動計算を使う
 const _hasAutoParams   = _surplusKwhYear > 0 && _saleMode === 'fit';
 
