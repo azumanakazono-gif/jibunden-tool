@@ -468,7 +468,7 @@ canvas#mini-chart { height: 220px !important; }
         </div>
 
         <!-- ▼ 詳細入力（12ヶ月分）トグル -->
-        <div style="margin-top:10px">
+        <div id="monthly-detail-wrap" style="margin-top:10px">
           <button type="button" id="monthly-toggle-btn" onclick="toggleMonthlyDetail()"
             style="width:100%;padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;color:#475569;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;justify-content:space-between">
             <span>📅 詳細入力（12ヶ月分）</span>
@@ -2402,6 +2402,7 @@ function loadDataToForm(data) {
     document.getElementById('sale-reset-btn').style.display    = 'inline-block';
   }
   setProposalMode(data.proposalMode || 'pv_battery');
+  _updateMonthlyDetailVisibility(!!data.hasBill);
 }
 
 function switchTab(tab) {
@@ -2867,10 +2868,37 @@ function onLifestyleChange() {
 let loanMethod = 'zansai'; // 'addon' | 'zansai' | 'gankin'
 let loanInputMode = 'auto'; // 'auto' | 'manual'
 
+function _updateMonthlyDetailVisibility(hasBill) {
+  const wrap = document.getElementById('monthly-detail-wrap');
+  if (!wrap) return;
+  if (!hasBill) {
+    wrap.style.display = 'none';
+    // 詳細入力に値があればリセット
+    for (let i = 0; i < 12; i++) {
+      ['m-bill-','m-kwh-','m-tou0-','m-tou1-','m-tou2-'].forEach(pfx => {
+        const el = document.getElementById(pfx + i);
+        if (el) el.value = '';
+      });
+    }
+    if (monthlyDetailOpen) {
+      monthlyDetailOpen = false;
+      const panel = document.getElementById('monthly-detail-panel');
+      const arrow = document.getElementById('monthly-toggle-arrow');
+      if (panel) panel.style.display = 'none';
+      if (arrow) arrow.textContent = '▼';
+    }
+    _updateMbLock(false);
+    onMonthlyInput();
+  } else {
+    wrap.style.display = '';
+  }
+}
+
 function setHearing(key, val) {
   const data = activeTab === 'hypothesis' ? hypData : custData;
   data[key] = val;
   updateHearingUI(data);
+  if (key === 'hasBill') _updateMonthlyDetailVisibility(val);
   onHearingChange(data);
 }
 function updateHearingUI(data) {
@@ -4622,6 +4650,7 @@ function clearForm() {
   document.getElementById('daytime-rate-disp').textContent='';
   _updateMbLock(false);
   isAfterSlidersDirty = false;
+  _updateMonthlyDetailVisibility(false);
   document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
   document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
   document.getElementById('bk').value=7; document.getElementById('ck').value=40;
