@@ -1,0 +1,1401 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>太陽光・蓄電池 シミュレーション提案書 | じぶん電気</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+/* ══════════════════════════════════════════
+   DESIGN TOKENS
+══════════════════════════════════════════ */
+:root {
+  --navy-950: #060f20;
+  --navy-900: #0d1f3c;
+  --navy-800: #152d52;
+  --navy-700: #1e3d6e;
+  --navy-600: #26508c;
+  --navy-100: #dde4f0;
+  --navy-50 : #eef2f9;
+
+  --em-700: #007d5c;
+  --em-600: #009b72;
+  --em-500: #00bf8c;
+  --em-200: #a3dfc9;
+  --em-50 : #e6f7f2;
+
+  --gold-800: #7a5f0f;
+  --gold-700: #9e7a15;
+  --gold-600: #c9a227;
+  --gold-500: #e5bc3c;
+  --gold-200: #f3dfaa;
+  --gold-50 : #fdf8e8;
+
+  --gray-900: #0f172a;
+  --gray-800: #1e293b;
+  --gray-700: #334155;
+  --gray-500: #64748b;
+  --gray-400: #94a3b8;
+  --gray-300: #cbd5e1;
+  --gray-200: #e2e8f0;
+  --gray-100: #f1f5f9;
+  --gray-50 : #f8fafc;
+  --white   : #ffffff;
+
+  --danger    : #dc2626;
+  --danger-bg : #fef2f2;
+  --danger-bdr: #fecaca;
+
+  --shadow-sm : 0 1px 3px rgba(13,31,60,.08), 0 1px 2px rgba(13,31,60,.06);
+  --shadow-md : 0 4px 12px rgba(13,31,60,.10);
+  --shadow-lg : 0 10px 30px rgba(13,31,60,.14);
+
+  --radius-sm : 6px;
+  --radius-md : 10px;
+  --radius-lg : 14px;
+  --radius-xl : 20px;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 16px; scroll-behavior: smooth; }
+body {
+  font-family: 'Noto Sans JP', -apple-system, sans-serif;
+  background: var(--gray-50);
+  color: var(--navy-900);
+  min-height: 100vh;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+/* ══════════════════════════════════════════
+   TOP NAVIGATION
+══════════════════════════════════════════ */
+.top-nav {
+  position: sticky;
+  top: 0;
+  z-index: 300;
+  background: var(--white);
+  border-bottom: 2px solid var(--gray-200);
+  box-shadow: var(--shadow-sm);
+  padding: 0 24px;
+  height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 16px;
+  border: 1.5px solid var(--navy-700);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--navy-700);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, color .15s;
+  flex-shrink: 0;
+}
+.back-btn:hover { background: var(--navy-700); color: var(--white); }
+.back-btn svg { flex-shrink: 0; }
+
+.nav-logo {
+  flex: 1;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--navy-900);
+  letter-spacing: .04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.nav-logo .accent { color: var(--em-600); }
+
+/* Purchase-mode toggle */
+.mode-toggle {
+  display: flex;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-md);
+  padding: 3px;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.mode-btn {
+  padding: 7px 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gray-500);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background .2s, color .2s, box-shadow .2s;
+}
+.mode-btn.active {
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  color: var(--navy-800);
+}
+.mode-btn.active[data-mode="loan"] { color: var(--em-700); }
+
+/* ══════════════════════════════════════════
+   PAGE WRAPPER
+══════════════════════════════════════════ */
+.wrap {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 24px 24px 60px;
+}
+
+/* ══════════════════════════════════════════
+   HERO
+══════════════════════════════════════════ */
+.hero {
+  background: linear-gradient(135deg, var(--navy-950) 0%, var(--navy-800) 55%, #1a3f60 100%);
+  border-radius: var(--radius-xl);
+  padding: 36px 44px;
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  align-items: center;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before, .hero::after {
+  content: '';
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.hero::before { top: -90px; right: -90px; width: 340px; height: 340px; background: rgba(0,191,140,.06); }
+.hero::after  { bottom: -60px; left: 42%; width: 260px; height: 260px; background: rgba(201,162,39,.05); }
+
+.hero-left { position: relative; z-index: 1; }
+
+.hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0,191,140,.18);
+  border: 1px solid rgba(0,191,140,.38);
+  color: #3dd6a5;
+  padding: 4px 13px;
+  border-radius: 20px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  margin-bottom: 14px;
+}
+
+.hero-h1 {
+  font-size: clamp(19px, 2vw, 26px);
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1.35;
+  margin-bottom: 10px;
+}
+.hero-h1 em { color: var(--gold-500); font-style: normal; }
+
+.hero-sub {
+  font-size: 12.5px;
+  color: rgba(255,255,255,.6);
+  margin-bottom: 22px;
+}
+
+.hero-specs {
+  display: flex;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.spec-item { display: flex; flex-direction: column; }
+.spec-lbl {
+  font-size: 9.5px;
+  color: rgba(255,255,255,.4);
+  letter-spacing: .09em;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.spec-val { font-size: 14px; font-weight: 700; color: var(--white); }
+
+/* ── Big-number card ── */
+.hero-right { position: relative; z-index: 1; }
+
+.big-card {
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(201,162,39,.5);
+  border-radius: 16px;
+  padding: 26px 28px 22px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  transition: border-color .3s;
+}
+.big-card.loan-border { border-color: rgba(0,191,140,.5); }
+
+.big-card-eyebrow {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: rgba(255,255,255,.45);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.big-num-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  line-height: 1;
+  gap: 1px;
+}
+.big-prefix { font-size: 28px; font-weight: 900; color: var(--gold-500); padding-top: 8px; }
+.big-num    { font-size: clamp(58px, 5.8vw, 80px); font-weight: 900; color: var(--gold-500);
+              letter-spacing: -.02em; text-shadow: 0 0 40px rgba(232,185,58,.3); }
+.big-suffix { font-size: 24px; font-weight: 900; color: var(--gold-500); padding-top: 13px; }
+
+.big-unit   { font-size: 13.5px; color: rgba(255,255,255,.55); margin-top: 6px; }
+.big-period { font-size: 11px; color: rgba(255,255,255,.35); margin-top: 7px; line-height: 1.5; }
+.big-period strong { color: var(--gold-500); }
+
+/* ══════════════════════════════════════════
+   KPI ROW
+══════════════════════════════════════════ */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 16px 14px 14px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+.kpi-em::before     { background: var(--em-600); }
+.kpi-navy::before   { background: var(--navy-700); }
+.kpi-gold::before   { background: var(--gold-600); }
+.kpi-danger::before { background: var(--danger); }
+
+.kpi-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  margin-bottom: 7px;
+}
+.kpi-val {
+  font-size: clamp(18px, 2vw, 24px);
+  font-weight: 900;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.kpi-val.c-em    { color: var(--em-700); }
+.kpi-val.c-navy  { color: var(--navy-800); }
+.kpi-val.c-gold  { color: var(--gold-600); }
+.kpi-val.c-red   { color: var(--danger); }
+.kpi-sub { font-size: 10.5px; color: var(--gray-500); }
+
+/* ══════════════════════════════════════════
+   GRID LAYOUTS
+══════════════════════════════════════════ */
+.g2   { display: grid; grid-template-columns: 1fr 1fr;   gap: 18px; margin-bottom: 18px; }
+.g3   { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+
+/* ══════════════════════════════════════════
+   CARD
+══════════════════════════════════════════ */
+.card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-sm);
+}
+.card-hd {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.card-icon {
+  width: 30px; height: 30px;
+  border-radius: var(--radius-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.ci-em   { background: var(--em-50); }
+.ci-gold { background: var(--gold-50); }
+.ci-navy { background: var(--navy-50); }
+
+.card-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--navy-900);
+}
+.card-title small { font-size: 10.5px; font-weight: 500; color: var(--gray-400); margin-left: 6px; }
+
+/* ══════════════════════════════════════════
+   FINANCE TABLE
+══════════════════════════════════════════ */
+.fin-tbl { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+
+.fin-tbl .sec-hd { background: var(--gray-50); }
+.fin-tbl .sec-hd td {
+  padding: 7px 10px;
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  border-top: 1px solid var(--gray-200);
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.fin-tbl tr { border-bottom: 1px solid var(--gray-100); }
+.fin-tbl tr:last-child { border-bottom: none; }
+.fin-tbl td { padding: 9px 10px; vertical-align: middle; }
+.fin-tbl .lbl { color: var(--gray-700); font-weight: 500; }
+.fin-tbl .val { text-align: right; font-weight: 700; color: var(--navy-900); white-space: nowrap; }
+.fin-tbl .val.neg  { color: var(--danger); }
+.fin-tbl .val.pos  { color: var(--em-700); }
+.fin-tbl .val.gold { color: var(--gold-700); }
+
+/* subtotal */
+.fin-tbl .sub-row td {
+  background: var(--navy-50);
+  border-top: 1.5px solid var(--navy-100);
+  font-weight: 700;
+  padding: 10px 10px;
+}
+
+/* grand total */
+.fin-tbl .grand-row td {
+  background: var(--navy-900);
+  color: var(--white);
+  font-weight: 800;
+  font-size: 14px;
+  padding: 13px 10px;
+}
+.fin-tbl .grand-row td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.fin-tbl .grand-row td:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+.fin-tbl .grand-row .val { color: var(--gold-500); font-size: 18px; }
+
+/* ── Loan-only visibility ── */
+.loan-only { transition: none; }
+.loan-only.hidden { display: none !important; }
+
+/* ── Loan warning ── */
+.loan-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger-bdr);
+  border-radius: var(--radius-md);
+  padding: 10px 13px;
+  font-size: 11px;
+  color: var(--danger);
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.loan-warn.hidden { display: none !important; }
+.loan-warn svg { flex-shrink: 0; margin-top: 2px; }
+
+/* ══════════════════════════════════════════
+   MONTHLY FLOW STRIP
+══════════════════════════════════════════ */
+.flow-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 13px 14px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.flow-box { text-align: center; min-width: 80px; }
+.flow-lbl {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: var(--gray-400);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  margin-bottom: 3px;
+}
+.flow-val { font-size: 17px; font-weight: 900; }
+.flow-val.green { color: var(--em-700); }
+.flow-val.red   { color: var(--danger); }
+.flow-val.gold  { color: var(--gold-700); }
+.flow-val.navy  { color: var(--navy-800); }
+.flow-arrow { font-size: 16px; color: var(--gray-300); line-height: 1; }
+
+/* ══════════════════════════════════════════
+   CHARTS
+══════════════════════════════════════════ */
+.chart-wrap { position: relative; height: 220px; }
+
+.chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 10px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--gray-500);
+}
+.legend-dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ══════════════════════════════════════════
+   WARRANTY BANNER
+══════════════════════════════════════════ */
+.warranty {
+  background: linear-gradient(135deg, var(--em-50) 0%, rgba(0,155,114,.04) 100%);
+  border: 1.5px solid var(--em-600);
+  border-radius: var(--radius-lg);
+  padding: 24px 28px;
+  margin-bottom: 18px;
+}
+.warranty-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.warranty-badge {
+  background: var(--em-600);
+  color: var(--white);
+  font-size: 11.5px;
+  font-weight: 800;
+  padding: 5px 15px;
+  border-radius: 20px;
+  white-space: nowrap;
+  letter-spacing: .04em;
+}
+.warranty-ttl {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--navy-900);
+}
+.warranty-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.warranty-item { text-align: center; }
+.w-num  { font-size: 34px; font-weight: 900; color: var(--em-700); line-height: 1; }
+.w-unit { font-size: 15px; font-weight: 700; color: var(--em-700); }
+.w-lbl  { font-size: 11px; color: var(--gray-500); margin-top: 4px; }
+
+/* ══════════════════════════════════════════
+   FEATURE CARDS
+══════════════════════════════════════════ */
+.feat-card {
+  background: var(--white);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.feat-icon {
+  width: 40px; height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--em-50);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.feat-title { font-size: 13.5px; font-weight: 800; color: var(--navy-900); }
+.feat-desc  { font-size: 11.5px; color: var(--gray-500); line-height: 1.7; flex: 1; }
+.feat-tag {
+  display: inline-block;
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--em-700);
+  background: var(--em-50);
+  border-radius: var(--radius-sm);
+  padding: 3px 10px;
+  margin-top: 2px;
+}
+
+/* ══════════════════════════════════════════
+   SUMMARY NOTE (466万円 anchor)
+══════════════════════════════════════════ */
+.note-banner {
+  background: var(--gold-50);
+  border: 1.5px solid var(--gold-200);
+  border-left: 4px solid var(--gold-600);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 14px 18px;
+  font-size: 12px;
+  color: var(--gray-700);
+  line-height: 1.8;
+  margin-bottom: 20px;
+}
+.note-banner strong { color: var(--gold-800); font-weight: 800; }
+
+/* ══════════════════════════════════════════
+   CTA FOOTER
+══════════════════════════════════════════ */
+.cta-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 20px;
+  border-top: 1px solid var(--gray-200);
+}
+
+.btn-ghost {
+  padding: 10px 22px;
+  border: 1.5px solid var(--navy-700);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--navy-700);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, color .15s;
+  white-space: nowrap;
+}
+.btn-ghost:hover { background: var(--navy-700); color: var(--white); }
+
+.btn-em {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 26px;
+  background: linear-gradient(135deg, var(--em-600), var(--em-700));
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0,155,114,.35);
+  transition: transform .17s, box-shadow .17s;
+  white-space: nowrap;
+}
+.btn-em:hover { transform: translateY(-2px); box-shadow: 0 7px 20px rgba(0,155,114,.45); }
+
+.btn-slide {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 11px 26px;
+  background: linear-gradient(135deg, var(--gold-600), var(--gold-700));
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--white);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(201,162,39,.38);
+  transition: transform .17s, box-shadow .17s;
+  white-space: nowrap;
+}
+.btn-slide:hover { transform: translateY(-2px); box-shadow: 0 7px 22px rgba(201,162,39,.50); }
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — TABLET (≤900px)
+══════════════════════════════════════════ */
+@media (max-width: 900px) {
+  .hero       { grid-template-columns: 1fr; padding: 26px 22px; }
+  .g2, .g3    { grid-template-columns: 1fr; }
+  .kpi-row    { grid-template-columns: 1fr 1fr; }
+  .warranty-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* ══════════════════════════════════════════
+   RESPONSIVE — MOBILE (≤640px)
+══════════════════════════════════════════ */
+@media (max-width: 640px) {
+  .wrap { padding: 14px 14px 48px; }
+  .top-nav { padding: 0 14px; height: 54px; }
+  .nav-logo { font-size: 12px; }
+  .mode-btn { padding: 6px 11px; font-size: 11.5px; }
+  .back-btn { padding: 6px 12px; font-size: 11.5px; }
+
+  .hero { padding: 20px 16px; margin-bottom: 14px; }
+  .hero-h1 { font-size: 17px; }
+  .big-num { font-size: 52px; }
+  .big-prefix, .big-suffix { font-size: 22px; }
+
+  .kpi-row { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px; }
+  .kpi-val { font-size: 18px; }
+
+  .g2, .g3 { gap: 12px; margin-bottom: 14px; }
+
+  .warranty-grid { grid-template-columns: 1fr; gap: 14px; }
+  .warranty { padding: 18px 16px; }
+
+  .cta-footer { flex-direction: column; align-items: stretch; padding-top: 16px; }
+  .cta-footer button { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 400px) {
+  .kpi-row { grid-template-columns: 1fr; }
+  .hero-specs { gap: 14px; }
+  .big-num { font-size: 44px; }
+}
+
+/* ── utility ── */
+.mb-0 { margin-bottom: 0 !important; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     TOP NAVIGATION
+══════════════════════════════════════════ -->
+<nav class="top-nav">
+
+  <!-- ① 条件入力に戻る — URLパラメータ完全保持 -->
+  <button class="back-btn" onclick="goBack()" type="button" aria-label="条件入力画面に戻る">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M19 12H5M12 19l-7-7 7-7"/>
+    </svg>
+    条件入力に戻る
+  </button>
+
+  <div class="nav-logo">じぶん<span class="accent">電気</span> — シミュレーション提案書</div>
+
+  <!-- ② 現金一括 / ローン切り替えトグル -->
+  <div class="mode-toggle" role="group" aria-label="購入方法選択">
+    <button class="mode-btn active" data-mode="cash" id="btn-cash" onclick="setMode('cash')" type="button">
+      💴 現金一括購入
+    </button>
+    <button class="mode-btn" data-mode="loan" id="btn-loan" onclick="setMode('loan')" type="button">
+      🏦 ローン活用
+    </button>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     MAIN
+══════════════════════════════════════════ -->
+<main class="wrap">
+
+  <!-- ── HERO ── -->
+  <section class="hero" aria-label="提案サマリー">
+    <div class="hero-left">
+      <div class="hero-chip">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+        20年間ライフサイクル シミュレーション結果
+      </div>
+
+      <h1 class="hero-h1">
+        太陽光＋蓄電池の導入で<br>
+        <em>電気代の負担を大幅軽減</em>し、<br>
+        エネルギーを資産として長期活用。
+      </h1>
+      <p class="hero-sub">10kW 太陽光発電システム ＋ 16.6kWh 蓄電池セット ／ 20年間長期メーカー保証付き</p>
+
+      <div class="hero-specs">
+        <div class="spec-item"><span class="spec-lbl">発電容量</span><span class="spec-val">10.0 kW</span></div>
+        <div class="spec-item"><span class="spec-lbl">蓄電容量</span><span class="spec-val">16.6 kWh</span></div>
+        <div class="spec-item"><span class="spec-lbl">年間発電量（想定）</span><span class="spec-val">10,800 kWh</span></div>
+        <div class="spec-item"><span class="spec-lbl">メーカー保証</span><span class="spec-val">20年間</span></div>
+      </div>
+    </div>
+
+    <!-- ③ 466万円 大型数字 — 右側に独立配置 -->
+    <div class="hero-right">
+      <div class="big-card" id="big-card">
+        <div class="big-card-eyebrow" id="big-eyebrow">完済後20年間 累積純節約額（最終結論）</div>
+        <div class="big-num-row">
+          <span class="big-prefix">約</span>
+          <span class="big-num" id="big-num">466</span>
+          <span class="big-suffix">万円</span>
+        </div>
+        <div class="big-unit" id="big-unit">税込実質負担を差し引いた純メリット</div>
+        <div class="big-period">
+          投資回収目安：<strong id="payback-text">約8年</strong> ／ 以降は純利益フェーズ
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── KPI ROW ── -->
+  <div class="kpi-row">
+    <div class="kpi-card kpi-em">
+      <div class="kpi-lbl">月間 電気代削減</div>
+      <div class="kpi-val c-em">▲¥28,000</div>
+      <div class="kpi-sub">自家消費＋蓄電池活用</div>
+    </div>
+    <div class="kpi-card kpi-navy">
+      <div class="kpi-lbl" id="kpi2-lbl">実質 自己負担額</div>
+      <div class="kpi-val c-navy" id="kpi2-val">362万円</div>
+      <div class="kpi-sub" id="kpi2-sub">補助金控除後・税込合計</div>
+    </div>
+    <div class="kpi-card kpi-gold">
+      <div class="kpi-lbl">FIT 売電期間</div>
+      <div class="kpi-val c-gold">10年間</div>
+      <div class="kpi-sub">固定価格買取制度 適用</div>
+    </div>
+    <div class="kpi-card kpi-danger">
+      <div class="kpi-lbl">年間 CO₂ 削減</div>
+      <div class="kpi-val c-red">▲4.0 t</div>
+      <div class="kpi-sub">20年累計 約80t相当</div>
+    </div>
+  </div>
+
+  <!-- ── 財務テーブル ＋ 累積グラフ ── -->
+  <div class="g2">
+
+    <!-- 収支明細テーブル -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon ci-navy">💼</div>
+        <div class="card-title">
+          <span id="fin-card-title">現金一括購入</span> 収支明細
+          <small>概算・税込</small>
+        </div>
+      </div>
+
+      <table class="fin-tbl" aria-label="収支明細">
+        <!-- 初期コスト -->
+        <tr class="sec-hd"><td colspan="2">初期コスト</td></tr>
+        <tr>
+          <td class="lbl">太陽光発電システム（10kW・パネル30枚）</td>
+          <td class="val">¥2,900,000</td>
+        </tr>
+        <tr>
+          <td class="lbl">蓄電池システム（16.6kWh・全負荷型）</td>
+          <td class="val">¥1,300,000</td>
+        </tr>
+        <tr>
+          <td class="lbl">設置工事・電気工事費</td>
+          <td class="val">¥300,000</td>
+        </tr>
+        <tr>
+          <td class="lbl">補助金（国・都道府県・市区町村）</td>
+          <td class="val neg">▲¥880,000</td>
+        </tr>
+        <tr class="sub-row">
+          <td class="lbl">実質 自己負担合計（A）</td>
+          <td class="val">¥3,620,000</td>
+        </tr>
+
+        <!-- ローン詳細（ローンモード専用） -->
+        <tr class="sec-hd loan-only hidden"><td colspan="2">ローン詳細</td></tr>
+        <tr class="loan-only hidden">
+          <td class="lbl">適用金利（年率）</td>
+          <td class="val">1.5%</td>
+        </tr>
+        <tr class="loan-only hidden">
+          <td class="lbl">返済期間・回数</td>
+          <td class="val">15年・180回払い</td>
+        </tr>
+        <tr class="loan-only hidden">
+          <td class="lbl">月々の返済額</td>
+          <td class="val">¥22,500</td>
+        </tr>
+        <tr class="loan-only hidden">
+          <td class="lbl">総支払利息</td>
+          <td class="val neg">¥430,000</td>
+        </tr>
+
+        <!-- 20年メリット -->
+        <tr class="sec-hd"><td colspan="2">20年間 メリット試算</td></tr>
+        <tr>
+          <td class="lbl">自家消費・蓄電池による電気代削減（20年）</td>
+          <td class="val pos">+¥6,720,000</td>
+        </tr>
+        <tr>
+          <td class="lbl">FIT 売電収入（10年間）</td>
+          <td class="val pos">+¥1,560,000</td>
+        </tr>
+        <tr class="sub-row">
+          <td class="lbl">20年間 総メリット（B）</td>
+          <td class="val pos">¥8,280,000</td>
+        </tr>
+
+        <!-- 純利益（モードで切り替わる） -->
+        <tr class="grand-row">
+          <td class="lbl" id="grand-label">現金一括購入メリット（B − A）</td>
+          <td class="val" id="grand-val">¥4,660,000</td>
+        </tr>
+      </table>
+
+      <!-- ローン警告文（現金モード時は非表示） -->
+      <div class="loan-warn loan-only hidden" id="loan-warn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--danger)">
+          <path d="M12 2a10 10 0 100 20A10 10 0 0012 2zm0 15a1 1 0 110-2 1 1 0 010 2zm0-4a1 1 0 01-1-1V9a1 1 0 012 0v3a1 1 0 01-1 1z"/>
+        </svg>
+        ⚠️ 概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。
+      </div>
+
+      <!-- 月次キャッシュフロー -->
+      <div class="flow-strip" id="flow-strip">
+        <div class="flow-box">
+          <div class="flow-lbl">月間 節約効果</div>
+          <div class="flow-val green">+¥41,000</div>
+          <div style="font-size:9px;color:var(--gray-400);margin-top:2px">（FIT期間 ¥28K+¥13K）</div>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box loan-only hidden" id="flow-loan-box">
+          <div class="flow-lbl">月々 返済額</div>
+          <div class="flow-val red">▲¥22,500</div>
+        </div>
+        <div class="flow-arrow loan-only hidden" id="flow-arrow2">→</div>
+        <div class="flow-box">
+          <div class="flow-lbl" id="flow-net-lbl">月間 純節約（FIT期間）</div>
+          <div class="flow-val gold" id="flow-net-val">+¥41,000</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 累積収支グラフ -->
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon ci-em">📈</div>
+        <div class="card-title">
+          累積収支グラフ
+          <small>20年シミュレーション</small>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart-cumulative"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--em-600)"></div>累積メリット</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--navy-700)"></div>実質負担（投資額）</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold-500)"></div>純メリット（差引）</div>
+      </div>
+
+      <!-- 466万円注記 -->
+      <div class="note-banner mb-0" style="margin-top:14px">
+        ※20年目までは長期メーカー保証で守られます。20年目以降の機器更新（パワコン等）や故障対応費用についても、この<strong>466万円の節約メリットの中から無理なくスマートに準備・対応が可能</strong>です。
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 年次バーチャート ＋ 電力フロー ── -->
+  <div class="g2">
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon ci-gold">💰</div>
+        <div class="card-title">
+          年次 収支内訳
+          <small>FIT期間 vs 終了後</small>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart-annual"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--em-600)"></div>自家消費削減</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold-500)"></div>FIT 売電収入</div>
+        <div class="legend-item loan-only hidden" id="legend-loan"><div class="legend-dot" style="background:var(--danger);opacity:.7"></div>ローン返済</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-hd">
+        <div class="card-icon ci-navy">🔋</div>
+        <div class="card-title">
+          電力フロー構成
+          <small>年間 10,800 kWh</small>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="chart-flow"></canvas>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:var(--em-600)"></div>日中 直接自家消費</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--em-200)"></div>蓄電池 夜間放電</div>
+        <div class="legend-item"><div class="legend-dot" style="background:var(--gold-500)"></div>FIT 売電</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 20年間長期メーカー保証 ── -->
+  <div class="warranty">
+    <div class="warranty-top">
+      <div class="warranty-badge">✓ 長期メーカー保証</div>
+      <div class="warranty-ttl">導入から20年間の長期メーカー保証 — 安心・安全・ノーリスクが最大の強み</div>
+    </div>
+    <div class="warranty-grid">
+      <div class="warranty-item">
+        <div><span class="w-num">20</span><span class="w-unit">年</span></div>
+        <div class="w-lbl">機器・施工 一体保証期間</div>
+      </div>
+      <div class="warranty-item">
+        <div><span class="w-num">¥0</span></div>
+        <div class="w-lbl">保証期間内の修理・部品交換費用</div>
+      </div>
+      <div class="warranty-item">
+        <div><span class="w-num">365</span><span class="w-unit">日</span></div>
+        <div class="w-lbl">年間サポート・緊急対応体制</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3つの強み ── -->
+  <div class="g3">
+    <div class="feat-card">
+      <div class="feat-icon">☀️</div>
+      <div class="feat-title">電気代の負担を大幅軽減</div>
+      <div class="feat-desc">
+        自家消費と蓄電池の組み合わせにより、日中の太陽光発電を直接利用し、余剰分を蓄電して夜間に活用。電力会社への依存を大きく下げ、月々の電気代を継続的・安定的に削減します。
+      </div>
+      <span class="feat-tag">月平均 ▲¥28,000 の削減効果</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">🛡️</div>
+      <div class="feat-title">停電・災害時の完全バックアップ</div>
+      <div class="feat-desc">
+        16.6kWhの大容量蓄電池が電力を備蓄。停電時でも冷蔵庫・照明・医療機器・充電器などを最長2日間稼働させ、家族の安全と生活を守ります。20年保証内は修理費用も不要です。
+      </div>
+      <span class="feat-tag">停電対応 最大48時間バックアップ</span>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">📊</div>
+      <div class="feat-title">長期資産として確実に機能</div>
+      <div class="feat-desc">
+        投資回収後の9〜20年目は「純利益フェーズ」へ移行。住宅資産価値の向上にも貢献し、電気代上昇リスクへのヘッジとして将来の家計を守る、長期的な価値を持つ資産です。
+      </div>
+      <span class="feat-tag">回収後10年間で 約¥3,500,000 の純益</span>
+    </div>
+  </div>
+
+  <!-- ── CTA ── -->
+  <div class="cta-footer">
+    <button class="btn-ghost" type="button" onclick="window.print()">
+      🖨 印刷・PDF保存
+    </button>
+    <button class="btn-em" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/>
+      </svg>
+      詳細シミュレーションを確認
+    </button>
+    <!-- ④ スライドボタン — モードで動作・文言が切り替わる -->
+    <button class="btn-slide" type="button" id="btn-slide">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2"/>
+        <line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+      <span id="slide-btn-label">実データ版PPTXを出力</span>
+    </button>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ────────────────────────────────────────
+   ① 「条件入力に戻る」— URLパラメータ保持
+──────────────────────────────────────── */
+function goBack() {
+  const params = window.location.search;  // "?xxx=yyy&..." 全体
+  if (params && params.length > 1) {
+    // URLパラメータがある場合 → index.html にそのまま引き継いで遷移
+    window.location.href = 'index.html' + params;
+  } else {
+    // パラメータなしの場合 → ブラウザ履歴を1ステップ戻る
+    window.history.back();
+  }
+}
+
+/* ────────────────────────────────────────
+   ② モード定義データ
+──────────────────────────────────────── */
+const MODE_DATA = {
+  cash: {
+    bigNum        : '466',
+    bigEyebrow    : '現金一括購入 ／ 20年間 累積純節約額（最終結論）',
+    bigUnit       : '税込実質負担を差し引いた純メリット',
+    payback       : '約8年',
+    grandLabel    : '現金一括購入メリット（B − A）',
+    grandVal      : '¥4,660,000',
+    finCardTitle  : '現金一括購入',
+    kpi2Lbl       : '実質 自己負担額',
+    kpi2Val       : '362万円',
+    kpi2Sub       : '補助金控除後・税込合計',
+    flowNetLbl    : '月間 純節約（FIT期間）',
+    flowNetVal    : '+¥41,000',
+    slideBtnLabel : '実データ版PPTXを出力',
+    slideAction   : exportPptx,
+    bigCardLoan   : false,
+    loanPaymentData: Array(20).fill(0),
+  },
+  loan: {
+    bigNum        : '423',
+    bigEyebrow    : 'ローン完済後 ／ 20年間 累積純節約額（最終結論）',
+    bigUnit       : '実質負担＋総支払利息を差し引いた純メリット',
+    payback       : '約9年',
+    grandLabel    : 'ローン完済時メリット（B − A − 利息）',
+    grandVal      : '¥4,230,000',
+    finCardTitle  : 'ローン活用',
+    kpi2Lbl       : '月々 返済額',
+    kpi2Val       : '¥22,500',
+    kpi2Sub       : '年率1.5% ／ 15年返済',
+    flowNetLbl    : '月次 収支差（FIT期間）',
+    flowNetVal    : '+¥18,500',
+    slideBtnLabel : '導入手段用スライドを表示',
+    slideAction   : showSlide,
+    bigCardLoan   : true,
+    loanPaymentData: Array.from({ length: 20 }, (_, i) => i < 15 ? -22500 * 12 : 0),
+  },
+};
+
+/* ────────────────────────────────────────
+   ③ スライドボタン アクション
+──────────────────────────────────────── */
+function exportPptx() {
+  // 実装環境に応じてPPTX生成APIへ連携
+  alert('実データ版PPTXの出力を開始します。\n（バックエンドAPI連携 / ダウンロード処理）');
+}
+function showSlide() {
+  // 実装環境に応じてスライド表示ページへ遷移
+  alert('導入手段用スライドを表示します。\n（スライドビューア / プレゼンテーション表示）');
+}
+
+/* ────────────────────────────────────────
+   ④ モード切り替えメイン関数
+──────────────────────────────────────── */
+let currentMode = 'cash';
+
+function setMode(mode) {
+  if (currentMode === mode) return;
+  currentMode = mode;
+  const d = MODE_DATA[mode];
+
+  // トグルボタン状態
+  document.getElementById('btn-cash').classList.toggle('active', mode === 'cash');
+  document.getElementById('btn-loan').classList.toggle('active', mode === 'loan');
+
+  // ローン専用要素の表示制御
+  document.querySelectorAll('.loan-only').forEach(el => {
+    el.classList.toggle('hidden', mode === 'cash');
+  });
+
+  // ヒーロー大数字カード
+  document.getElementById('big-num').textContent     = d.bigNum;
+  document.getElementById('big-eyebrow').textContent = d.bigEyebrow;
+  document.getElementById('big-unit').textContent    = d.bigUnit;
+  document.getElementById('payback-text').textContent = d.payback;
+  document.getElementById('big-card').classList.toggle('loan-border', d.bigCardLoan);
+
+  // グランドトータル行
+  document.getElementById('grand-label').textContent = d.grandLabel;
+  document.getElementById('grand-val').textContent   = d.grandVal;
+
+  // フィナンスカードタイトル
+  document.getElementById('fin-card-title').textContent = d.finCardTitle;
+
+  // KPI 2
+  document.getElementById('kpi2-lbl').textContent = d.kpi2Lbl;
+  document.getElementById('kpi2-val').textContent = d.kpi2Val;
+  document.getElementById('kpi2-sub').textContent = d.kpi2Sub;
+
+  // フロー表示
+  document.getElementById('flow-net-lbl').textContent = d.flowNetLbl;
+  document.getElementById('flow-net-val').textContent = d.flowNetVal;
+
+  // スライドボタン — 文言 & アクション完全切り替え
+  document.getElementById('slide-btn-label').textContent = d.slideBtnLabel;
+  document.getElementById('btn-slide').onclick = d.slideAction;
+
+  // グラフ更新
+  updateAnnualChart(d.loanPaymentData);
+}
+
+/* ────────────────────────────────────────
+   チャートデータ計算
+──────────────────────────────────────── */
+const YEARS = 20;
+const NET_INVEST = 3620000;
+
+// 年次メリット：1〜10年目（自家消費+FIT）、11〜20年目（自家消費のみ、電気代上昇考慮）
+function annualBenefit(yr) {
+  if (yr <= 10) return 28000 * 12 + 13000 * 12;  // ¥492,000
+  return 28000 * 12;                               // ¥336,000（電気代上昇分は相殺で保守試算）
+}
+
+// 累積メリット配列（Year 0〜20）
+const cumBenefit = (() => {
+  const arr = [0]; let acc = 0;
+  for (let y = 1; y <= YEARS; y++) { acc += annualBenefit(y); arr.push(acc); }
+  return arr;
+})();
+
+// 純メリット（累積 - 投資額）
+const netArr = cumBenefit.map(v => v - NET_INVEST);
+
+// 年次ラベル
+const yearLabels = Array.from({ length: YEARS }, (_, i) => `${i + 1}年`);
+
+/* ────────────────────────────────────────
+   グラフ共通オプション
+──────────────────────────────────────── */
+const fontBase = { family: "'Noto Sans JP', sans-serif" };
+
+function commonScaleOpts(tickCb) {
+  return {
+    grid: { color: 'rgba(0,0,0,.04)' },
+    ticks: { font: { ...fontBase, size: 10 }, callback: tickCb },
+  };
+}
+
+/* ────────────────────────────────────────
+   累積収支グラフ（ライン）
+──────────────────────────────────────── */
+(function buildCumulative() {
+  const ctx = document.getElementById('chart-cumulative').getContext('2d');
+  const labels = ['導入時', ...yearLabels];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: '累積メリット',
+          data: cumBenefit,
+          borderColor: '#009b72',
+          backgroundColor: 'rgba(0,155,114,.08)',
+          borderWidth: 2.5,
+          pointRadius: 2,
+          tension: .4,
+          fill: false,
+          order: 2,
+        },
+        {
+          label: '純メリット',
+          data: netArr,
+          borderColor: '#c9a227',
+          borderWidth: 2,
+          borderDash: [5, 3],
+          pointRadius: 2,
+          tension: .4,
+          fill: {
+            target: { value: 0 },
+            above: 'rgba(201,162,39,.07)',
+            below: 'rgba(220,38,38,.05)',
+          },
+          order: 1,
+        },
+        {
+          label: '実質負担',
+          data: labels.map(() => NET_INVEST),
+          borderColor: '#1e3d6e',
+          borderWidth: 1.5,
+          borderDash: [8, 4],
+          pointRadius: 0,
+          fill: false,
+          order: 3,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          bodyFont: fontBase,
+          callbacks: {
+            label: c => ` ${c.dataset.label}: ¥${c.parsed.y.toLocaleString()}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          ...commonScaleOpts(),
+          ticks: { font: { ...fontBase, size: 9.5 }, maxTicksLimit: 11 },
+        },
+        y: {
+          ...commonScaleOpts(v => {
+            const m = v / 10000;
+            return m >= 0 ? `+${m.toFixed(0)}万` : `${m.toFixed(0)}万`;
+          }),
+        },
+      },
+    },
+  });
+})();
+
+/* ────────────────────────────────────────
+   年次収支バーチャート（更新可能）
+──────────────────────────────────────── */
+let annualChart = null;
+
+(function buildAnnual() {
+  const ctx = document.getElementById('chart-annual').getContext('2d');
+  const selfData = Array.from({ length: YEARS }, () => 28000 * 12);
+  const fitData  = Array.from({ length: YEARS }, (_, i) => i < 10 ? 13000 * 12 : 0);
+
+  annualChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: yearLabels,
+      datasets: [
+        {
+          label: '自家消費削減',
+          data: selfData,
+          backgroundColor: '#009b72',
+          borderRadius: 3,
+          stack: 's',
+        },
+        {
+          label: 'FIT売電収入',
+          data: fitData,
+          backgroundColor: '#e5bc3c',
+          borderRadius: 3,
+          stack: 's',
+        },
+        {
+          label: 'ローン返済',
+          data: Array(YEARS).fill(0),
+          backgroundColor: 'rgba(220,38,38,.7)',
+          borderRadius: 3,
+          stack: 's',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          bodyFont: fontBase,
+          callbacks: {
+            label: c => ` ${c.dataset.label}: ¥${Math.abs(c.parsed.y).toLocaleString()}`,
+          },
+        },
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { display: false },
+          ticks: { font: { ...fontBase, size: 9.5 }, maxTicksLimit: 10 },
+        },
+        y: {
+          stacked: true,
+          ...commonScaleOpts(v => `¥${(Math.abs(v) / 10000).toFixed(0)}万`),
+        },
+      },
+    },
+  });
+})();
+
+function updateAnnualChart(loanData) {
+  if (!annualChart) return;
+  annualChart.data.datasets[2].data = loanData;
+  annualChart.update('active');
+}
+
+/* ────────────────────────────────────────
+   電力フロードーナツ
+──────────────────────────────────────── */
+(function buildFlow() {
+  const ctx = document.getElementById('chart-flow').getContext('2d');
+
+  new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['日中 直接自家消費', '蓄電池 夜間放電', 'FIT 売電'],
+      datasets: [{
+        data: [3800, 2600, 4400],
+        backgroundColor: ['#009b72', '#a3dfc9', '#e5bc3c'],
+        borderColor: '#ffffff',
+        borderWidth: 3,
+        hoverOffset: 8,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '62%',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          bodyFont: fontBase,
+          callbacks: { label: c => ` ${c.label}: ${c.parsed.toLocaleString()} kWh` },
+        },
+      },
+    },
+    plugins: [{
+      id: 'center',
+      afterDraw(chart) {
+        const { ctx: c, chartArea: { left, top, width, height } } = chart;
+        const cx = left + width / 2, cy = top + height / 2;
+        c.save();
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.font = `900 20px 'Noto Sans JP', sans-serif`;
+        c.fillStyle = '#0d1f3c';
+        c.fillText('10,800', cx, cy - 9);
+        c.font = `500 11px 'Noto Sans JP', sans-serif`;
+        c.fillStyle = '#64748b';
+        c.fillText('kWh / 年', cx, cy + 12);
+        c.restore();
+      },
+    }],
+  });
+})();
+
+/* ────────────────────────────────────────
+   初期化（デフォルト: 現金一括モード）
+   スライドボタンのデフォルトアクション設定
+──────────────────────────────────────── */
+document.getElementById('btn-slide').onclick = exportPptx;
+</script>
+</body>
+</html>
