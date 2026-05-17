@@ -1832,63 +1832,6 @@ function _applyMonthlyTouRatios() {
   }
 }
 
-function onMonthlyTouInput(i) {
-  const day    = parseFloat(document.getElementById(`m-day-${i}`)?.value)    || 0;
-  const living = parseFloat(document.getElementById(`m-living-${i}`)?.value) || 0;
-  const ngt    = parseFloat(document.getElementById(`m-ngt-${i}`)?.value)    || 0;
-  const sum = day + living + ngt;
-  if (sum > 0) {
-    const kwhEl = document.getElementById(`m-kwh-${i}`);
-    if (kwhEl) kwhEl.value = Math.round(sum);
-  }
-  _applyMonthlyTouRatios();
-  onMonthlyInput();
-}
-
-function _applyMonthlyTouRatios() {
-  let totalDay = 0, totalLiving = 0, totalNgt = 0, hasTou = false;
-  for (let i = 0; i < 12; i++) {
-    const d = parseFloat(document.getElementById(`m-day-${i}`)?.value)    || 0;
-    const l = parseFloat(document.getElementById(`m-living-${i}`)?.value) || 0;
-    const n = parseFloat(document.getElementById(`m-ngt-${i}`)?.value)    || 0;
-    if (d + l + n > 0) { totalDay += d; totalLiving += l; totalNgt += n; hasTou = true; }
-  }
-  if (!hasTou) return;
-  const total = totalDay + totalLiving + totalNgt;
-  if (total <= 0) return;
-  const rDay    = Math.round(totalDay    / total * 100);
-  const rLiving = Math.round(totalLiving / total * 100);
-  const rNgt    = Math.max(0, 100 - rDay - rLiving);
-
-  const _buildRatios = (planKp) => {
-    if (planKp === 'kyushu_denka_night') return { day: rDay/100, hol: 0, living: rLiving/100, ngt: rNgt/100, label: '月次実績' };
-    if (planKp === 'kyushu_kiji')        return { day: rDay/100, living: rLiving/100, ngt: rNgt/100, label: '月次実績' };
-    if (planKp === 'kyushu_ohisama')     return { ohisama: rDay/100, peak: rLiving/100, ngt: rNgt/100, label: '月次実績' };
-    return null;
-  };
-
-  const kp     = document.getElementById('kyuden-plan')?.value     || '';
-  const postKp = document.getElementById('post-kyuden-plan')?.value || '';
-
-  const beforeRatios = _buildRatios(kp);
-  if (beforeRatios) {
-    beforeCustomRatios  = beforeRatios;
-    isBeforeCustomRatio = true;
-    _beforeRatioPanelPlan = null;
-    updateBeforeRatioPanel();
-    updateBeforeRatioStyleStatus();
-  }
-
-  const afterRatios = _buildRatios(postKp);
-  if (afterRatios) {
-    customRatios  = afterRatios;
-    isCustomRatio = true;
-    _ratioPanelPlan = null;
-    updateRatioPanel();
-    updateRatioStyleStatus();
-  }
-}
-
 function onMonthlyInput() {
   const bills = [], kwhArr = [];
   for (let i = 0; i < 12; i++) {
