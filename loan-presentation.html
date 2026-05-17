@@ -321,17 +321,17 @@ html,body{
 ═══════════════════════════════════════════ */
 .s7{
   background:linear-gradient(145deg,#f0fdf4 0%,#d1fae5 55%,#f0fdf4 100%);
-  padding:52px 72px;position:relative;
+  padding:36px 72px 28px;position:relative;
 }
 .s7::before{
   content:'';position:absolute;inset:0;
   background:radial-gradient(ellipse at 50% 120%,rgba(27,67,50,.06) 0%,transparent 65%);
 }
 .s7-inner{position:relative;z-index:1;flex:1;display:flex;flex-direction:column}
-.ben-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;flex:1}
+.ben-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;flex:0 0 auto}
 .ben-card{
   background:#fff;border:1px solid rgba(27,67,50,.15);
-  border-radius:16px;padding:28px 24px;
+  border-radius:16px;padding:20px 20px;
   display:flex;flex-direction:column;align-items:center;text-align:center;
   position:relative;overflow:hidden;
   box-shadow:0 2px 12px rgba(0,0,0,.06);
@@ -340,16 +340,16 @@ html,body{
   content:'';position:absolute;bottom:0;left:0;right:0;height:2px;
   background:linear-gradient(90deg,transparent,var(--gold),transparent);
 }
-.bc-icon{font-size:41px;margin-bottom:12px}
-.bc-lbl{font-size:16px;color:var(--w60);font-weight:600;letter-spacing:.05em;margin-bottom:10px}
-.bc-val{font-size:46px;font-weight:900;color:var(--gold-light);line-height:1;margin-bottom:2px}
-.bc-unit{font-size:17px;color:var(--gold);font-weight:700;margin-bottom:10px}
-.bc-desc{font-size:16px;color:var(--w60);line-height:1.65}
+.bc-icon{font-size:34px;margin-bottom:8px}
+.bc-lbl{font-size:14px;color:var(--w60);font-weight:600;letter-spacing:.05em;margin-bottom:6px}
+.bc-val{font-size:38px;font-weight:900;color:var(--gold-light);line-height:1;margin-bottom:2px}
+.bc-unit{font-size:15px;color:var(--gold);font-weight:700;margin-bottom:6px}
+.bc-desc{font-size:14px;color:var(--w60);line-height:1.55}
 .s7-bot{
-  margin-top:16px;
+  margin-top:12px;
   background:linear-gradient(135deg,#1B4332 0%,#2D6A4F 100%);
   border-radius:14px;
-  padding:20px 36px 16px;
+  padding:14px 28px 12px;
   box-shadow:0 4px 20px rgba(27,67,50,.3);
 }
 .s7-bot-top{display:flex;justify-content:space-between;align-items:center;gap:24px}
@@ -359,19 +359,19 @@ html,body{
 .sb-num{font-size:54px;font-weight:900;color:#fbbf24;line-height:1}
 .sb-unit{font-size:26px;font-weight:700;color:#fbbf24;line-height:1}
 .sb-notice{
-  margin-top:14px;
+  margin-top:10px;
   background:rgba(0,0,0,0.28);
   border:1.5px solid rgba(251,191,36,0.55);
   border-radius:10px;
-  padding:14px 20px;
+  padding:10px 18px;
 }
 .sb-notice-ttl{
-  font-size:20px;font-weight:900;color:#fbbf24;
-  margin-bottom:8px;letter-spacing:.03em;line-height:1.4;
+  font-size:16px;font-weight:900;color:#fbbf24;
+  margin-bottom:6px;letter-spacing:.03em;line-height:1.4;
 }
 .sb-notice-body{
-  font-size:20px;font-weight:700;color:rgba(255,255,255,.93);
-  line-height:1.75;
+  font-size:15px;font-weight:700;color:rgba(255,255,255,.93);
+  line-height:1.65;
 }
 
 /* ── Back Button ── */
@@ -762,7 +762,7 @@ html,body{
     <!-- ── SLIDE 7 ── -->
     <div class="slide s7" data-idx="6">
       <div class="s7-inner">
-        <div class="sh" style="margin-bottom:24px">
+        <div class="sh" style="margin-bottom:14px">
           <div class="slide-num">SLIDE 07 / POST-PAYOFF BENEFIT</div>
           <div class="slide-ttl">完済後の<span class="g">圧倒的な</span>家計メリット</div>
         </div>
