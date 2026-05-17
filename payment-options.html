@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>導入手段 (Payment Options) — じぶん電気 提案書作成ツール</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
 :root {
   --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
@@ -14,11 +14,6 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; background: var(--bg); color: var(--text); font-size: 15px; }
-.header { background: var(--dg); padding: 20px 32px; display: flex; align-items: center; gap: 16px; }
-.header h1 { color: #fff; font-size: 18px; font-weight: 700; }
-.header .sub { color: var(--ac); font-size: 13px; margin-top: 2px; }
-.back-btn { background: rgba(255,255,255,.12); border: none; border-radius: 8px; color: #fff; padding: 8px 14px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; }
-.back-btn:hover { background: rgba(255,255,255,.22); }
 .body { padding: 28px 32px; max-width: 860px; margin: 0 auto; }
 .section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
 .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
@@ -62,28 +57,22 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #gankin-table th:first-child { text-align: left; }
 #gankin-table td { padding: 4px 8px; text-align: right; border-bottom: 1px solid var(--border); }
 #gankin-table td:first-child { text-align: left; color: var(--muted); }
-/* chart */
-.chart-wrap { margin-top: 14px; background: #fff; border-radius: 10px; padding: 14px; border: 1px solid var(--border); }
-.chart-wrap .ct { font-size: 13px; color: var(--muted); margin-bottom: 10px; font-weight: 600; }
-canvas#po-chart { height: 220px !important; }
-.legend { display: flex; gap: 16px; margin-top: 8px; flex-wrap: wrap; }
-.legend span { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 5px; }
-.legend b { display: inline-block; width: 22px; height: 4px; border-radius: 2px; }
 .dp-borrow { font-size: 12px; color: var(--mg); margin-bottom: 8px; padding: 5px 10px; background: var(--pg); border-radius: 6px; border: 1px solid var(--border); }
 .sale-auto-box { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 10px 14px; font-size: 12px; color: #065f46; margin-bottom: 10px; line-height: 1.7; }
 .sale-auto-box b { font-weight: 700; }
 @media print { .note { border: none; background: transparent; } }
+/* action area */
+.action-area { display: flex; gap: 12px; margin-top: 32px; margin-bottom: 8px; flex-wrap: wrap; }
+.action-area .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; text-decoration: none; transition: opacity .15s, transform .1s; }
+.action-area .btn:hover { opacity: .88; transform: translateY(-1px); }
+.action-area .btn:active { transform: translateY(0); }
+.btn-primary  { background: var(--dg); color: #fff; }
+.btn-success  { background: #16a34a; color: #fff; }
+.btn-secondary { background: #e5e7eb; color: #374151; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <h1>🏦 導入手段 (Payment Options)</h1>
-    <div class="sub">じぶん電気 提案書作成ツール</div>
-  </div>
-  <a href="javascript:window.close()" class="back-btn">✕ 閉じる</a>
-</div>
 
 <div class="body">
 
@@ -138,7 +127,7 @@ canvas#po-chart { height: 220px !important; }
         </div>
         <div class="field">
           <label>頭金（万円）</label>
-          <input type="number" id="po-dp" value="0" min="0" step="10" oninput="updateLoan()">
+          <input type="number" id="po-dp" value="0" min="0" step="10" oninput="updateLoan();updateSlideLink()">
         </div>
       </div>
       <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
@@ -217,17 +206,19 @@ canvas#po-chart { height: 220px !important; }
     </div>
 
     <p class="note">⚠️ 概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。</p>
+  </div>
 
-    <div class="chart-wrap">
-      <div class="ct">📊 20年間 実質累計支出イメージ（万円）</div>
-
-      <canvas id="po-chart"></canvas>
-      <div class="legend">
-        <span><b style="background:#EA580C"></b>電力会社（現状）</span>
-        <span><b style="background:#2D6A4F"></b>現金一括購入（売電差引後）</span>
-        <span id="legend-loan" style="display:none"><b style="background:#7c3aed"></b>ローン活用（売電差引後）</span>
-      </div>
-    </div>
+  <!-- アクションエリア -->
+  <div class="action-area">
+    <a id="slide-link" href="loan-presentation.html" target="_blank" class="btn btn-primary">
+      🖥️ 導入手段用スライドを表示
+    </a>
+    <button onclick="generateLoanPPTX()" class="btn btn-success">
+      📂 PPTXで保存
+    </button>
+    <a href="javascript:window.close()" class="btn btn-secondary">
+      ✕ 閉じる
+    </a>
   </div>
 
   <!-- リース・PPA メモ欄（非表示・コードは保持） -->
@@ -265,7 +256,6 @@ canvas#po-chart { height: 220px !important; }
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
 const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
 let currentMode = 'preset';
-let poChart = null;
 
 // ── URL パラメータ解析 ──
 const _urlParams       = new URLSearchParams(location.search);
@@ -336,8 +326,17 @@ function getSellPriceForYear(year) {
   return year <= rate.years ? rate.price : POST_FIT_DEFAULT;
 }
 
-// y年目までの累計売電収入（円）を返す — URLパラメータ saleIncome のみ使用
+// y年目までの累計売電収入（円）を返す — 卒FIT考慮
 function getCumulativeSaleIncomeYen(upToYear) {
+  if (_surplusKwhYear > 0) {
+    // FIT期間ごとに単価が変わる年次計算
+    let total = 0;
+    for (let y = 1; y <= upToYear; y++) {
+      total += _surplusKwhYear * getSellPriceForYear(y);
+    }
+    return total;
+  }
+  // 固定月額フォールバック（surplusKwhYearなし）
   const monthly = parseFloat(_urlSaleIncome) || 0;
   return monthly * 12 * upToYear;
 }
@@ -417,10 +416,8 @@ function updateLoan() {
       const total    = manualMonthly * count;
       const interest = principal > 0 ? total - principal : null;
       setKinri(fmt(manualMonthly), fmt(total), interest !== null ? fmt(interest) : '-');
-      renderChart(inputs, manualMonthly, count);
     } else {
       setKinri(fmt(manualMonthly), '-', '-');
-      renderChart(inputs, 0, 0);
     }
     return;
   }
@@ -430,19 +427,13 @@ function updateLoan() {
   if (principal <= 0 || count <= 0) {
     setKinri('-', '-', '-');
     setGankin('-', '-', '-', '-');
-    renderChart(inputs, 0, 0);
     return;
   }
 
   if (isGankin) {
     calcGankin(principal, rate, count);
-    const gankin = Math.round(principal / count);
-    const r = rate / 100 / 12;
-    const firstInt = Math.round(principal * r);
-    renderChart(inputs, gankin + firstInt, count);
   } else {
-    const monthly = calcKinri(principal, rate, count);
-    renderChart(inputs, monthly, count);
+    calcKinri(principal, rate, count);
   }
 }
 
@@ -468,105 +459,6 @@ function calcKinri(principal, annualRate, count) {
   return monthly;
 }
 
-// 20年目の各終点に金額ラベルを描画するカスタムプラグイン
-const rightEndLabelsPlugin = {
-  id: 'rightEndLabels',
-  afterDraw(chart) {
-    const { ctx } = chart;
-    const entries = [];
-    chart.data.datasets.forEach((ds, i) => {
-      const meta = chart.getDatasetMeta(i);
-      if (meta.hidden || !meta.data.length) return;
-      const lastIdx = meta.data.length - 1;
-      const pt = meta.data[lastIdx];
-      const val = ds.data[lastIdx];
-      if (val == null) return;
-      entries.push({ rawY: pt.y, adjY: pt.y, x: pt.x, val, color: ds.borderColor });
-    });
-
-    // y座標（ピクセル）昇順にソートしてから重なり補正
-    entries.sort((a, b) => a.rawY - b.rawY);
-    const MIN_GAP = 20;
-    for (let i = 1; i < entries.length; i++) {
-      if (entries[i].adjY - entries[i - 1].adjY < MIN_GAP) {
-        entries[i].adjY = entries[i - 1].adjY + MIN_GAP;
-      }
-    }
-
-    ctx.save();
-    ctx.font = 'bold 14px "Hiragino Kaku Gothic ProN", Meiryo, sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    entries.forEach(e => {
-      // 終点の丸
-      ctx.beginPath();
-      ctx.arc(e.x, e.rawY, 5, 0, Math.PI * 2);
-      ctx.fillStyle = e.color;
-      ctx.fill();
-      // 白い縁取りでグラフ線に重なっても読めるように
-      const text = Math.round(e.val) + '万円';
-      const tx = e.x + 10, ty = e.adjY;
-      ctx.lineWidth = 4;
-      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-      ctx.lineJoin = 'round';
-      ctx.strokeText(text, tx, ty);
-      ctx.fillStyle = e.color;
-      ctx.fillText(text, tx, ty);
-    });
-    ctx.restore();
-  }
-};
-
-function renderChart(inputs, monthly, loanCount) {
-  const { totalMan, dpMan, monthlyBill } = inputs;
-  if (totalMan <= 0) { return; }
-  const YEARS = 20;
-  if (!_monthlyRemainingCost) _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) || 6224;
-  const labels = [], nowD = [], cashD = [], loanD = [];
-  for (let y = 0; y <= YEARS; y++) {
-    labels.push(y + '年');
-    nowD.push(Math.round(monthlyBill * 12 * y / 10000));
-    cashD.push(Math.round(totalMan + ((_monthlyRemainingCost * 12 * y) - getCumulativeSaleIncomeYen(y)) / 10000));
-    if (monthly > 0 && loanCount > 0) {
-      loanD.push(Math.round(dpMan + ((Math.min(y * 12, loanCount) * monthly) + (_monthlyRemainingCost * 12 * y) - getCumulativeSaleIncomeYen(y)) / 10000));
-    }
-  }
-  const showLoan = loanD.length > 0;
-  const datasets = [
-    { label: '電力会社（現状）', data: nowD,  borderColor: '#EA580C', backgroundColor: 'rgba(234,88,12,.07)',  borderWidth: 2.5, pointRadius: 0, tension: 0 },
-    { label: '現金一括',         data: cashD, borderColor: '#2D6A4F', backgroundColor: 'rgba(45,106,79,.07)',  borderWidth: 2.5, pointRadius: 0, tension: 0 },
-  ];
-  if (showLoan) datasets.push(
-    { label: 'ローン活用', data: loanD, borderColor: '#7c3aed', backgroundColor: 'rgba(124,58,237,.07)', borderWidth: 2.5, pointRadius: 0, tension: 0 }
-  );
-  document.getElementById('legend-loan').style.display = showLoan ? '' : 'none';
-  const ctx = document.getElementById('po-chart').getContext('2d');
-  Chart.defaults.animation = false;
-  if (poChart) poChart.destroy();
-  poChart = new Chart(ctx, {
-    type: 'line',
-    plugins: [rightEndLabelsPlugin],
-    data: { labels, datasets },
-    options: {
-      animation: false,
-      responsive: true,
-      maintainAspectRatio: false,
-      layout: {
-        padding: {
-          top: 10,
-          right: 150,
-          bottom: 10,
-          left: 10
-        }
-      },
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } } },
-        y: { beginAtZero: true, ticks: { precision: 0, callback: v => v + '万', font: { size: 10 } } }
-      }
-    }
-  });
-}
 
 function setKinri(monthly, total, interest) {
   document.getElementById('po-monthly').textContent = monthly;
@@ -634,15 +526,186 @@ function calcPpa() {
     ? fmt(rate * kwh) : '-';
 }
 
+// ── slide-link URL を po-dp の最新値込みで更新 ──
+function updateSlideLink() {
+  const base = new URLSearchParams(location.search);
+  const dpVal = parseFloat(document.getElementById('po-dp').value) || 0;
+  if (dpVal > 0) {
+    base.set('downPayment', dpVal);
+  } else {
+    base.delete('downPayment');
+  }
+  const qs = base.toString();
+  document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
+}
+
 // ── 初期化 ──
 updateLoan();
 
 window.onload = () => {
+  // URL から downPayment を取得して po-dp に反映
+  const urlDp = parseFloat(_urlParams.get('downPayment')) || 0;
+  if (urlDp > 0) {
+    const dpInput = document.getElementById('po-dp');
+    if (dpInput) dpInput.value = urlDp;
+  }
+  // slide-link を更新（downPayment 含む）
+  updateSlideLink();
   setTimeout(() => {
     document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
     updateLoan();
+    updateSlideLink();
   }, 50);
 };
+
+// ── ローン戦略版PPTX ──
+async function buildLoanPPTX(d) {
+  const _f=n=>Math.round(n).toLocaleString('ja-JP');
+  const NAV='07111F',NAV2='112240',NAV3='1B3461';
+  const GLD='C9A22A',GLD2='E8C040';
+  const WHT='FFFFFF',MUT='9CA3AF',RED='E84040';
+  const newMonthly=d.pmt+d.re;
+  const saving=Math.max(0,d.mb-newMonthly);
+  const totalPaid=d.pmt*d.loanMonths;
+  const totalInterest=Math.max(0,totalPaid-d.netMan*10000);
+  const postMonthly=d.mb-d.re;
+  const postAnnual=postMonthly*12;
+  const pres=new PptxGenJS();
+  pres.layout='LAYOUT_16x9';
+  pres.title='じぶん電力：スマートローン戦略プラン';
+  function sh(sl,num,title,gold){
+    sl.background={color:NAV};
+    sl.addText(num,{x:0.5,y:0.22,w:9,h:0.22,fontSize:11,bold:true,color:GLD,fontFace:'Meiryo'});
+    if(gold){sl.addText([{text:gold,options:{bold:true,color:GLD2}},{text:title,options:{bold:true,color:WHT}}],{x:0.5,y:0.47,w:9,h:0.6,fontSize:26,fontFace:'Meiryo',valign:'middle'});}
+    else{sl.addText(title,{x:0.5,y:0.47,w:9,h:0.6,fontSize:26,bold:true,color:WHT,fontFace:'Meiryo',valign:'middle'});}
+  }
+  {const sl=pres.addSlide();sl.background={color:NAV};
+    sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.04,fill:{color:GLD},line:{color:GLD}});
+    sl.addShape(pres.ShapeType.rect,{x:0,y:5.59,w:10,h:0.04,fill:{color:GLD},line:{color:GLD}});
+    sl.addShape(pres.ShapeType.rect,{x:3.5,y:1.0,w:3,h:0.32,fill:{color:NAV2},line:{color:GLD}});
+    sl.addText('SMART LOAN STRATEGY',{x:3.5,y:1.0,w:3,h:0.32,fontSize:9,bold:true,color:GLD,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+    sl.addText('じぶん電力',{x:1,y:1.4,w:8,h:0.9,fontSize:52,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText('スマートローン戦略プラン',{x:1,y:2.28,w:8,h:0.65,fontSize:28,bold:true,color:WHT,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText('太陽光発電 × ローン活用 × 資産形成',{x:1,y:3.0,w:8,h:0.38,fontSize:15,color:MUT,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addShape(pres.ShapeType.rect,{x:4.25,y:3.48,w:1.5,h:0.02,fill:{color:GLD},line:{color:GLD}});
+    ['補助金フル活用','月次収支を改善','完済後の自由','資産価値の向上'].forEach((t,i)=>{
+      const tx=0.55+i*2.25;
+      sl.addShape(pres.ShapeType.rect,{x:tx,y:3.7,w:2.05,h:0.38,fill:{color:NAV2},line:{color:GLD}});
+      sl.addText(t,{x:tx,y:3.7,w:2.05,h:0.38,fontSize:12,bold:true,color:GLD2,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+    });
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 02 / CONCEPT','から資産へ','電気代を費用');
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.2,w:3.6,h:3.85,fill:{color:'250808'},line:{color:RED}});
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.2,w:3.6,h:0.33,fill:{color:RED},line:{color:RED}});
+    sl.addText('BEFORE — 現在',{x:0.4,y:1.2,w:3.6,h:0.33,fontSize:11,bold:true,color:WHT,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+    sl.addText('費用（コスト）',{x:0.5,y:1.72,w:3.4,h:0.42,fontSize:18,bold:true,color:'f87171',align:'center',fontFace:'Meiryo'});
+    sl.addText(`毎月 ${_f(d.mb)}円が電力会社に\n消えていく\n\n支払い続けても\n何も残らない`,{x:0.5,y:2.22,w:3.4,h:2.6,fontSize:13,color:MUT,align:'center',fontFace:'Meiryo',paraSpaceBefore:4});
+    sl.addText('▶▶',{x:4.1,y:2.5,w:0.85,h:0.5,fontSize:20,bold:true,color:GLD,align:'center',fontFace:'Meiryo'});
+    sl.addShape(pres.ShapeType.rect,{x:5.1,y:1.2,w:4.4,h:3.85,fill:{color:'071E12'},line:{color:GLD}});
+    sl.addShape(pres.ShapeType.rect,{x:5.1,y:1.2,w:4.4,h:0.33,fill:{color:GLD},line:{color:GLD}});
+    sl.addText('AFTER — 導入後',{x:5.1,y:1.2,w:4.4,h:0.33,fontSize:11,bold:true,color:NAV,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+    sl.addText('資産形成へ変換',{x:5.2,y:1.72,w:4.2,h:0.42,fontSize:18,bold:true,color:GLD2,align:'center',fontFace:'Meiryo'});
+    sl.addText(`電気代がローン返済に置き換わり\n${d.ly}年で完済すれば\n以降は電気代がほぼゼロへ`,{x:5.2,y:2.22,w:4.2,h:2.6,fontSize:13,color:MUT,align:'center',fontFace:'Meiryo',paraSpaceBefore:4});
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 03 / INVESTMENT','の透明性','投資額');
+    const boxes=[
+      {x:0.4,label:'工事総額',val:d.grossMan,tc:WHT,lc:MUT,fill:NAV2,bd:WHT,note:'太陽光パネル＋工事費\n一式込みの正直価格'},
+      {x:3.7,label:'補助金（国・自治体）',val:d.subMan,tc:'5cd985',lc:'5cd985',fill:'071E12',bd:'2ECC71',note:'各種補助金を\nフル活用した場合'},
+      {x:7.0,label:'お客様の実質負担',val:d.netMan,tc:GLD2,lc:GLD,fill:'1A1100',bd:GLD,note:'この金額をローンで\n分割してスタート'},
+    ];
+    boxes.forEach((b,i)=>{
+      if(i>0)sl.addText(i===1?'－':'＝',{x:b.x-0.62,y:2.2,w:0.55,h:0.85,fontSize:28,bold:true,color:i===1?'f87171':GLD,align:'center',fontFace:'Meiryo',valign:'middle'});
+      sl.addShape(pres.ShapeType.rect,{x:b.x,y:1.2,w:2.5,h:3.85,fill:{color:b.fill},line:{color:b.bd}});
+      sl.addText(b.label,{x:b.x+0.1,y:1.42,w:2.3,h:0.36,fontSize:11,bold:true,color:b.lc,align:'center',fontFace:'Meiryo'});
+      sl.addText(`${b.val}`,{x:b.x+0.1,y:1.9,w:2.3,h:0.88,fontSize:44,bold:true,color:b.tc,align:'center',fontFace:'Meiryo',margin:0});
+      sl.addText('万円',{x:b.x+0.1,y:2.78,w:2.3,h:0.3,fontSize:16,bold:true,color:b.tc,align:'center',fontFace:'Meiryo',margin:0});
+      sl.addText(b.note,{x:b.x+0.1,y:3.18,w:2.3,h:0.75,fontSize:11,color:MUT,align:'center',fontFace:'Meiryo'});
+    });
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:5.05,w:9.2,h:0.42,fill:{color:NAV2},line:{color:GLD}});
+    sl.addText(`補助金 ${d.subMan}万円 の適用により実質負担を削減。総額の約 ${(d.subMan/Math.max(1,d.grossMan)*100).toFixed(1)}% が補助金でカバーされます。`,{x:0.5,y:5.05,w:9,h:0.42,fontSize:12,color:GLD2,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 04 / MONTHLY CASHFLOW','分析','月間収支');
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.2,w:3.65,h:3.85,fill:{color:'1A0606'},line:{color:RED}});
+    sl.addText('▲ 現在の月額電気代',{x:0.5,y:1.32,w:3.45,h:0.3,fontSize:11,bold:true,color:'e87070',fontFace:'Meiryo'});
+    sl.addText(`${(d.mb/10000).toFixed(1)}`,{x:0.5,y:1.68,w:2.4,h:0.88,fontSize:56,bold:true,color:'f87171',fontFace:'Meiryo',margin:0});
+    sl.addText('万円/月',{x:2.9,y:2.18,w:1.1,h:0.42,fontSize:14,bold:true,color:'f87171',fontFace:'Meiryo',valign:'bottom'});
+    sl.addText(`月額電気代　${_f(d.mb)}円\n年間コスト　${_f(d.mb*12)}円\n20年累計　${Math.round(d.mb*12*20/10000)}万円`,{x:0.5,y:3.2,w:3.45,h:1.6,fontSize:13,color:MUT,fontFace:'Meiryo',paraSpaceBefore:4});
+    sl.addShape(pres.ShapeType.rect,{x:3.98,y:2.65,w:2.08,h:1.42,fill:{color:NAV2},line:{color:GLD}});
+    sl.addText('月々お得',{x:3.98,y:2.73,w:2.08,h:0.26,fontSize:11,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText(`${_f(saving)}`,{x:3.98,y:2.99,w:2.08,h:0.6,fontSize:34,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText('円',{x:3.98,y:3.59,w:2.08,h:0.22,fontSize:14,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addShape(pres.ShapeType.rect,{x:6.12,y:1.2,w:3.42,h:3.85,fill:{color:'071223'},line:{color:GLD}});
+    sl.addText('✦ ローン導入後の月額合計',{x:6.22,y:1.32,w:3.22,h:0.3,fontSize:11,bold:true,color:GLD,fontFace:'Meiryo'});
+    sl.addText(`${(newMonthly/10000).toFixed(2)}`,{x:6.22,y:1.68,w:2.3,h:0.88,fontSize:56,bold:true,color:GLD2,fontFace:'Meiryo',margin:0});
+    sl.addText('万円/月',{x:8.52,y:2.18,w:1.02,h:0.42,fontSize:14,bold:true,color:GLD2,fontFace:'Meiryo',valign:'bottom'});
+    sl.addText(`ローン返済　${_f(d.pmt)}円\n電気代（残）　${_f(d.re)}円\n合計　${_f(newMonthly)}円`,{x:6.22,y:3.2,w:3.22,h:1.6,fontSize:13,color:MUT,fontFace:'Meiryo',paraSpaceBefore:4});
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 05 / REPAYMENT','シミュレーション','返済額');
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.3,w:4.0,h:3.75,fill:{color:'1A1100'},line:{color:GLD}});
+    sl.addText('月々のご返済額',{x:0.5,y:1.78,w:3.8,h:0.35,fontSize:13,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText(`${_f(d.pmt)}`,{x:0.5,y:2.18,w:3.8,h:0.88,fontSize:44,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText('円 / 月',{x:0.5,y:3.06,w:3.8,h:0.36,fontSize:18,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText(`実質${d.netMan}万円 / ${d.ly}年想定`,{x:0.5,y:3.52,w:3.8,h:0.28,fontSize:12,color:MUT,align:'center',fontFace:'Meiryo',margin:0});
+    [['借入額（実質負担）',`${_f(d.netMan*10000)}円`],['返済期間',`${d.ly}年（${d.loanMonths}回払い）`],['適用金利（想定）','年 4.0%'],['月々返済額',`${_f(d.pmt)}円`],['総返済額',`${_f(totalPaid)}円`],['支払利息総額',`${_f(totalInterest)}円`]].forEach((r,i)=>{
+      const ty=1.38+i*0.52;const hl=i===3;
+      sl.addShape(pres.ShapeType.rect,{x:4.6,y:ty,w:4.95,h:0.48,fill:{color:hl?'1A1100':NAV2},line:{color:hl?GLD:'2A3A5A'}});
+      sl.addText(r[0],{x:4.7,y:ty,w:2.3,h:0.48,fontSize:13,color:MUT,fontFace:'Meiryo',valign:'middle'});
+      sl.addText(r[1],{x:7.1,y:ty,w:2.35,h:0.48,fontSize:hl?18:14,bold:true,color:hl?GLD2:WHT,fontFace:'Meiryo',valign:'middle',align:'right'});
+    });
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 06 / 20-YEAR ANALYSIS','の累積メリット分析','20年間');
+    const labels=[],tradD=[],solarD=[],saveD=[];
+    for(let y=0;y<=20;y++){
+      labels.push(y+'年');
+      const tr=Math.round(d.mb*12*y/10000);
+      const so=y<=d.ly?Math.round(newMonthly*12*y/10000):Math.round(newMonthly*12*d.ly/10000+d.re*12*(y-d.ly)/10000);
+      tradD.push(tr);solarD.push(so);saveD.push(tr-so);
+    }
+    sl.addShape(pres.ShapeType.rect,{x:7.2,y:1.2,w:2.5,h:0.88,fill:{color:NAV2},line:{color:GLD}});
+    sl.addText('20年間の総節約額',{x:7.2,y:1.25,w:2.5,h:0.28,fontSize:10,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText(`${saveD[20]}万円`,{x:7.2,y:1.5,w:2.5,h:0.5,fontSize:22,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
+    sl.addChart(pres.ChartType.line,
+      [{name:'従来の累積電気代',labels,values:tradD},{name:'ローン導入後の累積支払',labels,values:solarD},{name:'累積節約額',labels,values:saveD}],
+      {x:0.4,y:1.2,w:9.2,h:3.9,chartColors:['E87070','4080D0','C9A22A'],lineDataSymbol:'none',showLegend:true,legendPos:'t',legendFontSize:11,showValue:false,valAxisTitle:'累積額（万円）',plotAreaFillColor:'EFF4FF'});
+  }
+  {const sl=pres.addSlide();sh(sl,'SLIDE 07 / POST-PAYOFF BENEFIT','な家計メリット','完済後の圧倒的');
+    [{icon:'📉',label:'月間節約額',val:_f(postMonthly),unit:'円 / 月',desc:'電気代がほぼゼロ達成\nローン返済もなし\n完全な家計の自由へ'},
+     {icon:'📅',label:'年間節約額',val:`${(postAnnual/10000).toFixed(1)}`,unit:'万円 / 年',desc:'旅行・教育・老後資金\n使い道は自由\n毎年の家計余力が増大'},
+     {icon:'🏆',label:'完済後10年間の合計',val:`${Math.round(postAnnual*10/10000)}`,unit:'万円',desc:'老後資金・教育資金へ\n自動的に蓄積される\n家計の強力な味方'}
+    ].forEach((card,i)=>{
+      const cx=0.4+i*3.12;
+      sl.addShape(pres.ShapeType.rect,{x:cx,y:1.2,w:2.88,h:3.35,fill:{color:NAV2},line:{color:GLD}});
+      sl.addText(card.icon,{x:cx,y:1.32,w:2.88,h:0.5,fontSize:28,align:'center',fontFace:'Meiryo'});
+      sl.addText(card.label,{x:cx+0.1,y:1.86,w:2.68,h:0.3,fontSize:12,color:MUT,bold:true,align:'center',fontFace:'Meiryo'});
+      sl.addText(card.val,{x:cx+0.1,y:2.2,w:2.68,h:0.65,fontSize:36,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
+      sl.addText(card.unit,{x:cx+0.1,y:2.85,w:2.68,h:0.28,fontSize:14,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
+      sl.addText(card.desc,{x:cx+0.1,y:3.2,w:2.68,h:1.18,fontSize:12,color:MUT,align:'center',fontFace:'Meiryo',paraSpaceBefore:4});
+      sl.addShape(pres.ShapeType.rect,{x:cx,y:4.55,w:2.88,h:0.02,fill:{color:GLD},line:{color:GLD}});
+    });
+    sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.78,w:9.2,h:0.7,fill:{color:NAV2},line:{color:GLD}});
+    sl.addText(`完済後20年間（${d.ly+1}〜${d.ly+20}年目）の総節約額`,{x:0.6,y:4.78,w:5.8,h:0.7,fontSize:15,bold:true,color:WHT,fontFace:'Meiryo',valign:'middle'});
+    sl.addText(`${Math.round(postAnnual*20/10000)}万円`,{x:6.5,y:4.78,w:2.9,h:0.7,fontSize:28,bold:true,color:GLD2,fontFace:'Meiryo',align:'right',valign:'middle'});
+  }
+  await pres.writeFile({fileName:'ローン戦略プラン.pptx'});
+}
+
+async function generateLoanPPTX() {
+  const inputs=getInputs();
+  const {principal,rate,count,totalMan,monthlyBill}=inputs;
+  if(principal<=0||count<=0){alert('借入額と返済回数を入力してください');return;}
+  const mb=monthlyBill||21000;
+  const re=_monthlyRemainingCost||1600;
+  let pmt;
+  if(rate<=0){pmt=Math.round(principal/count);}
+  else{const r=rate/100/12;pmt=Math.round(principal*r*Math.pow(1+r,count)/(Math.pow(1+r,count)-1));}
+  const subMan=Math.round(subsidy);
+  const netMan=Math.round(totalMan);
+  const grossMan=Math.round(_urlTotalCost>0?_urlTotalCost:netMan+subMan);
+  const ly=Math.round(count/12)||15;
+  try{
+    await buildLoanPPTX({grossMan,subMan,netMan,pmt,ly,loanMonths:count,mb,re});
+  }catch(err){console.error(err);alert('エラーが発生しました: '+err.message);}
+}
 </script>
 </body>
 </html>
