@@ -2420,9 +2420,11 @@ function renderPostPlanBreakdown() {
 
 function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
   const body = document.getElementById('post-plan-breakdown-body');
-  if (!body) return;
+  if (!body) return null;
 
+  let _grandResult = null;
   const setTotal = amt => {
+    _grandResult = amt;
     const el = document.getElementById('after-plan-total-val');
     if (el) el.textContent = amt != null ? '約 ' + fr(amt) + ' 円/月' : '-';
   };
@@ -2572,6 +2574,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
     setTotal(monthlyAmt);
   }
   setPBToggle(true);
+  return _grandResult;
 }
 
 function showAvgRateSection(show) {
@@ -4110,7 +4113,7 @@ function calc() {
                subsidyAmount, warrantyYears:wy, directConsumptionKWh:dc,
                batteryConsumptionKWh:bc_eff, annualConsumptionKWh, escalationRate:er, postBasicCharge };
   const m = calcMetrics(c);
-  _updatePostPlanBreakdown(_postKp, post_up, m.remainKWh);
+  const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, m.remainKWh);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
   // 上昇率がある場合は20年電気代を上昇後の数値で表示
@@ -4258,18 +4261,32 @@ function calc() {
     }
   }
   _updateBeforeBreakdownToggleVisibility();
-  // 導入前 概算月額合計（全プラン共通）
+  // 導入前 概算月額合計（プラン別内訳と同期）
+  const _kpBefore = document.getElementById('kyuden-plan').value;
+  const _beforeTOU = ['kyushu_denka_night','kyushu_kiji','kyushu_ohisama'].includes(_kpBefore);
+  const _beforeJuuryo = _kpBefore === 'kyushu_juuryo_b' || _kpBefore === 'kyushu_juuryo_c';
+  let _beforeGrand = mb;
+  if (_beforeTOU) {
+    const _bEff = calcBeforeEffectiveUnitPrice(_kpBefore);
+    if (_bEff && mkwh > 0) _beforeGrand = Math.round(mkwh * _bEff + _juuryoBasicCharge(_kpBefore));
+  } else if (_beforeJuuryo && mkwh > 0) {
+    const { s1, s2, s3 } = calcJuuryoSteps(mkwh);
+    const _bBasic = _juuryoBasicCharge(_kpBefore);
+    _beforeGrand = Math.round(s1*18.37 + (s2>0?s2*23.97:0) + (s3>0?s3*26.97:0) + mkwh*SAIENE_LEVY + mkwh*FUEL_ADJUST + _bBasic);
+  }
   const _beforeTotalEl = document.getElementById('before-plan-total-val');
-  if (_beforeTotalEl) _beforeTotalEl.textContent = mb > 0 ? '約' + fmt(mb) + '円' : '-';
+  if (_beforeTotalEl) _beforeTotalEl.textContent = _beforeGrand > 0 ? '約' + fmt(_beforeGrand) + '円' : '-';
+  // 導入後：内訳grand優先、なければm.remainBill
+  const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
   // 月額比較カード
   const _mcBefore = document.getElementById('mc-before');
   const _mcAfter  = document.getElementById('mc-after');
   const _mcSavings = document.getElementById('mc-savings');
-  if (_mcBefore) _mcBefore.textContent = mb > 0 ? fmt(mb) : '-';
-  if (_mcAfter)  _mcAfter.textContent  = m.remainBill > 0 ? fmt(m.remainBill) : '-';
+  if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
+  if (_mcAfter)  _mcAfter.textContent  = _afterDisplay > 0 ? fmt(_afterDisplay) : '-';
   if (_mcSavings) {
-    const _saving = mb - m.remainBill;
-    if (_saving > 0 && mb > 0) {
+    const _saving = _beforeGrand - _afterDisplay;
+    if (_saving > 0 && _beforeGrand > 0) {
       _mcSavings.style.display = '';
       _mcSavings.textContent = `月々 約${fmt(_saving)}円 おトク！`;
     } else {
