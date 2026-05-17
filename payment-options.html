@@ -18,9 +18,13 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
 .section-title { font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--mg); margin-bottom: 16px; padding-bottom: 8px; border-bottom: 2px solid var(--pg); }
 .option-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.option-card { background: var(--pg); border-radius: 10px; padding: 18px 20px; border: 1.5px solid var(--border); }
+.option-card { background: var(--pg); border-radius: 10px; padding: 18px 20px; border: 1.5px solid var(--border); cursor: pointer; user-select: none; transition: all .15s; }
 .option-card h3 { font-size: 15px; font-weight: 700; color: var(--dg); margin-bottom: 8px; }
 .option-card p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+.option-card.selected { background: #d1fae5; border: 2.5px solid var(--mg); box-shadow: 0 0 0 3px rgba(45,106,79,.12); }
+.option-card.unselected { background: #f3f4f6; border-color: #d1d5db; opacity: .7; }
+.option-card .check-icon { display: none; color: var(--mg); margin-left: 6px; font-weight: 900; }
+.option-card.selected .check-icon { display: inline; }
 .option-card .badge { display: inline-block; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 20px; margin-bottom: 8px; }
 .badge-cash { background: #d1fae5; color: #065f46; }
 .badge-loan { background: #ede9fe; color: #4c1d95; }
@@ -80,14 +84,14 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
   <div class="section-card">
     <div class="section-title">💡 導入手段の比較</div>
     <div class="option-grid" style="grid-template-columns:1fr 1fr">
-      <div class="option-card">
+      <div class="option-card selected" id="card-cash" onclick="selectPayment('cash')">
         <span class="badge badge-cash">現金購入</span>
-        <h3>💴 現金一括購入</h3>
+        <h3>💴 現金一括購入<span class="check-icon">✓</span></h3>
         <p>初期費用を全額自己負担。金利負担がなく長期的に最もコストが低い。補助金の適用も容易。</p>
       </div>
-      <div class="option-card">
+      <div class="option-card unselected" id="card-loan" onclick="selectPayment('loan')">
         <span class="badge badge-loan">ローン</span>
-        <h3>🏦 ローン活用</h3>
+        <h3>🏦 ローン活用<span class="check-icon">✓</span></h3>
         <p>金融機関から借入し、月々返済。初期費用を抑えられるが、総支払額は増加。金利・返済期間に注意。</p>
       </div>
       <!-- リース・PPA は非表示（将来利用のためコード保持） -->
@@ -105,7 +109,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
   </div>
 
   <!-- ローン試算 -->
-  <div class="section-card" id="loan-section">
+  <div class="section-card" id="loan-section" style="display:none">
     <div class="section-title">🔢 ローン試算</div>
 
     <!-- 入力モード：プリセット / 手動 -->
@@ -253,6 +257,18 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 </div>
 
 <script>
+function selectPayment(type) {
+  const cashCard   = document.getElementById('card-cash');
+  const loanCard   = document.getElementById('card-loan');
+  const loanSection = document.getElementById('loan-section');
+  const isCash = type === 'cash';
+  cashCard.classList.toggle('selected',  isCash);
+  cashCard.classList.toggle('unselected', !isCash);
+  loanCard.classList.toggle('selected',  !isCash);
+  loanCard.classList.toggle('unselected',  isCash);
+  loanSection.style.display = isCash ? 'none' : '';
+}
+
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
 const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
 let currentMode = 'preset';
