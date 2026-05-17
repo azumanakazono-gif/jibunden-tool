@@ -179,6 +179,28 @@ canvas#mini-chart { height: 220px !important; }
   .tab-btn { font-size: 15px; }
   .prev-card .p-label { font-size: 13px; }
   .prev-card .p-val { font-size: 32px; }
+
+  /* ── モバイル：コンテナ余白を縮小してグラフ表示エリアを最大化 ── */
+  .form-body { padding: 20px 12px; }
+  .section-card { padding: 14px 12px; }
+
+  /* ── グラフ：section-card の12px LRパディングを打ち消してフル幅化 ── */
+  .cum-chart-wrap {
+    margin: 10px -12px 0;
+    padding: 8px 0 6px;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+  }
+  .cum-chart-wrap .ct { padding: 0 14px; font-size: 11px; margin-bottom: 6px; }
+
+  /* ── グラフ高さ：視認性向上のため拡張 ── */
+  canvas#mini-chart { height: 240px !important; }
+
+  /* ── 凡例：下部でコンパクトに2列折り返し ── */
+  .legend { padding: 6px 14px 0; gap: 4px 12px; flex-wrap: wrap; }
+  .legend span { font-size: 10px; }
+  #rise-note { padding: 2px 14px; font-size: 9.5px; }
 }
 /* ── 太陽光の活用割合 sticky card ── */
 #solar-util-card {
@@ -189,30 +211,31 @@ canvas#mini-chart { height: 220px !important; }
   background: linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%);
   border: none;
   box-shadow: 0 6px 24px rgba(234,88,12,.35), 0 2px 8px rgba(0,0,0,.15);
+  padding: 10px 16px;
 }
 #solar-util-card .section-title {
   color: #fff;
   border-bottom-color: rgba(255,255,255,.35);
+  font-size: 12px;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+}
+#solar-util-card #self-rate-card,
+#solar-util-card #surplus-rate-card {
+  padding: 8px 12px !important;
+}
+#self-rate-val,
+#surplus-rate-val {
+  font-size: 26px !important;
 }
 @media (max-width: 768px) {
   #solar-util-card {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 0;
-    padding: 12px 14px;
+    padding: 8px 12px;
   }
   #solar-util-card .section-title {
-    font-size: 12px;
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-  }
-  #solar-util-card #self-rate-card,
-  #solar-util-card #surplus-rate-card {
-    padding: 10px 8px !important;
-  }
-  #self-rate-val,
-  #surplus-rate-val {
-    font-size: 30px !important;
+    font-size: 11px;
+    margin-bottom: 6px;
+    padding-bottom: 4px;
   }
 }
 #test-env-ribbon {
@@ -260,6 +283,9 @@ canvas#mini-chart { height: 220px !important; }
     <button class="nav-btn" onclick="showSection('history')">
       <span class="icon">📋</span> お客様履歴
     </button>
+    <button class="nav-btn" onclick="generatePPTX('model')" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:8px;margin:6px 12px 2px;width:calc(100% - 24px);padding:9px 14px;font-size:13px;color:rgba(255,255,255,.9)">
+      <span class="icon">🔬</span> モデルケース版（サンプル）
+    </button>
     <div class="nav-section" style="margin-top:12px">操作</div>
     <button class="nav-btn" onclick="clearForm()">
       <span class="icon">🔄</span> フォームをリセット
@@ -278,14 +304,6 @@ canvas#mini-chart { height: 220px !important; }
     <div>
       <h1 id="main-title">お客様情報を入力してください</h1>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
-    </div>
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
-      <button onclick="generatePPTX('real')" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:320px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.35);letter-spacing:.03em">
-        <span style="font-size:18px">👤</span> 実データ版を出力
-      </button>
-      <button onclick="generatePPTX('model')" style="display:flex;align-items:center;justify-content:center;gap:6px;width:100%;max-width:320px;padding:8px 16px;background:transparent;color:#9ca3af;font-size:12px;font-weight:400;border:1px solid #d1d5db;border-radius:8px;cursor:pointer;font-family:inherit">
-        <span style="font-size:13px">🔬</span> モデルケース版を出力（サンプル）
-      </button>
     </div>
   </div>
 
@@ -399,21 +417,24 @@ canvas#mini-chart { height: 220px !important; }
 
     <div class="section-card" id="solar-util-card">
       <div class="section-title">☀️ 太陽光の活用割合</div>
-      <!-- 自家消費率 / 余剰率 グローバルサマリー -->
-      <div class="grid2" style="gap:10px">
-        <div id="self-rate-card" style="border-radius:12px;padding:16px 12px;border:2px solid var(--dg);background:var(--mg);box-shadow:0 2px 8px rgba(0,0,0,.10)">
-          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">自家消費率</div>
-          <div style="font-size:42px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em"><span id="self-rate-val">-</span><span style="font-size:22px;font-weight:700">%</span></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:6px">発電のうちご家庭で使う割合</div>
-          <div id="self-rate-warning" style="display:none;margin-top:8px;font-size:11px;font-weight:700;color:#fff;background:rgba(0,0,0,.25);border-radius:6px;padding:6px 8px;line-height:1.5">
-            ⚠ 自家消費率が100%を超えています<br>
-            <span style="font-weight:400;opacity:.9">発電量・自家消費量・蓄電池放電量の前提を見直してください</span>
+      <!-- 自家消費率 / 余剰率 横並びコンパクト表示 -->
+      <div style="display:flex;gap:8px">
+        <div id="self-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid var(--dg);background:var(--mg);box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
+          <div style="font-size:26px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em;white-space:nowrap"><span id="self-rate-val">-</span><span style="font-size:15px;font-weight:700">%</span></div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.9)">自家消費率</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.65)">宅内で使う割合</div>
+          </div>
+          <div id="self-rate-warning" style="display:none;margin-left:auto;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.25);border-radius:5px;padding:4px 6px;line-height:1.4">
+            ⚠ 100%超<br><span style="font-weight:400;opacity:.85">前提を見直して</span>
           </div>
         </div>
-        <div id="surplus-rate-card" style="border-radius:12px;padding:16px 12px;border:2px solid #0d9488;background:#0f766e;box-shadow:0 2px 8px rgba(0,0,0,.10)">
-          <div style="font-size:12px;font-weight:700;color:rgba(255,255,255,.8);margin-bottom:4px">余剰率</div>
-          <div style="font-size:42px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em"><span id="surplus-rate-val">-</span><span style="font-size:22px;font-weight:700">%</span></div>
-          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-top:6px">発電のうち売電に回る割合</div>
+        <div id="surplus-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid #0d9488;background:#0f766e;box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
+          <div style="font-size:26px;font-weight:900;color:#fff;line-height:1;letter-spacing:-.02em;white-space:nowrap"><span id="surplus-rate-val">-</span><span style="font-size:15px;font-weight:700">%</span></div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,.9)">余剰率</div>
+            <div style="font-size:10px;color:rgba(255,255,255,.65)">売電に回る割合</div>
+          </div>
         </div>
       </div>
     </div>
@@ -623,21 +644,36 @@ canvas#mini-chart { height: 220px !important; }
           ⚠️ 電気代の上昇予測はあくまで試算です。実際の上昇率は料金改定により異なります。
         </div>
       </div>
-      <div class="grid2" style="margin-top:4px">
-        <div class="field" id="field-dc-wrap">
-          <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
-          <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="calc()">
-          <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+      <div class="grid2" style="margin-top:4px;align-items:start">
+        <div>
+          <div class="field" id="field-dc-wrap">
+            <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
+            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="calc()">
+            <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+          </div>
+          <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid #16a34a">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">あと自家消費に回せる見込み量</div>
+            <div><span id="self-margin-big" style="font-size:26px;font-weight:900;color:#15803d">-</span></div>
+            <div id="self-margin-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+          </div>
         </div>
-        <div class="field" id="field-bc-wrap">
-          <label style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
-            蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:2px">夜間・曇天時に放電</span>
-            <span id="bc-manual-badge" style="display:none;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px">手動入力中</span>
-            <button id="bc-reset-btn" onclick="resetBcManual()" style="display:none;font-size:10px;padding:2px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--muted);cursor:pointer;font-family:inherit">自動計算に戻す</button>
-          </label>
-          <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="onBcInput()">
-          <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
-          <span id="bc-warn" style="display:none;font-size:11px;color:#dc2626;font-weight:600"></span>
+        <div>
+          <div class="field" id="field-bc-wrap">
+            <label style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+              蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:2px">夜間・曇天時に放電</span>
+              <span id="bc-manual-badge" style="display:none;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px">手動入力中</span>
+              <button id="bc-reset-btn" onclick="resetBcManual()" style="display:none;font-size:10px;padding:2px 7px;border:1px solid var(--border);border-radius:5px;background:#fff;color:var(--muted);cursor:pointer;font-family:inherit">自動計算に戻す</button>
+            </label>
+            <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="onBcInput()">
+            <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            <span id="bc-warn" style="display:none;font-size:11px;color:#dc2626;font-weight:600"></span>
+          </div>
+          <div id="bk-remain-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid var(--mg)">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
+            <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
+            <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+          </div>
         </div>
       </div>
       <!-- ── 結果エリア（入力直後のひとまとまりブロック） ── -->
@@ -647,17 +683,6 @@ canvas#mini-chart { height: 220px !important; }
           <span style="font-weight:400;color:#DC2626">昼間直接使用量・蓄電池放電量・システム設計の設定を見直してください</span>
         </div>
         <div id="daytime-rate-disp" style="padding:6px 10px;background:var(--pg);border-radius:6px;font-size:12px;color:var(--mg);font-weight:600"></div>
-        <div id="self-margin-disp" style="display:none;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid #16a34a">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
-          <div style="font-size:10px;color:var(--muted);margin-bottom:6px">あと自家消費に回せる見込み量</div>
-          <div><span id="self-margin-big" style="font-size:26px;font-weight:900;color:#15803d">-</span></div>
-          <div id="self-margin-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
-        </div>
-        <div id="bk-remain-disp" style="display:none;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid var(--mg)">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
-          <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
-          <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
-        </div>
         <div id="self-detail-bk" style="display:none"></div>
         <div id="bk-error" style="display:none;padding:12px 14px;border-radius:8px;background:#FEF2F2;border-left:4px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
           ⚠️ 蓄電池で賄う量が実効蓄電容量を超えています<br>
@@ -1134,6 +1159,13 @@ canvas#mini-chart { height: 220px !important; }
           🛡️ 保証内容 (Warranty Details)
           <span style="font-size:10px;opacity:.8">↗</span>
         </a>
+      </div>
+
+      <!-- アクションエリア（ページ下部） -->
+      <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap">
+        <button onclick="generatePPTX('real')" style="flex:1;min-width:200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.3);letter-spacing:.03em">
+          👤 実データ版PPTXを出力
+        </button>
       </div>
     </div>
 
@@ -3638,8 +3670,9 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   localStorage.setItem('jibunden_subsidy', v('sub'));
   if (_poLink) {
     const _poParams = new URLSearchParams({
-      totalCost: v('ck'),
-      subsidy:   v('sub'),
+      totalCost:   v('ck'),
+      subsidy:     v('sub'),
+      downPayment: v('dp') || 0,
     });
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
@@ -4139,6 +4172,7 @@ function renderMiniChart() {
   if (window.myChart instanceof Chart) {
     window.myChart.destroy();
   }
+  const isMobile = window.innerWidth <= 520;
   window.myChart = new Chart(ctx, {
     type: 'line',
     data: { labels: window.chartLabels || [], datasets: window.chartDatasets || [] },
@@ -4150,8 +4184,21 @@ function renderMiniChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { maxTicksLimit: 5, font: { size: 10 } } },
-        y: { beginAtZero: true, ticks: { callback: v => v + '万', font: { size: 10 } } }
+        x: {
+          ticks: {
+            maxTicksLimit: isMobile ? 8 : 5,
+            font: { size: isMobile ? 9 : 10 },
+            maxRotation: isMobile ? 40 : 0,
+            minRotation: isMobile ? 40 : 0,
+          }
+        },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: v => v + '万',
+            font: { size: isMobile ? 9 : 10 }
+          }
+        }
       }
     }
   });
