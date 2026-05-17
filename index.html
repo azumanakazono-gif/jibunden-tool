@@ -1032,7 +1032,6 @@ canvas#mini-chart { height: 220px !important; }
       </div><!-- /loan-fields -->
       <!-- グラフ（現金・ローン両モードで常時表示） -->
       <div class="cum-chart-wrap" style="margin-top:14px">
-        <div class="ct" id="chart-title">20年間 累計支出イメージ</div>
         <canvas id="mini-chart"></canvas>
         <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
           <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
@@ -1041,11 +1040,6 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
       </div>
-      <!-- PPTX出力ボタン（導入手段に応じて切り替え） -->
-      <button id="btn-payment-pptx" onclick="generatePaymentPPTX()"
-        style="margin-top:14px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;background:var(--dg);color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(27,67,50,.25);letter-spacing:.03em">
-        📂 PPTXで保存
-      </button>
     </div>
 
     <div class="section-card">
