@@ -961,7 +961,11 @@ const twenty7  = Math.round(annual7 * 20 / 10000);
 document.getElementById('s7-monthly').textContent = fmt(monthlySavePost);
 document.getElementById('s7-annual').textContent  = (annual7 / 10000).toFixed(1);
 document.getElementById('s7-10y').textContent     = ten7;
-document.getElementById('s7-20y').textContent          = twenty7;
+document.getElementById('s7-20y').textContent     = twenty7;
+const _noticeBody = document.querySelector('.sb-notice-body');
+if (_noticeBody) {
+  _noticeBody.textContent = `20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は【現在の価格を基準とした目安】として、この${twenty7}万円の節約メリットの中からスマートに準備・相殺が可能です。そのため、ご家庭からの新たな「持ち出し負担」を実質的にゼロへ抑える計画が立てられます。`;
+}
 
 /* ─────────────────────────────────────────
    20-Year Chart (Slide 6)
