@@ -2398,6 +2398,7 @@ function onPostKyudenPlanChange() {
   isCustomRatio   = false;
   customRatios    = null;
   updateRatioPanel();
+  updateRatioStyleStatus();
   renderPostPlanBreakdown();
   calc();
 }
@@ -3195,7 +3196,7 @@ function _applyRatioDc(kp) {
 function updateRatioStyleStatus() {
   const el = document.getElementById('ratio-style-status');
   if (!el) return;
-  const kp = document.getElementById('kyuden-plan').value;
+  const kp = (document.getElementById('post-kyuden-plan') || {}).value || '';
   if (kp !== 'kyushu_denka_night' && kp !== 'kyushu_kiji' && kp !== 'kyushu_ohisama') {
     el.style.display = 'none'; return;
   }
@@ -3206,10 +3207,10 @@ function updateRatioStyleStatus() {
   const data    = activeTab === 'hypothesis' ? hypData : custData;
   const hasBill = !!data.hasBill;
   if (!isCustomRatio) {
-    el.innerHTML  = `現在の使用割合：<b>${presetLabel}</b>の既定比率を使用中`;
-    el.style.color = 'var(--mg)';
+    el.innerHTML  = `導入後の使用割合：<b>${presetLabel}</b>の既定比率を適用中`;
+    el.style.color = '#1e40af';
   } else {
-    let html = `現在の使用割合：<b>${presetLabel}</b>をベースに調整中`;
+    let html = `導入後の使用割合：<b>${presetLabel}</b>をベースに調整中`;
     if (hasBill) html += `<br><span style="font-size:10px;color:var(--muted)">※単価は請求書実績値を使用し、昼間直接消費量は調整後の使用割合を反映しています。</span>`;
     el.innerHTML   = html;
     el.style.color = '#92400e';
