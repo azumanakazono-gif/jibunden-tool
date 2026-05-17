@@ -1030,16 +1030,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
       </div><!-- /loan-fields -->
-      <!-- グラフ（現金・ローン両モードで常時表示） -->
-      <div class="cum-chart-wrap" style="margin-top:14px">
-        <canvas id="mini-chart"></canvas>
-        <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
-          <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
-          <span><b style="background:#2D6A4F"></b>現金購入</span>
-          <span id="legend-loan-item" style="display:none"><b style="background:#7c3aed"></b>ローン活用</span>
-        </div>
-        <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
-      </div>
+
     </div>
 
     <div class="section-card">
@@ -4483,7 +4474,7 @@ function calc() {
   } else {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
-    document.getElementById('legend-loan-item').style.display = 'none';
+    const _lli=document.getElementById('legend-loan-item'); if(_lli)_lli.style.display='none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
@@ -4667,7 +4658,9 @@ function _prepareChartData(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
 Chart.defaults.animation = false;
 Chart.defaults.transitions.active.animation.duration = 0;
 function renderMiniChart() {
-  const ctx = document.getElementById('mini-chart').getContext('2d');
+  const miniChartEl = document.getElementById('mini-chart');
+  if (!miniChartEl) return;
+  const ctx = miniChartEl.getContext('2d');
   if (window.myChart instanceof Chart) {
     window.myChart.destroy();
   }
@@ -4702,10 +4695,10 @@ function renderMiniChart() {
     }
   });
   const showLoan = window.chartShowLoan;
-  document.getElementById('legend-loan-item').style.display = showLoan ? '' : 'none';
+  const lliEl = document.getElementById('legend-loan-item'); if(lliEl) lliEl.style.display = showLoan ? '' : 'none';
   const erVal=v('er');
-  document.getElementById('legend-now-label').textContent = erVal>0?`年${erVal}%上昇想定`:'現状維持';
-  document.getElementById('rise-note').textContent = erVal>0
+  const lnlEl = document.getElementById('legend-now-label'); if(lnlEl) lnlEl.textContent = erVal>0?`年${erVal}%上昇想定`:'現状維持';
+  const rnEl = document.getElementById('rise-note'); if(rnEl) rnEl.textContent = erVal>0
     ? `※電気代が毎年${erVal}%上昇した場合の試算。実際の上昇率は異なる場合があります。` : '';
 }
 
