@@ -1516,7 +1516,7 @@ function effectiveBatteryKwh(nominalKwh) {
 
 // ── 電気単価 調整額（再エネ賦課金 + 燃料費調整額）──
 const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
-const FUEL_ADJUST  = 0.00; // 燃料費調整額（九電2024概算）円/kWh
+const FUEL_ADJUST  = 1.33; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
 
 // ── 九州電力 従量電灯B・C 段階料金マスタ ──
@@ -1721,10 +1721,8 @@ function _renderOhisamaBreakdown() {
   });
 
   zone_total       = Math.round(zone_total * 100) / 100;
-  const FUEL_UNIT   = 1.33;
-  const SAIENE_UNIT = 4.18;
-  const fuel_amt   = Math.round(mkwh * FUEL_UNIT   * 100) / 100;
-  const saiene_amt = Math.round(mkwh * SAIENE_UNIT * 100) / 100;
+  const fuel_amt   = Math.round(mkwh * FUEL_ADJUST  * 100) / 100;
+  const saiene_amt = Math.round(mkwh * SAIENE_LEVY  * 100) / 100;
   const basic      = Math.round(mb - zone_total - fuel_amt - saiene_amt);
   const grand      = Math.round(zone_total + fuel_amt + saiene_amt + (basic > 0 ? basic : 0));
 
