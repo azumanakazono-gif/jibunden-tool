@@ -29,9 +29,8 @@
 html,body{
   width:100vw;height:100vh;overflow:hidden;background:#e2e8f0;
   font-family:'Hiragino Kaku Gothic ProN','Meiryo','Yu Gothic',sans-serif;
-  display:flex;align-items:center;justify-content:center;
 }
-.viewer{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;position:relative}
+.viewer{width:100vw;height:calc(100vh - 80px);display:flex;align-items:center;justify-content:center;position:relative}
 .slides-wrap{
   position:relative;width:1280px;height:720px;
   transform-origin:center center;
@@ -1351,7 +1350,7 @@ function scaleSlides() {
     return;
   }
   const sx = window.innerWidth  / 1280;
-  const sy = window.innerHeight / 720;
+  const sy = (window.innerHeight - 80) / 720; // nav bar (~80px) を除いた高さでスケール
   const s  = Math.min(sx, sy);
   wrap.style.transform = 'scale(' + s + ')';
 }
