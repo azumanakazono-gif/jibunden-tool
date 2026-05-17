@@ -1157,7 +1157,7 @@ canvas#mini-chart { height: 220px !important; }
           <div class="bar-track" style="display:flex"><div class="bar-fill or" id="bb" style="width:100%"><span id="bbv"></span></div></div>
         </div>
         <div class="bar-row" style="margin-top:8px">
-          <div class="bar-label">現金購入</div>
+          <div class="bar-label">導入後</div>
           <div class="bar-track" style="display:flex">
             <div class="bar-fill gr" id="bi" style="width:40%;border-radius:0"><span id="biv"></span></div>
             <div id="bi-r" style="width:20%;height:100%;background:#86efac;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#14532d;transition:width .4s ease;overflow:hidden"><span id="biv-r"></span></div>
@@ -4408,14 +4408,21 @@ function calc() {
   const remain20Man = er > 0
     ? Math.round(m.remain20Y_rise / 10000)          // 上昇率考慮の累計
     : Math.round(m.remainBill * 12 * wy / 10000);   // 上昇なし
+  const _saleP0 = parseFloat(document.getElementById('sale-price').value) || 0;
+  const _hasSolar0 = proposalMode !== 'battery_only';
+  const _annualSellRev0 = (_hasSolar0 && _surplusKwhChart > 0 && _saleP0 > 0)
+    ? Math.round(_surplusKwhChart * _saleP0) : 0;
+  const _sale20Man = Math.round(_annualSellRev0 * wy / 10000);
+  const _netCost20Man = Math.max(0, m.totalCostMan + remain20Man - _sale20Man);
   const biCostW = Math.min(Math.round(m.totalCostMan / bill20Show * 100), 100);
   const biRemainW = Math.min(Math.round(remain20Man / bill20Show * 100), 100 - biCostW);
   document.getElementById('bi').style.width = biCostW + '%';
   document.getElementById('biv').textContent = m.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
   document.getElementById('biv-r').textContent = biRemainW >= 4 ? remain20Man+'万円' : '';
-  document.getElementById('bi-detail').textContent =
-    `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${m.totalCostMan+remain20Man}万円`;
+  document.getElementById('bi-detail').textContent = _sale20Man > 0
+    ? `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 － 売電収入 ${_sale20Man}万円 ＝ 計 ${_netCost20Man}万円`
+    : `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${m.totalCostMan+remain20Man}万円`;
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代20年分) ← er=0でも costDiff_with_rise が正しく機能
   const diffShow = m.costDiff_with_rise;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
@@ -4527,6 +4534,15 @@ function calc() {
   }
   const _beforeTotalEl = document.getElementById('before-plan-total-val');
   if (_beforeTotalEl) _beforeTotalEl.textContent = _beforeGrand > 0 ? '約' + fmt(_beforeGrand) + '円' : '-';
+  // 精密計算値で payment-options リンクの monthlyBill を上書き
+  const _poLinkEl2 = document.getElementById('payment-options-link');
+  if (_poLinkEl2 && _beforeGrand > 0) {
+    const _href2 = _poLinkEl2.getAttribute('href') || '';
+    const _qi = _href2.indexOf('?');
+    const _p2 = new URLSearchParams(_qi >= 0 ? _href2.slice(_qi + 1) : '');
+    _p2.set('monthlyBill', _beforeGrand);
+    _poLinkEl2.href = 'payment-options.html?' + _p2.toString();
+  }
   // 導入後：内訳grand優先、なければm.remainBill
   const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
   // 現金一括時：実質持ち出し額 = 残り電気代 - 売電収入（月額）
@@ -4646,7 +4662,7 @@ function _prepareChartData(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
 
   const datasets=[
     {label:'電力会社', data:nowD, borderColor:'#EA580C',backgroundColor:'rgba(234,88,12,.07)',borderWidth:2.5,pointRadius:0,tension:0},
-    {label:'現金購入', data:cashD,borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.07)',borderWidth:2.5,pointRadius:0,tension:0},
+    {label:'導入後', data:cashD,borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.07)',borderWidth:2.5,pointRadius:0,tension:0},
   ];
   if(showLoan) datasets.push(
     {label:'ローン活用',data:loanD,borderColor:'#7c3aed',backgroundColor:'rgba(124,58,237,.07)',borderWidth:2.5,pointRadius:0,tension:0}
