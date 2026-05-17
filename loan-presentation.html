@@ -904,7 +904,7 @@ function calcSolarCum(upToYear) {
   for (let yr = 1; yr <= upToYear; yr++) {
     const saleM = fitSaleForYear(yr);
     const yearCost = yr <= loanYears ? pmt + RESIDUAL - saleM : RESIDUAL - saleM;
-    total += Math.max(0, yearCost) * 12;
+    total += yearCost * 12;
   }
   return total;
 }
