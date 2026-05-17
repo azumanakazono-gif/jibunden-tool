@@ -1718,8 +1718,9 @@ function toggleMonthlyDetail() {
 }
 
 const _MONTHLY_TOU_ZONES = {
-  kyushu_denka_night: ['デイ', 'リビング', 'ナイト'],
+  kyushu_denka_night: ['平日昼間', '休日昼間', '夜間'],
   kyushu_kiji:        ['ピーク', '昼間', '夜間'],
+  kyushu_ohisama:     ['おひさま', 'シフト', 'だんらん'],
 };
 
 function _buildMonthlyGrid() {
@@ -1803,7 +1804,8 @@ function _applyMonthlyTouRatios() {
   const r2 = Math.max(0, 100 - r0 - r1);
 
   const _buildRatios = (planKp) => {
-    if (planKp === 'kyushu_denka_night') return { day: r0/100, hol: 0, living: r1/100, ngt: r2/100, label: '月次実績' };
+    // tou0/1/2 → 各プランの比率キーへマッピング
+    if (planKp === 'kyushu_denka_night') return { day: r0/100, hol: r1/100, living: 0, ngt: r2/100, label: '月次実績' };
     if (planKp === 'kyushu_kiji')        return { day: r0/100, living: r1/100, ngt: r2/100, label: '月次実績' };
     if (planKp === 'kyushu_ohisama')     return { ohisama: r0/100, peak: r1/100, ngt: r2/100, label: '月次実績' };
     return null;
