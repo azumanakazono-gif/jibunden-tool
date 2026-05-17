@@ -267,6 +267,8 @@ function selectPayment(type) {
   loanCard.classList.toggle('selected',  !isCash);
   loanCard.classList.toggle('unselected',  isCash);
   loanSection.style.display = isCash ? 'none' : '';
+  const slideLink = document.getElementById('slide-link');
+  if (slideLink) slideLink.style.display = isCash ? 'none' : '';
 }
 
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
