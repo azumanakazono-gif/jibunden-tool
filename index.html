@@ -80,6 +80,15 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .toggle-row label { font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; }
 .loan-fields { display: none; }
 .loan-fields.on { display: block; }
+.pdf-drop-hover { border-color: var(--lg) !important; background: #ecfdf5 !important; }
+.monthly-month-card { background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px; }
+.monthly-month-card .m-title { font-size:11px;font-weight:700;color:var(--mg);margin-bottom:6px; }
+.monthly-month-card .m-field { display:flex;flex-direction:column;gap:2px;margin-bottom:5px; }
+.monthly-month-card .m-field:last-child { margin-bottom:0; }
+.monthly-month-card .m-field label { font-size:10px;color:var(--muted); }
+.monthly-month-card .m-field input { border:1.5px solid var(--border);border-radius:6px;padding:5px 8px;font-size:13px;background:#fff;font-family:inherit;width:100%; }
+.monthly-month-card .m-field input:focus { outline:none;border-color:var(--lg); }
+.monthly-month-card.has-data { border-color:var(--ac);background:#f0fdf4; }
 
 /* ── プレビューカード ── */
 .preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 16px; }
@@ -446,6 +455,51 @@ canvas#mini-chart { height: 220px !important; }
           <span style="color:var(--muted)">年間電気代：<b id="annual-bill-disp" style="color:var(--dg)">-</b></span>
           <span style="color:var(--muted)">年間消費電力量：<b id="annual-kwh-disp" style="color:var(--dg)">-</b></span>
         </div>
+
+        <!-- ▼ 詳細入力（12ヶ月分）トグル -->
+        <div style="margin-top:10px">
+          <button type="button" id="monthly-toggle-btn" onclick="toggleMonthlyDetail()"
+            style="width:100%;padding:8px 14px;background:#f1f5f9;border:1.5px solid #cbd5e1;border-radius:8px;font-size:13px;font-weight:600;color:#475569;cursor:pointer;text-align:left;font-family:inherit;display:flex;align-items:center;justify-content:space-between">
+            <span>📅 詳細入力（12ヶ月分）</span>
+            <span id="monthly-toggle-arrow">▼</span>
+          </button>
+
+          <div id="monthly-detail-panel" style="display:none;margin-top:10px">
+
+            <!-- PDF / 画像ドロップゾーン -->
+            <div id="pdf-drop-zone"
+              ondragover="event.preventDefault();this.classList.add('pdf-drop-hover')"
+              ondragleave="this.classList.remove('pdf-drop-hover')"
+              ondrop="handlePdfDrop(event)"
+              style="border:2px dashed #94a3b8;border-radius:10px;padding:16px 12px;text-align:center;background:#f8fafc;cursor:pointer;transition:all .15s;margin-bottom:14px;position:relative">
+              <div style="font-size:22px;margin-bottom:4px">📄</div>
+              <div style="font-size:13px;font-weight:600;color:#475569">明細書（PDF・画像）をここにドロップ</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px">JPG / PNG / PDF 対応 — AIが各月の電気代・使用量を自動認識</div>
+              <input type="file" id="pdf-file-input" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handlePdfFileSelect(event)">
+              <button type="button" onclick="document.getElementById('pdf-file-input').click()"
+                style="margin-top:8px;font-size:12px;padding:4px 14px;border:1px solid #94a3b8;border-radius:6px;background:#fff;color:#475569;cursor:pointer;font-family:inherit">
+                ファイルを選択
+              </button>
+              <div id="pdf-status" style="font-size:12px;color:#0369a1;margin-top:8px;display:none"></div>
+            </div>
+
+            <!-- 12ヶ月入力グリッド -->
+            <div id="monthly-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px">
+              <!-- JS で生成 -->
+            </div>
+
+            <!-- 合計 / 平均 サマリー -->
+            <div id="monthly-summary" style="display:flex;gap:14px;flex-wrap:wrap;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
+              <span>合計電気代：<b id="ms-total-bill" style="color:var(--dg)">-</b></span>
+              <span>合計使用量：<b id="ms-total-kwh" style="color:var(--dg)">-</b></span>
+              <span>月平均電気代：<b id="ms-avg-bill" style="color:var(--or)">-</b></span>
+              <span>月平均使用量：<b id="ms-avg-kwh" style="color:var(--or)">-</b></span>
+            </div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:4px">※入力済みの月のみで平均を算出し、上部の「月間電気代」「月間使用量」に反映します</div>
+          </div>
+        </div>
+        <!-- ▲ 12ヶ月詳細入力ここまで -->
+
       </div>
 
       <!-- ビフォー / アフター 横並び比較コンテナ -->
@@ -1619,6 +1673,152 @@ function onMkwhInput() {
     }
   }
   calc();
+}
+
+/* ================================================================
+   12ヶ月詳細入力 + PDF/画像AI解析
+   ================================================================ */
+const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+let monthlyDetailOpen = false;
+
+function toggleMonthlyDetail() {
+  monthlyDetailOpen = !monthlyDetailOpen;
+  const panel = document.getElementById('monthly-detail-panel');
+  const arrow = document.getElementById('monthly-toggle-arrow');
+  panel.style.display = monthlyDetailOpen ? 'block' : 'none';
+  arrow.textContent = monthlyDetailOpen ? '▲' : '▼';
+  if (monthlyDetailOpen && !document.getElementById('monthly-grid').children.length) {
+    _buildMonthlyGrid();
+  }
+}
+
+function _buildMonthlyGrid() {
+  const grid = document.getElementById('monthly-grid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 12; i++) {
+    const card = document.createElement('div');
+    card.className = 'monthly-month-card';
+    card.id = `m-card-${i}`;
+    card.innerHTML = `
+      <div class="m-title">${MONTH_LABELS[i]}</div>
+      <div class="m-field"><label>電気代（円）</label>
+        <input type="number" id="m-bill-${i}" min="0" step="100" placeholder="例 18000" oninput="onMonthlyInput()">
+      </div>
+      <div class="m-field"><label>使用量（kWh）</label>
+        <input type="number" id="m-kwh-${i}" min="0" step="10" placeholder="例 550" oninput="onMonthlyInput()">
+      </div>`;
+    grid.appendChild(card);
+  }
+}
+
+function onMonthlyInput() {
+  const bills = [], kwhArr = [];
+  for (let i = 0; i < 12; i++) {
+    const b = parseFloat(document.getElementById(`m-bill-${i}`)?.value);
+    const k = parseFloat(document.getElementById(`m-kwh-${i}`)?.value);
+    const card = document.getElementById(`m-card-${i}`);
+    const hasData = (!isNaN(b) && b > 0) || (!isNaN(k) && k > 0);
+    if (card) card.classList.toggle('has-data', hasData);
+    if (!isNaN(b) && b > 0) bills.push(b);
+    if (!isNaN(k) && k > 0) kwhArr.push(k);
+  }
+  const totalBill = bills.reduce((s, v) => s + v, 0);
+  const totalKwh  = kwhArr.reduce((s, v) => s + v, 0);
+  const avgBill   = bills.length  ? Math.round(totalBill / bills.length)  : 0;
+  const avgKwh    = kwhArr.length ? Math.round(totalKwh  / kwhArr.length) : 0;
+
+  document.getElementById('ms-total-bill').textContent = totalBill > 0 ? '¥' + totalBill.toLocaleString() : '-';
+  document.getElementById('ms-total-kwh').textContent  = totalKwh  > 0 ? totalKwh.toLocaleString() + ' kWh' : '-';
+  document.getElementById('ms-avg-bill').textContent   = avgBill   > 0 ? '¥' + avgBill.toLocaleString() + '/月' : '-';
+  document.getElementById('ms-avg-kwh').textContent    = avgKwh    > 0 ? avgKwh.toLocaleString() + ' kWh/月' : '-';
+
+  // 入力済み月がある場合のみ上部フィールドへ反映
+  if (avgBill > 0) {
+    document.getElementById('mb').value = avgBill;
+    autoEstimateKwhFromBill();
+  }
+  if (avgKwh > 0) {
+    document.getElementById('mkwh').value = avgKwh;
+    mkwhManualEdited = true;
+    const noteEl = document.getElementById('mkwh-est-note');
+    if (noteEl) noteEl.style.display = 'none';
+  }
+  calc();
+}
+
+/* ---- PDF/画像 ドロップ ---- */
+function handlePdfDrop(event) {
+  event.preventDefault();
+  document.getElementById('pdf-drop-zone').classList.remove('pdf-drop-hover');
+  const file = event.dataTransfer.files[0];
+  if (file) _processAnalysisFile(file);
+}
+function handlePdfFileSelect(event) {
+  const file = event.target.files[0];
+  if (file) _processAnalysisFile(file);
+}
+
+async function _processAnalysisFile(file) {
+  const statusEl = document.getElementById('pdf-status');
+  statusEl.style.display = 'block';
+  statusEl.textContent = '🔍 解析中...';
+
+  try {
+    const result = await analyzeFileWithAI(file);
+    applyAIResult(result);
+    statusEl.textContent = '✅ 解析完了 — 各月の値を反映しました';
+  } catch (e) {
+    statusEl.textContent = '❌ 解析エラー: ' + (e.message || '不明なエラー');
+    console.error('[AI解析エラー]', e);
+  }
+}
+
+/**
+ * バックエンドAPI呼び出し雛形
+ * POST /api/analyze-bill
+ * Response: { months?: [{bill:number, kwh:number}] (12要素), single?: {bill:number, kwh:number} }
+ */
+async function analyzeFileWithAI(file) {
+  const API_URL = '/api/analyze-bill'; // ← バックエンドURLを設定
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('type', file.type);
+
+  const res = await fetch(API_URL, { method: 'POST', body: formData });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  return res.json();
+}
+
+/**
+ * APIレスポンスを入力フォームへ反映
+ * 対応フォーマット:
+ *   { months: [{bill, kwh}, ...{12件}] }   → 12ヶ月全部セット
+ *   { single: {bill, kwh} }                → 月間電気代/使用量のみ更新
+ */
+function applyAIResult(data) {
+  // 12ヶ月詳細パネルが閉じていれば開く
+  if (!monthlyDetailOpen) toggleMonthlyDetail();
+
+  if (data.months && Array.isArray(data.months)) {
+    data.months.forEach((m, i) => {
+      if (i >= 12) return;
+      const billEl = document.getElementById(`m-bill-${i}`);
+      const kwhEl  = document.getElementById(`m-kwh-${i}`);
+      if (billEl && m.bill != null) billEl.value = Math.round(m.bill);
+      if (kwhEl  && m.kwh  != null) kwhEl.value  = Math.round(m.kwh);
+    });
+    onMonthlyInput();
+  } else if (data.single) {
+    if (data.single.bill) {
+      document.getElementById('mb').value = Math.round(data.single.bill);
+      autoEstimateKwhFromBill();
+    }
+    if (data.single.kwh) {
+      document.getElementById('mkwh').value = Math.round(data.single.kwh);
+      mkwhManualEdited = true;
+    }
+    calc();
+  }
 }
 
 function onBcInput() {
