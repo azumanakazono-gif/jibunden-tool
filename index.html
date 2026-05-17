@@ -1630,7 +1630,8 @@ function autoEstimateKwhFromBill(force) {
     // 他プラン：表示中の平均単価で線形推定、なければ30円/kWhで試算
     const upText = document.getElementById('up-auto')?.textContent || '';
     const up = parseFloat(upText) || parseFloat(kp) || 30;
-    est = Math.max(1, Math.min(3000, Math.round(mb / up)));
+    const basic = _juuryoBasicCharge(kp);
+    est = Math.max(1, Math.min(3000, Math.round((mb - basic) / up)));
   }
   if (est <= 0) return;
   mkwhEl.value = est;
@@ -1669,7 +1670,8 @@ function onMkwhInput() {
     } else {
       const upText = document.getElementById('up-auto')?.textContent || '';
       const up = parseFloat(upText) || parseFloat(kp) || 0;
-      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up);
+      const basic = _juuryoBasicCharge(kp);
+      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up + basic);
     }
   }
   calc();
@@ -2992,10 +2994,11 @@ function _updateBeforePriceBreakdown(kp) {
   const ratios  = getBeforeEffectiveRatios(kp);
   const isDenka = kp === 'kyushu_denka_night';
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
+  const _beforeBasicCharge = _juuryoBasicCharge(kp);
   const _monthly = (eff) => mkwh > 0
     ? `<div style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px">` +
-      `<span style="color:var(--muted)">概算月額（電力量料金相当）：</span>` +
-      `<b>${mkwh.toLocaleString()} kWh × ${eff}円/kWh = 約${Math.round(mkwh * eff).toLocaleString()}円/月</b>` +
+      `<span style="color:var(--muted)">概算月額合計（基本料金・諸経費込み）：</span>` +
+      `<b>約${Math.round(mkwh * eff + _beforeBasicCharge).toLocaleString()}円/月</b>` +
       `</div>`
     : '';
   if (isDenka) {
@@ -3107,13 +3110,15 @@ function _updateBeforePlanBreakdown(kp) {
     const { rows } = fxZoneGrid(zones);
     const saieneMonthly = Math.round(annualKwh * SAIENE_LEVY / 12 * 100) / 100;
     const fuelMonthly   = Math.round(annualKwh * FUEL_ADJUST  / 12 * 100) / 100;
+    const basicCharge   = _juuryoBasicCharge(kp);
     bodyEl.innerHTML =
       fxTitle('電化でナイト・セレクト') +
       fxSubtitle(`月間使用量 ${fr(mkwh)} kWh / 年間 ${fr(annualKwh)} kWh の時間帯別内訳（概算）`) +
       fxContainer(
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
-        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月')
+        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   } else if (kp === 'kyushu_ohisama') {
     const t = KYUSHU_OHISAMA.tariff;
@@ -3125,13 +3130,15 @@ function _updateBeforePlanBreakdown(kp) {
     const { rows } = fxZoneGrid(zones);
     const saieneMonthly = Math.round(annualKwh * SAIENE_LEVY / 12 * 100) / 100;
     const fuelMonthly   = Math.round(annualKwh * FUEL_ADJUST  / 12 * 100) / 100;
+    const basicCharge   = _juuryoBasicCharge(kp);
     bodyEl.innerHTML =
       fxTitle('おひさま昼トクプラン') +
       fxSubtitle(`月間使用量 ${fr(mkwh)} kWh / 年間 ${fr(annualKwh)} kWh の時間帯別内訳（概算）`) +
       fxContainer(
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
-        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月')
+        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   } else {
     const t = KYUSHU_KIJI.tariff;
@@ -3144,13 +3151,15 @@ function _updateBeforePlanBreakdown(kp) {
     const { rows } = fxZoneGrid(zones);
     const saieneMonthly = Math.round(annualKwh * SAIENE_LEVY / 12 * 100) / 100;
     const fuelMonthly   = Math.round(annualKwh * FUEL_ADJUST  / 12 * 100) / 100;
+    const basicCharge   = _juuryoBasicCharge(kp);
     bodyEl.innerHTML =
       fxTitle('季時別電灯') +
       fxSubtitle(`月間使用量 ${fr(mkwh)} kWh / 年間 ${fr(annualKwh)} kWh の時間帯別内訳（概算）`) +
       fxContainer(
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
-        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月')
+        fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   }
 }
