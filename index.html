@@ -479,7 +479,7 @@ canvas#mini-chart { height: 220px !important; }
 
             <!-- 全月入力の注意書き -->
             <div style="margin-bottom:10px;padding:8px 12px;background:#fff3cd;border:1.5px solid #ffc107;border-radius:8px;font-size:11px;font-weight:700;color:#856404;line-height:1.6">
-              ⚠️ より正確なシミュレーションを行うため、詳細入力を使用する場合は【全月（1ヶ月〜12ヶ月）】の入力をお願いします。入力漏れがあると、年間の経済メリットが正しく計算されません。
+              ⚠️ 注意：詳細入力を使用する場合は【1ヶ月〜12ヶ月すべての月】を入力してください。未入力の月（赤色ハイライト）が残っていると、年間の電気代や経済メリットの計算に大きなズレ（計算漏れ）が発生します。
             </div>
 
             <!-- PDF / 画像ドロップゾーン -->
@@ -1866,7 +1866,7 @@ function onMonthlyInput() {
     const bVal = parseFloat(bEl?.value) || 0;
     const kVal = parseFloat(kEl?.value) || 0;
     const isEmpty = bVal <= 0 && kVal <= 0;
-    const bg = (anyInput && isEmpty) ? '#fff3cd' : '';
+    const bg = (anyInput && isEmpty) ? '#f8d7da' : '';
     if (bEl) bEl.style.background = bg;
     if (kEl) kEl.style.background = bg;
   }
