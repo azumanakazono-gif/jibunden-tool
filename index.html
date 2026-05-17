@@ -1025,7 +1025,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
         <div class="cum-chart-wrap" style="margin-top:14px">
-          <div class="ct">20年間 累計支出イメージ</div>
+          <div class="ct" id="chart-title">20年間 累計支出イメージ</div>
           <canvas id="mini-chart"></canvas>
           <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
             <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
@@ -4500,14 +4500,21 @@ function calc() {
   if (_beforeTotalEl) _beforeTotalEl.textContent = _beforeGrand > 0 ? '約' + fmt(_beforeGrand) + '円' : '-';
   // 導入後：内訳grand優先、なければm.remainBill
   const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
+  // 現金一括時：実質持ち出し額 = 残り電気代 - 売電収入（月額）
+  const _lon = document.getElementById('le').checked;
+  const _saleP2 = parseFloat(document.getElementById('sale-price').value) || 0;
+  const _hasSolar2 = proposalMode !== 'battery_only';
+  const _monthlySellInc = (_hasSolar2 && _surplusKwhChart > 0 && _saleP2 > 0)
+    ? Math.round(_surplusKwhChart * _saleP2 / 12) : 0;
+  const _afterNet = !_lon ? Math.max(0, _afterDisplay - _monthlySellInc) : _afterDisplay;
   // 月額比較カード
   const _mcBefore = document.getElementById('mc-before');
   const _mcAfter  = document.getElementById('mc-after');
   const _mcSavings = document.getElementById('mc-savings');
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
-  if (_mcAfter)  _mcAfter.textContent  = _afterDisplay > 0 ? fmt(_afterDisplay) : '-';
+  if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
   if (_mcSavings) {
-    const _saving = _beforeGrand - _afterDisplay;
+    const _saving = _beforeGrand - _afterNet;
     if (_saving > 0 && _beforeGrand > 0) {
       _mcSavings.style.display = '';
       _mcSavings.textContent = `月々 約${fmt(_saving)}円 おトク！`;
@@ -4571,18 +4578,43 @@ function _prepareChartData(m, mb, wy, re, lp, ly, mt, showLoan, surplusKwh) {
   const er = v('er') / 100;
   const hasSell = proposalMode !== 'battery_only' && (surplusKwh || 0) > 0;
   const labels=[], nowD=[], cashD=[], loanD=[];
-  for(let y=0;y<=wy;y++){
-    labels.push(y+'年');
-    let cumNow=0;
-    for(let i=1;i<=y;i++) cumNow += mb*12*Math.pow(1+er,i-1);
-    nowD.push(Math.round(cumNow/10000));
-    const sellRevY = hasSell && y > 0 ? Math.round(surplusKwh * getSellPriceForYear(y)) : 0;
-    if(y===0){ cashD.push(Math.round(m.totalCost/10000)); }
-    else { const rY=re*Math.pow(1+er,y-1); cashD.push(Math.round(cashD[y-1]+rY*12/10000-sellRevY/10000)); }
-    if(y===0){loanD.push(0);continue;}
-    const rY=re*Math.pow(1+er,y-1);
-    loanD.push(Math.round(loanD[y-1]+(y<=ly?mt+(rY-re):rY)*12/10000-sellRevY/10000));
+
+  if (!showLoan) {
+    // 現金一括モード：初期投資をマイナスからスタートし、毎年の節電+売電メリットで回収
+    for(let y=0;y<=wy;y++){
+      labels.push(y+'年');
+      const sellRevY = hasSell && y > 0 ? Math.round(surplusKwh * getSellPriceForYear(y)) : 0;
+      nowD.push(0); // 基準線（電力会社＝変化なし）
+      if(y===0){
+        cashD.push(-Math.round(m.totalCost/10000));
+      } else {
+        const annualSaving = (mb - re) * Math.pow(1+er, y-1) * 12 + sellRevY;
+        cashD.push(Math.round(cashD[y-1] + annualSaving/10000));
+      }
+      loanD.push(0);
+    }
+    const chartTitleEl = document.getElementById('chart-title');
+    if (chartTitleEl) chartTitleEl.textContent = '20年間 累積メリット（投資回収イメージ）';
+    window.chartIsCashMode = true;
+  } else {
+    // ローン活用モード：3系列の累計支出比較
+    for(let y=0;y<=wy;y++){
+      labels.push(y+'年');
+      let cumNow=0;
+      for(let i=1;i<=y;i++) cumNow += mb*12*Math.pow(1+er,i-1);
+      nowD.push(Math.round(cumNow/10000));
+      const sellRevY = hasSell && y > 0 ? Math.round(surplusKwh * getSellPriceForYear(y)) : 0;
+      if(y===0){ cashD.push(Math.round(m.totalCost/10000)); }
+      else { const rY=re*Math.pow(1+er,y-1); cashD.push(Math.round(cashD[y-1]+rY*12/10000-sellRevY/10000)); }
+      if(y===0){loanD.push(0);continue;}
+      const rY=re*Math.pow(1+er,y-1);
+      loanD.push(Math.round(loanD[y-1]+(y<=ly?mt+(rY-re):rY)*12/10000-sellRevY/10000));
+    }
+    const chartTitleEl = document.getElementById('chart-title');
+    if (chartTitleEl) chartTitleEl.textContent = '20年間 累計支出イメージ';
+    window.chartIsCashMode = false;
   }
+
   const datasets=[
     {label:'電力会社', data:nowD, borderColor:'#EA580C',backgroundColor:'rgba(234,88,12,.07)',borderWidth:2.5,pointRadius:0,tension:0},
     {label:'現金購入', data:cashD,borderColor:'#2D6A4F',backgroundColor:'rgba(45,106,79,.07)',borderWidth:2.5,pointRadius:0,tension:0},
@@ -4623,7 +4655,7 @@ function renderMiniChart() {
           }
         },
         y: {
-          beginAtZero: true,
+          beginAtZero: !window.chartIsCashMode,
           ticks: {
             callback: v => v + '万',
             font: { size: isMobile ? 9 : 10 }
