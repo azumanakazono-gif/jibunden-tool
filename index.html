@@ -80,6 +80,14 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .toggle-row label { font-size: 15px; font-weight: 600; color: var(--text); cursor: pointer; }
 .loan-fields { display: none; }
 .loan-fields.on { display: block; }
+/* 導入手段タブカード */
+.pm-card { border-radius: 10px; padding: 14px 16px; cursor: pointer; user-select: none; transition: all .15s; }
+.pm-card h3 { font-size: 14px; font-weight: 700; color: var(--dg); margin-bottom: 4px; }
+.pm-card p  { font-size: 12px; color: var(--muted); line-height: 1.6; margin: 0; }
+.pm-selected { background: #d1fae5; border: 2.5px solid var(--mg); box-shadow: 0 0 0 3px rgba(45,106,79,.1); }
+.pm-unselected { background: #f3f4f6; border: 1.5px solid #d1d5db; opacity: .7; }
+.pm-check { display: none; color: var(--mg); margin-left: 5px; font-weight: 900; }
+.pm-selected .pm-check { display: inline; }
 .pdf-drop-hover { border-color: var(--lg) !important; background: #ecfdf5 !important; }
 .monthly-month-card { background:#fff;border:1.5px solid var(--border);border-radius:8px;padding:8px 10px; }
 .monthly-month-card .m-title { font-size:11px;font-weight:700;color:var(--mg);margin-bottom:6px; }
@@ -895,12 +903,21 @@ canvas#mini-chart { height: 220px !important; }
       </div>
     </div>
 
-    <div class="section-card" style="display:none">
-      <div class="section-title">🏦 ローン活用プラン（任意）</div>
-      <div class="toggle-row">
-        <input type="checkbox" id="le" onchange="toggleLoan()">
-        <label for="le">ローン活用スライドを追加する</label>
+    <div class="section-card">
+      <div class="section-title">💳 導入手段の選択</div>
+      <!-- タブカード -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+        <div id="pm-cash" class="pm-card pm-selected" onclick="selectPaymentMode('cash')">
+          <h3>💴 現金一括購入<span class="pm-check">✓</span></h3>
+          <p>初期費用を全額自己負担。金利なしで長期コストが最小。</p>
+        </div>
+        <div id="pm-loan" class="pm-card pm-unselected" onclick="selectPaymentMode('loan')">
+          <h3>🏦 ローン活用<span class="pm-check">✓</span></h3>
+          <p>月々返済で初期費用を抑える。下の返済シミュレーションで詳細確認。</p>
+        </div>
       </div>
+      <!-- 互換性維持用の隠しチェックボックス -->
+      <input type="checkbox" id="le" onchange="toggleLoan()" style="display:none">
       <div class="loan-fields" id="loan-fields">
         <!-- 入力モード切替 -->
         <div style="display:flex;gap:6px;margin-bottom:12px;background:var(--pg);border-radius:8px;padding:5px;border:1px solid var(--border)">
@@ -1024,17 +1041,23 @@ canvas#mini-chart { height: 220px !important; }
             <div class="loan-row" id="ldr"><span>現状との差額</span><span id="ld">-</span></div>
           </div>
         </div>
-        <div class="cum-chart-wrap" style="margin-top:14px">
-          <div class="ct" id="chart-title">20年間 累計支出イメージ</div>
-          <canvas id="mini-chart"></canvas>
-          <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
-            <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
-            <span><b style="background:#2D6A4F"></b>現金購入</span>
-            <span id="legend-loan-item" style="display:none"><b style="background:#7c3aed"></b>ローン活用</span>
-          </div>
-          <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
+      </div><!-- /loan-fields -->
+      <!-- グラフ（現金・ローン両モードで常時表示） -->
+      <div class="cum-chart-wrap" style="margin-top:14px">
+        <div class="ct" id="chart-title">20年間 累計支出イメージ</div>
+        <canvas id="mini-chart"></canvas>
+        <div class="legend" style="flex-wrap:wrap;gap:10px 16px">
+          <span><b style="background:#EA580C"></b>電力会社（<span id="legend-now-label">現状維持</span>）</span>
+          <span><b style="background:#2D6A4F"></b>現金購入</span>
+          <span id="legend-loan-item" style="display:none"><b style="background:#7c3aed"></b>ローン活用</span>
         </div>
+        <div id="rise-note" style="font-size:10px;color:var(--muted);margin-top:4px"></div>
       </div>
+      <!-- PPTX出力ボタン（導入手段に応じて切り替え） -->
+      <button id="btn-payment-pptx" onclick="generatePaymentPPTX()"
+        style="margin-top:14px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:13px 20px;background:var(--dg);color:#fff;font-size:14px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 3px 10px rgba(27,67,50,.25);letter-spacing:.03em">
+        📂 PPTXで保存
+      </button>
     </div>
 
     <div class="section-card">
@@ -4044,6 +4067,38 @@ function toggleLoan() {
   const on=document.getElementById('le').checked;
   document.getElementById('loan-fields').className='loan-fields'+(on?' on':'');
   calc();
+}
+
+// 選択中の導入手段（'cash' | 'loan'）
+let selectedPlan = 'cash';
+
+function selectPaymentMode(type) {
+  selectedPlan = type;
+  const isCash = type === 'cash';
+  const cashCard = document.getElementById('pm-cash');
+  const loanCard = document.getElementById('pm-loan');
+  if (cashCard) {
+    cashCard.classList.toggle('pm-selected',   isCash);
+    cashCard.classList.toggle('pm-unselected', !isCash);
+  }
+  if (loanCard) {
+    loanCard.classList.toggle('pm-selected',   !isCash);
+    loanCard.classList.toggle('pm-unselected',  isCash);
+  }
+  // PPTXボタンラベルを切り替え
+  const btn = document.getElementById('btn-payment-pptx');
+  if (btn) btn.textContent = isCash
+    ? '📂 PPTXで保存（現金一括プラン）'
+    : '📂 PPTXで保存（ローン活用プラン）';
+  document.getElementById('le').checked = !isCash;
+  toggleLoan(); // loan-fieldsの表示切替 + calc()
+}
+
+// 導入手段に応じてPPTX出力を振り分ける
+function generatePaymentPPTX() {
+  // 現金・ローン問わず generatePPTX('real') を使用
+  // ローン選択時は #le.checked=true のため loan slides が自動的に含まれる
+  generatePPTX('real');
 }
 
 function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
