@@ -238,35 +238,9 @@ canvas#mini-chart { height: 220px !important; }
     padding-bottom: 4px;
   }
 }
-#test-env-ribbon {
-  position: fixed;
-  top: 28px;
-  left: -36px;
-  width: 140px;
-  background: #d9534f;
-  color: #fff;
-  font-size: 12px;
-  font-weight: 700;
-  text-align: center;
-  padding: 5px 0;
-  transform: rotate(-45deg);
-  z-index: 999999;
-  pointer-events: none;
-  letter-spacing: .05em;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
-  user-select: none;
-}
 </style>
 </head>
 <body>
-<div id="test-env-ribbon" style="display:none">テスト環境</div>
-<script>
-(function(){
-  const h = location.hostname;
-  const isTest = h === 'localhost' || h === '127.0.0.1' || /test|dev|staging/.test(h) || /test|dev|staging/.test(location.pathname);
-  if (isTest) document.getElementById('test-env-ribbon').style.display = '';
-})();
-</script>
 <div class="app">
 
 <!-- ── サイドバー ── -->
