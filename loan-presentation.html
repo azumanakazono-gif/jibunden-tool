@@ -717,7 +717,7 @@ html,body{
         <div class="rep-right">
           <table class="rep-tbl">
             <tr><td>借入額（実質負担）</td><td id="s5-net">2,420,000 円</td></tr>
-            <tr><td>返済期間</td><td>15年（180回払い）</td></tr>
+            <tr><td>返済期間</td><td id="s5-period">15年（180回払い）</td></tr>
             <tr><td>適用金利（想定）</td><td>年 4.0%</td></tr>
             <tr class="hl"><td>月々返済額</td><td id="s5-pmt2">17,900 円</td></tr>
             <tr><td>総返済額</td><td id="s5-total">3,222,000 円</td></tr>
@@ -823,7 +823,6 @@ html,body{
    URL Parameters
 ───────────────────────────────────────── */
 const RATE   = 0.04;
-const MONTHS = 180;
 
 function calcPMT(principal) {
   const r = RATE / 12;
@@ -846,6 +845,7 @@ function parseToYen(raw, defaultYen) {
 }
 
 const params          = new URLSearchParams(location.search);
+const MONTHS          = (parseInt(params.get('loanPeriod')) || 15) * 12;
 const totalCostRaw    = parseToYen(params.get('totalCost'), 2800000);
 const subsidyRaw      = parseToYen(params.get('subsidy'), 0);      // 0 = 補助金なし
 const downPaymentRaw  = parseToYen(params.get('downPayment'), 0);  // 0 = 頭金なし
@@ -939,7 +939,8 @@ document.getElementById('s5-pmt2').textContent     = fmt(pmt) + ' 円';
 document.getElementById('s5-net').textContent      = fmt(loanPrincipal) + ' 円';
 document.getElementById('s5-total').textContent    = fmt(totalPaid) + ' 円';
 document.getElementById('s5-interest').textContent = fmt(totalInterest) + ' 円';
-document.getElementById('s5-pmt-note').textContent = '実質' + Math.round(loanPrincipal/10000) + '万円 / 15年想定';
+document.getElementById('s5-pmt-note').textContent = '実質' + Math.round(loanPrincipal/10000) + '万円 / ' + Math.round(MONTHS/12) + '年想定';
+document.getElementById('s5-period').textContent   = Math.round(MONTHS/12) + '年（' + MONTHS + '回払い）';
 document.getElementById('s5-sub-note').textContent = Math.round(subsidyRaw/10000) + '万円';
 if (downPaymentRaw > 0) {
   const s5note = document.getElementById('s5-note');
@@ -1284,8 +1285,8 @@ async function exportToPPTX() {
     sl.addText('月々のご返済額',{x:0.5,y:1.78,w:3.8,h:0.35,fontSize:13,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
     sl.addText(`${_f(pmt)}`,{x:0.5,y:2.18,w:3.8,h:0.88,fontSize:44,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
     sl.addText('円 / 月',{x:0.5,y:3.06,w:3.8,h:0.36,fontSize:18,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
-    sl.addText(`実質${Math.round(loanPrincipal/10000)}万円 / 15年想定`,{x:0.5,y:3.52,w:3.8,h:0.28,fontSize:12,color:MUT,align:'center',fontFace:'Meiryo',margin:0});
-    [['借入額（実質負担）',`${_f(loanPrincipal)}円`],['返済期間','15年（180回払い）'],['適用金利（想定）','年 4.0%'],['月々返済額',`${_f(pmt)}円`],['総返済額',`${_f(totalPaid)}円`],['支払利息総額',`${_f(totalInt)}円`]].forEach((r,i)=>{
+    sl.addText(`実質${Math.round(loanPrincipal/10000)}万円 / ${Math.round(MONTHS/12)}年想定`,{x:0.5,y:3.52,w:3.8,h:0.28,fontSize:12,color:MUT,align:'center',fontFace:'Meiryo',margin:0});
+    [['借入額（実質負担）',`${_f(loanPrincipal)}円`],['返済期間',`${Math.round(MONTHS/12)}年（${MONTHS}回払い）`],['適用金利（想定）','年 4.0%'],['月々返済額',`${_f(pmt)}円`],['総返済額',`${_f(totalPaid)}円`],['支払利息総額',`${_f(totalInt)}円`]].forEach((r,i)=>{
       const ty=1.38+i*0.52;const hl=i===3;
       sl.addShape(pres.ShapeType.rect,{x:4.6,y:ty,w:4.95,h:0.48,fill:{color:hl?'d1fae5':NAV2},line:{color:hl?GLD:'cbd5e1'}});
       sl.addText(r[0],{x:4.7,y:ty,w:2.3,h:0.48,fontSize:13,color:MUT,fontFace:'Meiryo',valign:'middle'});
