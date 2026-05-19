@@ -455,6 +455,7 @@ function updateLoan() {
   } else {
     calcKinri(principal, rate, count);
   }
+  updateSlideLink();
 }
 
 setInterval(() => {
@@ -554,6 +555,11 @@ function updateSlideLink() {
     base.set('downPayment', dpVal);
   } else {
     base.delete('downPayment');
+  }
+  const lcEl = document.getElementById('po-lc');
+  if (lcEl) {
+    const loanMonths = parseInt(lcEl.value) || 180;
+    base.set('loanPeriod', Math.round(loanMonths / 12));
   }
   const qs = base.toString();
   document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
