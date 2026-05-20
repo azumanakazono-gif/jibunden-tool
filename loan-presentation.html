@@ -773,7 +773,7 @@ html,body{
             <div class="bc-lbl">月間節約額</div>
             <div class="bc-val" id="s7-monthly">19,400</div>
             <div class="bc-unit">円 / 月</div>
-            <div class="bc-desc">電気代がほぼゼロ達成<br>ローン返済もなし<br>完全な家計の自由へ</div>
+            <div class="bc-desc" id="s7-bc-desc">電気代がほぼゼロ達成<br>ローン返済もなし<br>完全な家計の自由へ</div>
           </div>
           <div class="ben-card">
             <div class="bc-icon">📅</div>
@@ -973,6 +973,13 @@ if (downPaymentRaw > 0) {
 }
 
 /* ── Slide 7 ── */
+const s7Desc1 = RESIDUAL < 3000
+  ? '電気代がほぼゼロ達成\nローン返済もなし\n完全な家計の自由へ'
+  : '電気代の自給率が大幅アップ\nローン返済もなし\n購入電力量を賢く最小化';
+(function(){
+  const el = document.getElementById('s7-bc-desc');
+  if (el) el.innerHTML = s7Desc1.replace(/\n/g,'<br>');
+})();
 const annual7  = monthlySavePost * 12;
 const ten7     = Math.round(annual7 * 10 / 10000);
 const twenty7  = Math.round(annual7 * 20 / 10000);
@@ -1337,7 +1344,7 @@ async function exportToPPTX() {
   /* Slide 7: Post-payoff */
   slideNum++;
   {const sl=pres.addSlide();sh(sl,`SLIDE ${String(slideNum).padStart(2,'0')} / POST-PAYOFF BENEFIT`,'な家計メリット','完済後の圧倒的');
-    [{icon:'📉',label:'月間節約額',val:_f(postMon),unit:'円 / 月',desc:'電気代がほぼゼロ達成\nローン返済もなし'},
+    [{icon:'📉',label:'月間節約額',val:_f(postMon),unit:'円 / 月',desc:s7Desc1.split('\n').slice(0,2).join('\n')},
      {icon:'📅',label:'年間節約額',val:`${(postAnn/10000).toFixed(1)}`,unit:'万円 / 年',desc:'旅行・教育・老後資金\n毎年の家計余力が増大'},
      {icon:'🏆',label:'完済後10年間の合計',val:`${Math.round(postAnn*10/10000)}`,unit:'万円',desc:'老後資金・教育資金へ\n自動的に蓄積される'}
     ].forEach((card,i)=>{
