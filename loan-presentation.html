@@ -674,7 +674,7 @@ html,body{
         <div class="slide-ttl"><span class="g">月間収支</span>の最適化</div>
       </div>
       <div class="s4-banner">
-        月々の家計負担が <strong id="s4-saving">1,500</strong>円 軽減されます
+        <span id="s4-banner-text">月々の家計負担が <strong id="s4-saving">1,500</strong>円 軽減されます</span>
       </div>
       <div class="cf-row">
         <div class="cf-box cur">
@@ -893,7 +893,8 @@ const monthlySavePost = CURRENT - RESIDUAL;
 
 /* ── Shared cashflow calculations (used in Slides 3 & 4) ── */
 const jissitsuMonthly = pmt + RESIDUAL - SALE_INCOME_EARLY;
-const saving4         = Math.max(0, CURRENT - jissitsuMonthly);
+const rawSaving4      = CURRENT - jissitsuMonthly;
+const saving4         = Math.max(0, rawSaving4);
 const loanYears       = Math.round(MONTHS / 12);
 const effectivePost   = RESIDUAL - SALE_INCOME_EARLY;
 const jissitsuAnnual  = jissitsuMonthly * 12;
@@ -936,7 +937,12 @@ document.getElementById('s4-cur-amount').textContent  = (CURRENT / 10000).toFixe
 document.getElementById('s4-cur-monthly').textContent = fmt(CURRENT) + '円';
 document.getElementById('s4-cur-annual').textContent  = fmt(CURRENT * 12) + '円';
 document.getElementById('s4-cur-20y').textContent     = Math.round(CURRENT * 12 * 20 / 10000) + '万円';
-document.getElementById('s4-saving').textContent      = fmt(saving4);
+if (rawSaving4 > 0) {
+  document.getElementById('s4-saving').textContent = fmt(saving4);
+} else {
+  document.getElementById('s4-banner-text').innerHTML =
+    `ローン期間中は月々 約<strong id="s4-saving">${fmt(Math.abs(rawSaving4))}</strong>円 の実質負担（投資）となります`;
+}
 document.getElementById('s4-total-man').textContent   = (jissitsuMonthly / 10000).toFixed(2);
 document.getElementById('s4-jis-monthly').textContent = fmt(jissitsuMonthly) + '円';
 document.getElementById('s4-jis-annual').textContent  = fmt(jissitsuAnnual) + '円';
@@ -1270,7 +1276,7 @@ async function exportToPPTX() {
   slideNum++;
   {const sl=pres.addSlide();sh(sl,`SLIDE ${String(slideNum).padStart(2,'0')} / MONTHLY CASHFLOW`,'の最適化','月間収支');
     sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.2,w:9.2,h:0.48,fill:{color:'d1fae5'},line:{color:GLD}});
-    sl.addText(`月々の家計負担が ${_f(saving4)}円 軽減されます`,{x:0.4,y:1.2,w:9.2,h:0.48,fontSize:15,bold:true,color:WHT,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
+    sl.addText(rawSaving4 > 0 ? `月々の家計負担が ${_f(saving4)}円 軽減されます` : `ローン期間中は月々 約${_f(Math.abs(rawSaving4))}円 の実質負担（投資）となります`,{x:0.4,y:1.2,w:9.2,h:0.48,fontSize:15,bold:true,color:WHT,align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
     sl.addShape(pres.ShapeType.rect,{x:0.4,y:1.82,w:4.3,h:3.25,fill:{color:'fff5f5'},line:{color:RED}});
     sl.addText('▲ 現在（電力会社へ支払い続ける）',{x:0.5,y:1.93,w:4.1,h:0.28,fontSize:11,bold:true,color:RED,fontFace:'Meiryo'});
     sl.addText(`${(CURRENT/10000).toFixed(1)}`,{x:0.5,y:2.26,w:2.9,h:0.78,fontSize:50,bold:true,color:RED,fontFace:'Meiryo',margin:0});
