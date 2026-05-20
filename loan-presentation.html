@@ -377,23 +377,23 @@ html,body{
 /* ── Nav bar action buttons ── */
 .nav-close,.nav-pptx{
   display:flex;align-items:center;gap:6px;
-  font-size:13px;font-weight:600;letter-spacing:.03em;
-  padding:6px 14px;border-radius:20px;
+  font-size:13px;font-weight:700;letter-spacing:.03em;
+  padding:8px 18px;border-radius:20px;
   cursor:pointer;white-space:nowrap;
   transition:all .2s;appearance:none;-webkit-appearance:none;
 }
 .nav-close{
-  background:transparent;
-  border:1.5px solid rgba(82,183,136,.45);
-  color:var(--accent);
-}
-.nav-close:hover{background:rgba(82,183,136,.15);border-color:var(--accent)}
-.nav-pptx{
-  background:rgba(82,183,136,.18);
+  background:rgba(25,30,45,0.9);
   border:1.5px solid var(--accent);
   color:var(--accent);
 }
-.nav-pptx:hover{background:var(--accent);color:#1a2e22}
+.nav-close:hover{background:rgba(82,183,136,.18);border-color:var(--accent);color:var(--accent-lt)}
+.nav-pptx{
+  background:var(--accent);
+  border:1.5px solid var(--accent);
+  color:#fff;
+}
+.nav-pptx:hover{background:#3a9e6e;border-color:#3a9e6e}
 
 /* ══════════════════════════════════════════
    RESPONSIVE — MOBILE (≤767px)
