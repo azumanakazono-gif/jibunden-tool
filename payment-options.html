@@ -66,7 +66,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .sale-auto-box b { font-weight: 700; }
 @media print { .note { border: none; background: transparent; } }
 /* action area */
-.action-area { display: flex; gap: 12px; margin-top: 32px; margin-bottom: 8px; flex-wrap: wrap; }
+.action-area { display: flex !important; flex-direction: row !important; justify-content: flex-start !important; gap: 12px; margin-top: 32px; margin-bottom: 8px; flex-wrap: wrap; }
 .action-area .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 22px; border-radius: 20px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; font-family: inherit; text-decoration: none; transition: opacity .15s, transform .1s; }
 .action-area .btn:hover { opacity: .88; transform: translateY(-1px); }
 .action-area .btn:active { transform: translateY(0); }
@@ -214,11 +214,11 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 
   <!-- アクションエリア -->
   <div class="action-area">
-    <a id="slide-link" href="loan-presentation.html" target="_blank" class="btn btn-primary" style="display:none">
-      🖥️ 導入手段用スライドを表示
-    </a>
     <a href="javascript:window.close()" class="btn btn-secondary">
       ✕ 閉じる
+    </a>
+    <a id="slide-link" href="loan-presentation.html" target="_blank" class="btn btn-primary" style="display:none">
+      🖥️ 導入手段用スライドを表示
     </a>
   </div>
 
