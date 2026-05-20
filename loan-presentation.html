@@ -626,7 +626,7 @@ html,body{
           <div class="cb-main">資産形成へ変換</div>
           <div class="cb-desc">
             電気代がローン返済に置き換わり<br>
-            <strong style="color:var(--gold-light)">15年で完済</strong> すれば<br><br>
+            <strong style="color:var(--gold-light)" id="s2-loan-years">15年で完済</strong> すれば<br><br>
             以降は固定費を賢く抑え<br>家計にゆとりが生まれる生活へ
           </div>
         </div>
@@ -745,7 +745,7 @@ html,body{
           <div class="c-badge"><div class="dot-badge" style="background:#e87070"></div>現状の累積電気代（赤点線）</div>
           <div class="c-badge"><div class="dot-badge" style="background:#2D6A4F"></div>ローン戦略の累積支払（緑実線）</div>
           <div class="c-badge"><div class="dot-badge" style="background:rgba(82,183,136,0.5);border-radius:3px;width:22px;height:10px"></div>節約エリア（緑）</div>
-          <div style="margin-left:auto;font-size:12px;color:var(--w60)">縦線 = 完済タイミング（15年目）</div>
+          <div style="margin-left:auto;font-size:12px;color:var(--w60)" id="s6-payoff-label">縦線 = 完済タイミング（15年目）</div>
         </div>
         <div class="chart-annot">
           <div class="ca-lbl">20年間の総節約額</div>
@@ -897,6 +897,14 @@ const loanYears       = Math.round(MONTHS / 12);
 const effectivePost   = RESIDUAL - SALE_INCOME_EARLY;
 const jissitsuAnnual  = jissitsuMonthly * 12;
 
+/* ── loanYears を HTML に反映 ── */
+(function() {
+  const yearsEl = document.getElementById('s2-loan-years');
+  if (yearsEl) yearsEl.textContent = loanYears + '年で完済';
+  const labelEl = document.getElementById('s6-payoff-label');
+  if (labelEl) labelEl.textContent = '縦線 = 完済タイミング（' + loanYears + '年目）';
+})();
+
 /* 卒FIT考慮 3段階: year-by-year cumulative solar cost（累積は単調増加） */
 function calcSolarCum(upToYear) {
   let total = 0;
@@ -991,8 +999,8 @@ function build20YChart() {
     id: 'payoffLine',
     afterDraw(chart) {
       const meta = chart.getDatasetMeta(0);
-      if (!meta.data[15]) return;
-      const x = meta.data[15].x;
+      if (!meta.data[loanYears]) return;
+      const x = meta.data[loanYears].x;
       const {ctx: c, chartArea: {top, bottom}} = chart;
       c.save();
       c.setLineDash([6, 4]);
@@ -1224,7 +1232,7 @@ async function exportToPPTX() {
     sl.addShape(pres.ShapeType.rect,{x:5.1,y:1.2,w:4.4,h:0.33,fill:{color:GLD},line:{color:GLD}});
     sl.addText('AFTER — 導入後',{x:5.1,y:1.2,w:4.4,h:0.33,fontSize:11,bold:true,color:'FFFFFF',align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
     sl.addText('資産形成へ変換',{x:5.2,y:1.72,w:4.2,h:0.42,fontSize:18,bold:true,color:GLD2,align:'center',fontFace:'Meiryo'});
-    sl.addText('電気代がローン返済に置き換わり\n15年で完済すれば\n\n以降は固定費を賢く抑え\n家計にゆとりが生まれる生活へ',{x:5.2,y:2.22,w:4.2,h:2.6,fontSize:13,color:MUT,align:'center',fontFace:'Meiryo',paraSpaceBefore:4});
+    sl.addText(`電気代がローン返済に置き換わり\n${loanYears}年で完済すれば\n\n以降は固定費を賢く抑え\n家計にゆとりが生まれる生活へ`,{x:5.2,y:2.22,w:4.2,h:2.6,fontSize:13,color:MUT,align:'center',fontFace:'Meiryo',paraSpaceBefore:4});
   }
 
   /* Slide 3: 初期投資の透明性（補助金ありの場合のみ） */
@@ -1312,7 +1320,7 @@ async function exportToPPTX() {
     sl.addText('20年間の総節約額',{x:7.1,y:2.05,w:2.6,h:0.3,fontSize:10,bold:true,color:GLD,align:'center',fontFace:'Meiryo',margin:0});
     sl.addText(`${totalSavePPTX}万円`,{x:7.1,y:2.35,w:2.6,h:0.55,fontSize:24,bold:true,color:GLD2,align:'center',fontFace:'Meiryo',margin:0});
     sl.addText('完済後の恩恵が最大化',{x:7.1,y:2.88,w:2.6,h:0.22,fontSize:9,color:'52B788',align:'center',fontFace:'Meiryo',margin:0});
-    sl.addText('15年目で完済（縦線目安）',{x:7.1,y:3.2,w:2.6,h:0.3,fontSize:10,color:'52B788',align:'center',fontFace:'Meiryo',margin:0});
+    sl.addText(`${loanYears}年目で完済（縦線目安）`,{x:7.1,y:3.2,w:2.6,h:0.3,fontSize:10,color:'52B788',align:'center',fontFace:'Meiryo',margin:0});
   }
 
   /* Slide 7: Post-payoff */
