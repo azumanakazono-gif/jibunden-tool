@@ -982,7 +982,7 @@ const s7Desc1 = RESIDUAL < 3000
 })();
 const annual7  = monthlySavePost * 12;
 const ten7     = Math.round(annual7 * 10 / 10000);
-const twenty7  = Math.round(annual7 * 20 / 10000);
+const twenty7  = ten7 * 2;
 document.getElementById('s7-monthly').textContent = fmt(monthlySavePost);
 document.getElementById('s7-annual').textContent  = (annual7 / 10000).toFixed(1);
 document.getElementById('s7-10y').textContent     = ten7;
@@ -1346,7 +1346,7 @@ async function exportToPPTX() {
   {const sl=pres.addSlide();sh(sl,`SLIDE ${String(slideNum).padStart(2,'0')} / POST-PAYOFF BENEFIT`,'な家計メリット','完済後の圧倒的');
     [{icon:'📉',label:'月間節約額',val:_f(postMon),unit:'円 / 月',desc:s7Desc1.split('\n').slice(0,2).join('\n')},
      {icon:'📅',label:'年間節約額',val:`${(postAnn/10000).toFixed(1)}`,unit:'万円 / 年',desc:'旅行・教育・老後資金\n毎年の家計余力が増大'},
-     {icon:'🏆',label:'完済後10年間の合計',val:`${Math.round(postAnn*10/10000)}`,unit:'万円',desc:'老後資金・教育資金へ\n自動的に蓄積される'}
+     {icon:'🏆',label:'完済後10年間の合計',val:`${ten7}`,unit:'万円',desc:'老後資金・教育資金へ\n自動的に蓄積される'}
     ].forEach((card,i)=>{
       const cx=0.4+i*3.12;
       sl.addShape(pres.ShapeType.rect,{x:cx,y:1.2,w:2.88,h:3.35,fill:{color:'FFFFFF'},line:{color:GLD}});
@@ -1360,8 +1360,8 @@ async function exportToPPTX() {
     sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.62,w:9.2,h:1.0,fill:{color:'d1fae5'},line:{color:GLD}});
     sl.addText('完済後20年間（16〜35年目）の総節約額',{x:0.6,y:4.66,w:6.5,h:0.3,fontSize:14,bold:true,color:WHT,fontFace:'Meiryo',valign:'middle'});
     sl.addText('電気代の負担を大幅軽減 × 導入から20年間の長期メーカー保証',{x:0.6,y:4.95,w:6.5,h:0.24,fontSize:11,color:GLD2,fontFace:'Meiryo'});
-    sl.addText(`※20年以降の機器更新・故障対応費用も、この${Math.round(postAnn*20/10000)}万円の節約メリットでスマートに準備可能です。`,{x:0.6,y:5.17,w:6.5,h:0.22,fontSize:9,color:MUT,fontFace:'Meiryo'});
-    sl.addText(`${Math.round(postAnn*20/10000)}万円`,{x:7.0,y:4.72,w:2.4,h:0.8,fontSize:28,bold:true,color:GLD2,fontFace:'Meiryo',align:'right',valign:'middle'});
+    sl.addText(`※20年以降の機器更新・故障対応費用も、この${twenty7}万円の節約メリットでスマートに準備可能です。`,{x:0.6,y:5.17,w:6.5,h:0.22,fontSize:9,color:MUT,fontFace:'Meiryo'});
+    sl.addText(`${twenty7}万円`,{x:7.0,y:4.72,w:2.4,h:0.8,fontSize:28,bold:true,color:GLD2,fontFace:'Meiryo',align:'right',valign:'middle'});
   }
 
   await pres.writeFile({fileName:'ローン戦略プラン.pptx'});
