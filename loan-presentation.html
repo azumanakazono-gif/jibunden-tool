@@ -693,6 +693,7 @@ html,body{
           <div class="cf-note">ローン返済＋残り電気代から<br>売電収入を差し引いた実質負担</div>
           <div class="cf-bk">
             <div class="cf-bk-row"><span>実質月額負担</span><span id="s4-jis-monthly">14,500円</span></div>
+            <div id="s4-breakdown" style="font-size:12px;color:var(--w40);margin:2px 0 4px;line-height:1.5">（内訳：ローン 約17,900円 ＋ 電気代 約3,000円 － 売電 約6,400円）</div>
             <div class="cf-bk-row"><span>実質年間負担</span><span id="s4-jis-annual">174,000円</span></div>
             <div class="cf-bk-row cf-bk-main"><span>20年累計実質負担</span><span id="s4-jis-20y">348万円</span></div>
           </div>
@@ -945,6 +946,8 @@ if (rawSaving4 > 0) {
 }
 document.getElementById('s4-total-man').textContent   = (jissitsuMonthly / 10000).toFixed(2);
 document.getElementById('s4-jis-monthly').textContent = fmt(jissitsuMonthly) + '円';
+document.getElementById('s4-breakdown').textContent =
+  `（内訳：ローン 約${fmt(pmt)}円 ＋ 電気代 約${fmt(RESIDUAL)}円 － 売電 約${fmt(SALE_INCOME_EARLY)}円）`;
 document.getElementById('s4-jis-annual').textContent  = fmt(jissitsuAnnual) + '円';
 document.getElementById('s4-jis-20y').textContent     = Math.round(jissitsu20y / 10000) + '万円';
 
@@ -1289,8 +1292,9 @@ async function exportToPPTX() {
     sl.addText(`${(jissitsuMonthly/10000).toFixed(2)}`,{x:5.4,y:2.26,w:2.9,h:0.78,fontSize:50,bold:true,color:GLD2,fontFace:'Meiryo',margin:0});
     sl.addText('万円/月',{x:8.3,y:2.66,w:1.2,h:0.38,fontSize:13,bold:true,color:GLD2,fontFace:'Meiryo',valign:'bottom'});
     sl.addText(`実質月額負担　${_f(jissitsuMonthly)}円`,{x:5.4,y:3.2,w:4.1,h:0.28,fontSize:13,bold:true,color:GLD2,fontFace:'Meiryo'});
-    sl.addText(`実質年間負担　${_f(jissitsuAnnual)}円`,{x:5.4,y:3.5,w:4.1,h:0.28,fontSize:13,color:MUT,fontFace:'Meiryo'});
-    sl.addText(`20年累計実質負担　${Math.round(jissitsu20y/10000)}万円`,{x:5.4,y:3.82,w:4.1,h:0.36,fontSize:17,bold:true,color:GLD2,fontFace:'Meiryo'});
+    sl.addText(`（内訳：ローン 約${_f(pmt)}円 ＋ 電気代 約${_f(RESIDUAL)}円 － 売電 約${_f(SALE_INCOME_EARLY)}円）`,{x:5.4,y:3.46,w:4.1,h:0.24,fontSize:10,color:'9ca3af',fontFace:'Meiryo'});
+    sl.addText(`実質年間負担　${_f(jissitsuAnnual)}円`,{x:5.4,y:3.72,w:4.1,h:0.28,fontSize:13,color:MUT,fontFace:'Meiryo'});
+    sl.addText(`20年累計実質負担　${Math.round(jissitsu20y/10000)}万円`,{x:5.4,y:4.02,w:4.1,h:0.36,fontSize:17,bold:true,color:GLD2,fontFace:'Meiryo'});
   }
 
   /* Slide 5: Repayment */
