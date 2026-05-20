@@ -374,44 +374,26 @@ html,body{
   line-height:1.65;
 }
 
-/* ── Back Button ── */
-.btn-back{
-  position:fixed;top:16px;left:20px;z-index:1000;
-  display:flex;align-items:center;gap:7px;
-  background:rgba(15,23,42,0.78);
-  border:1px solid rgba(82,183,136,0.45);
-  color:var(--accent);font-size:13px;font-weight:600;
-  padding:7px 15px 7px 11px;border-radius:20px;
-  cursor:pointer;backdrop-filter:blur(8px);
-  text-decoration:none;letter-spacing:.04em;
-  transition:background .2s,border-color .2s,color .2s;
-  appearance:none;-webkit-appearance:none;
+/* ── Nav bar action buttons ── */
+.nav-close,.nav-pptx{
+  display:flex;align-items:center;gap:6px;
+  font-size:13px;font-weight:600;letter-spacing:.03em;
+  padding:6px 14px;border-radius:20px;
+  cursor:pointer;white-space:nowrap;
+  transition:all .2s;appearance:none;-webkit-appearance:none;
 }
-.btn-back:hover{
-  background:rgba(82,183,136,0.18);
-  border-color:var(--accent);
-  color:var(--accent-lt);
+.nav-close{
+  background:transparent;
+  border:1.5px solid rgba(82,183,136,.45);
+  color:var(--accent);
 }
-.btn-back-arrow{font-size:16px;line-height:1}
-
-/* ── PPTX Export Button ── */
-.btn-pptx{
-  position:fixed;top:16px;left:110px;z-index:1000;
-  display:flex;align-items:center;gap:7px;
-  background:rgba(180,0,0,0.82);
-  border:1px solid rgba(220,60,60,0.55);
-  color:#fff;font-size:13px;font-weight:600;
-  padding:7px 15px 7px 11px;border-radius:20px;
-  cursor:pointer;backdrop-filter:blur(8px);
-  letter-spacing:.04em;
-  transition:background .2s,border-color .2s;
-  appearance:none;-webkit-appearance:none;
+.nav-close:hover{background:rgba(82,183,136,.15);border-color:var(--accent)}
+.nav-pptx{
+  background:rgba(82,183,136,.18);
+  border:1.5px solid var(--accent);
+  color:var(--accent);
 }
-.btn-pptx:hover{
-  background:rgba(220,30,30,0.95);
-  border-color:#ff6b6b;
-}
-.btn-pptx-icon{font-size:15px;line-height:1}
+.nav-pptx:hover{background:var(--accent);color:#1a2e22}
 
 /* ══════════════════════════════════════════
    RESPONSIVE — MOBILE (≤767px)
@@ -514,9 +496,6 @@ html,body{
   .sb-notice-body{font-size:14px}
 
   /* Back button on mobile */
-  .btn-back{font-size:12px;padding:6px 12px 6px 10px;top:12px;left:12px}
-  .btn-pptx{font-size:12px;padding:6px 12px 6px 10px;top:12px;left:90px}
-
   /* Nav bar */
   .nav{padding:7px 14px;gap:10px}
   .nbtn{width:34px;height:34px;font-size:13px}
@@ -571,12 +550,6 @@ html,body{
 </head>
 <body>
 <div class="viewer">
-  <button class="btn-back" onclick="window.open('','_self').close()">
-閉じる
-  </button>
-  <button class="btn-pptx" onclick="exportToPPTX()">
-    <span class="btn-pptx-icon">📥</span>PPTX出力
-  </button>
   <div class="slides-wrap" id="slidesWrap">
 
     <!-- ── SLIDE 1 ── -->
@@ -814,9 +787,10 @@ html,body{
   <button class="nbtn" id="btnPrev">◀</button>
   <button class="nbtn" id="btnNext">▶</button>
   <div class="nav">
+    <button class="nav-close" onclick="window.open('','_self').close()">✕ 閉じる</button>
     <div class="dots" id="dotsEl"></div>
     <span class="counter" id="counterEl">1 / 7</span>
-    <button class="nbtn" onclick="exportToPPTX()" title="PPTXダウンロード" style="background:rgba(82,183,136,.18);font-size:14px">📥</button>
+    <button class="nav-pptx" onclick="exportToPPTX()">📥 PPTX出力</button>
   </div>
 </div>
 
