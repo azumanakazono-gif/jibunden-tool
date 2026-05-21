@@ -300,20 +300,19 @@ html,body{
 }
 .c-badge .dot-badge{width:18px;height:4px;border-radius:2px}
 .chart-annot{
-  position:relative;
-  background:rgba(82,183,136,.13);border:1px solid rgba(82,183,136,.4);
-  border-radius:8px;padding:8px 14px;text-align:left;
-  max-width:100%;margin-bottom:12px;
-  order:1;align-self:flex-start;flex-shrink:0;
+  position:absolute;right:0;top:25%;z-index:5;
+  background:rgba(7,20,14,.88);border:1.5px solid rgba(82,183,136,.6);
+  border-radius:8px;padding:8px 12px;text-align:center;
+  max-width:130px;pointer-events:none;
 }
 .chart-canvas-box{
   order:2;flex:1 1 0;
   min-height:180px;max-height:290px;
   position:relative;overflow:hidden;
 }
-.ca-lbl{font-size:13px;color:var(--gold);font-weight:700;letter-spacing:.1em}
-.ca-val{font-size:26px;font-weight:900;color:var(--gold-light)}
-.ca-note{font-size:13px;color:var(--w60)}
+.ca-lbl{font-size:11px;color:rgba(82,183,136,0.85);font-weight:700;letter-spacing:.05em}
+.ca-val{font-size:22px;font-weight:900;color:#52B788;line-height:1.15}
+.ca-note{font-size:10px;color:rgba(255,255,255,0.6)}
 .chart-inner{position:relative;height:100%}
 
 /* ═══════════════════════════════════════════
@@ -518,15 +517,6 @@ html,body{
     padding:10px 0 30px;
   }
 
-  /* アノテーション: スマホはパディングで左右余白 */
-  .s6 .chart-annot{
-    background:transparent;
-    border:none;
-    padding:0 14px 8px;
-    margin-bottom:0;
-    align-self:stretch;
-  }
-
   /* キャンバスボックス: 高さ固定（flex:1より優先） */
   .s6 .chart-canvas-box{
     height:240px !important;
@@ -722,13 +712,13 @@ html,body{
           <div class="c-badge"><div class="dot-badge" style="background:rgba(82,183,136,0.5);border-radius:3px;width:22px;height:10px"></div>節約エリア（緑）</div>
           <div style="margin-left:auto;font-size:12px;color:var(--w60)" id="s6-payoff-label">縦線 = 完済タイミング（15年目）</div>
         </div>
-        <div class="chart-annot">
-          <div class="ca-lbl">20年間の総節約額</div>
-          <div class="ca-val" id="s6-total-save">143.4万円</div>
-          <div class="ca-note">完済後の恩恵が最大化</div>
-        </div>
         <div class="chart-canvas-box">
           <canvas id="chart20y"></canvas>
+          <div class="chart-annot" id="chart-annot-s6">
+            <div class="ca-lbl">20年間の総節約額</div>
+            <div class="ca-val" id="s6-total-save">143.4万円</div>
+            <div class="ca-note">完済後の恩恵が最大化</div>
+          </div>
         </div>
       </div>
     </div>
@@ -1011,6 +1001,20 @@ function build20YChart() {
       c.fillStyle = 'rgba(82,183,136,0.9)';
       c.fillText('✓ 完済', x, labelY);
       c.restore();
+      // 20年間の総節約額カードを20年目終端の縦中点に配置
+      const annotEl = document.getElementById('chart-annot-s6');
+      if (annotEl) {
+        const tradMeta = chart.getDatasetMeta(0);
+        const solarMeta = chart.getDatasetMeta(1);
+        const lastIdx = tradMeta.data.length - 1;
+        if (tradMeta.data[lastIdx] && solarMeta.data[lastIdx]) {
+          const tradY  = tradMeta.data[lastIdx].y;
+          const solarY = solarMeta.data[lastIdx].y;
+          const midY   = (tradY + solarY) / 2;
+          const h      = annotEl.offsetHeight || 70;
+          annotEl.style.top = Math.max(4, midY - h / 2) + 'px';
+        }
+      }
     }
   };
 
@@ -1054,8 +1058,8 @@ function build20YChart() {
       responsive: true,
       maintainAspectRatio: false,
       animation: { duration: 600 },
-      /* 注釈ボックスはグラフ外（上部）に配置済みのため右余白は最小 */
-      layout: { padding: { right: 8 } },
+      /* 右余白：右端アノテーションカード（約130px）分を確保 */
+      layout: { padding: { right: isMobile ? 110 : 138 } },
       plugins: {
         legend: { display: false },
         tooltip: {
