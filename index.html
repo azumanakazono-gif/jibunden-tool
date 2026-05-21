@@ -5594,6 +5594,7 @@ async function generatePPTX(mode) {
         }
         const eN=nowVals[nowVals.length-1],eC=cashVals[cashVals.length-1],eL=loanVals[loanVals.length-1];
         const maxV=Math.ceil(Math.max(eN,eC,eL)/100)*100+100;
+        const diffC=Math.round(eN-eC),diffL=Math.round(eN-eL);
         const graphTop=0.9,graphH=3.3,labelX=8.55;
         const endPts=[[eN,"EA580C"],[eC,"2D6A4F"],[eL,"7C3AED"]]
           .map(([v,col])=>[graphTop+graphH*(1-v/maxV)-0.18,col,`${v}万`])
@@ -5603,12 +5604,28 @@ async function generatePPTX(mode) {
           sl.addShape(presR.ShapeType.rect,{x:labelX,y,w:1.1,h:0.36,fill:{color:col},line:{color:col}});
           sl.addText(txt,{x:labelX,y,w:1.1,h:0.36,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         });
+        // 20年間の総節約額カード（グラフ右端・20年目終端付近）
+        const eN_lineY=graphTop+graphH*(1-eN/maxV);
+        const eC_lineY=graphTop+graphH*(1-eC/maxV);
+        if(diffC>0&&eC_lineY-eN_lineY>0.35){
+          const brkX=8.3;
+          const savMidY=(eN_lineY+eC_lineY)/2;
+          const cW=1.5,cH=0.62,cX=brkX-cW-0.1,cY=savMidY-cH/2;
+          sl.addShape(presR.ShapeType.line,{x:brkX,y:eN_lineY,w:0,h:eC_lineY-eN_lineY,line:{color:"15803D",width:1.5}});
+          sl.addShape(presR.ShapeType.line,{x:brkX-0.1,y:eN_lineY,w:0.1,h:0,line:{color:"15803D",width:1.5}});
+          sl.addShape(presR.ShapeType.line,{x:brkX-0.1,y:eC_lineY,w:0.1,h:0,line:{color:"15803D",width:1.5}});
+          sl.addShape(presR.ShapeType.rect,{x:cX,y:cY,w:cW,h:cH,fill:{color:"F0FDF4"},line:{color:"2D6A4F",width:1.5},shadow:{type:"outer",blur:4,offset:2,angle:135,color:"000000",opacity:0.1}});
+          sl.addText([
+            {text:"20年間の総節約額\n",options:{fontSize:9,color:"166534"}},
+            {text:`約${fmt(diffC)}万円おトク`,options:{fontSize:14,bold:true,color:"2D6A4F"}},
+          ],{x:cX,y:cY,w:cW,h:cH,fontFace:"Meiryo",align:"center",valign:"middle"});
+        }
         sl.addShape(presR.ShapeType.rect,{x:0,y:4.88,w:10,h:0.745,fill:{color:C.paleGreen},line:{color:C.lightGreen,width:0.5}});
-        const diffC=Math.round(eN-eC),diffL=Math.round(eN-eL);
         sl.addText([
-          {text:"🌿　20年間の累計：",options:{color:C.charcoal,fontSize:11}},
-          {text:`現金購入 約${fmt(Math.abs(diffC))}万円${diffC>=0?'おトク':'増'}　`,options:{bold:true,fontSize:12,color:diffC>=0?C.midGreen:C.orange}},
-          {text:`ローン活用 約${fmt(Math.abs(diffL))}万円${diffL>=0?'おトク':'増'}（vs 電力会社）`,options:{bold:true,fontSize:12,color:diffL>=0?"5B21B6":C.orange}},
+          {text:"🌿　",options:{color:C.charcoal,fontSize:11}},
+          {text:`現金購入 約${fmt(Math.abs(diffC))}万円${diffC>=0?'おトク':'増'}`,options:{bold:true,fontSize:12,color:diffC>=0?C.midGreen:C.orange}},
+          {text:`　／　ローン活用 約${fmt(Math.abs(diffL))}万円${diffL>=0?'おトク':'増'}`,options:{bold:true,fontSize:12,color:diffL>=0?"5B21B6":C.orange}},
+          {text:"　（いずれも vs 電力会社・20年間累計）",options:{color:C.charcoal,fontSize:10}},
         ],{x:0.4,y:4.9,w:9.2,h:0.65,fontFace:"Meiryo",valign:"middle"});
       }
 
