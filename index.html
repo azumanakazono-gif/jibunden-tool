@@ -334,7 +334,7 @@ canvas#mini-chart { height: 220px !important; }
       <div class="section-title">🏗️ 提案モード</div>
       <div class="proposal-mode-bar">
         <button class="pm-btn active" id="pm-btn-pv_battery" onclick="setProposalMode('pv_battery')">☀️ 太陽光<br>＋蓄電池</button>
-        <button class="pm-btn" id="pm-btn-pv_only" onclick="onWipModeClick('pv_only')" style="position:relative;cursor:not-allowed;opacity:.55">☀️ 太陽光<br>のみ<br><span style="font-size:9px;background:#f59e0b;color:#fff;border-radius:3px;padding:1px 4px;font-weight:700">🚧 製作中</span></button>
+        <button class="pm-btn" id="pm-btn-pv_only" onclick="setProposalMode('pv_only')">☀️ 太陽光<br>のみ</button>
         <button class="pm-btn" id="pm-btn-battery_only" onclick="onWipModeClick('battery_only')" style="position:relative;cursor:not-allowed;opacity:.55">🔋 蓄電池<br>のみ（後付け）<br><span style="font-size:9px;background:#f59e0b;color:#fff;border-radius:3px;padding:1px 4px;font-weight:700">🚧 製作中</span></button>
       </div>
       <div id="proposal-mode-desc" style="font-size:12px;color:var(--muted);padding:7px 12px;background:var(--pg);border-radius:8px;border:1px solid var(--border)">
@@ -370,7 +370,7 @@ canvas#mini-chart { height: 220px !important; }
             <button id="htgl-hasPV-y" class="htgl" onclick="setHearing('hasPV',true)">あり</button>
           </div>
         </div>
-        <div class="hearing-row">
+        <div class="hearing-row" id="hearing-battery-row">
           <span class="hearing-lbl">🔋 蓄電池</span>
           <div class="hearing-btns">
             <button id="htgl-hasBattery-n" class="htgl active" onclick="setHearing('hasBattery',false)">なし</button>
@@ -780,18 +780,28 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <!-- pv_only 用 -->
         <div id="pkg-row-pv-only" style="display:none">
-          <div class="field">
-            <label>📦 システムパッケージ（太陽光のみ）</label>
-            <select id="pkg-select-pv" onchange="onPkgChangePv()" style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
-              <option value="">— 手動入力（パッケージ選択なし）—</option>
-              <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
-              <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
-              <option value="pv7"> 7kWパッケージ（18枚 / 7.02kW）</option>
-              <option value="pv8"> 8kWパッケージ（21枚 / 8.16kW）</option>
-              <option value="pv9"> 9kWパッケージ（24枚 / 9.36kW）</option>
-              <option value="pv10">10kWパッケージ（27枚 / 10.53kW）</option>
-              <option value="pv14">14kWパッケージ（36枚 / 14.04kW）</option>
-            </select>
+          <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+            <div class="field" style="flex:2;min-width:200px">
+              <label>📦 システムパッケージ（太陽光のみ）</label>
+              <select id="pkg-select-pv" onchange="onPkgChangePv()" style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
+                <option value="">— 手動入力（パッケージ選択なし）—</option>
+                <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
+                <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
+                <option value="pv7"> 7kWパッケージ（18枚 / 7.02kW）</option>
+                <option value="pv8"> 8kWパッケージ（21枚 / 8.16kW）</option>
+                <option value="pv9"> 9kWパッケージ（24枚 / 9.36kW）</option>
+                <option value="pv10">10kWパッケージ（27枚 / 10.53kW）</option>
+                <option value="pv14">14kWパッケージ（36枚 / 14.04kW）</option>
+              </select>
+            </div>
+            <div class="field" id="pkg-extra-pv-field" style="min-width:130px;display:none">
+              <label>追加費用（万円）</label>
+              <input type="number" id="pkg-extra-pv" value="0" min="0" step="10" oninput="onPkgExtraChangePv()">
+            </div>
+            <div class="field" id="pkg-extra-pv-note-field" style="min-width:180px;display:none">
+              <label>追加費用の内容（任意）</label>
+              <input type="text" id="pkg-extra-pv-note" placeholder="例：配線延長工事・足場追加など" oninput="calc()">
+            </div>
           </div>
         </div>
         <div id="pkg-cost-summary" style="margin-top:8px;font-size:12px;color:var(--dg);display:none"></div>
@@ -1068,7 +1078,7 @@ canvas#mini-chart { height: 220px !important; }
               <span style="font-size:11px;color:#15803d">円/月</span>
             </div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff;border-radius:8px;border:1px solid #d1fae5">
+          <div id="merit-battery-row" style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:#fff;border-radius:8px;border:1px solid #d1fae5">
             <span style="font-size:13px;font-weight:600;color:#166534">🔋 蓄電池の放電による削減</span>
             <div style="text-align:right;white-space:nowrap">
               <span id="merit-bc-kwh" style="font-size:12px;color:#15803d;font-weight:700">-</span>
@@ -1466,7 +1476,7 @@ function initSaleSetting() {
   onSaleModeChange('fit');
 }
 
-const WIP_MODES = ['pv_only', 'battery_only'];
+const WIP_MODES = ['battery_only'];
 const UNLOCK_PW = 'azuma4001';
 let _proposalEditUnlocked = false;
 
@@ -1560,6 +1570,22 @@ function applyProposalMode() {
 
   // 説明文更新
   document.getElementById('proposal-mode-desc').textContent = cfg.desc;
+
+  // 蓄電池ヒアリング行・メリット内訳行の表示切替
+  const batteryHearing = document.getElementById('hearing-battery-row');
+  const meritBattery   = document.getElementById('merit-battery-row');
+  if (batteryHearing) batteryHearing.style.display = hasBattery ? '' : 'none';
+  if (meritBattery)   meritBattery.style.display   = hasBattery ? '' : 'none';
+
+  // pv_only 時：導入後プランを現在のプランに合わせる
+  if (proposalMode === 'pv_only') {
+    const curPlan = document.getElementById('kyuden-plan').value;
+    const postPlanEl = document.getElementById('post-kyuden-plan');
+    if (postPlanEl && curPlan) {
+      postPlanEl.value = curPlan;
+      onPostKyudenPlanChange();
+    }
+  }
 
   calc();
 }
@@ -2215,9 +2241,9 @@ function buildCfg(data, lp, ly) {
     currentUnitPrice: data.mkwh > 0 ? Math.round(data.mb / data.mkwh * 10) / 10 : 0,
     annualGenerationKWh: data.ag || 0,
     solarCapacityKW: data.sk || 0,
-    batteryCapacityKWh: data.bk || 0,
+    batteryCapacityKWh: (proposalMode === 'pv_only') ? 0 : (data.bk || 0),
     directConsumptionKWh: data.dc || 0,
-    batteryConsumptionKWh: data.bc || 0,
+    batteryConsumptionKWh: (proposalMode === 'pv_only') ? 0 : (data.bc || 0),
     annualConsumptionKWh: (data.mkwh||0) * 12,
     totalConstructionCost: (data.ck||0) * 10000,
     subsidyAmount: data.sub || 0,
@@ -2264,12 +2290,27 @@ function onPkgChangePv() {
   document.getElementById('pkg-manual-note').textContent =
     isManual ? '💡 パッケージを使わず個別入力します。下のフィールドに太陽光容量・年間発電量・税込総工事費用を入力してください。'
              : '💡 下のフィールドに直接、太陽光容量・年間発電量・税込総工事費用を入力してください。';
+  const extraFieldEl     = document.getElementById('pkg-extra-pv-field');
+  const extraNoteFieldEl = document.getElementById('pkg-extra-pv-note-field');
+  if (extraFieldEl)     extraFieldEl.style.display     = isManual ? 'none' : '';
+  if (extraNoteFieldEl) extraNoteFieldEl.style.display = isManual ? 'none' : '';
   if (!isManual && PACKAGES_PV[key]) {
     const p = PACKAGES_PV[key];
+    const extra = parseFloat(document.getElementById('pkg-extra-pv').value) || 0;
     pkgBaseCost = p.cost;
     document.getElementById('sk').value = p.sk;
     document.getElementById('ag').value = p.ag;
-    document.getElementById('ck').value = p.cost;
+    document.getElementById('ck').value = p.cost + extra;
+  }
+  updatePkgSummaryPv();
+  calc();
+}
+
+function onPkgExtraChangePv() {
+  const extra = parseFloat(document.getElementById('pkg-extra-pv').value) || 0;
+  const key = document.getElementById('pkg-select-pv').value;
+  if (key && PACKAGES_PV[key]) {
+    document.getElementById('ck').value = pkgBaseCost + extra;
   }
   updatePkgSummaryPv();
   calc();
@@ -2311,8 +2352,14 @@ function updatePkgSummaryPv() {
     }
   } else if (PACKAGES_PV[key]) {
     const p = PACKAGES_PV[key];
+    const extra = parseFloat(document.getElementById('pkg-extra-pv').value) || 0;
+    const total = p.cost + extra;
     el.style.display = '';
-    el.innerHTML = `標準パッケージ：<b>${p.cost}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${p.cost}万円</b>`;
+    if (extra > 0) {
+      el.innerHTML = `標準パッケージ：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+    } else {
+      el.innerHTML = `標準パッケージ：<b>${p.cost}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+    }
   } else {
     el.style.display = 'none';
   }
@@ -2336,6 +2383,9 @@ function saveFormToData(data) {
   data.pkgSelect = document.getElementById('pkg-select').value;
   data.pkgExtra = parseFloat(document.getElementById('pkg-extra').value)||0;
   data.pkgExtraNote = document.getElementById('pkg-extra-note').value;
+  data.pkgSelectPv = document.getElementById('pkg-select-pv').value;
+  data.pkgExtraPv = parseFloat(document.getElementById('pkg-extra-pv').value)||0;
+  data.pkgExtraPvNote = document.getElementById('pkg-extra-pv-note').value;
   data.sysName = document.getElementById('sys-name').value;
   HEARING_KEYS.forEach(k => { data[k] = data[k] || false; }); // preserve current values
   data.proposalMode = proposalMode;
@@ -2367,6 +2417,9 @@ function loadDataToForm(data) {
   document.getElementById('pkg-select').value = ps;
   document.getElementById('pkg-extra').value = data.pkgExtra || 0;
   document.getElementById('pkg-extra-note').value = data.pkgExtraNote || '';
+  document.getElementById('pkg-select-pv').value = data.pkgSelectPv || '';
+  document.getElementById('pkg-extra-pv').value = data.pkgExtraPv || 0;
+  document.getElementById('pkg-extra-pv-note').value = data.pkgExtraPvNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
   updateHearingUI(data);
   if (ps && PACKAGES[ps]) {
@@ -2402,6 +2455,25 @@ function loadDataToForm(data) {
     document.getElementById('sale-reset-btn').style.display    = 'inline-block';
   }
   setProposalMode(data.proposalMode || 'pv_battery');
+  // pv_only 復元：setProposalMode が pkg-select-pv をクリアした後に再セット
+  if ((data.proposalMode || 'pv_battery') === 'pv_only' && data.pkgSelectPv) {
+    document.getElementById('pkg-select-pv').value = data.pkgSelectPv;
+    const pvKey = data.pkgSelectPv;
+    if (PACKAGES_PV[pvKey]) {
+      const p = PACKAGES_PV[pvKey];
+      const extra = data.pkgExtraPv || 0;
+      pkgBaseCost = p.cost;
+      document.getElementById('sk').value = p.sk;
+      document.getElementById('ag').value = p.ag;
+      document.getElementById('ck').value = p.cost + extra;
+      document.getElementById('pkg-manual-area').style.display = 'none';
+      const extraFieldEl     = document.getElementById('pkg-extra-pv-field');
+      const extraNoteFieldEl = document.getElementById('pkg-extra-pv-note-field');
+      if (extraFieldEl)     extraFieldEl.style.display     = '';
+      if (extraNoteFieldEl) extraNoteFieldEl.style.display = '';
+    }
+    updatePkgSummaryPv();
+  }
   _updateMonthlyDetailVisibility(!!data.hasBill);
 }
 
@@ -5262,8 +5334,12 @@ async function generatePPTX(mode) {
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,presR);
-      [{icon:"☀️",title:"太陽光パネル",value:`${cfg.solarCapacityKW} kW`,desc:`年間発電量\n約${fmt(cfg.annualGenerationKWh)} kWh`,col:C.gold},{icon:"🔋",title:"蓄電池",value:`${cfg.batteryCapacityKWh} kWh`,desc:"夜間・曇天時も\n安定して供給",col:C.midGreen},{icon:"🔒",title:"安心保証",value:`${cfg.warrantyYears}年間`,desc:"全機器まとめて\n長期保証付き",col:C.lightGreen}].forEach((card,i)=>{
-        const x=0.5+i*3.05;
+      (proposalMode === 'pv_only'
+        ? [{icon:"☀️",title:"太陽光パネル",value:`${cfg.solarCapacityKW} kW`,desc:`年間発電量\n約${fmt(cfg.annualGenerationKWh)} kWh`,col:C.gold},{icon:"🔒",title:"安心保証",value:`${cfg.warrantyYears}年間`,desc:"全機器まとめて\n長期保証付き",col:C.lightGreen}]
+        : [{icon:"☀️",title:"太陽光パネル",value:`${cfg.solarCapacityKW} kW`,desc:`年間発電量\n約${fmt(cfg.annualGenerationKWh)} kWh`,col:C.gold},{icon:"🔋",title:"蓄電池",value:`${cfg.batteryCapacityKWh} kWh`,desc:"夜間・曇天時も\n安定して供給",col:C.midGreen},{icon:"🔒",title:"安心保証",value:`${cfg.warrantyYears}年間`,desc:"全機器まとめて\n長期保証付き",col:C.lightGreen}]
+      ).forEach((card,i,arr)=>{
+        const step = arr.length === 2 ? 3.5 : 3.05;
+        const x = (arr.length === 2 ? 1.25 : 0.5) + i*step;
         sl.addShape(presR.ShapeType.rect,{x,y:1.1,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
         sl.addText(card.icon,{x,y:1.15,w:2.8,h:0.7,fontSize:26,align:"center",valign:"middle"});
         sl.addText(card.title,{x,y:1.85,w:2.8,h:0.4,fontSize:13,bold:true,color:card.col,align:"center",fontFace:"Meiryo"});
@@ -5341,7 +5417,7 @@ async function generatePPTX(mode) {
         {text:"自家消費率",options:{breakLine:true,fontSize:12,color:C.gray}},
         {text:`${m.selfRate}%`,options:{breakLine:true,fontSize:36,bold:true,color:C.midGreen}},
         {text:`☀️ 昼間直接：${fmt(cfg.directConsumptionKWh)} kWh`,options:{breakLine:true,fontSize:11,color:C.gray}},
-        {text:`🔋 蓄電池：${fmt(cfg.batteryConsumptionKWh)} kWh`,options:{breakLine:true,fontSize:11,color:C.gray}},
+        ...(proposalMode !== 'pv_only' ? [{text:`🔋 蓄電池：${fmt(cfg.batteryConsumptionKWh)} kWh`,options:{breakLine:true,fontSize:11,color:C.gray}}] : []),
         {text:`残り購入：月平均 ¥${fmt(m.remainBill)}`,options:{fontSize:12,bold:true,color:C.orange}},
       ],{x:5.3,y:1.0,w:4.3,h:2.8,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.0,w:9.2,h:1.35,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
@@ -5578,8 +5654,12 @@ async function generatePPTX(mode) {
       sl.addShape(presR.ShapeType.rect,{x:8.2,y:0.17,w:1.55,h:0.56,fill:{color:C.midGreen},line:{color:C.midGreen}});
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,presR);
-      [{icon:"☀️",title:"太陽光パネル",warranty:`${cfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${cfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${cfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}].forEach((p,i)=>{
-        const x=0.4+i*3.1;
+      (proposalMode === 'pv_only'
+        ? [{icon:"☀️",title:"太陽光パネル",warranty:`${cfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${cfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"}]
+        : [{icon:"☀️",title:"太陽光パネル",warranty:`${cfg.warrantyYears}年保証`,desc:"製品・出力・施工\nすべてカバー"},{icon:"⚡",title:"パワーコンディショナー",warranty:`${cfg.warrantyYears}年保証`,desc:"変換効率の\n長期維持"},{icon:"🔋",title:"蓄電池",warranty:`${cfg.warrantyYears}年保証`,desc:"容量保証で\n安心使用"}]
+      ).forEach((p,i,arr)=>{
+        const step = arr.length === 2 ? 3.5 : 3.1;
+        const x = (arr.length === 2 ? 1.15 : 0.4) + i*step;
         sl.addShape(presR.ShapeType.rect,{x,y:1.0,w:2.8,h:2.5,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:8,offset:3,angle:135,color:"000000",opacity:0.1}});
         sl.addText(p.icon,{x,y:1.05,w:2.8,h:0.7,fontSize:26,align:"center",valign:"middle"});
         sl.addText(p.title,{x,y:1.75,w:2.8,h:0.4,fontSize:12,bold:true,color:C.darkGreen,align:"center",fontFace:"Meiryo"});
@@ -5588,7 +5668,10 @@ async function generatePPTX(mode) {
         sl.addText(p.desc,{x,y:2.65,w:2.8,h:0.75,fontSize:11,color:C.gray,align:"center",fontFace:"Meiryo"});
       });
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:3.65,w:9.2,h:1.7,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
-      sl.addText([{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}],{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
+      sl.addText(proposalMode === 'pv_only'
+        ? [{text:"☀️ 昼間の電気代を大幅に削減\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光で発電した電気をそのまま自家消費し、余った分は売電。\n電力会社への依存を減らし、家計を守ります。",options:{fontSize:13,color:C.charcoal}}]
+        : [{text:"🏠 停電のときも、じぶん電気が守ってくれます\n",options:{bold:true,fontSize:15,color:C.darkGreen}},{text:"太陽光＋蓄電池があれば、停電中でも電気が使えます。\n冷蔵庫・照明・スマートフォン充電など、大切な日常生活を守ります。",options:{fontSize:13,color:C.charcoal}}]
+      ,{x:0.8,y:3.7,w:8.5,h:1.55,fontFace:"Meiryo"});
     }
 
     setProgress("実データ版：まとめスライドを作成中...");
