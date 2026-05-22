@@ -1945,9 +1945,11 @@ async function _processAnalysisFile(file) {
   const statusEl = document.getElementById('pdf-status');
   statusEl.style.display = 'block';
   statusEl.textContent = '🔍 解析中...';
+  console.log('解析を開始しました', { name: file.name, type: file.type, size: file.size });
 
   try {
     const result = await analyzeFileWithAI(file);
+    console.log('解析結果:', result);
     applyAIResult(result);
     statusEl.textContent = '✅ 解析完了 — 各月の値を反映しました';
   } catch (e) {
