@@ -5935,7 +5935,8 @@ function exportFormData() {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `jibunden_${new Date().toISOString().split('T')[0]}.json`;
+  const _name = (custData.cn || document.getElementById('cn')?.value || '').trim() || '名称未設定';
+  a.download = `じぶん電気提案データ_${_name}_${new Date().toISOString().split('T')[0]}.json`;
   a.click();
   URL.revokeObjectURL(url);
 }
