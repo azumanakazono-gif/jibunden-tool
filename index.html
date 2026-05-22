@@ -631,6 +631,10 @@ canvas#mini-chart { height: 220px !important; }
             <div id="before-ratio-style-status" style="display:none;margin-top:6px;font-size:11px;color:#475569;padding:4px 8px;background:#fff;border-radius:4px;border:1px solid #cbd5e1"></div>
           </div>
 
+          <div id="monthly-actual-notice" style="display:none;margin-top:8px;padding:8px 12px;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;font-size:11px;color:#166534;font-weight:600">
+            ✅ 実績データに基づく計算値です（スライダー調整は不要）
+          </div>
+
           <details id="before-price-breakdown" class="breakdown-toggle" style="display:none;margin-top:10px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'📊 料金内訳・計算根拠を表示 ▲':'📊 料金内訳・計算根拠を表示 ▼';})(this)">
             <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;margin-bottom:0;background:#dbeafe;border-bottom:1px solid #93c5fd;color:#1e40af;list-style:none;user-select:none">📊 料金内訳・計算根拠を表示 ▼</summary>
             <div id="juuryo-panel" style="display:none"></div>
@@ -1775,6 +1779,21 @@ function onMkwhInput() {
    ================================================================ */
 const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
 let monthlyDetailOpen = false;
+let monthlyInputActive = false;
+
+function _updateBeforePanelVisibility() {
+  const ratioPanel  = document.getElementById('before-ratio-panel');
+  const notice      = document.getElementById('monthly-actual-notice');
+  const kp          = (document.getElementById('kyuden-plan') || {}).value || '';
+  const isTOU       = ['kyushu_denka_night','kyushu_kiji','kyushu_ohisama'].includes(kp);
+  if (monthlyInputActive) {
+    if (ratioPanel) ratioPanel.style.display = 'none';
+    if (notice) notice.style.display = '';
+  } else {
+    if (notice) notice.style.display = 'none';
+    if (ratioPanel) ratioPanel.style.display = isTOU ? '' : 'none';
+  }
+}
 
 function toggleMonthlyDetail() {
   monthlyDetailOpen = !monthlyDetailOpen;
@@ -1953,6 +1972,8 @@ function onMonthlyInput() {
 
   // 月間電気代（#mb）の入力制御（詳細入力使用中は読み取り専用）
   _updateMbLock(anyInput, avgBill);
+  monthlyInputActive = anyInput;
+  _updateBeforePanelVisibility();
 
   // 入力済み月がある場合のみ上部フィールドへ反映
   if (avgBill > 0) {
@@ -2683,6 +2704,7 @@ function onKyudenPlanChange() {
   _beforeRatioPanelPlan = null;
   updateRatioPanel();
   updateBeforeRatioPanel();
+  _updateBeforePanelVisibility();
   if (!data.hasBill) {
     onHearingChange(data);
   } else {
@@ -4678,7 +4700,9 @@ function calc() {
   const _beforeTOU = ['kyushu_denka_night','kyushu_kiji','kyushu_ohisama'].includes(_kpBefore);
   const _beforeJuuryo = _kpBefore === 'kyushu_juuryo_b' || _kpBefore === 'kyushu_juuryo_c';
   let _beforeGrand = mb;
-  if (_beforeTOU) {
+  if (monthlyInputActive) {
+    _beforeGrand = mb;  // 実績月平均を直接使用
+  } else if (_beforeTOU) {
     const _bEff = calcBeforeEffectiveUnitPrice(_kpBefore);
     if (_bEff && mkwh > 0) _beforeGrand = Math.round(mkwh * _bEff + _juuryoBasicCharge(_kpBefore));
   } else if (_beforeJuuryo && mkwh > 0) {
