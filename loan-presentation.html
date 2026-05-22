@@ -502,6 +502,37 @@ html,body{
   .dot{width:6px;height:6px}
 }
 
+/* ── Customer name badge ── */
+.customer-name-badge {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  z-index: 100;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.08em;
+  background: rgba(27,67,50,0.68);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,0.22);
+  border-radius: 24px;
+  padding: 5px 18px;
+  pointer-events: none;
+  display: none;
+  white-space: nowrap;
+}
+@media(max-width:767px) {
+  .customer-name-badge {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 998;
+    font-size: 11px;
+    padding: 4px 12px;
+  }
+}
+
 /* ── 520px以下: S6グラフをフル幅表示・凡例コンパクト化 ── */
 @media(max-width:520px){
   /* スライド本体のLRパディングを除去 */
@@ -656,7 +687,7 @@ html,body{
           <div class="cf-note">ローン返済＋残り電気代から<br>売電収入を差し引いた実質負担</div>
           <div class="cf-bk">
             <div class="cf-bk-row"><span>実質月額負担</span><span id="s4-jis-monthly">14,500円</span></div>
-            <div id="s4-breakdown" style="font-size:12px;color:var(--w40);margin:2px 0 4px;line-height:1.5">（内訳：ローン 約17,900円 ＋ 電気代 約3,000円 － 売電 約6,400円）</div>
+            <div id="s4-breakdown" style="font-size:12px;color:var(--w60);margin:2px 0 6px;line-height:1.5;font-weight:500">（内訳：ローン返済 約17,900円 ＋ 残り電気代 約3,000円 － 売電収入 約6,400円）</div>
             <div class="cf-bk-row"><span>実質年間負担</span><span id="s4-jis-annual">174,000円</span></div>
             <div class="cf-bk-row cf-bk-main"><span>20年累計実質負担</span><span id="s4-jis-20y">348万円</span></div>
           </div>
@@ -771,6 +802,7 @@ html,body{
       </div>
     </div>
 
+    <div class="customer-name-badge" id="customerNameBadge"></div>
   </div><!-- /slides-wrap -->
 
   <!-- Navigation -->
@@ -911,7 +943,7 @@ if (rawSaving4 > 0) {
 document.getElementById('s4-total-man').textContent   = (jissitsuMonthly / 10000).toFixed(2);
 document.getElementById('s4-jis-monthly').textContent = fmt(jissitsuMonthly) + '円';
 document.getElementById('s4-breakdown').textContent =
-  `（内訳：ローン 約${fmt(pmt)}円 ＋ 電気代 約${fmt(RESIDUAL)}円 － 売電 約${fmt(SALE_INCOME_EARLY)}円）`;
+  `（内訳：ローン返済 約${fmt(pmt)}円 ＋ 残り電気代 約${fmt(RESIDUAL)}円 － 売電収入 約${fmt(SALE_INCOME_EARLY)}円）`;
 document.getElementById('s4-jis-annual').textContent  = fmt(jissitsuAnnual) + '円';
 document.getElementById('s4-jis-20y').textContent     = Math.round(jissitsu20y / 10000) + '万円';
 
@@ -1152,6 +1184,15 @@ function goTo(idx) {
 buildDots();
 goTo(0);
 
+/* ── Customer name badge ── */
+(function() {
+  const name = (params.get('customerName') || '').trim();
+  const badge = document.getElementById('customerNameBadge');
+  if (!badge || !name) return;
+  badge.textContent = name + ' 様';
+  badge.style.display = 'block';
+})();
+
 btnPrev.addEventListener('click', () => goTo(current - 1));
 btnNext.addEventListener('click', () => goTo(current + 1));
 
@@ -1183,6 +1224,7 @@ async function exportToPPTX() {
   const totalInt   = Math.max(0, totalPaid - loanPrincipal);
   const postMon    = CURRENT - RESIDUAL;
   const postAnn    = postMon * 12;
+  const _custName  = (params.get('customerName') || '').trim();
 
   const pres = new PptxGenJS();
   pres.layout = 'LAYOUT_16x9';
@@ -1191,7 +1233,8 @@ async function exportToPPTX() {
   function sh(sl, num, title, gold) {
     sl.background = {color: NAV};
     sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.06,fill:{color:GLD},line:{color:GLD}});
-    sl.addText(num, {x:0.5,y:0.12,w:9,h:0.22,fontSize:11,bold:true,color:GLD,fontFace:'Meiryo'});
+    sl.addText(num, {x:0.5,y:0.12,w:7,h:0.22,fontSize:11,bold:true,color:GLD,fontFace:'Meiryo'});
+    if (_custName) sl.addText(_custName + ' 様',{x:7.2,y:0.1,w:2.5,h:0.26,fontSize:10,bold:true,color:GLD2,align:'right',fontFace:'Meiryo',valign:'middle'});
     if (gold) sl.addText([{text:gold,options:{bold:true,color:'52B788'}},{text:title,options:{bold:true,color:WHT}}],{x:0.5,y:0.38,w:9,h:0.6,fontSize:26,fontFace:'Meiryo',valign:'middle'});
     else       sl.addText(title,{x:0.5,y:0.38,w:9,h:0.6,fontSize:26,bold:true,color:WHT,fontFace:'Meiryo',valign:'middle'});
   }
@@ -1203,6 +1246,7 @@ async function exportToPPTX() {
   {const sl=pres.addSlide();sl.background={color:'1B4332'};
     sl.addShape(pres.ShapeType.rect,{x:0,y:0,w:10,h:0.04,fill:{color:'D8F3DC'},line:{color:'D8F3DC'}});
     sl.addShape(pres.ShapeType.rect,{x:0,y:5.59,w:10,h:0.04,fill:{color:'D8F3DC'},line:{color:'D8F3DC'}});
+    if (_custName) sl.addText(_custName + ' 様',{x:7.0,y:0.08,w:2.7,h:0.28,fontSize:10,bold:true,color:'D8F3DC',align:'right',fontFace:'Meiryo',valign:'middle'});
     sl.addShape(pres.ShapeType.rect,{x:3.5,y:1.0,w:3,h:0.32,fill:{color:'0f2a1e'},line:{color:'D8F3DC'}});
     sl.addText('SMART LOAN STRATEGY',{x:3.5,y:1.0,w:3,h:0.32,fontSize:9,bold:true,color:'D8F3DC',align:'center',valign:'middle',fontFace:'Meiryo',margin:0});
     sl.addText('じぶん電気',{x:1,y:1.4,w:8,h:0.9,fontSize:52,bold:true,color:'D8F3DC',align:'center',fontFace:'Meiryo',margin:0});
@@ -1279,7 +1323,7 @@ async function exportToPPTX() {
     sl.addText(`${(jissitsuMonthly/10000).toFixed(2)}`,{x:5.4,y:2.26,w:2.9,h:0.78,fontSize:50,bold:true,color:GLD2,fontFace:'Meiryo',margin:0});
     sl.addText('万円/月',{x:8.3,y:2.66,w:1.2,h:0.38,fontSize:13,bold:true,color:GLD2,fontFace:'Meiryo',valign:'bottom'});
     sl.addText(`実質月額負担　${_f(jissitsuMonthly)}円`,{x:5.4,y:3.2,w:4.1,h:0.28,fontSize:13,bold:true,color:GLD2,fontFace:'Meiryo'});
-    sl.addText(`（内訳：ローン 約${_f(pmt)}円 ＋ 電気代 約${_f(RESIDUAL)}円 － 売電 約${_f(SALE_INCOME_EARLY)}円）`,{x:5.4,y:3.46,w:4.1,h:0.24,fontSize:10,color:'9ca3af',fontFace:'Meiryo'});
+    sl.addText(`（内訳：ローン返済 約${_f(pmt)}円 ＋ 残り電気代 約${_f(RESIDUAL)}円 － 売電収入 約${_f(SALE_INCOME_EARLY)}円）`,{x:5.4,y:3.46,w:4.1,h:0.24,fontSize:10,color:'9ca3af',fontFace:'Meiryo'});
     sl.addText(`実質年間負担　${_f(jissitsuAnnual)}円`,{x:5.4,y:3.72,w:4.1,h:0.28,fontSize:13,color:MUT,fontFace:'Meiryo'});
     sl.addText(`20年累計実質負担　${Math.round(jissitsu20y/10000)}万円`,{x:5.4,y:4.02,w:4.1,h:0.36,fontSize:17,bold:true,color:GLD2,fontFace:'Meiryo'});
   }
