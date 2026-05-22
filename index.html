@@ -4290,6 +4290,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       downPayment:           v('dp') || 0,
       monthlyBill:           v('mb') || 0,
       monthlyRemainingCost:  remainBill || 0,
+      customerName:          (custData.cn || document.getElementById('cn')?.value || '').trim(),
     });
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
