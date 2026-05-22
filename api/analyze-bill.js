@@ -19,10 +19,22 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024;
 const PROMPT = `この電気料金明細書から情報を抽出してください。
 JSONのみ返してください（説明不要）。
 
-12ヶ月分ある場合: {"months":[{"bill":数値,"kwh":数値},... 計12件]}
-1ヶ月分の場合: {"single":{"bill":数値,"kwh":数値}}
+【重要】季節区分（春季/夏季/秋季/冬季、平日/休日など）が含まれる場合は
+同じ時間帯の使用量をすべて合算してください。
+例: 昼間（春季/平日）150kWh + 昼間（夏季/平日）200kWh + 昼間（休日）80kWh → tou0=430
 
-billは円（整数）、kwhはkWh（整数）。不明はnull。`;
+時間帯の割り当て:
+・季時別/おひさま系プラン → tou0=昼間合計, tou1=朝夕(リビング/シフト)合計, tou2=夜間合計
+・電化でナイト系プラン   → tou0=平日デイ合計, tou1=休日デイ合計, tou2=夜間合計
+・時間帯区分なし         → tou0/tou1/tou2はnull
+
+12ヶ月分ある場合:
+{"months":[{"bill":円整数,"kwh":合計kWh整数,"tou0":kWh整数orNull,"tou1":kWh整数orNull,"tou2":kWh整数orNull},... 計12件]}
+
+1ヶ月分の場合:
+{"single":{"bill":円整数,"kwh":合計kWh整数,"tou0":kWh整数orNull,"tou1":kWh整数orNull,"tou2":kWh整数orNull}}
+
+kwhは全時間帯の合計kWh（tou0+tou1+tou2と一致させること）。不明はnull。`;
 
 function setCORS(req, res) {
   const origin = req.headers.origin;

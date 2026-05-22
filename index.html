@@ -1997,6 +1997,18 @@ function applyAIResult(data) {
       const kwhEl  = document.getElementById(`m-kwh-${i}`);
       if (billEl && m.bill != null) billEl.value = Math.round(m.bill);
       if (kwhEl  && m.kwh  != null) kwhEl.value  = Math.round(m.kwh);
+      // 時間帯別（季節区分を正規化済みの tou0/tou1/tou2）
+      const hasTou = m.tou0 != null || m.tou1 != null || m.tou2 != null;
+      if (hasTou) {
+        const t0 = document.getElementById(`m-tou0-${i}`);
+        const t1 = document.getElementById(`m-tou1-${i}`);
+        const t2 = document.getElementById(`m-tou2-${i}`);
+        if (t0 && m.tou0 != null) t0.value = Math.round(m.tou0);
+        if (t1 && m.tou1 != null) t1.value = Math.round(m.tou1);
+        if (t2 && m.tou2 != null) t2.value = Math.round(m.tou2);
+        // TOU 合計で kwh を上書き・比率を再計算
+        onMonthlyTouInput(i);
+      }
     });
     // mb/mkwh を平均値で直接更新（onMonthlyInput 経由だけでは hasBill=true 時に calc が走らないケース対策）
     const _validBills = data.months.filter(m => m.bill != null && m.bill > 0).map(m => Math.round(m.bill));
