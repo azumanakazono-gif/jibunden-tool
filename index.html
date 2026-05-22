@@ -5863,29 +5863,39 @@ window.addEventListener('DOMContentLoaded', () => {
 </div>
 <script>
 // ── データエクスポート・インポート ──
-const FORM_FIELDS = ['cn','fm','ls','ls-preset','mb','mkwh','utility-company','kyuden-plan','juuryo-amp','juuryo-kva','br-basic','br-denki','br-nenryo','br-saiene','er','dc','bc','sk','sys-name','pkg-select','pkg-extra','pkg-extra-note','pkg-select-pv','pkg-extra-pv','pkg-extra-pv-note'];
-
 function getFormData() {
-  const data = { timestamp: new Date().toISOString() };
-  FORM_FIELDS.forEach(id => {
-    const el = document.getElementById(id);
-    if (el) data[id] = el.value || '';
-  });
-  return data;
+  saveFormToData(custData);
+  const monthly = [];
+  for (let i = 0; i < 12; i++) {
+    monthly.push({
+      bill: document.getElementById(`m-bill-${i}`)?.value || '',
+      kwh:  document.getElementById(`m-kwh-${i}`)?.value  || '',
+    });
+  }
+  return { ...custData, monthly, timestamp: new Date().toISOString() };
 }
 
 function setFormData(data) {
-  FORM_FIELDS.forEach(id => {
-    if (data.hasOwnProperty(id) && data[id] !== '') {
-      const el = document.getElementById(id);
-      if (el) el.value = data[id];
-    }
-  });
+  Object.assign(custData, data);
+  loadDataToForm(custData);
+  if (data.monthly && data.monthly.length) {
+    if (!monthlyDetailOpen) toggleMonthlyDetail();
+    setTimeout(() => {
+      data.monthly.forEach((m, i) => {
+        const bEl = document.getElementById(`m-bill-${i}`);
+        const kEl = document.getElementById(`m-kwh-${i}`);
+        if (bEl) bEl.value = m.bill || '';
+        if (kEl) kEl.value = m.kwh  || '';
+      });
+      onMonthlyInput();
+    }, 0);
+  }
   calc();
 }
 
 function exportFormData() {
   const data = getFormData();
+  saveCustomer(custData);
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -5914,6 +5924,7 @@ function handleImportFile(event) {
     }
   };
   reader.readAsText(file);
+  event.target.value = '';
 }
 
 window.onload = () => {
