@@ -336,12 +336,15 @@ canvas#mini-chart { height: 220px !important; }
   </div>
 
   <!-- ── JSON ドロップエリア ── -->
-  <div id="json-drop-zone"
-       onclick="importFormData()"
+  <div id="json-drop-zone" style="display:none"
        ondragover="onJsonDragOver(event)"
        ondragleave="onJsonDragLeave(event)"
        ondrop="onJsonDrop(event)">
-    📂 JSONファイルをここにドロップ（またはクリックして選択）
+    📂 ここにJSONファイルをドロップ　または
+    <button type="button" onclick="document.getElementById('import-file-input').click()"
+            style="margin-left:6px;padding:4px 12px;border:1.5px solid var(--mg);border-radius:6px;background:transparent;color:var(--mg);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit">ファイルを選択</button>
+    <button type="button" onclick="closeJsonDropZone()"
+            style="margin-left:8px;padding:4px 8px;border:none;background:transparent;color:var(--muted);font-size:13px;cursor:pointer;line-height:1" title="閉じる">✕</button>
   </div>
 
   <!-- ── 入力フォーム ── -->
@@ -5904,10 +5907,16 @@ function exportFormData() {
 }
 
 function importFormData() {
-  document.getElementById('import-file-input').click();
+  const zone = document.getElementById('json-drop-zone');
+  zone.style.display = zone.style.display === 'none' ? '' : 'none';
+}
+
+function closeJsonDropZone() {
+  document.getElementById('json-drop-zone').style.display = 'none';
 }
 
 function _loadJsonFile(file) {
+  closeJsonDropZone();
   if (!file || !file.name.endsWith('.json')) {
     toast('JSONファイルを選択してください', 'error');
     return;
@@ -5941,6 +5950,14 @@ function handleImportFile(event) {
   _loadJsonFile(event.target.files[0]);
   event.target.value = '';
 }
+
+document.addEventListener('click', (e) => {
+  const zone = document.getElementById('json-drop-zone');
+  const btn  = document.querySelector('[onclick="importFormData()"]');
+  if (zone && zone.style.display !== 'none' && !zone.contains(e.target) && e.target !== btn) {
+    closeJsonDropZone();
+  }
+});
 
 window.onload = () => {
   setTimeout(() => { renderMiniChart(); }, 0);
