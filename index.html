@@ -5223,21 +5223,25 @@ async function generatePPTX(mode) {
       const erH=(hCfg.escalationRate||0)/100;
       const bill20ShowH=erH>0?hM.bill20YMan_rise:hM.bill20YMan;
       const remain20ManH=Math.round(hM.remain20Y_rise/10000);
+      const netRemain20ManH=Math.max(0,remain20ManH-_ppSale20ManH);
       const mBW=6.0;
       // Row 1: 電力会社
       sl.addText("このまま電力会社の電気を買い続けた場合",{x:0.4,y:1.3,w:9.2,h:0.4,fontSize:13,color:C.charcoal,fontFace:"Meiryo"});
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:1.72,w:mBW,h:0.7,fill:{color:C.orange},line:{color:C.orange}});
       sl.addText(`${fmt(bill20ShowH)} 万円`,{x:0.4+mBW+0.1,y:1.72,w:2.5,h:0.7,fontSize:18,bold:true,color:C.orange,valign:"middle",fontFace:"Meiryo"});
-      // Row 2: じぶん電気（積み上げ：初期費用＋残り電気代）
+      // Row 2: じぶん電気（積み上げ：初期費用＋残り電気代－売電収入）
       const costWH=mBW*Math.min(hM.totalCostMan/bill20ShowH,1);
-      const remWH=mBW*Math.min(remain20ManH/bill20ShowH,Math.max(0,1-hM.totalCostMan/bill20ShowH));
+      const remWH=mBW*Math.min(netRemain20ManH/bill20ShowH,Math.max(0,1-hM.totalCostMan/bill20ShowH));
       sl.addText("じぶん電気（太陽光＋蓄電池）の総支出",{x:0.4,y:2.9,w:9.2,h:0.4,fontSize:13,color:C.charcoal,fontFace:"Meiryo"});
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:3.32,w:costWH,h:0.7,fill:{color:C.midGreen},line:{color:C.midGreen}});
       if(costWH>0.9)sl.addText(`初期費用\n${hM.totalCostMan}万`,{x:0.4,y:3.32,w:costWH,h:0.7,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addShape(presM.ShapeType.rect,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fill:{color:C.accent},line:{color:C.accent}});
-      if(remWH>0.9)sl.addText(`残電気代\n${remain20ManH}万`,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
-      sl.addText(`計 ${fmt(hM.totalCostMan+remain20ManH)} 万円`,{x:0.4+costWH+remWH+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
-      sl.addText([{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManH}万円　＝　計 ${fmt(hM.totalCostMan+remain20ManH)}万円`,options:{color:C.gray}}],{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
+      if(remWH>0.9)sl.addText(`残電気代\n${netRemain20ManH}万`,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
+      sl.addText(`計 ${fmt(hM.totalCostMan+netRemain20ManH)} 万円`,{x:0.4+costWH+remWH+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
+      sl.addText(_ppSale20ManH>0
+        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManH}万円　－　売電収入 ${_ppSale20ManH}万円　＝　計 ${fmt(hM.totalCostMan+netRemain20ManH)}万円`,options:{color:C.gray}}]
+        :[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${netRemain20ManH}万円　＝　計 ${fmt(hM.totalCostMan+netRemain20ManH)}万円`,options:{color:C.gray}}]
+      ,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
       const diff=_ppCorrDiffH;
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.46,w:9.2,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${hCfg.warrantyYears}年間で 約${fmt(diff)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.46,w:9.0,h:0.9,fontSize:16,fontFace:"Meiryo",valign:"middle"});
@@ -5498,21 +5502,25 @@ async function generatePPTX(mode) {
       const erE=(cfg.escalationRate||0)/100;
       const bill20ShowE=erE>0?m.bill20YMan_rise:m.bill20YMan;
       const remain20ManE=Math.round(m.remain20Y_rise/10000);
+      const netRemain20ManE=Math.max(0,remain20ManE-_ppSale20Man);
       const mBWE=6.0;
       // Row 1: 電力会社
       sl.addText("このまま電力会社の電気を買い続けた場合",{x:0.4,y:1.3,w:9.2,h:0.4,fontSize:13,color:C.charcoal,fontFace:"Meiryo"});
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:1.72,w:mBWE,h:0.7,fill:{color:C.orange},line:{color:C.orange}});
       sl.addText(`${fmt(bill20ShowE)} 万円`,{x:0.4+mBWE+0.1,y:1.72,w:2.5,h:0.7,fontSize:18,bold:true,color:C.orange,valign:"middle",fontFace:"Meiryo"});
-      // Row 2: じぶん電気（積み上げ：初期費用＋残り電気代）
+      // Row 2: じぶん電気（積み上げ：初期費用＋残り電気代－売電収入）
       const costWE=mBWE*Math.min(m.totalCostMan/bill20ShowE,1);
-      const remWE=mBWE*Math.min(remain20ManE/bill20ShowE,Math.max(0,1-m.totalCostMan/bill20ShowE));
+      const remWE=mBWE*Math.min(netRemain20ManE/bill20ShowE,Math.max(0,1-m.totalCostMan/bill20ShowE));
       sl.addText("じぶん電気（太陽光＋蓄電池）の総支出",{x:0.4,y:2.9,w:9.2,h:0.4,fontSize:13,color:C.charcoal,fontFace:"Meiryo"});
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:3.32,w:costWE,h:0.7,fill:{color:C.midGreen},line:{color:C.midGreen}});
       if(costWE>0.9)sl.addText(`初期費用\n${m.totalCostMan}万`,{x:0.4,y:3.32,w:costWE,h:0.7,fontSize:9,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addShape(presR.ShapeType.rect,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fill:{color:C.accent},line:{color:C.accent}});
-      if(remWE>0.9)sl.addText(`残電気代\n${remain20ManE}万`,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
-      sl.addText(`計 ${fmt(m.totalCostMan+remain20ManE)} 万円`,{x:0.4+costWE+remWE+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
-      sl.addText([{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManE}万円　＝　計 ${fmt(m.totalCostMan+remain20ManE)}万円`,options:{color:C.gray}}],{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
+      if(remWE>0.9)sl.addText(`残電気代\n${netRemain20ManE}万`,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
+      sl.addText(`計 ${fmt(m.totalCostMan+netRemain20ManE)} 万円`,{x:0.4+costWE+remWE+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
+      sl.addText(_ppSale20Man>0
+        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManE}万円　－　売電収入 ${_ppSale20Man}万円　＝　計 ${fmt(m.totalCostMan+netRemain20ManE)}万円`,options:{color:C.gray}}]
+        :[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${netRemain20ManE}万円　＝　計 ${fmt(m.totalCostMan+netRemain20ManE)}万円`,options:{color:C.gray}}]
+      ,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
       const diffE=_ppCorrDiff;
       sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.46,w:9.2,h:0.9,fill:{color:C.darkGreen},line:{color:C.darkGreen}});
       sl.addText([{text:"💡  じぶん電気なら、",options:{color:C.white}},{text:`${cfg.warrantyYears}年間で 約${fmt(diffE)}万円`,options:{bold:true,fontSize:22,color:C.accent}},{text:"  のコスト差が生まれます",options:{color:C.white}}],{x:0.5,y:4.46,w:9.0,h:0.9,fontSize:16,fontFace:"Meiryo",valign:"middle"});
