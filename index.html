@@ -4905,29 +4905,18 @@ function _applyMonthlyData(monthly) {
   }, 0);
 }
 
-function saveCustomer(cfg) {
-  const h = getHistory();
-  const _cn = (cfg.cn || custData.cn || '').trim();
-  const monthly = [];
-  for (let i = 0; i < 12; i++) {
-    monthly.push({
-      bill: document.getElementById(`m-bill-${i}`)?.value || '',
-      kwh:  document.getElementById(`m-kwh-${i}`)?.value  || '',
-      tou0: document.getElementById(`m-tou0-${i}`)?.value || '',
-      tou1: document.getElementById(`m-tou1-${i}`)?.value || '',
-      tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
-    });
-  }
+function saveCustomer() {
+  const data = getFormData();
+  const _cn = (data.cn || '').trim();
   const entry = {
+    ...data,
     id: Date.now(),
     date: new Date().toLocaleString('ja-JP'),
-    ...cfg,
-    ...custData,
-    monthly,
     customerName:        _cn || '名称未設定',
-    monthlyElectricBill: cfg.mb || custData.mb || 0,
-    familyComposition:   cfg.fm || custData.fm || '',
+    monthlyElectricBill: data.mb || 0,
+    familyComposition:   data.fm || '',
   };
+  const h = getHistory();
   h.unshift(entry);
   if(h.length>30) h.pop();
   saveHistory(h);
@@ -4935,62 +4924,14 @@ function saveCustomer(cfg) {
 }
 
 function loadCustomer(id) {
-  const h = getHistory();
-  const entry = h.find(e=>e.id===id);
+  const entry = getHistory().find(e=>e.id===id);
   if(!entry) return;
-  // 短縮名フィールドを優先、古い履歴は長名フィールドからフォールバック
-  custData = {
-    cn:          entry.cn          || entry.customerName || '',
-    fm:          entry.fm          || entry.familyComposition || '4人家族（夫婦＋子ども2人）',
-    ls:          entry.ls          || entry.lifestyleNote || '',
-    lsPreset:    entry.lsPreset    || 'custom',
-    mb:          entry.mb          || entry.monthlyElectricBill || 20000,
-    mkwh:        entry.mkwh        || Math.round((entry.monthlyElectricBill||20000) / (entry.currentUnitPrice||30)),
-    ag:          entry.ag          || entry.annualGenerationKWh || 7700,
-    sk:          entry.sk          || entry.solarCapacityKW || 7,
-    bk:          entry.bk          || entry.batteryCapacityKWh || 7,
-    ck:          entry.ck          || (entry.totalConstructionCost ? Math.round(entry.totalConstructionCost/10000) : 280),
-    sub:         entry.sub         !== undefined ? entry.sub : (entry.subsidyAmount || 0),
-    dc:          entry.dc          || entry.directConsumptionKWh || 2310,
-    bc:          entry.bc          || entry.batteryConsumptionKWh || 2520,
-    er:          entry.er          !== undefined ? entry.er : (entry.escalationRate || 0),
-    wy:          entry.wy          || entry.warrantyYears || 20,
-    le:          entry.le          !== undefined ? entry.le : (entry.monthlyLoanPayment > 0),
-    la2:         entry.la2         || entry.loanAmount || 280,
-    lr:          entry.lr          || entry.loanRate || 4.1,
-    lc:          entry.lc          || entry.loanCount || 180,
-    lp:          entry.lp          || entry.monthlyLoanPayment || 0,
-    ly:          entry.ly          || entry.loanYears || 15,
-    sysName:     entry.sysName     || '',
-    utilityCompany: entry.utilityCompany || '',
-    kyudenPlan:  entry.kyudenPlan  || '',
-    loanMethod:  entry.loanMethod  || 'zansai',
-    loanInputMode: entry.loanInputMode || 'auto',
-    lpManual:    entry.lpManual    || 0,
-    pkgSelect:   entry.pkgSelect   !== undefined ? entry.pkgSelect : '',
-    pkgExtra:    entry.pkgExtra    || 0,
-    pkgExtraNote: entry.pkgExtraNote || '',
-    hasBill:      entry.hasBill      || false,
-    hasPV:        entry.hasPV        || false,
-    hasBattery:   entry.hasBattery   || false,
-    isAllElectric:entry.isAllElectric|| false,
-    proposalMode: entry.proposalMode || 'pv_battery',
-    saleMode:     entry.saleMode     || 'post_fit',
-    fitPeriodId:  entry.fitPeriodId  || 'fy2026',
-    fitCapacity:  entry.fitCapacity === 'over10' ? 'over10_roof' : (entry.fitCapacity || 'under10'),
-    salePrice:    entry.salePrice    || 24,
-    salePriceEdited: entry.salePriceEdited || false,
-  };
   loanAmountEdited = false;
-  if (activeTab === 'customer') {
-    loadDataToForm(custData);
-  } else {
-    switchTab('customer');
-  }
-  _applyMonthlyData(entry.monthly);
+  if (activeTab !== 'customer') switchTab('customer');
+  setFormData(entry);
   document.getElementById('daytime-rate-disp').textContent = '';
   showSection('form');
-  toast((custData.cn || 'データ') + 'を読み込みました');
+  toast((entry.cn || entry.customerName || 'データ') + 'を読み込みました');
 }
 
 function deleteHistory(id, e) {
@@ -5928,8 +5869,8 @@ function setFormData(data) {
 }
 
 function exportFormData() {
+  saveCustomer();
   const data = getFormData();
-  saveCustomer(custData);
   const json = JSON.stringify(data, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
