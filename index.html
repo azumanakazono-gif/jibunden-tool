@@ -4884,14 +4884,46 @@ function clearForm() {
 function getHistory() { try{ return JSON.parse(localStorage.getItem('jibunden_history')||'[]'); } catch(e){ return []; } }
 function saveHistory(h) { localStorage.setItem('jibunden_history', JSON.stringify(h)); }
 
+function _applyMonthlyData(monthly) {
+  if (!monthly || !monthly.length) return;
+  if (!monthlyDetailOpen) toggleMonthlyDetail();
+  setTimeout(() => {
+    monthly.forEach((m, i) => {
+      const bEl  = document.getElementById(`m-bill-${i}`);
+      const kEl  = document.getElementById(`m-kwh-${i}`);
+      const t0El = document.getElementById(`m-tou0-${i}`);
+      const t1El = document.getElementById(`m-tou1-${i}`);
+      const t2El = document.getElementById(`m-tou2-${i}`);
+      if (bEl)  bEl.value  = m.bill || '';
+      if (kEl)  kEl.value  = m.kwh  || '';
+      if (t0El) t0El.value = m.tou0 || '';
+      if (t1El) t1El.value = m.tou1 || '';
+      if (t2El) t2El.value = m.tou2 || '';
+      if (m.tou0 || m.tou1 || m.tou2) onMonthlyTouInput(i);
+    });
+    onMonthlyInput();
+  }, 0);
+}
+
 function saveCustomer(cfg) {
   const h = getHistory();
   const _cn = (cfg.cn || custData.cn || '').trim();
+  const monthly = [];
+  for (let i = 0; i < 12; i++) {
+    monthly.push({
+      bill: document.getElementById(`m-bill-${i}`)?.value || '',
+      kwh:  document.getElementById(`m-kwh-${i}`)?.value  || '',
+      tou0: document.getElementById(`m-tou0-${i}`)?.value || '',
+      tou1: document.getElementById(`m-tou1-${i}`)?.value || '',
+      tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
+    });
+  }
   const entry = {
     id: Date.now(),
     date: new Date().toLocaleString('ja-JP'),
     ...cfg,
     ...custData,
+    monthly,
     customerName:        _cn || '名称未設定',
     monthlyElectricBill: cfg.mb || custData.mb || 0,
     familyComposition:   cfg.fm || custData.fm || '',
@@ -4955,6 +4987,7 @@ function loadCustomer(id) {
   } else {
     switchTab('customer');
   }
+  _applyMonthlyData(entry.monthly);
   document.getElementById('daytime-rate-disp').textContent = '';
   showSection('form');
   toast((custData.cn || 'データ') + 'を読み込みました');
@@ -5890,25 +5923,7 @@ function getFormData() {
 function setFormData(data) {
   Object.assign(custData, data);
   loadDataToForm(custData);
-  if (data.monthly && data.monthly.length) {
-    if (!monthlyDetailOpen) toggleMonthlyDetail();
-    setTimeout(() => {
-      data.monthly.forEach((m, i) => {
-        const bEl  = document.getElementById(`m-bill-${i}`);
-        const kEl  = document.getElementById(`m-kwh-${i}`);
-        const t0El = document.getElementById(`m-tou0-${i}`);
-        const t1El = document.getElementById(`m-tou1-${i}`);
-        const t2El = document.getElementById(`m-tou2-${i}`);
-        if (bEl)  bEl.value  = m.bill || '';
-        if (kEl)  kEl.value  = m.kwh  || '';
-        if (t0El) t0El.value = m.tou0 || '';
-        if (t1El) t1El.value = m.tou1 || '';
-        if (t2El) t2El.value = m.tou2 || '';
-        if (m.tou0 || m.tou1 || m.tou2) onMonthlyTouInput(i);
-      });
-      onMonthlyInput();
-    }, 0);
-  }
+  _applyMonthlyData(data.monthly);
   calc();
 }
 
