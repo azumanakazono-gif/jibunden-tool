@@ -1186,10 +1186,10 @@ goTo(0);
 
 /* ── Customer name badge ── */
 (function() {
-  const name = (params.get('customerName') || '').trim();
+  const name = (params.get('customerName') || params.get('customername') || '').trim();
   const badge = document.getElementById('customerNameBadge');
-  if (!badge || !name) return;
-  badge.textContent = name + ' 様';
+  if (!badge) return;
+  badge.textContent = (name || 'お客様') + ' 様';
   badge.style.display = 'block';
 })();
 
@@ -1224,7 +1224,7 @@ async function exportToPPTX() {
   const totalInt   = Math.max(0, totalPaid - loanPrincipal);
   const postMon    = CURRENT - RESIDUAL;
   const postAnn    = postMon * 12;
-  const _custName  = (params.get('customerName') || '').trim();
+  const _custName  = (params.get('customerName') || params.get('customername') || 'お客様').trim();
 
   const pres = new PptxGenJS();
   pres.layout = 'LAYOUT_16x9';
