@@ -4886,7 +4886,16 @@ function saveHistory(h) { localStorage.setItem('jibunden_history', JSON.stringif
 
 function saveCustomer(cfg) {
   const h = getHistory();
-  const entry = { id: Date.now(), date: new Date().toLocaleString('ja-JP'), ...cfg, ...custData };
+  const _cn = (cfg.cn || custData.cn || '').trim();
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleString('ja-JP'),
+    ...cfg,
+    ...custData,
+    customerName:        _cn || '名称未設定',
+    monthlyElectricBill: cfg.mb || custData.mb || 0,
+    familyComposition:   cfg.fm || custData.fm || '',
+  };
   h.unshift(entry);
   if(h.length>30) h.pop();
   saveHistory(h);
