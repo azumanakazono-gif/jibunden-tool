@@ -40,6 +40,11 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method Not Allowed' });
 
+  if (!process.env.ANTHROPIC_API_KEY) {
+    console.error('[analyze-bill] ANTHROPIC_API_KEY が設定されていません');
+    return res.status(500).json({ error: 'サーバー設定エラーが発生しました' });
+  }
+
   const form = formidable({ maxFileSize: MAX_FILE_SIZE, maxFiles: 1 });
   let filePath;
 
@@ -73,9 +78,10 @@ export default async function handler(req, res) {
 
     return res.status(200).json(JSON.parse(match[0]));
   } catch (err) {
-    console.error('[analyze-bill]', err?.message ?? err);
-    const status = err?.status === 400 ? 400 : 500;
-    return res.status(status).json({ error: status === 400 ? '解析できませんでした' : 'サーバーエラーが発生しました' });
+    console.error('[analyze-bill] error:', err?.status, err?.message ?? err);
+    if (err?.status === 401) return res.status(500).json({ error: 'API認証エラー: ANTHROPIC_API_KEYを確認してください' });
+    if (err?.status === 400) return res.status(400).json({ error: '解析できませんでした' });
+    return res.status(500).json({ error: 'サーバーエラーが発生しました' });
   } finally {
     if (filePath) {
       try { unlinkSync(filePath); } catch {}
