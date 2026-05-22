@@ -1,0 +1,10 @@
+{
+  "name": "jibunden-tool",
+  "version": "1.0.0",
+  "type": "module",
+  "private": true,
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.55.0",
+    "formidable": "^3.5.2"
+  }
+}

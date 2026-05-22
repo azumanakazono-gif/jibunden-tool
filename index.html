@@ -1962,7 +1962,11 @@ async function _processAnalysisFile(file) {
  * Response: { months?: [{bill:number, kwh:number}] (12要素), single?: {bill:number, kwh:number} }
  */
 async function analyzeFileWithAI(file) {
-  const API_URL = '/api/analyze-bill'; // ← バックエンドURLを設定
+  // GitHub Pages からは Vercel API を呼ぶ。Vercel 上では相対パスを使用。
+  // Vercel デプロイ後、実際の URL に合わせて更新してください。
+  const API_URL = location.hostname === 'azumanakazono-gif.github.io'
+    ? 'https://jibunden-tool.vercel.app/api/analyze-bill'
+    : '/api/analyze-bill';
   const formData = new FormData();
   formData.append('file', file);
   formData.append('type', file.type);
