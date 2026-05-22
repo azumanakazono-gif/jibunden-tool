@@ -547,7 +547,7 @@ function calcPpa() {
     ? fmt(rate * kwh) : '-';
 }
 
-// ── slide-link URL を po-dp の最新値込みで更新 ──
+// ── slide-link URL を po-dp / po-lr の最新値込みで更新 ──
 function updateSlideLink() {
   const base = new URLSearchParams(location.search);
   const dpVal = parseFloat(document.getElementById('po-dp').value) || 0;
@@ -561,6 +561,11 @@ function updateSlideLink() {
     const loanMonths = parseInt(lcEl.value) || 180;
     base.set('loanPeriod', Math.round(loanMonths / 12));
   }
+  const rateEl = currentMode === 'manual'
+    ? document.getElementById('po-lr-m')
+    : document.getElementById('po-lr');
+  const rateVal = rateEl ? (parseFloat(rateEl.value) || 4.0) : 4.0;
+  base.set('interestRate', rateVal);
   const qs = base.toString();
   document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
 }
