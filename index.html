@@ -5601,15 +5601,18 @@ async function generatePPTX(mode) {
         const er=(cfg.escalationRate||0)/100;
         const steps=[0,5,10,15,20].filter(y=>y<=wY);
         const labels=[], nowVals=[], cashVals=[], loanVals=[];
+        const hasSellPP = proposalMode !== 'battery_only' && _ppSurplusKwh > 0;
         steps.forEach(y=>{
           labels.push(`${y}年`);
           let cumNow=0; for(let i=1;i<=y;i++) cumNow+=aBN*Math.pow(1+er,i-1);
           nowVals.push(Math.round(cumNow/10000));
+          let cumSellRev=0;
+          if(hasSellPP) for(let i=1;i<=y;i++) cumSellRev+=Math.round(_ppSurplusKwh*getSellPriceForYear(i));
           if(y===0){cashVals.push(Math.round(m.totalCost/10000));}
-          else{let cumCash=m.totalCost;for(let i=1;i<=y;i++)cumCash+=aDLA*Math.pow(1+er,i-1);cashVals.push(Math.round(cumCash/10000));}
+          else{let cumCash=m.totalCost;for(let i=1;i<=y;i++)cumCash+=aDLA*Math.pow(1+er,i-1);cashVals.push(Math.round((cumCash-cumSellRev)/10000));}
           let cumLoan=0;
           for(let i=1;i<=y;i++){const reY=re*12*Math.pow(1+er,i-1);cumLoan+=(i<=loanYrs?aDL+(reY-aDLA):reY);}
-          loanVals.push(Math.round(cumLoan/10000));
+          loanVals.push(Math.round((cumLoan-cumSellRev)/10000));
         });
         sl.addChart(presR.charts.LINE,[
           {name:"電力会社のまま",           labels, values:nowVals},
