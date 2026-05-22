@@ -1983,10 +1983,14 @@ async function analyzeFileWithAI(file) {
  *   { single: {bill, kwh} }                → 月間電気代/使用量のみ更新
  */
 function applyAIResult(data) {
-  // 12ヶ月詳細パネルが閉じていれば開く
+  // パネルを開く（閉じていれば）
   if (!monthlyDetailOpen) toggleMonthlyDetail();
+  // グリッドが未構築の場合は強制ビルド（パネル開放後もグリッドが空のケースに対応）
+  const _grid = document.getElementById('monthly-grid');
+  if (_grid && !_grid.children.length) _buildMonthlyGrid();
 
   if (data.months && Array.isArray(data.months)) {
+    // 各月をグリッドにセット
     data.months.forEach((m, i) => {
       if (i >= 12) return;
       const billEl = document.getElementById(`m-bill-${i}`);
@@ -1994,13 +1998,23 @@ function applyAIResult(data) {
       if (billEl && m.bill != null) billEl.value = Math.round(m.bill);
       if (kwhEl  && m.kwh  != null) kwhEl.value  = Math.round(m.kwh);
     });
+    // mb/mkwh を平均値で直接更新（onMonthlyInput 経由だけでは hasBill=true 時に calc が走らないケース対策）
+    const _validBills = data.months.filter(m => m.bill != null && m.bill > 0).map(m => Math.round(m.bill));
+    const _validKwh   = data.months.filter(m => m.kwh  != null && m.kwh  > 0).map(m => Math.round(m.kwh));
+    if (_validBills.length) {
+      document.getElementById('mb').value = Math.round(_validBills.reduce((s, v) => s + v, 0) / _validBills.length);
+    }
+    if (_validKwh.length) {
+      document.getElementById('mkwh').value = Math.round(_validKwh.reduce((s, v) => s + v, 0) / _validKwh.length);
+      mkwhManualEdited = true;
+    }
     onMonthlyInput();
   } else if (data.single) {
-    if (data.single.bill) {
+    if (data.single.bill != null && data.single.bill > 0) {
       document.getElementById('mb').value = Math.round(data.single.bill);
       autoEstimateKwhFromBill();
     }
-    if (data.single.kwh) {
+    if (data.single.kwh != null && data.single.kwh > 0) {
       document.getElementById('mkwh').value = Math.round(data.single.kwh);
       mkwhManualEdited = true;
     }
