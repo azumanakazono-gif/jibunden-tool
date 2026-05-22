@@ -2975,9 +2975,10 @@ let loanInputMode = 'auto'; // 'auto' | 'manual'
 function _updateMonthlyDetailVisibility(hasBill) {
   const wrap = document.getElementById('monthly-detail-wrap');
   if (!wrap) return;
+  // wrap は常に表示（PDF アップロードは hasBill=false 時でも使えるようにする）
+  wrap.style.display = '';
   if (!hasBill) {
-    wrap.style.display = 'none';
-    // 詳細入力に値があればリセット
+    // 詳細入力値をリセット
     for (let i = 0; i < 12; i++) {
       ['m-bill-','m-kwh-','m-tou0-','m-tou1-','m-tou2-'].forEach(pfx => {
         const el = document.getElementById(pfx + i);
@@ -2993,8 +2994,6 @@ function _updateMonthlyDetailVisibility(hasBill) {
     }
     _updateMbLock(false);
     onMonthlyInput();
-  } else {
-    wrap.style.display = '';
   }
 }
 
