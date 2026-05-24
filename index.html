@@ -583,9 +583,9 @@ canvas#mini-chart { height: 220px !important; }
             <select id="kyuden-plan" onchange="onKyudenPlanChange()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;font-family:inherit">
               <option value="">── プランを選択 ──</option>
               <optgroup label="▼ 標準家庭プラン（全国新電力平均単価）">
-                <option value="32">全国新電力 標準プラン（全国平均 32円/kWh）</option>
-                <option value="30">スタンダードプラン（30円/kWh）</option>
-                <option value="29">ガス・電気セット割引プラン（29円/kWh）</option>
+                <option value="32">全国新電力 標準プラン</option>
+                <option value="30">スタンダードプラン</option>
+                <option value="29">ガス・電気セット割引プラン</option>
               </optgroup>
               <optgroup label="▼ 九州電力 従量電灯">
                 <option value="kyushu_juuryo_b" selected>従量電灯B（公式段階料金）</option>
@@ -659,9 +659,9 @@ canvas#mini-chart { height: 220px !important; }
             <select id="post-kyuden-plan" onchange="onPostKyudenPlanChange()" style="width:100%;border:1.5px solid #93c5fd;border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;font-family:inherit">
               <option value="">── プランを選択 ──</option>
               <optgroup label="▼ 標準家庭プラン（全国新電力平均単価）">
-                <option value="32">全国新電力 標準プラン（全国平均 32円/kWh）</option>
-                <option value="30">スタンダードプラン（30円/kWh）</option>
-                <option value="29">ガス・電気セット割引プラン（29円/kWh）</option>
+                <option value="32">全国新電力 標準プラン</option>
+                <option value="30">スタンダードプラン</option>
+                <option value="29">ガス・電気セット割引プラン</option>
               </optgroup>
               <optgroup label="▼ 九州電力 従量電灯">
                 <option value="kyushu_juuryo_b">従量電灯B（公式段階料金）</option>
@@ -3367,9 +3367,9 @@ function _updatePriceBreakdown(kp) {
 }
 
 function _numericPlanLabel(kp) {
-  return kp === '32' ? '全国新電力 標準プラン（全国平均 32円/kWh）'
-       : kp === '29' ? 'ガス・電気セット割引プラン（29円/kWh）'
-       : 'スタンダードプラン（30円/kWh）';
+  return kp === '32' ? '全国新電力 標準プラン'
+       : kp === '29' ? 'ガス・電気セット割引プラン'
+       : 'スタンダードプラン';
 }
 
 function _calcBeforeGrand(kp, mkwh) {
