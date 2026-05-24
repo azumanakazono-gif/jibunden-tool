@@ -72,7 +72,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #before-price-breakdown summary:hover { background:#e2e8f0; }
 #before-plan-breakdown-body:empty,#before-price-breakdown-body:empty { padding:0; }
 .breakdown-toggle { display:block; width:100%; border-radius:8px; overflow:hidden; }
-#breakdown-compare-row > .breakdown-toggle { width:auto; }
+#breakdown-compare-row { display:flex !important; flex-wrap:wrap; gap:15px; align-items:flex-start; }
+#breakdown-compare-row > .breakdown-toggle { width:auto; flex:1; min-width:280px; }
+@media (max-width:768px) { #breakdown-compare-row { flex-direction:column; } #breakdown-compare-row > .breakdown-toggle { min-width:0; width:100%; } }
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .slider-row label { font-size: 14px; color: var(--muted); min-width: 100px; font-weight: 500; }
 .slider-row input[type=range] { flex: 1; accent-color: var(--mg); }
@@ -719,13 +721,13 @@ canvas#mini-chart { height: 220px !important; }
 
       <!-- 料金内訳 横並び比較行 -->
       <div id="breakdown-compare-row" style="display:flex;flex-wrap:wrap;gap:15px;margin-bottom:4px;align-items:flex-start">
-        <details id="before-price-breakdown" class="breakdown-toggle" style="display:none;flex:1;min-width:280px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'⚡【導入前】料金内訳・計算根拠 ▲':'⚡【導入前】料金内訳・計算根拠 ▼';})(this)">
+        <details id="before-price-breakdown" class="breakdown-toggle" style="display:none;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'⚡【導入前】料金内訳・計算根拠 ▲':'⚡【導入前】料金内訳・計算根拠 ▼';})(this)">
           <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;margin-bottom:0;background:#f1f5f9;border-bottom:1px solid #cbd5e1;color:#475569;list-style:none;user-select:none">⚡【導入前】料金内訳・計算根拠 ▼</summary>
           <div id="juuryo-panel" style="display:none"></div>
           <div id="before-plan-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
           <div id="before-price-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
         </details>
-        <details id="price-breakdown" class="breakdown-toggle" style="display:none;flex:1;min-width:280px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'☀️【導入後】料金内訳・計算根拠 ▲':'☀️【導入後】料金内訳・計算根拠 ▼';})(this)">
+        <details id="price-breakdown" class="breakdown-toggle" style="display:none;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'☀️【導入後】料金内訳・計算根拠 ▲':'☀️【導入後】料金内訳・計算根拠 ▼';})(this)">
           <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;background:#dbeafe;border-bottom:1px solid #93c5fd;color:#1e40af;list-style:none;user-select:none">☀️【導入後】料金内訳・計算根拠 ▼</summary>
           <div id="post-plan-breakdown-body" style="padding:4px 8px;font-size:11px;line-height:1.9"></div>
           <div id="price-breakdown-body" style="padding:8px;background:#fff;font-size:11px;line-height:1.8"></div>
