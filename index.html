@@ -4890,15 +4890,9 @@ function calc() {
     _p2.set('monthlyBill', _beforeGrand);
     _poLinkEl2.href = 'payment-options.html?' + _p2.toString();
   }
-  // 導入後：内訳grand優先、なければm.remainBill
+  // 導入後：内訳grand優先、なければm.remainBill（売電収入は含まない純粋な買電コスト）
   const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
-  // 現金一括時：実質持ち出し額 = 残り電気代 - 売電収入（月額）
-  const _lon = document.getElementById('le').checked;
-  const _saleP2 = parseFloat(document.getElementById('sale-price').value) || 0;
-  const _hasSolar2 = proposalMode !== 'battery_only';
-  const _monthlySellInc = (_hasSolar2 && _surplusKwhChart > 0 && _saleP2 > 0)
-    ? Math.round(_surplusKwhChart * _saleP2 / 12) : 0;
-  const _afterNet = !_lon ? Math.max(0, _afterDisplay - _monthlySellInc) : _afterDisplay;
+  const _afterNet = _afterDisplay; // 売電収入は年間売電収入・経済メリット側のみで扱う
   // after-plan-total-val を _afterNet で上書き（savings と辻褄を合わせるため）
   const _afterTotalEl = document.getElementById('after-plan-total-val');
   if (_afterTotalEl) _afterTotalEl.textContent = '約' + fmt(_afterNet) + '円';
