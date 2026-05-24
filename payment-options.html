@@ -573,6 +573,7 @@ function drawCumulativeChart() {
     options: {
       responsive: true, maintainAspectRatio: false,
       animation: false,
+      events: ['mousemove', 'touchstart', 'touchmove'],
       hover: { mode: 'index', intersect: false },
       interaction: { mode: 'index', intersect: false },
       plugins: {
