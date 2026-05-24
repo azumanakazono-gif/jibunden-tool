@@ -68,9 +68,11 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .field select { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 15px; background: #fff; color: var(--text); font-family: inherit; transition: border-color .15s; }
 .field select:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 #price-breakdown summary,#before-price-breakdown summary { display:block; }
-#price-breakdown summary:hover,#before-price-breakdown summary:hover { background:#c7d9f7; }
+#price-breakdown summary:hover { background:#c7d9f7; }
+#before-price-breakdown summary:hover { background:#e2e8f0; }
 #before-plan-breakdown-body:empty,#before-price-breakdown-body:empty { padding:0; }
 .breakdown-toggle { display:block; width:100%; border-radius:8px; overflow:hidden; }
+#breakdown-compare-row > .breakdown-toggle { width:auto; }
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .slider-row label { font-size: 14px; color: var(--muted); min-width: 100px; font-weight: 500; }
 .slider-row input[type=range] { flex: 1; accent-color: var(--mg); }
@@ -648,15 +650,7 @@ canvas#mini-chart { height: 220px !important; }
             ✅ 実績データに基づく計算値です（スライダー調整は不要）
           </div>
 
-          <details id="before-price-breakdown" class="breakdown-toggle" style="display:none;margin-top:10px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'📊 料金内訳・計算根拠を表示 ▲':'📊 料金内訳・計算根拠を表示 ▼';})(this)">
-            <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;margin-bottom:0;background:#dbeafe;border-bottom:1px solid #93c5fd;color:#1e40af;list-style:none;user-select:none">📊 料金内訳・計算根拠を表示 ▼</summary>
-            <div id="juuryo-panel" style="display:none"></div>
-            <div id="before-plan-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
-            <div id="before-price-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
-          </details>
         </div>
-
-        <!-- 【導入後】プラン選択 + 内訳カード -->
         <div id="post-plan-breakdown" style="flex:1;min-width:280px;display:block;padding:12px 14px;background:#eff6ff;border-radius:8px;border:1px solid #93c5fd">
           <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px">☀️ 【導入後】導入後の電気料金プラン</div>
           <!-- 導入後プラン選択（最初の要素） -->
@@ -719,13 +713,23 @@ canvas#mini-chart { height: 220px !important; }
             </div>
           </div>
 
-          <details id="price-breakdown" class="breakdown-toggle" style="display:none;margin-top:10px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'📊 料金内訳・計算根拠を表示 ▲':'📊 料金内訳・計算根拠を表示 ▼';})(this)">
-            <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;background:#dbeafe;border-bottom:1px solid #93c5fd;color:#1e40af;list-style:none;user-select:none">📊 料金内訳・計算根拠を表示 ▼</summary>
-            <div id="post-plan-breakdown-body" style="padding:4px 8px;font-size:11px;line-height:1.9"></div>
-            <div id="price-breakdown-body" style="padding:8px;background:#fff;font-size:11px;line-height:1.8"></div>
-          </details>
         </div>
 
+      </div>
+
+      <!-- 料金内訳 横並び比較行 -->
+      <div id="breakdown-compare-row" style="display:flex;flex-wrap:wrap;gap:15px;margin-bottom:4px;align-items:flex-start">
+        <details id="before-price-breakdown" class="breakdown-toggle" style="display:none;flex:1;min-width:280px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'⚡【導入前】料金内訳・計算根拠 ▲':'⚡【導入前】料金内訳・計算根拠 ▼';})(this)">
+          <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;margin-bottom:0;background:#f1f5f9;border-bottom:1px solid #cbd5e1;color:#475569;list-style:none;user-select:none">⚡【導入前】料金内訳・計算根拠 ▼</summary>
+          <div id="juuryo-panel" style="display:none"></div>
+          <div id="before-plan-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
+          <div id="before-price-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
+        </details>
+        <details id="price-breakdown" class="breakdown-toggle" style="display:none;flex:1;min-width:280px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'☀️【導入後】料金内訳・計算根拠 ▲':'☀️【導入後】料金内訳・計算根拠 ▼';})(this)">
+          <summary style="cursor:pointer;font-size:12px;font-weight:700;padding:7px 12px;background:#dbeafe;border-bottom:1px solid #93c5fd;color:#1e40af;list-style:none;user-select:none">☀️【導入後】料金内訳・計算根拠 ▼</summary>
+          <div id="post-plan-breakdown-body" style="padding:4px 8px;font-size:11px;line-height:1.9"></div>
+          <div id="price-breakdown-body" style="padding:8px;background:#fff;font-size:11px;line-height:1.8"></div>
+        </details>
       </div>
 
       <!-- 概算月額合計 横並び比較行 -->
@@ -4524,27 +4528,22 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     bkRemainEl.style.display = 'none';
     detailBkEl.style.display = 'none';
   }
+}
 
-  // ── メリットの内訳 ──
-  const meritBreakdownEl = document.getElementById('merit-breakdown-area');
-  if (meritBreakdownEl) {
-    const dcMonth = Math.round(dc / 12);
-    const bcMonthKwh = Math.round(bc / 12);
-    meritBreakdownEl.style.display = (dc > 0 || bc > 0) ? '' : 'none';
-    document.getElementById('merit-dc-kwh').textContent = `${fmt(dcMonth)} kWh`;
-    document.getElementById('merit-bc-kwh').textContent = `${fmt(bcMonthKwh)} kWh`;
-    const totalSaving = mb - remainBill;
-    const totalKwh = dc + bc;
-    if (totalKwh > 0 && totalSaving > 0) {
-      const ratioSolar = dc / totalKwh;
-      const solarBenefit   = Math.round(totalSaving * ratioSolar);
-      const batteryBenefit = totalSaving - solarBenefit;
-      document.getElementById('merit-dc-yen').textContent = `約 ${fmt(solarBenefit)}`;
-      document.getElementById('merit-bc-yen').textContent = `約 ${fmt(batteryBenefit)}`;
-    } else {
-      document.getElementById('merit-dc-yen').textContent = '-';
-      document.getElementById('merit-bc-yen').textContent = '-';
-    }
+function _updateMeritBreakdown(dc, bc, up, totalMonthSaving) {
+  const el = document.getElementById('merit-breakdown-area');
+  if (!el) return;
+  el.style.display = (dc > 0 || bc > 0) ? '' : 'none';
+  document.getElementById('merit-dc-kwh').textContent = `${fmt(Math.round(dc / 12))} kWh`;
+  document.getElementById('merit-bc-kwh').textContent = `${fmt(Math.round(bc / 12))} kWh`;
+  if ((dc > 0 || bc > 0) && totalMonthSaving > 0) {
+    const solarBenefit   = Math.min(Math.round(dc / 12 * up), totalMonthSaving);
+    const batteryBenefit = totalMonthSaving - solarBenefit;
+    document.getElementById('merit-dc-yen').textContent = `約 ${fmt(solarBenefit)}`;
+    document.getElementById('merit-bc-yen').textContent = `約 ${fmt(batteryBenefit)}`;
+  } else {
+    document.getElementById('merit-dc-yen').textContent = '-';
+    document.getElementById('merit-bc-yen').textContent = '-';
   }
 }
 
@@ -4908,6 +4907,7 @@ function calc() {
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
+  _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
