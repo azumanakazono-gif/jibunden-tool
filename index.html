@@ -4528,27 +4528,22 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     bkRemainEl.style.display = 'none';
     detailBkEl.style.display = 'none';
   }
+}
 
-  // ── メリットの内訳 ──
-  const meritBreakdownEl = document.getElementById('merit-breakdown-area');
-  if (meritBreakdownEl) {
-    const dcMonth = Math.round(dc / 12);
-    const bcMonthKwh = Math.round(bc / 12);
-    meritBreakdownEl.style.display = (dc > 0 || bc > 0) ? '' : 'none';
-    document.getElementById('merit-dc-kwh').textContent = `${fmt(dcMonth)} kWh`;
-    document.getElementById('merit-bc-kwh').textContent = `${fmt(bcMonthKwh)} kWh`;
-    const totalSaving = mb - remainBill;
-    const totalKwh = dc + bc;
-    if (totalKwh > 0 && totalSaving > 0) {
-      const ratioSolar = dc / totalKwh;
-      const solarBenefit   = Math.round(totalSaving * ratioSolar);
-      const batteryBenefit = totalSaving - solarBenefit;
-      document.getElementById('merit-dc-yen').textContent = `約 ${fmt(solarBenefit)}`;
-      document.getElementById('merit-bc-yen').textContent = `約 ${fmt(batteryBenefit)}`;
-    } else {
-      document.getElementById('merit-dc-yen').textContent = '-';
-      document.getElementById('merit-bc-yen').textContent = '-';
-    }
+function _updateMeritBreakdown(dc, bc, up, totalMonthSaving) {
+  const el = document.getElementById('merit-breakdown-area');
+  if (!el) return;
+  el.style.display = (dc > 0 || bc > 0) ? '' : 'none';
+  document.getElementById('merit-dc-kwh').textContent = `${fmt(Math.round(dc / 12))} kWh`;
+  document.getElementById('merit-bc-kwh').textContent = `${fmt(Math.round(bc / 12))} kWh`;
+  if ((dc > 0 || bc > 0) && totalMonthSaving > 0) {
+    const solarBenefit   = Math.min(Math.round(dc / 12 * up), totalMonthSaving);
+    const batteryBenefit = totalMonthSaving - solarBenefit;
+    document.getElementById('merit-dc-yen').textContent = `約 ${fmt(solarBenefit)}`;
+    document.getElementById('merit-bc-yen').textContent = `約 ${fmt(batteryBenefit)}`;
+  } else {
+    document.getElementById('merit-dc-yen').textContent = '-';
+    document.getElementById('merit-bc-yen').textContent = '-';
   }
 }
 
@@ -4912,6 +4907,7 @@ function calc() {
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
+  _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
