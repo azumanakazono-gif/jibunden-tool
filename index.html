@@ -3336,8 +3336,8 @@ function _updatePriceBreakdown(kp) {
       `<div style="padding-left:8px">休日(8-22時) ${wHol.toFixed(2)}円 × ${Math.round(ratios.hol*100)}% = ${(ratios.hol*wHol).toFixed(2)}円</div>` +
       `<div style="padding-left:8px">夜間 ${t.night}円 × ${Math.round(ratios.ngt*100)}% = ${(ratios.ngt*t.night).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>`;
+
   } else if (kp === 'kyushu_ohisama') {
     const t    = KYUSHU_OHISAMA.tariff;
     const base = Math.round(calcOhisamaBaseRate(ratios) * 100) / 100;
@@ -3348,8 +3348,8 @@ function _updatePriceBreakdown(kp) {
       `<div style="padding-left:8px">シフトタイム(朝夕：8-10/16-22時) ${t.peak}円 × ${Math.round((ratios.peak||0)*100)}% = ${((ratios.peak||0)*t.peak).toFixed(2)}円 <span style="font-size:10px;color:#dc2626;font-weight:700">★最高値・シフト推奨</span></div>` +
       `<div style="padding-left:8px">だんらんタイム(夜間：22-8時) ${t.ngt}円 × ${Math.round((ratios.ngt||0)*100)}% = ${((ratios.ngt||0)*t.ngt).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 実質単価：<b>${eff}円/kWh</b></div>`;
+
   } else {
     const t    = KYUSHU_KIJI.tariff;
     const wDay = t.daytimeSummer * 3/12 + t.daytimeOther * 9/12;
@@ -3361,8 +3361,8 @@ function _updatePriceBreakdown(kp) {
       `<div style="padding-left:8px">リビング ${t.living}円 × ${Math.round(ratios.living*100)}% = ${(ratios.living*t.living).toFixed(2)}円</div>` +
       `<div style="padding-left:8px">ナイト ${t.night}円 × ${Math.round(ratios.ngt*100)}% = ${(ratios.ngt*t.night).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>`;
+
   }
 }
 
@@ -3396,12 +3396,6 @@ function _updateBeforePriceBreakdown(kp) {
   if (!ratios) { bodyEl.innerHTML = ''; return; }
   const isDenka = kp === 'kyushu_denka_night';
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
-  const _monthly = () => mkwh > 0
-    ? `<div style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px">` +
-      `<span style="color:var(--muted)">概算月額合計（基本料金・諸経費込み）：</span>` +
-      `<b>約${_calcBeforeGrand(kp, mkwh).toLocaleString()}円/月</b>` +
-      `</div>`
-    : '';
   if (isDenka) {
     const t    = KYUSHU_DENKA_NIGHT.tariff;
     const wDay = t.weekdaySummerWinter * 4/12 + t.weekdaySpringFall * 8/12;
@@ -3416,8 +3410,8 @@ function _updateBeforePriceBreakdown(kp) {
       `<div style="padding-left:8px">休日(8-22時) ${wHol.toFixed(2)}円 × ${Math.round(ratios.hol*100)}% = ${(ratios.hol*wHol).toFixed(2)}円</div>` +
       `<div style="padding-left:8px">夜間 ${t.night}円 × ${Math.round(ratios.ngt*100)}% = ${(ratios.ngt*t.night).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>`;
+
   } else if (kp === 'kyushu_ohisama') {
     const t    = KYUSHU_OHISAMA.tariff;
     const base = Math.round(calcOhisamaBaseRate(ratios) * 100) / 100;
@@ -3428,8 +3422,8 @@ function _updateBeforePriceBreakdown(kp) {
       `<div style="padding-left:8px">シフトタイム(朝夕：8-10/16-22時) ${t.peak}円 × ${Math.round((ratios.peak||0)*100)}% = ${((ratios.peak||0)*t.peak).toFixed(2)}円 <span style="font-size:10px;color:#dc2626;font-weight:700">★最高値・シフト推奨</span></div>` +
       `<div style="padding-left:8px">だんらんタイム(夜間：22-8時) ${t.ngt}円 × ${Math.round((ratios.ngt||0)*100)}% = ${((ratios.ngt||0)*t.ngt).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 実質単価：<b>${eff}円/kWh</b></div>`;
+
   } else {
     const t    = KYUSHU_KIJI.tariff;
     const wDay = t.daytimeSummer * 3/12 + t.daytimeOther * 9/12;
@@ -3441,8 +3435,8 @@ function _updateBeforePriceBreakdown(kp) {
       `<div style="padding-left:8px">リビング ${t.living}円 × ${Math.round(ratios.living*100)}% = ${(ratios.living*t.living).toFixed(2)}円</div>` +
       `<div style="padding-left:8px">ナイト ${t.night}円 × ${Math.round(ratios.ngt*100)}% = ${(ratios.ngt*t.night).toFixed(2)}円</div>` +
       `<div style="margin-top:2px">▶ 生活スタイル加重平均：<b>${base}円/kWh</b></div>` +
-      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>` +
-      _monthly();
+      `<div style="color:var(--dg);font-weight:700">＝ 概算実質単価：<b>${eff}円/kWh</b></div>`;
+
   }
 }
 
@@ -3480,10 +3474,7 @@ function _updateBeforePlanBreakdown(kp) {
         fxRow('電力量料金（基本電力部分）', `${fr(mkwh)}kWh`, fr(baseAmt)) +
         (fuelAmt > 0 ? fxRow('燃料費調整額（市場調達コスト相当）', `${fr(mkwh)}kWh × ${FUEL_ADJUST}円/kWh`, fr(fuelAmt)) : '') +
         fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, fr(saieneAmt)) +
-        fxRow('基本料金', '', '0') +
-        `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
-        `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
-        `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
+        fxRow('基本料金', '', '0')
       ) +
       `<div style="font-size:10px;color:var(--muted)">※参考単価：${_up_n}円/kWh（燃料費調整額・再エネ賦課金込みの全国新電力平均実質単価）</div>`;
     return;
@@ -3504,10 +3495,7 @@ function _updateBeforePlanBreakdown(kp) {
         (s3>0 ? fxRow('第3段階 301kWh〜',    `${s3}kWh × 26.97円`, f2(s3*26.97)) : '') +
         (fuelAmt > 0 ? fxRow('燃料費調整額', `${fr(mkwh)}kWh × ${FUEL_ADJUST}円/kWh`, f2(fuelAmt)) : '') +
         fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, f2(saieneAmt)) +
-        fxRow('基本料金', '', f2(basicCharge)) +
-        `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
-        `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
-        `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
+        fxRow('基本料金', '', f2(basicCharge))
       ) +
       `<div style="font-size:10px;color:var(--muted)">電力量のみ平均：${base}円/kWh　／　調整済み：${eff}円/kWh</div>`;
     return;
@@ -3545,10 +3533,7 @@ function _updateBeforePlanBreakdown(kp) {
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
         fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
-        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '') +
-        `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
-        `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
-        `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   } else if (kp === 'kyushu_ohisama') {
     const t = KYUSHU_OHISAMA.tariff;
@@ -3569,10 +3554,7 @@ function _updateBeforePlanBreakdown(kp) {
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
         fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
-        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '') +
-        `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
-        `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
-        `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   } else {
     const t = KYUSHU_KIJI.tariff;
@@ -3594,10 +3576,7 @@ function _updateBeforePlanBreakdown(kp) {
         rows +
         (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(annualKwh)}kWh/年 × ${FUEL_ADJUST}円`, f2(fuelMonthly) + '/月') : '') +
         fxRow('再エネ賦課金', `${fr(annualKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
-        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '') +
-        `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
-        `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
-        `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
+        (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
   }
 }
