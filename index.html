@@ -4290,6 +4290,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       totalCost:             v('ck'),
       subsidy:               v('sub'),
       downPayment:           v('dp') || 0,
+      interestRate:          v('lr') || 4.1,
+      loanCount:             v('lc') || 180,
       monthlyBill:           v('mb') || 0,
       monthlyRemainingCost:  remainBill || 0,
       customerName:          (custData.cn || document.getElementById('cn')?.value || '').trim(),
@@ -5920,10 +5922,10 @@ function getFormData() {
   const result = { ...custData, monthly, timestamp: new Date().toISOString() };
   result.paymentOptions = {
     selectedPlan:  selectedPlan,
-    lr:            custData.lr,
-    lc:            custData.lc,
-    dp:            custData.dp,
-    la2:           custData.la2,
+    interestRate:  custData.lr,
+    loanCount:     custData.lc,
+    downPayment:   custData.dp,
+    loanAmount:    custData.la2,
     loanMethod:    custData.loanMethod,
     loanInputMode: custData.loanInputMode,
     lpManual:      custData.lpManual,
@@ -5944,7 +5946,14 @@ function _syncPaymentOptionsLS(d) {
 }
 
 function setFormData(data) {
-  if (data.paymentOptions) Object.assign(data, data.paymentOptions);
+  if (data.paymentOptions) {
+    const po = data.paymentOptions;
+    if (po.interestRate != null) po.lr  = po.interestRate;
+    if (po.loanCount    != null) po.lc  = po.loanCount;
+    if (po.downPayment  != null) po.dp  = po.downPayment;
+    if (po.loanAmount   != null) po.la2 = po.loanAmount;
+    Object.assign(data, po);
+  }
   Object.assign(custData, data);
   loadDataToForm(custData);
   _applyMonthlyData(data.monthly);

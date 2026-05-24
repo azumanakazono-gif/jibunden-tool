@@ -596,6 +596,11 @@ window.onload = () => {
     const dpInput = document.getElementById('po-dp');
     if (dpInput) dpInput.value = urlDp;
   }
+  // URL から interestRate / loanCount を取得して反映
+  const urlLr = parseFloat(_urlParams.get('interestRate'));
+  if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
+  const urlLc = parseInt(_urlParams.get('loanCount'));
+  if (urlLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = urlLc; }
   // slide-link を更新（downPayment 含む）
   updateSlideLink();
   setTimeout(() => {
@@ -609,8 +614,8 @@ window.onload = () => {
     const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
     if (_po) {
       if (_po.selectedPayment) selectPayment(_po.selectedPayment);
-      if (_po.lr != null && !_urlParams.has('lr')) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
-      if (_po.lc != null && !_urlParams.has('lc')) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
+      if (_po.lr != null && !urlLr) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
+      if (_po.lc != null && !urlLc) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
       if (_po.dp != null && !urlDp)                { const el = document.getElementById('po-dp'); if (el) el.value = _po.dp; }
       if (_po.cost != null && !_urlTotalCost)      { const el = document.getElementById('po-cost'); if (el) el.value = _po.cost; }
       if (_po.method) {
