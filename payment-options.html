@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>導入手段 (Payment Options) — じぶん電気 提案書作成ツール</title>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
@@ -216,6 +217,25 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     </div>
 
     <p class="note">⚠️ 概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。</p>
+  </div>
+
+  <!-- 20年間累積支出グラフ -->
+  <div id="cumulative-chart-section" class="section-card" style="display:none;margin-bottom:16px">
+    <div class="section-title">📈 20年間の累積支出イメージ比較</div>
+    <div style="position:relative;height:280px">
+      <canvas id="cumulative-chart-canvas"></canvas>
+    </div>
+    <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;font-size:12px;line-height:1.7;color:#475569">
+      <div style="padding:10px 14px;background:#f1f5f9;border-radius:8px;border-left:3px solid #374151">
+        <b style="color:#374151">🏢 電力会社のまま：</b>初期費用ゼロですが、電気代が積み上がり続けます。20年後も手元に資産は残りません。
+      </div>
+      <div style="padding:10px 14px;background:#eff6ff;border-radius:8px;border-left:3px solid #1d4ed8">
+        <b style="color:#1d4ed8">💰 現金購入：</b>最初に大きな支出が発生しますが、その後は売電収入と自家消費削減で累積コストが最も低く抑えられます。リターンを最大化したい方に最適です。
+      </div>
+      <div style="padding:10px 14px;background:#fff7ed;border-radius:8px;border-left:3px solid #ea580c">
+        <b style="color:#ea580c">🏦 ローン活用：</b>初期費用ゼロで導入でき、手元資金を温存できます。完済後は支出がガクッと下がり、現金購入に近いコストへ収束していきます。
+      </div>
+    </div>
   </div>
 
   <!-- アクションエリア -->
@@ -460,6 +480,10 @@ function updateLoan() {
     } else {
       setKinri(fmt(manualMonthly), '-', '-');
     }
+    _currentMonthlyPayment = manualMonthly;
+    _currentLoanCount      = count;
+    _currentPrincipal      = principal;
+    drawCumulativeChart();
     return;
   }
 
@@ -489,19 +513,95 @@ setInterval(() => {
   }
 }, 500);
 
-function calcKinri(principal, annualRate, count) {
-  if (annualRate <= 0) {
-    const m = Math.round(principal / count);
-    setKinri(fmt(m), fmt(principal), '0円');
-    return m;
+let _currentMonthlyPayment = 0;
+let _currentLoanCount = 0;
+let _currentPrincipal = 0;
+let _cumulChart = null;
+
+function drawCumulativeChart() {
+  const section = document.getElementById('cumulative-chart-section');
+  const canvas  = document.getElementById('cumulative-chart-canvas');
+  if (!section || !canvas || typeof Chart === 'undefined') return;
+
+  const inputs   = getInputs();
+  const totalCost = (inputs.totalMan || 0) * 10000;
+  const monthlyBill = _urlMonthlyBill || inputs.monthlyBill || 0;
+  const remainMo  = _monthlyRemainingCost || 0;
+  const loanMo    = _currentMonthlyPayment;
+  const loanCount = _currentLoanCount;
+
+  if (totalCost <= 0 && loanMo <= 0) { section.style.display = 'none'; return; }
+  section.style.display = '';
+
+  const years = 20;
+  const labels = Array.from({length: years + 1}, (_, i) => i === 0 ? '0' : i + '年');
+
+  const utilData = [], cashData = [], loanData = [];
+  let cashCum = totalCost, loanCum = 0;
+  utilData.push(0); cashData.push(Math.round(totalCost / 10000)); loanData.push(0);
+
+  for (let y = 1; y <= years; y++) {
+    const sellY  = getCumulativeSaleIncomeYen(y);
+    const sellPY = getCumulativeSaleIncomeYen(y - 1);
+    const sellThisYear = sellY - sellPY;
+
+    // ① 電力会社のまま
+    utilData.push(Math.round(monthlyBill * 12 * y / 10000));
+
+    // ② 現金購入
+    cashCum += remainMo * 12 - sellThisYear;
+    cashData.push(Math.round(cashCum / 10000));
+
+    // ③ ローン活用
+    const loanMonthsThisYear = Math.min(12, Math.max(0, loanCount - (y - 1) * 12));
+    loanCum += loanMo * loanMonthsThisYear + remainMo * 12 - sellThisYear;
+    loanData.push(Math.round(loanCum / 10000));
   }
-  const r = annualRate / 100 / 12;
-  const monthly = Math.round(principal * r * Math.pow(1+r, count) / (Math.pow(1+r, count) - 1));
-  const total = monthly * count;
-  setKinri(fmt(monthly), fmt(total), fmt(total - principal));
-  return monthly;
+
+  if (_cumulChart) { _cumulChart.destroy(); _cumulChart = null; }
+
+  _cumulChart = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        { label: '① 電力会社のまま', data: utilData, borderColor: '#374151', backgroundColor: 'rgba(55,65,81,.08)', borderWidth: 2.5, pointRadius: 0, tension: 0.3, fill: false },
+        { label: '② 現金購入',       data: cashData, borderColor: '#1d4ed8', backgroundColor: 'rgba(29,78,216,.08)', borderWidth: 2.5, pointRadius: 0, tension: 0.1, fill: false },
+        { label: '③ ローン活用',     data: loanData, borderColor: '#ea580c', backgroundColor: 'rgba(234,88,12,.08)',  borderWidth: 2.5, pointRadius: 0, tension: 0.1, fill: false },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top', labels: { font: { size: 12 }, boxWidth: 16, padding: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: 約${ctx.parsed.y.toLocaleString('ja-JP')}万円` } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { font: { size: 11 }, callback: v => v + '万円' }, title: { display: true, text: '累積支出（万円）', font: { size: 11 } } }
+      }
+    }
+  });
 }
 
+function calcKinri(principal, annualRate, count) {
+  let m;
+  if (annualRate <= 0) {
+    m = Math.round(principal / count);
+    setKinri(fmt(m), fmt(principal), '0円');
+  } else {
+    const r = annualRate / 100 / 12;
+    m = Math.round(principal * r * Math.pow(1+r, count) / (Math.pow(1+r, count) - 1));
+    const total = m * count;
+    setKinri(fmt(m), fmt(total), fmt(total - principal));
+  }
+  _currentMonthlyPayment = m;
+  _currentLoanCount      = count;
+  _currentPrincipal      = principal;
+  drawCumulativeChart();
+  return m;
+}
 
 function setKinri(monthly, total, interest) {
   document.getElementById('po-monthly').textContent = monthly;
@@ -546,6 +646,10 @@ function calcGankin(principal, annualRate, count) {
 
   const totalPayment = gankin * count + totalInterest;
   setGankin(fmt(Math.round(firstMonthly)), fmt(Math.round(lastMonthly)), fmt(Math.round(totalPayment)), fmt(Math.round(totalInterest)));
+  _currentMonthlyPayment = Math.round(firstMonthly);
+  _currentLoanCount      = count;
+  _currentPrincipal      = principal;
+  drawCumulativeChart();
 }
 
 function setGankin(first, last, total, interest) {
