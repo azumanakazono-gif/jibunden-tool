@@ -75,6 +75,14 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #breakdown-compare-row { display:flex !important; flex-wrap:wrap; gap:15px; align-items:flex-start; }
 #breakdown-compare-row > .breakdown-toggle { width:auto; flex:1; min-width:280px; }
 @media (max-width:768px) { #breakdown-compare-row { flex-direction:column; } #breakdown-compare-row > .breakdown-toggle { min-width:0; width:100%; } }
+#system-design-card { border-color:#bfdbfe; background:linear-gradient(160deg,#f0f9ff 0%,#fff 60%); }
+#system-design-card > .section-title { color:#1d4ed8; border-bottom:2px solid #bfdbfe; }
+.cost-formula-box { margin-top:8px; padding:10px 14px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); display:flex; flex-wrap:wrap; align-items:center; gap:4px 2px; font-size:12px; line-height:1.8; }
+.cf-op { font-size:14px; font-weight:900; color:#475569; padding:0 4px; }
+.cf-cost   { font-weight:800; color:#1d4ed8; }
+.cf-remain { font-weight:800; color:#DC2626; }
+.cf-sell   { font-weight:800; color:#ea580c; }
+.cf-total  { font-weight:900; color:#16a34a; font-size:15px; }
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .slider-row label { font-size: 14px; color: var(--muted); min-width: 100px; font-weight: 500; }
 .slider-row input[type=range] { flex: 1; accent-color: var(--mg); }
@@ -825,7 +833,7 @@ canvas#mini-chart { height: 220px !important; }
       </div>
     </div>
 
-    <div class="section-card">
+    <div class="section-card" id="system-design-card">
       <div class="section-title" id="system-design-title">☀️ システム設計（太陽光＋蓄電池）</div>
       <!-- パッケージ選択（お客様ヒアリング入力時のみ表示） -->
       <div id="pkg-area" style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;margin-bottom:12px">
@@ -1264,7 +1272,7 @@ canvas#mini-chart { height: 220px !important; }
             <div class="bar-fill gr" id="bi" style="width:40%;border-radius:0"><span id="biv"></span></div>
             <div id="bi-r" style="width:20%;height:100%;background:#86efac;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#14532d;transition:width .4s ease;overflow:hidden"><span id="biv-r"></span></div>
           </div>
-          <div id="bi-detail" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
+          <div id="bi-detail" class="cost-formula-box" style="display:none"></div>
         </div>
         <div class="bar-row loan-bar-only" style="display:none;margin-top:8px">
           <div class="bar-label">ローン活用</div>
@@ -1272,7 +1280,7 @@ canvas#mini-chart { height: 220px !important; }
             <div class="bar-fill" id="bl" style="width:40%;border-radius:0;background:#7c3aed"><span id="blv"></span></div>
             <div id="bl-r" style="width:20%;height:100%;background:#86efac;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#14532d;transition:width .4s ease;overflow:hidden"><span id="blv-r"></span></div>
           </div>
-          <div id="bl-detail" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
+          <div id="bl-detail" class="cost-formula-box" style="display:none"></div>
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:11px;color:var(--muted)">
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#EA580C"></span>電気料金（電力会社）</span>
@@ -4771,9 +4779,13 @@ function calc() {
   document.getElementById('biv').textContent = m.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
   document.getElementById('biv-r').textContent = biRemainW >= 4 ? _netRemain20Man+'万円' : '';
-  document.getElementById('bi-detail').textContent = _sale20Man > 0
-    ? `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 － 売電収入 ${_sale20Man}万円 ＝ 計 ${_netCost20Man}万円`
-    : `初期費用 ${m.totalCostMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${m.totalCostMan+remain20Man}万円`;
+  const _biDetailEl = document.getElementById('bi-detail');
+  if (_biDetailEl) {
+    _biDetailEl.style.display = '';
+    _biDetailEl.innerHTML = _sale20Man > 0
+      ? `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_netCost20Man}万円</span>`
+      : `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${m.totalCostMan+remain20Man}万円</span>`;
+  }
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代 - 売電収入)
   const diffShow = m.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
@@ -4797,9 +4809,13 @@ function calc() {
     document.getElementById('blv').textContent = loanTotalMan + '万円';
     document.getElementById('bl-r').style.width = blRemainW + '%';
     document.getElementById('blv-r').textContent = blRemainW >= 4 ? _netRemain20Man+'万円' : '';
-    document.getElementById('bl-detail').textContent = _sale20Man > 0
-      ? `ローン総額 ${loanTotalMan}万円 ＋ 残電気代 ${remain20Man}万円 － 売電収入 ${_sale20Man}万円 ＝ 計 ${Math.max(0,loanTotalMan+_netRemain20Man)}万円`
-      : `ローン総額 ${loanTotalMan}万円 ＋ 残電気代 ${remain20Man}万円 ＝ 計 ${loanTotalMan+remain20Man}万円`;
+    const _blDetailEl = document.getElementById('bl-detail');
+    if (_blDetailEl) {
+      _blDetailEl.style.display = '';
+      _blDetailEl.innerHTML = _sale20Man > 0
+        ? `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${Math.max(0,loanTotalMan+_netRemain20Man)}万円</span>`
+        : `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${loanTotalMan+remain20Man}万円</span>`;
+    }
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
     const loanTotal = lp * ly * 12;
