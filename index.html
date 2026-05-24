@@ -3038,8 +3038,7 @@ let loanInputMode = 'auto'; // 'auto' | 'manual'
 function _updateMonthlyDetailVisibility(hasBill) {
   const wrap = document.getElementById('monthly-detail-wrap');
   if (!wrap) return;
-  // wrap は常に表示（PDF アップロードは hasBill=false 時でも使えるようにする）
-  wrap.style.display = '';
+  wrap.style.display = hasBill ? '' : 'none';
   if (!hasBill) {
     // 詳細入力値をリセット
     for (let i = 0; i < 12; i++) {
