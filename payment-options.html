@@ -531,6 +531,7 @@ function drawCumulativeChart() {
   const remainMo  = _monthlyRemainingCost || 0;
   const loanMo    = _currentMonthlyPayment;
   const loanCount = _currentLoanCount;
+  const dpMan     = inputs.dpMan || 0;
 
   if (totalCost <= 0 && loanMo <= 0) { section.style.display = 'none'; return; }
   section.style.display = '';
@@ -539,8 +540,8 @@ function drawCumulativeChart() {
   const labels = Array.from({length: years + 1}, (_, i) => i === 0 ? '0' : i + '年');
 
   const utilData = [], cashData = [], loanData = [];
-  let cashCum = totalCost, loanCum = 0;
-  utilData.push(0); cashData.push(Math.round(totalCost / 10000)); loanData.push(0);
+  let cashCum = totalCost, loanCum = dpMan * 10000;
+  utilData.push(0); cashData.push(Math.round(totalCost / 10000)); loanData.push(dpMan);
 
   for (let y = 1; y <= years; y++) {
     const sellY  = getCumulativeSaleIncomeYen(y);
