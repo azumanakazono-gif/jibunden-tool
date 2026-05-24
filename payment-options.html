@@ -77,6 +77,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 </head>
 <body>
 
+<div id="customer-header" style="background:linear-gradient(135deg,#1B4332,#2D6A4F);color:#fff;padding:14px 32px;font-family:'Hiragino Kaku Gothic ProN','Meiryo',sans-serif">
+  <div style="max-width:860px;margin:0 auto;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap">
+    <span id="hdr-name" style="font-size:20px;font-weight:700"></span>
+    <span id="hdr-detail" style="font-size:13px;opacity:.85"></span>
+  </div>
+</div>
 
 <div class="body">
 
@@ -590,6 +596,17 @@ function updateSlideLink() {
 updateLoan();
 
 window.onload = () => {
+  // ── お客様情報ヘッダー ──
+  const _cn   = _urlParams.get('customerName') || '';
+  const _cost = parseFloat(_urlParams.get('totalCost')) || 0;
+  const _mb   = parseFloat(_urlParams.get('monthlyBill')) || 0;
+  document.getElementById('hdr-name').textContent =
+    _cn ? `${_cn} 様のシミュレーション` : 'シミュレーション';
+  const _parts = [];
+  if (_cost > 0) _parts.push(`総工事費: ${Math.round(_cost).toLocaleString('ja-JP')}万円`);
+  if (_mb   > 0) _parts.push(`現在の電気代: ${Math.round(_mb).toLocaleString('ja-JP')}円`);
+  document.getElementById('hdr-detail').textContent = _parts.join(' / ');
+
   // URL から downPayment を取得して po-dp に反映
   const urlDp = parseFloat(_urlParams.get('downPayment')) || 0;
   if (urlDp > 0) {
