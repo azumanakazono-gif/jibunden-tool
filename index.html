@@ -582,10 +582,10 @@ canvas#mini-chart { height: 220px !important; }
             <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px">導入前プラン <span style="font-weight:400">（現在の契約）</span></div>
             <select id="kyuden-plan" onchange="onKyudenPlanChange()" style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;font-family:inherit">
               <option value="">── プランを選択 ──</option>
-              <optgroup label="▼ 標準家庭プラン（目安単価）">
-                <option value="30">スタンダードプラン</option>
-                <option value="32">プレミアム・エコプラン / 新電力標準</option>
-                <option value="29">ガス・電気セット割引プラン</option>
+              <optgroup label="▼ 標準家庭プラン（全国新電力平均単価）">
+                <option value="32">全国新電力 標準プラン（全国平均 32円/kWh）</option>
+                <option value="30">スタンダードプラン（30円/kWh）</option>
+                <option value="29">ガス・電気セット割引プラン（29円/kWh）</option>
               </optgroup>
               <optgroup label="▼ 九州電力 従量電灯">
                 <option value="kyushu_juuryo_b" selected>従量電灯B（公式段階料金）</option>
@@ -658,10 +658,10 @@ canvas#mini-chart { height: 220px !important; }
             <div style="font-size:11px;font-weight:700;color:#1e40af;margin-bottom:3px">導入後プラン <span style="font-weight:400">（太陽光切り替え後）</span></div>
             <select id="post-kyuden-plan" onchange="onPostKyudenPlanChange()" style="width:100%;border:1.5px solid #93c5fd;border-radius:8px;padding:7px 10px;font-size:13px;background:#fff;font-family:inherit">
               <option value="">── プランを選択 ──</option>
-              <optgroup label="▼ 標準家庭プラン（目安単価）">
-                <option value="30">スタンダードプラン</option>
-                <option value="32">プレミアム・エコプラン / 新電力標準</option>
-                <option value="29">ガス・電気セット割引プラン</option>
+              <optgroup label="▼ 標準家庭プラン（全国新電力平均単価）">
+                <option value="32">全国新電力 標準プラン（全国平均 32円/kWh）</option>
+                <option value="30">スタンダードプラン（30円/kWh）</option>
+                <option value="29">ガス・電気セット割引プラン（29円/kWh）</option>
               </optgroup>
               <optgroup label="▼ 九州電力 従量電灯">
                 <option value="kyushu_juuryo_b">従量電灯B（公式段階料金）</option>
@@ -1686,6 +1686,7 @@ function _juuryoBasicCharge(kp) {
     const amp = parseInt(document.getElementById('juuryo-amp').value) || 30;
     return KYUSHU_JUURYO.basicB[amp] || 948.72;
   }
+  if (kp !== 'kyushu_juuryo_c') return 0;
   const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
   return kva > 0 ? Math.round(kva * KYUSHU_JUURYO.basicCPerKva*100)/100 : 0;
 }
@@ -1773,10 +1774,10 @@ function onMkwhInput() {
         document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
       }
     } else {
+      const _numericKpUp = parseFloat(kp);
       const upText = document.getElementById('up-auto')?.textContent || '';
-      const up = parseFloat(upText) || parseFloat(kp) || 0;
-      const basic = _juuryoBasicCharge(kp);
-      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up + basic);
+      const up = (_numericKpUp > 0) ? _numericKpUp : (parseFloat(upText) || 0);
+      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up);
     }
   }
   calc();
@@ -3366,9 +3367,9 @@ function _updatePriceBreakdown(kp) {
 }
 
 function _numericPlanLabel(kp) {
-  return kp === '32' ? 'プレミアム・エコプラン / 新電力標準'
-       : kp === '29' ? 'ガス・電気セット割引プラン'
-       : 'スタンダードプラン';
+  return kp === '32' ? '全国新電力 標準プラン（全国平均 32円/kWh）'
+       : kp === '29' ? 'ガス・電気セット割引プラン（29円/kWh）'
+       : 'スタンダードプラン（30円/kWh）';
 }
 
 function _updateBeforePriceBreakdown(kp) {
@@ -4516,7 +4517,8 @@ function calc() {
     const _beforeUp = calcBeforeEffectiveUnitPrice(_kpCalc);
     up = (_beforeUp > 0) ? _beforeUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
   } else {
-    up = mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0;
+    const _numericUp = parseFloat(_kpCalc);
+    up = (_numericUp > 0) ? _numericUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
   }
 
   // 導入後プラン単価
