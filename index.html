@@ -3501,7 +3501,8 @@ function _updateBeforePlanBreakdown(kp) {
         fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, fr(saieneAmt)) +
         fxRow('基本料金', '', '0')
       ) +
-      `<div style="font-size:10px;color:var(--muted)">※参考単価：${_up_n}円/kWh（燃料費調整額・再エネ賦課金込みの全国新電力平均実質単価）</div>`;
+      `<div style="font-size:10px;color:var(--muted)">※参考単価：${_up_n}円/kWh（燃料費調整額・再エネ賦課金込みの全国新電力平均実質単価）</div>` +
+      `<div style="font-size:10px;color:var(--muted);margin-top:2px">※本単価および内訳は、<a href="https://pps-net.org/unit" target="_blank" rel="noopener" style="color:var(--muted)">新電力ネット</a>が公表している全国の電力平均販売単価（電灯）の実績値、および2026年度の再エネ賦課金・燃料費調整額の統計データをもとに算出しています。</div>`;
     return;
   }
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
