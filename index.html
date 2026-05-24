@@ -648,10 +648,6 @@ canvas#mini-chart { height: 220px !important; }
             <div id="before-plan-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
             <div id="before-price-breakdown-body" style="padding:8px;font-size:11px;line-height:1.8"></div>
           </details>
-          <!-- 概算月額合計（全プラン共通表示） -->
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;margin-top:10px;border-top:2px solid #cbd5e1;background:#f1f5f9;border-radius:6px">
-            <span>概算月額合計</span><span id="before-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
-          </div>
         </div>
 
         <!-- 【導入後】プラン選択 + 内訳カード -->
@@ -704,12 +700,18 @@ canvas#mini-chart { height: 220px !important; }
             <div id="post-plan-breakdown-body" style="padding:4px 8px;font-size:11px;line-height:1.9"></div>
             <div id="price-breakdown-body" style="padding:8px;background:#fff;font-size:11px;line-height:1.8"></div>
           </details>
-          <!-- 月額残り電気代 概算合計（全プラン共通表示） -->
-          <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;margin-top:10px;border-top:2px solid #93c5fd;background:#dbeafe;border-radius:6px">
-            <span>月額残り電気代（概算）</span><span id="after-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
-          </div>
         </div>
 
+      </div>
+
+      <!-- 概算月額合計 横並び比較行 -->
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;margin-bottom:10px">
+        <div style="flex:1;min-width:200px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;border-top:2px solid #cbd5e1;background:#f1f5f9;border-radius:6px">
+          <span>現在の概算月額合計</span><span id="before-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
+        </div>
+        <div style="flex:1;min-width:200px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;border-top:2px solid #93c5fd;background:#dbeafe;border-radius:6px">
+          <span>導入後の月額残り電気代（概算）</span><span id="after-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
+        </div>
       </div>
 
 
