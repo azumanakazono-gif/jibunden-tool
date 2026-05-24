@@ -266,6 +266,21 @@ function selectPayment(type) {
   loanSection.style.display = isCash ? 'none' : '';
   const slideLink = document.getElementById('slide-link');
   if (slideLink) slideLink.style.display = isCash ? 'none' : '';
+  _savePO();
+}
+
+function _savePO() {
+  const sel = document.querySelector('.option-card.selected')?.id?.replace('card-','') || 'cash';
+  const method = document.querySelector('input[name="po-method"]:checked')?.value || 'kinri';
+  localStorage.setItem('jibunden_po', JSON.stringify({
+    selectedPayment: sel,
+    mode:   currentMode,
+    lr:     parseFloat(document.getElementById('po-lr')?.value)   || 4.0,
+    lc:     parseInt(document.getElementById('po-lc')?.value)     || 180,
+    dp:     parseFloat(document.getElementById('po-dp')?.value)   || 0,
+    cost:   parseFloat(document.getElementById('po-cost')?.value) || 0,
+    method,
+  }));
 }
 
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
@@ -456,6 +471,7 @@ function updateLoan() {
     calcKinri(principal, rate, count);
   }
   updateSlideLink();
+  _savePO();
 }
 
 setInterval(() => {
@@ -587,6 +603,24 @@ window.onload = () => {
     updateLoan();
     updateSlideLink();
   }, 50);
+
+  // localStorage から導入手段の状態を復元（URLパラメータがない項目のみ）
+  try {
+    const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
+    if (_po) {
+      if (_po.selectedPayment) selectPayment(_po.selectedPayment);
+      if (_po.lr != null && !_urlParams.has('lr')) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
+      if (_po.lc != null && !_urlParams.has('lc')) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
+      if (_po.dp != null && !urlDp)                { const el = document.getElementById('po-dp'); if (el) el.value = _po.dp; }
+      if (_po.cost != null && !_urlTotalCost)      { const el = document.getElementById('po-cost'); if (el) el.value = _po.cost; }
+      if (_po.method) {
+        const r = document.querySelector(`input[name="po-method"][value="${_po.method}"]`);
+        if (r) r.checked = true;
+      }
+      if (_po.mode) setMode(_po.mode);
+      else updateLoan();
+    }
+  } catch(e) {}
 };
 
 // ── ローン戦略版PPTX ──

@@ -2464,6 +2464,7 @@ function saveFormToData(data) {
   data.ls = document.getElementById('ls').value;
   TAB_FIELDS.forEach(id => { data[id] = parseFloat(document.getElementById(id).value)||0; });
   data.le = document.getElementById('le').checked;
+  data.selectedPlan = selectedPlan;
   data.kyudenPlan     = document.getElementById('kyuden-plan').value;
   data.postKyudenPlan = document.getElementById('post-kyuden-plan').value;
   data.utilityCompany = document.getElementById('utility-company').value;
@@ -2504,6 +2505,7 @@ function loadDataToForm(data) {
   showAvgRateSection(kp.startsWith('avg:'));
   if (data.loanMethod) setLoanMethod(data.loanMethod);
   setLoanInputMode(data.loanInputMode || 'auto');
+  if (data.selectedPlan) selectPaymentMode(data.selectedPlan);
   document.getElementById('lp-manual').value = data.lpManual || 0;
   const ps = data.pkgSelect !== undefined ? data.pkgSelect : '7+7';
   document.getElementById('pkg-select').value = ps;
@@ -5915,14 +5917,39 @@ function getFormData() {
       tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
     });
   }
-  return { ...custData, monthly, timestamp: new Date().toISOString() };
+  const result = { ...custData, monthly, timestamp: new Date().toISOString() };
+  result.paymentOptions = {
+    selectedPlan:  selectedPlan,
+    lr:            custData.lr,
+    lc:            custData.lc,
+    dp:            custData.dp,
+    la2:           custData.la2,
+    loanMethod:    custData.loanMethod,
+    loanInputMode: custData.loanInputMode,
+    lpManual:      custData.lpManual,
+  };
+  return result;
+}
+
+function _syncPaymentOptionsLS(d) {
+  localStorage.setItem('jibunden_po', JSON.stringify({
+    selectedPayment: d.selectedPlan || 'cash',
+    mode:   (d.loanInputMode === 'manual') ? 'manual' : 'preset',
+    lr:     d.lr    || 4.1,
+    lc:     d.lc    || 180,
+    dp:     d.dp    || 0,
+    cost:   d.la2   || 0,
+    method: (d.loanMethod === 'gankin') ? 'gankin' : 'kinri',
+  }));
 }
 
 function setFormData(data) {
+  if (data.paymentOptions) Object.assign(data, data.paymentOptions);
   Object.assign(custData, data);
   loadDataToForm(custData);
   _applyMonthlyData(data.monthly);
   calc();
+  _syncPaymentOptionsLS(custData);
 }
 
 function exportFormData() {
