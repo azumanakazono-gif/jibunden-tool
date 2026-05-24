@@ -711,6 +711,11 @@ canvas#mini-chart { height: 220px !important; }
               <div style="margin-top:6px;height:7px;border-radius:4px;background:#e2e8f0;overflow:hidden">
                 <div id="ssi-bar" style="height:100%;width:0%;border-radius:4px;transition:width .5s ease,background .4s"></div>
               </div>
+              <div id="ssi-legend" style="display:none;margin-top:5px;display:flex;gap:10px;font-size:10px;color:#475569;flex-wrap:wrap;align-items:center">
+                <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#22c55e;flex-shrink:0"></span>☀️ 太陽光直接 <b id="ssi-pv-pct" style="color:#15803d"></b></span>
+                <span id="ssi-batt-legend" style="display:none;align-items:center;gap:3px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#6f42c1;flex-shrink:0"></span>🔋 蓄電池放電 <b id="ssi-batt-pct" style="color:#6f42c1"></b></span>
+                <span style="display:flex;align-items:center;gap:3px"><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#e2e8f0;border:1px solid #cbd5e1;flex-shrink:0"></span><span style="color:#94a3b8">残り買電</span></span>
+              </div>
             </div>
           </div>
 
@@ -1138,7 +1143,7 @@ canvas#mini-chart { height: 220px !important; }
           <div id="mc-savings-main" style="font-size:18px;font-weight:900;color:#15803d"></div>
           <div id="mc-savings-sub" style="font-size:11px;font-weight:600;color:#166534;margin-top:3px;opacity:0.9"></div>
           <div style="margin-top:8px;height:8px;border-radius:4px;background:rgba(255,255,255,0.5);overflow:hidden">
-            <div id="mc-savings-bar" style="height:100%;width:0%;border-radius:4px;background:#22c55e;transition:width .6s ease"></div>
+            <div id="mc-savings-bar" style="height:100%;width:0%;border-radius:4px;background:#22c55e;transition:width .6s ease,background .4s"></div>
           </div>
         </div>
       </div>
@@ -3757,7 +3762,7 @@ function onRatioChange(prefix) {
   }
 }
 
-function _updateSavingsDisplay(before, after) {
+function _updateSavingsDisplay(before, after, annualDc, annualBc, unitPrice) {
   const saving = before - after;
   const pct    = (before > 0 && saving > 0) ? Math.round(saving / before * 100) : 0;
   const ok     = saving > 0 && before > 0;
@@ -3767,8 +3772,22 @@ function _updateSavingsDisplay(before, after) {
             : pct >= 10 ? 'linear-gradient(135deg,#f0fdf4,#dcfce7)'
             : '#f0fdf4';
   const _bd = pct >= 35 ? '#16a34a' : pct >= 20 ? '#22c55e' : pct >= 10 ? '#4ade80' : '#bbf7d0';
-  const _bw = Math.min(pct * 2.5, 100);
+  const _bw = pct;
   const _bc = pct >= 35 ? '#15803d' : pct >= 20 ? '#22c55e' : pct >= 10 ? '#4ade80' : '#86efac';
+  // 3-color bar: PV direct (green) | Battery (purple) | Remaining (gray bg)
+  const _annDc = annualDc || 0;
+  const _annBc = annualBc || 0;
+  const _up    = unitPrice || 0;
+  const pvMonthly   = (_annDc > 0 && _up > 0) ? Math.round(_annDc * _up / 12) : 0;
+  const battMonthly = (_annBc > 0 && _up > 0) ? Math.round(_annBc * _up / 12) : 0;
+  const pvBattSum   = pvMonthly + battMonthly;
+  const pvFrac  = pvBattSum > 0 ? pvMonthly / pvBattSum : 1;
+  const pvSplit = Math.round(pvFrac * 100);
+  const _barGrad = (battMonthly > 0 && pvMonthly > 0)
+    ? `linear-gradient(to right,#22c55e 0%,#22c55e ${pvSplit}%,#6f42c1 ${pvSplit}%,#6f42c1 100%)`
+    : battMonthly > 0 ? '#6f42c1' : '#22c55e';
+  const pvPct   = (before > 0 && pvMonthly > 0)   ? Math.min(Math.round(pvMonthly / before * 100), 100) : 0;
+  const battPct = (before > 0 && battMonthly > 0) ? Math.min(Math.round(battMonthly / before * 100), 100 - pvPct) : 0;
   // slider indicator
   const ssi = document.getElementById('slider-savings-indicator');
   if (ssi) {
@@ -3784,9 +3803,19 @@ function _updateSavingsDisplay(before, after) {
       const badgeEl = document.getElementById('ssi-pct-badge');
       if (badgeEl) { badgeEl.textContent = `${pct}% おトク`; badgeEl.style.color = _c; badgeEl.style.borderColor = _bd; badgeEl.style.background = pct >= 20 ? '#bbf7d0' : '#dcfce7'; }
       const barEl = document.getElementById('ssi-bar');
-      if (barEl) { barEl.style.width = _bw + '%'; barEl.style.background = _bc; }
+      if (barEl) { barEl.style.width = _bw + '%'; barEl.style.background = _barGrad; }
+      const legendEl = document.getElementById('ssi-legend');
+      if (legendEl) { legendEl.style.display = 'flex'; }
+      const pvPctEl = document.getElementById('ssi-pv-pct');
+      if (pvPctEl) pvPctEl.textContent = pvPct > 0 ? `${pvPct}%` : '';
+      const battLegEl = document.getElementById('ssi-batt-legend');
+      if (battLegEl) battLegEl.style.display = battPct > 0 ? 'flex' : 'none';
+      const battPctEl = document.getElementById('ssi-batt-pct');
+      if (battPctEl) battPctEl.textContent = battPct > 0 ? `${battPct}%` : '';
     } else {
       ssi.style.display = 'none';
+      const legendEl = document.getElementById('ssi-legend');
+      if (legendEl) legendEl.style.display = 'none';
     }
   }
   // mc-savings
@@ -3801,7 +3830,7 @@ function _updateSavingsDisplay(before, after) {
       const subEl = document.getElementById('mc-savings-sub');
       if (subEl) { subEl.style.color = _c; subEl.innerHTML = `現在の電気代から <b>${pct}%</b> 削減 ／ 年間 約<b>${fmt(saving*12)}</b>円の節約`; }
       const mbar = document.getElementById('mc-savings-bar');
-      if (mbar) { mbar.style.width = _bw + '%'; mbar.style.background = _bc; }
+      if (mbar) { mbar.style.width = _bw + '%'; mbar.style.background = _barGrad; }
     } else {
       mcs.style.display = 'none';
     }
@@ -4875,7 +4904,7 @@ function calc() {
   const _mcSavings = document.getElementById('mc-savings');
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
-  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0);
+  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
