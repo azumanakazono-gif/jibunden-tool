@@ -3469,18 +3469,23 @@ function _updateBeforePlanBreakdown(kp) {
   const annualKwh = mkwh * 12;
   const _up_n = parseFloat(kp);
   if (_up_n > 0) {
-    const grandAmt = _calcBeforeGrand(kp, mkwh);
+    const saieneAmt = Math.round(mkwh * SAIENE_LEVY);
+    const fuelAmt   = FUEL_ADJUST > 0 ? Math.round(mkwh * FUEL_ADJUST) : 0;
+    const grandAmt  = _calcBeforeGrand(kp, mkwh);
+    const baseAmt   = grandAmt - saieneAmt - fuelAmt;
     bodyEl.innerHTML =
       fxTitle(_numericPlanLabel(kp)) +
       fxSubtitle(`月間使用量 ${fr(mkwh)} kWh / 年間 ${fr(annualKwh)} kWh の料金内訳（目安）`) +
       fxContainer(
-        fxRow('電力量料金（燃料費・再エネ込み全国平均単価）', `${fr(mkwh)}kWh × ${_up_n}円/kWh`, fr(grandAmt)) +
+        fxRow('電力量料金（基本電力部分）', `${fr(mkwh)}kWh`, fr(baseAmt)) +
+        (fuelAmt > 0 ? fxRow('燃料費調整額（市場調達コスト相当）', `${fr(mkwh)}kWh × ${FUEL_ADJUST}円/kWh`, fr(fuelAmt)) : '') +
+        fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, fr(saieneAmt)) +
         fxRow('基本料金', '', '0') +
         `<div style="display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:12px;background:#dbeafe;border-top:2px solid #93c5fd">` +
         `<span style="flex:1 1 auto;font-weight:700">概算月額合計</span>` +
         `<b style="flex:0 0 85px;text-align:right">${fr(grandAmt)}円</b></div>`
       ) +
-      `<div style="font-size:10px;color:var(--muted)">※単価は燃料費調整額・再エネ賦課金込みの全国新電力平均実質単価です。</div>`;
+      `<div style="font-size:10px;color:var(--muted)">※参考単価：${_up_n}円/kWh（燃料費調整額・再エネ賦課金込みの全国新電力平均実質単価）</div>`;
     return;
   }
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
