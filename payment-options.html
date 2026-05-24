@@ -572,6 +572,8 @@ function drawCumulativeChart() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      animation: false,
+      hover: { animationDuration: 0 },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { font: { size: 12 }, boxWidth: 16, padding: 12 } },
