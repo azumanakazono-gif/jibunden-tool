@@ -613,15 +613,16 @@ window.onload = () => {
     const dpInput = document.getElementById('po-dp');
     if (dpInput) dpInput.value = urlDp;
   }
-  // URL から interestRate / loanCount を取得して反映
+  // URL から interestRate / loanCount を最優先で反映（他の初期値より先に確定）
   const urlLr = parseFloat(_urlParams.get('interestRate'));
-  if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
   const urlLc = parseInt(_urlParams.get('loanCount'));
+  if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
   if (urlLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = urlLc; }
   // slide-link を更新（downPayment 含む）
   updateSlideLink();
   setTimeout(() => {
     document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
+    if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
     updateLoan();
     updateSlideLink();
   }, 50);
