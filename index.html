@@ -4286,15 +4286,19 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const _poLink = document.getElementById('payment-options-link');
   localStorage.setItem('jibunden_subsidy', v('sub'));
   if (_poLink) {
+    const _rawCn = (custData.cn || document.getElementById('cn')?.value || '').trim();
+    const _cnRateMatch = _rawCn.match(/金利\s*(\d+\.?\d*)\s*[%％]/);
+    const _effectiveLr = _cnRateMatch ? parseFloat(_cnRateMatch[1]) : (v('lr') || 4.1);
+    const _cleanCn = _rawCn.replace(/[\s　]*金利\s*\d+\.?\d*\s*[%％]/g, '').trim();
     const _poParams = new URLSearchParams({
       totalCost:             v('ck'),
       subsidy:               v('sub'),
       downPayment:           v('dp') || 0,
-      interestRate:          v('lr') || 4.1,
+      interestRate:          _effectiveLr,
       loanCount:             v('lc') || 180,
       monthlyBill:           v('mb') || 0,
       monthlyRemainingCost:  remainBill || 0,
-      customerName:          (custData.cn || document.getElementById('cn')?.value || '').trim(),
+      customerName:          _cleanCn,
     });
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
