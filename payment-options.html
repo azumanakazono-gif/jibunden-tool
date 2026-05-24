@@ -601,6 +601,16 @@ function drawCumulativeChart() {
       }
     }]
   });
+
+  canvas.addEventListener('mouseleave', () => {
+    if (_cumulChart && _cumulChart._lastActive && _cumulChart._lastActive.length) {
+      _cumulChart.setActiveElements(_cumulChart._lastActive);
+      if (_cumulChart.tooltip) {
+        _cumulChart.tooltip.setActiveElements(_cumulChart._lastActive, { x: 0, y: 0 });
+      }
+      _cumulChart.update('none');
+    }
+  });
 }
 
 function calcKinri(principal, annualRate, count) {
