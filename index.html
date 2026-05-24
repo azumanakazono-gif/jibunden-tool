@@ -3186,9 +3186,9 @@ function _applyRatioDcBefore(kp) {
 function updateRatioPanelVisibility() {
   const kpSel    = document.getElementById('kyuden-plan');
   const postKpSel = document.getElementById('post-kyuden-plan');
-  const kp     = kpSel     ? (kpSel.options[kpSel.selectedIndex]         || {}).text || '' : '';
-  const postKp = postKpSel ? (postKpSel.options[postKpSel.selectedIndex] || {}).text || '' : '';
-  const isTOU  = v => ['電化', 'ナイト', '季時別', 'おひさま'].some(kw => v.includes(kw));
+  const kp     = kpSel     ? kpSel.value     : '';
+  const postKp = postKpSel ? postKpSel.value : '';
+  const isTOU  = v => v === 'kyushu_denka_night' || v === 'kyushu_kiji' || v === 'kyushu_ohisama';
   document.getElementById('ratio-panel').style.display = (isTOU(kp) || isTOU(postKp)) ? '' : 'none';
 }
 
@@ -3377,6 +3377,7 @@ function _updateBeforePriceBreakdown(kp) {
   if (!bodyEl) return;
   if (parseFloat(kp) > 0) { bodyEl.innerHTML = ''; return; }
   const ratios  = getBeforeEffectiveRatios(kp);
+  if (!ratios) { bodyEl.innerHTML = ''; return; }
   const isDenka = kp === 'kyushu_denka_night';
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
   const _beforeBasicCharge = _juuryoBasicCharge(kp);
