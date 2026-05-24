@@ -293,6 +293,10 @@ function selectPayment(type) {
   loanSection.style.display = isCash ? 'none' : '';
   const slideLink = document.getElementById('slide-link');
   if (slideLink) slideLink.style.display = isCash ? 'none' : '';
+  if (_cumulChart && _cumulChart.data.datasets[2]) {
+    _cumulChart.data.datasets[2].hidden = isCash;
+    _cumulChart.update('none');
+  }
   _savePO();
 }
 
@@ -611,6 +615,11 @@ function drawCumulativeChart() {
       }
     }
   });
+
+  // 現金選択中はローンラインを非表示
+  const _isCashSelected = document.getElementById('card-cash')?.classList.contains('selected');
+  if (_cumulChart.data.datasets[2]) _cumulChart.data.datasets[2].hidden = !!_isCashSelected;
+  _cumulChart.update('none');
 
   if (!document._cumulTooltipClickHandler) {
     document._cumulTooltipClickHandler = (e) => {
