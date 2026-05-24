@@ -4771,20 +4771,23 @@ function calc() {
   const _annualSellRev0 = (_hasSolar0 && _surplusKwhChart > 0 && _saleP0 > 0)
     ? Math.round(_surplusKwhChart * _saleP0) : 0;
   const _sale20Man = Math.round(_annualSellRev0 * wy / 10000);
-  const _netRemain20Man = Math.max(0, remain20Man - _sale20Man);
-  const _netCost20Man = Math.max(0, m.totalCostMan + _netRemain20Man);
+  const _netRemain20Man = remain20Man - _sale20Man;
+  const _netCost20Man = m.totalCostMan + _netRemain20Man;
   const biCostW = Math.min(Math.round(m.totalCostMan / bill20Show * 100), 100);
-  const biRemainW = Math.min(Math.round(_netRemain20Man / bill20Show * 100), 100 - biCostW);
+  const biRemainW = Math.min(Math.round(Math.max(0,_netRemain20Man) / bill20Show * 100), 100 - biCostW);
   document.getElementById('bi').style.width = biCostW + '%';
   document.getElementById('biv').textContent = m.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
-  document.getElementById('biv-r').textContent = biRemainW >= 4 ? _netRemain20Man+'万円' : '';
+  document.getElementById('biv-r').textContent = biRemainW >= 4 ? Math.max(0,_netRemain20Man)+'万円' : '';
+  const _netCostHtml = (n) => n < 0
+    ? `<span class="cf-total">計 -${Math.abs(n)}万円</span><span style="margin-left:6px;background:#dcfce7;color:#15803d;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;border:1px solid #86efac">🎉 ${Math.abs(n)}万円の手残り</span>`
+    : `<span class="cf-total">計 ${n}万円</span>`;
   const _biDetailEl = document.getElementById('bi-detail');
   if (_biDetailEl) {
     _biDetailEl.style.display = '';
     _biDetailEl.innerHTML = _sale20Man > 0
-      ? `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_netCost20Man}万円</span>`
-      : `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${m.totalCostMan+remain20Man}万円</span>`;
+      ? `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span>${_netCostHtml(_netCost20Man)}`
+      : `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_netCost20Man}万円</span>`;
   }
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代 - 売電収入)
   const diffShow = m.costDiff_with_rise + _sale20Man;
@@ -4804,17 +4807,18 @@ function calc() {
     const lp=v('lp'), ly=v('ly')||10;
     const loanTotalMan = Math.round(lp * ly * 12 / 10000);
     const blW = Math.min(Math.round(loanTotalMan / bill20Show * 100), 100);
-    const blRemainW = Math.min(Math.round(_netRemain20Man / bill20Show * 100), 100 - blW);
+    const blRemainW = Math.min(Math.round(Math.max(0,_netRemain20Man) / bill20Show * 100), 100 - blW);
     document.getElementById('bl').style.width = blW + '%';
     document.getElementById('blv').textContent = loanTotalMan + '万円';
     document.getElementById('bl-r').style.width = blRemainW + '%';
-    document.getElementById('blv-r').textContent = blRemainW >= 4 ? _netRemain20Man+'万円' : '';
+    document.getElementById('blv-r').textContent = blRemainW >= 4 ? Math.max(0,_netRemain20Man)+'万円' : '';
+    const _blNetCost20Man = loanTotalMan + _netRemain20Man;
     const _blDetailEl = document.getElementById('bl-detail');
     if (_blDetailEl) {
       _blDetailEl.style.display = '';
       _blDetailEl.innerHTML = _sale20Man > 0
-        ? `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${Math.max(0,loanTotalMan+_netRemain20Man)}万円</span>`
-        : `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${loanTotalMan+remain20Man}万円</span>`;
+        ? `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span>${_netCostHtml(_blNetCost20Man)}`
+        : `<span class="cf-cost">ローン総額 ${loanTotalMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_blNetCost20Man}万円</span>`;
     }
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
