@@ -4898,6 +4898,9 @@ function calc() {
   const _monthlySellInc = (_hasSolar2 && _surplusKwhChart > 0 && _saleP2 > 0)
     ? Math.round(_surplusKwhChart * _saleP2 / 12) : 0;
   const _afterNet = !_lon ? Math.max(0, _afterDisplay - _monthlySellInc) : _afterDisplay;
+  // after-plan-total-val を _afterNet で上書き（savings と辻褄を合わせるため）
+  const _afterTotalEl = document.getElementById('after-plan-total-val');
+  if (_afterTotalEl) _afterTotalEl.textContent = '約' + fmt(_afterNet) + '円';
   // 月額比較カード
   const _mcBefore = document.getElementById('mc-before');
   const _mcAfter  = document.getElementById('mc-after');
