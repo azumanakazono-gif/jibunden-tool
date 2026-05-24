@@ -518,6 +518,7 @@ let _currentMonthlyPayment = 0;
 let _currentLoanCount = 0;
 let _currentPrincipal = 0;
 let _cumulChart = null;
+let _tooltipDismissed = false;
 
 function drawCumulativeChart() {
   const section = document.getElementById('cumulative-chart-section');
@@ -586,6 +587,7 @@ function drawCumulativeChart() {
             const el = document.getElementById('chart-custom-tooltip');
             if (!el) return;
             if (tooltip.opacity === 0) return; // グラフ外に出ても非表示にしない
+            if (_tooltipDismissed) { _tooltipDismissed = false; } // ホバーで復活
             const colors = ['#374151', '#1d4ed8', '#ea580c'];
             const title = tooltip.title?.[0] || '';
             let html = `<div style="font-weight:700;margin-bottom:3px;color:#94a3b8;font-size:11px">${title}</div>`;
@@ -608,6 +610,18 @@ function drawCumulativeChart() {
       }
     }
   });
+
+  if (!document._cumulTooltipClickHandler) {
+    document._cumulTooltipClickHandler = (e) => {
+      const canvas = document.getElementById('cumulative-chart-canvas');
+      const tip    = document.getElementById('chart-custom-tooltip');
+      if (canvas && !canvas.contains(e.target) && tip && !tip.contains(e.target)) {
+        tip.style.display = 'none';
+        _tooltipDismissed = true;
+      }
+    };
+    document.addEventListener('click', document._cumulTooltipClickHandler);
+  }
 }
 
 function calcKinri(principal, annualRate, count) {
