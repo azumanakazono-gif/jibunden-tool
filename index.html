@@ -155,11 +155,18 @@ canvas#mini-chart { height: 220px !important; }
   0%,100% { box-shadow: 0 0 0 0 rgba(234,88,12,0.8); }
   50%      { box-shadow: 0 0 0 7px rgba(234,88,12,0); }
 }
+@keyframes blink-pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
 .reest-alert {
   background: #ea580c !important;
   border-color: #c2410c !important;
   color: #fff !important;
   animation: reest-pulse 1s ease-in-out infinite;
+}
+.blink-effect {
+  animation: blink-pulse 0.8s ease-in-out infinite;
 }
 
 /* ── トースト ── */
@@ -1732,7 +1739,7 @@ function autoEstimateJyuryoKwh(force) { autoEstimateKwhFromBill(force); }
 function reEstimateJyuryoKwh() {
   mkwhManualEdited = false;
   const btnEl = document.getElementById('btn-reestimate');
-  if (btnEl) btnEl.classList.remove('reest-alert');
+  if (btnEl) { btnEl.classList.remove('reest-alert'); btnEl.classList.remove('blink-effect'); }
   const warnEl = document.getElementById('mb-changed-warn');
   if (warnEl) warnEl.style.display = 'none';
   autoEstimateKwhFromBill(true);
@@ -2717,6 +2724,8 @@ function onKyudenPlanChange() {
   }
   renderPostPlanBreakdown();
   if (monthlyDetailOpen) _updateMonthlyTouLabels();
+  const _reestBtn = document.getElementById('btn-reestimate');
+  if (_reestBtn) _reestBtn.classList.add('blink-effect');
 }
 
 function onPostKyudenPlanChange() {
