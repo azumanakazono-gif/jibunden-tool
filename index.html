@@ -1721,11 +1721,10 @@ function autoEstimateKwhFromBill(force) {
     if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
     est = estimateJyuryoKwhFromBill(mb, basic);
   } else {
-    // 他プラン：表示中の平均単価で線形推定、なければ30円/kWhで試算
-    const upText = document.getElementById('up-auto')?.textContent || '';
-    const up = parseFloat(upText) || parseFloat(kp) || 30;
-    const basic = _juuryoBasicCharge(kp);
-    est = Math.max(1, Math.min(3000, Math.round((mb - basic) / up)));
+    // プラン定義の単価のみ使用（mb/mkwh 逆算値は使わない → 反復縮小ループ防止）
+    const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
+    const up = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
+    est = Math.max(1, Math.min(3000, Math.round(mb / up)));
   }
   if (est <= 0) return;
   mkwhEl.value = est;
