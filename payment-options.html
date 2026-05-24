@@ -224,6 +224,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     <div class="section-title">📈 20年間の累積支出イメージ比較</div>
     <div style="position:relative;height:280px">
       <canvas id="cumulative-chart-canvas"></canvas>
+      <div id="chart-custom-tooltip" style="display:none;position:absolute;background:rgba(30,41,59,.93);color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.9;pointer-events:none;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.25);min-width:190px"></div>
     </div>
     <div style="margin-top:14px;display:flex;flex-direction:column;gap:8px;font-size:12px;line-height:1.7;color:#475569">
       <div style="padding:10px 14px;background:#f1f5f9;border-radius:8px;border-left:3px solid #374151">
@@ -578,37 +579,33 @@ function drawCumulativeChart() {
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { position: 'top', labels: { font: { size: 12 }, boxWidth: 16, padding: 12 } },
-        tooltip: { mode: 'index', intersect: false, callbacks: { label: ctx => ` ${ctx.dataset.label}: 約${ctx.parsed.y.toLocaleString('ja-JP')}万円` } }
+        tooltip: {
+          enabled: false,
+          external(context) {
+            const { chart, tooltip } = context;
+            const el = document.getElementById('chart-custom-tooltip');
+            if (!el) return;
+            if (tooltip.opacity === 0) return; // グラフ外に出ても非表示にしない
+            const colors = ['#374151', '#1d4ed8', '#ea580c'];
+            const title = tooltip.title?.[0] || '';
+            let html = `<div style="font-weight:700;margin-bottom:3px;color:#94a3b8;font-size:11px">${title}</div>`;
+            (tooltip.dataPoints || []).forEach((dp, i) => {
+              html += `<div><span style="display:inline-block;width:9px;height:9px;border-radius:2px;background:${colors[i] || '#888'};margin-right:5px;vertical-align:middle"></span>${dp.dataset.label}: <b>約${dp.parsed.y.toLocaleString('ja-JP')}万円</b></div>`;
+            });
+            el.innerHTML = html;
+            el.style.display = 'block';
+            let x = tooltip.caretX + 14;
+            let y = Math.max(0, tooltip.caretY - 40);
+            if (x + 200 > chart.canvas.clientWidth) x = tooltip.caretX - 210;
+            el.style.left = x + 'px';
+            el.style.top  = y + 'px';
+          }
+        }
       },
       scales: {
         x: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { font: { size: 11 } } },
         y: { grid: { color: 'rgba(0,0,0,.06)' }, ticks: { font: { size: 11 }, callback: v => v + '万円' }, title: { display: true, text: '累積支出（万円）', font: { size: 11 } } }
       }
-    },
-    plugins: [{
-      id: 'keepTooltip',
-      afterEvent(chart, args) {
-        const type = args.event.type;
-        if (type === 'mouseout' || type === 'mouseleave') {
-          if (chart._lastActive && chart._lastActive.length) {
-            chart.setActiveElements(chart._lastActive);
-            chart.tooltip.setActiveElements(chart._lastActive, { x: 0, y: 0 });
-            chart.update('none');
-          }
-        } else if (chart.getActiveElements().length > 0) {
-          chart._lastActive = chart.getActiveElements();
-        }
-      }
-    }]
-  });
-
-  canvas.addEventListener('mouseleave', () => {
-    if (_cumulChart && _cumulChart._lastActive && _cumulChart._lastActive.length) {
-      _cumulChart.setActiveElements(_cumulChart._lastActive);
-      if (_cumulChart.tooltip) {
-        _cumulChart.tooltip.setActiveElements(_cumulChart._lastActive, { x: 0, y: 0 });
-      }
-      _cumulChart.update('none');
     }
   });
 }
