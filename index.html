@@ -168,6 +168,12 @@ canvas#mini-chart { height: 220px !important; }
 .blink-effect {
   animation: blink-pulse 0.8s ease-in-out infinite;
 }
+@keyframes savings-pop {
+  0%   { transform: scale(0.95); opacity: 0.7; }
+  60%  { transform: scale(1.04); opacity: 1; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+.savings-pop { animation: savings-pop 0.4s ease-out forwards; }
 
 /* ── トースト ── */
 .toast { position: fixed; bottom: 24px; right: 24px; background: var(--dg); color: #fff; padding: 12px 20px; border-radius: 10px; font-size: 14px; transform: translateY(80px); opacity: 0; transition: all .3s; z-index: 200; display: flex; align-items: center; gap: 8px; }
@@ -693,6 +699,19 @@ canvas#mini-chart { height: 220px !important; }
             <div id="ratio-zones" style="display:flex;flex-direction:column;gap:6px"></div>
             <div id="ratio-sum-warn" style="display:none;margin-top:4px;font-size:11px;color:#dc2626;font-weight:700">⚠ 合計が100%になるよう設定してください（現在 <span id="ratio-sum-val">0</span>%）</div>
             <div id="ratio-style-status" style="display:none;margin-top:6px;font-size:11px;padding:4px 8px;background:#fff;border-radius:4px;border:1px solid #93c5fd"></div>
+            <!-- 節約リアルタイム表示 -->
+            <div id="slider-savings-indicator" style="display:none;margin-top:8px;padding:8px 12px;border-radius:8px;border:2px solid #22c55e;background:#f0fdf4;transition:background .3s,border-color .3s">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">
+                <div style="font-size:12px;font-weight:700;color:#166534;line-height:1.4">
+                  💡 この設定で節約できる電気代<br>
+                  <span id="ssi-label" style="font-size:15px;color:#15803d">-</span>
+                </div>
+                <div id="ssi-pct-badge" style="flex:0 0 auto;font-size:15px;font-weight:900;padding:4px 12px;border-radius:8px;background:#dcfce7;color:#15803d;white-space:nowrap;border:1.5px solid #86efac">-</div>
+              </div>
+              <div style="margin-top:6px;height:7px;border-radius:4px;background:#e2e8f0;overflow:hidden">
+                <div id="ssi-bar" style="height:100%;width:0%;border-radius:4px;transition:width .5s ease,background .4s"></div>
+              </div>
+            </div>
           </div>
 
           <details id="price-breakdown" class="breakdown-toggle" style="display:none;margin-top:10px;border:1px solid #93c5fd;border-radius:8px;overflow:visible" ontoggle="(function(d){const s=d.querySelector('summary');s.textContent=d.open?'📊 料金内訳・計算根拠を表示 ▲':'📊 料金内訳・計算根拠を表示 ▼';})(this)">
@@ -1115,7 +1134,13 @@ canvas#mini-chart { height: 220px !important; }
             <div><span id="mc-after" style="font-size:20px;font-weight:700;color:#0369a1">-</span><span style="font-size:12px;color:#0369a1">円</span></div>
           </div>
         </div>
-        <div id="mc-savings" style="display:none;text-align:center;margin-top:12px;padding:8px;background:#dcfce7;border-radius:8px;font-size:14px;font-weight:700;color:#15803d"></div>
+        <div id="mc-savings" style="display:none;text-align:center;margin-top:12px;padding:10px 14px;border-radius:10px;border:2px solid #bbf7d0;background:#dcfce7">
+          <div id="mc-savings-main" style="font-size:18px;font-weight:900;color:#15803d"></div>
+          <div id="mc-savings-sub" style="font-size:11px;font-weight:600;color:#166534;margin-top:3px;opacity:0.9"></div>
+          <div style="margin-top:8px;height:8px;border-radius:4px;background:rgba(255,255,255,0.5);overflow:hidden">
+            <div id="mc-savings-bar" style="height:100%;width:0%;border-radius:4px;background:#22c55e;transition:width .6s ease"></div>
+          </div>
+        </div>
       </div>
       <!-- 💡 自家消費メリットの内訳 -->
       <div id="merit-breakdown-area" style="display:none;background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:12px 14px;margin-bottom:12px">
@@ -3731,6 +3756,57 @@ function onRatioChange(prefix) {
   }
 }
 
+function _updateSavingsDisplay(before, after) {
+  const saving = before - after;
+  const pct    = (before > 0 && saving > 0) ? Math.round(saving / before * 100) : 0;
+  const ok     = saving > 0 && before > 0;
+  const _c  = pct >= 35 ? '#15803d' : pct >= 20 ? '#16a34a' : pct >= 10 ? '#22c55e' : '#4ade80';
+  const _bg = pct >= 35 ? 'linear-gradient(135deg,#bbf7d0,#86efac)'
+            : pct >= 20 ? 'linear-gradient(135deg,#dcfce7,#bbf7d0)'
+            : pct >= 10 ? 'linear-gradient(135deg,#f0fdf4,#dcfce7)'
+            : '#f0fdf4';
+  const _bd = pct >= 35 ? '#16a34a' : pct >= 20 ? '#22c55e' : pct >= 10 ? '#4ade80' : '#bbf7d0';
+  const _bw = Math.min(pct * 2.5, 100);
+  const _bc = pct >= 35 ? '#15803d' : pct >= 20 ? '#22c55e' : pct >= 10 ? '#4ade80' : '#86efac';
+  // slider indicator
+  const ssi = document.getElementById('slider-savings-indicator');
+  if (ssi) {
+    if (ok) {
+      ssi.style.display = '';
+      ssi.style.background = _bg;
+      ssi.style.borderColor = _bd;
+      ssi.classList.remove('savings-pop');
+      void ssi.offsetWidth;
+      ssi.classList.add('savings-pop');
+      const lblEl = document.getElementById('ssi-label');
+      if (lblEl) { lblEl.style.color = _c; lblEl.innerHTML = `月々 <b>${fmt(saving)}円</b> 節約！`; }
+      const badgeEl = document.getElementById('ssi-pct-badge');
+      if (badgeEl) { badgeEl.textContent = `${pct}% おトク`; badgeEl.style.color = _c; badgeEl.style.borderColor = _bd; badgeEl.style.background = pct >= 20 ? '#bbf7d0' : '#dcfce7'; }
+      const barEl = document.getElementById('ssi-bar');
+      if (barEl) { barEl.style.width = _bw + '%'; barEl.style.background = _bc; }
+    } else {
+      ssi.style.display = 'none';
+    }
+  }
+  // mc-savings
+  const mcs = document.getElementById('mc-savings');
+  if (mcs) {
+    if (ok) {
+      mcs.style.display = '';
+      mcs.style.background = _bg;
+      mcs.style.borderColor = _bd;
+      const mainEl = document.getElementById('mc-savings-main');
+      if (mainEl) { mainEl.style.color = _c; mainEl.innerHTML = `月々 約${fmt(saving)}円 おトク！`; }
+      const subEl = document.getElementById('mc-savings-sub');
+      if (subEl) { subEl.style.color = _c; subEl.innerHTML = `現在の電気代から <b>${pct}%</b> 削減 ／ 年間 約<b>${fmt(saving*12)}</b>円の節約`; }
+      const mbar = document.getElementById('mc-savings-bar');
+      if (mbar) { mbar.style.width = _bw + '%'; mbar.style.background = _bc; }
+    } else {
+      mcs.style.display = 'none';
+    }
+  }
+}
+
 function resetToPresetRatio() {
   isCustomRatio       = false;
   customRatios        = null;
@@ -4798,15 +4874,7 @@ function calc() {
   const _mcSavings = document.getElementById('mc-savings');
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
-  if (_mcSavings) {
-    const _saving = _beforeGrand - _afterNet;
-    if (_saving > 0 && _beforeGrand > 0) {
-      _mcSavings.style.display = '';
-      _mcSavings.textContent = `月々 約${fmt(_saving)}円 おトク！`;
-    } else {
-      _mcSavings.style.display = 'none';
-    }
-  }
+  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0);
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
 }
 
