@@ -2905,11 +2905,21 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
     setTotal(totalAmt);
 
   } else {
-    const monthlyAmt = Math.round(monthlyRemain * post_up);
+    const saieneMonthly = Math.round(remainKwh * SAIENE_LEVY / 12 * 100) / 100;
+    const fuelMonthly   = Math.round(remainKwh * FUEL_ADJUST  / 12 * 100) / 100;
+    const energyMonthly = Math.round(monthlyRemain * post_up);
+    const grand = energyMonthly + Math.round(saieneMonthly) + Math.round(fuelMonthly);
     body.innerHTML =
+      fxTitle(_numericPlanLabel(String(postKp))) +
       fxSubtitle(`残り購入電力量 ${fr(remainKwh)} kWh/年（月平均 ${fr(monthlyRemain)} kWh）`) +
-      fxContainer(fxRow('残り電気代', `${fr(monthlyRemain)}kWh × ${post_up}円/kWh`, f2(monthlyAmt)));
-    setTotal(monthlyAmt);
+      fxContainer(
+        fxRow('電力量料金（目安単価）', `${fr(monthlyRemain)}kWh × ${post_up}円/kWh`, f2(energyMonthly)) +
+        (FUEL_ADJUST > 0 ? fxRow('燃料費調整額', `${fr(monthlyRemain)}kWh × ${FUEL_ADJUST}円/kWh`, f2(fuelMonthly) + '/月') : '') +
+        fxRow('再エネ賦課金', `${fr(monthlyRemain)}kWh × ${SAIENE_LEVY}円/kWh`, f2(saieneMonthly) + '/月') +
+        fxRow('基本料金', '', '0')
+      ) +
+      `<div style="font-size:10px;color:var(--muted)">※目安単価プランは基本料金0円として試算。実際の契約内容で異なる場合があります。</div>`;
+    setTotal(grand);
   }
   setPBToggle(true);
   return _grandResult;
@@ -3356,9 +3366,16 @@ function _updatePriceBreakdown(kp) {
   }
 }
 
+function _numericPlanLabel(kp) {
+  return kp === '32' ? 'プレミアム・エコプラン / 新電力標準'
+       : kp === '29' ? 'ガス・電気セット割引プラン'
+       : 'スタンダードプラン';
+}
+
 function _updateBeforePriceBreakdown(kp) {
   const bodyEl = document.getElementById('before-price-breakdown-body');
   if (!bodyEl) return;
+  if (parseFloat(kp) > 0) { bodyEl.innerHTML = ''; return; }
   const ratios  = getBeforeEffectiveRatios(kp);
   const isDenka = kp === 'kyushu_denka_night';
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
@@ -3434,6 +3451,23 @@ function _updateBeforePlanBreakdown(kp) {
   const fxContainer = (inner) =>
     `<div style="border:1px solid ${GRY};border-radius:4px;overflow:hidden;margin-bottom:6px">${inner}</div>`;
   const annualKwh = mkwh * 12;
+  const _up_n = parseFloat(kp);
+  if (_up_n > 0) {
+    const saieneAmt = Math.round(mkwh * SAIENE_LEVY * 100) / 100;
+    const fuelAmt   = Math.round(mkwh * FUEL_ADJUST  * 100) / 100;
+    const energyAmt = Math.round(mkwh * _up_n * 100) / 100;
+    bodyEl.innerHTML =
+      fxTitle(_numericPlanLabel(kp)) +
+      fxSubtitle(`月間使用量 ${fr(mkwh)} kWh / 年間 ${fr(annualKwh)} kWh の料金内訳（目安）`) +
+      fxContainer(
+        fxRow('電力量料金（目安単価）', `${fr(mkwh)}kWh × ${_up_n}円/kWh`, fr(energyAmt)) +
+        (fuelAmt > 0 ? fxRow('燃料費調整額', `${fr(mkwh)}kWh × ${FUEL_ADJUST}円/kWh`, f2(fuelAmt)) : '') +
+        fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, f2(saieneAmt)) +
+        fxRow('基本料金', '', '0')
+      ) +
+      `<div style="font-size:10px;color:var(--muted)">※目安単価プランは基本料金0円として試算。実際の契約内容で異なる場合があります。</div>`;
+    return;
+  }
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
     const isB = kp === 'kyushu_juuryo_b';
     const { s1, s2, s3, base, eff } = calcJuuryoSteps(mkwh);
@@ -4704,8 +4738,9 @@ function calc() {
     _updateBeforePriceBreakdown(_beforeKpRP);
     _updateBeforePlanBreakdown(_beforeKpRP);
   } else {
-    if (_beforeKpRP === 'kyushu_juuryo_b' || _beforeKpRP === 'kyushu_juuryo_c') {
+    if (_beforeKpRP === 'kyushu_juuryo_b' || _beforeKpRP === 'kyushu_juuryo_c' || parseFloat(_beforeKpRP) > 0) {
       _updateBeforePlanBreakdown(_beforeKpRP);
+      _updateBeforePriceBreakdown(_beforeKpRP);
     } else {
       const _bpbb = document.getElementById('before-plan-breakdown-body');
       if (_bpbb) _bpbb.innerHTML = '';
