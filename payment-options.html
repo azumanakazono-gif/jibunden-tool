@@ -335,6 +335,13 @@ if (_urlMonthlyBill > 0) {
   const _mbEl = document.getElementById('po-mb');
   if (_mbEl) _mbEl.value = _urlMonthlyBill;
 }
+// interestRate / loanCount / downPayment をスクリプト初期化時点で最優先適用（updateLoan()前に確定）
+const _initLr = parseFloat(_urlParams.get('interestRate'));
+const _initLc = parseInt(_urlParams.get('loanCount'));
+const _initDp = _urlParams.has('downPayment') ? parseFloat(_urlParams.get('downPayment')) : null;
+if (_initLr > 0) { const _el = document.getElementById('po-lr'); if (_el) _el.value = _initLr; }
+if (_initLc > 0) { const _el = document.getElementById('po-lc'); if (_el) _el.value = _initLc; }
+if (_initDp !== null && !isNaN(_initDp)) { const _el = document.getElementById('po-dp'); if (_el) _el.value = _initDp; }
 // 余剰kWhと FIT モードがある場合は自動計算を使う
 const _hasAutoParams   = _surplusKwhYear > 0 && _saleMode === 'fit';
 
@@ -760,22 +767,17 @@ window.onload = () => {
   if (_mb   > 0) _parts.push(`現在の電気代: ${Math.round(_mb).toLocaleString('ja-JP')}円`);
   document.getElementById('hdr-detail').textContent = _parts.join(' / ');
 
-  // URL から downPayment を取得して po-dp に反映
-  const urlDp = parseFloat(_urlParams.get('downPayment')) || 0;
-  if (urlDp > 0) {
-    const dpInput = document.getElementById('po-dp');
-    if (dpInput) dpInput.value = urlDp;
-  }
-  // URL から interestRate / loanCount を最優先で反映（他の初期値より先に確定）
-  const urlLr = parseFloat(_urlParams.get('interestRate'));
-  const urlLc = parseInt(_urlParams.get('loanCount'));
-  if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
-  if (urlLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = urlLc; }
+  // URLパラメータを再適用（window.onload時点でも最優先で確定）
+  if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
+  if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
+  if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
   // slide-link を更新（downPayment 含む）
   updateSlideLink();
   setTimeout(() => {
     document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
-    if (urlLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = urlLr; }
+    if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
+    if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
+    if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
     updateLoan();
     updateSlideLink();
   }, 50);
@@ -785,9 +787,9 @@ window.onload = () => {
     const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
     if (_po) {
       if (_po.selectedPayment) selectPayment(_po.selectedPayment);
-      if (_po.lr != null && !urlLr) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
-      if (_po.lc != null && !urlLc) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
-      if (_po.dp != null && !urlDp)                { const el = document.getElementById('po-dp'); if (el) el.value = _po.dp; }
+      if (_po.lr != null && !(_initLr > 0)) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
+      if (_po.lc != null && !(_initLc > 0)) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
+      if (_po.dp != null && _initDp === null) { const el = document.getElementById('po-dp'); if (el) el.value = _po.dp; }
       if (_po.cost != null && !_urlTotalCost)      { const el = document.getElementById('po-cost'); if (el) el.value = _po.cost; }
       if (_po.method) {
         const r = document.querySelector(`input[name="po-method"][value="${_po.method}"]`);

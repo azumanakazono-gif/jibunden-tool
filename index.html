@@ -4467,14 +4467,17 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   if (_poLink) {
     const _rawCn = (custData.cn || document.getElementById('cn')?.value || '').trim();
     const _cnRateMatch = _rawCn.match(/金利\s*(\d+\.?\d*)\s*[%％]/);
-    const _effectiveLr = _cnRateMatch ? parseFloat(_cnRateMatch[1]) : (v('lr') || 4.1);
+    const _lrVal = parseFloat(custData.lr) || v('lr') || 4.1;
+    const _effectiveLr = _cnRateMatch ? parseFloat(_cnRateMatch[1]) : _lrVal;
+    const _lcVal = parseInt(custData.lc) || parseInt(v('lc')) || 180;
+    const _dpVal = (custData.dp != null && !isNaN(parseFloat(custData.dp))) ? parseFloat(custData.dp) : (v('dp') || 0);
     const _cleanCn = _rawCn.replace(/[\s　]*金利\s*\d+\.?\d*\s*[%％]/g, '').trim();
     const _poParams = new URLSearchParams({
       totalCost:             v('ck'),
       subsidy:               v('sub'),
-      downPayment:           v('dp') || 0,
+      downPayment:           _dpVal,
       interestRate:          _effectiveLr,
-      loanCount:             v('lc') || 180,
+      loanCount:             _lcVal,
       monthlyBill:           v('mb') || 0,
       monthlyRemainingCost:  remainBill || 0,
       customerName:          _cleanCn,
