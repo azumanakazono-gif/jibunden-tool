@@ -767,30 +767,15 @@ window.onload = () => {
   if (_mb   > 0) _parts.push(`現在の電気代: ${Math.round(_mb).toLocaleString('ja-JP')}円`);
   document.getElementById('hdr-detail').textContent = _parts.join(' / ');
 
-  // URLパラメータを再適用（window.onload時点でも最優先で確定）
-  if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
-  if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
-  if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
-  // slide-link を更新（downPayment 含む）
-  updateSlideLink();
-  setTimeout(() => {
-    document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
-    if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
-    if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
-    if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
-    updateLoan();
-    updateSlideLink();
-  }, 50);
-
   // localStorage から導入手段の状態を復元（URLパラメータがない項目のみ）
   try {
     const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
     if (_po) {
       if (_po.selectedPayment) selectPayment(_po.selectedPayment);
-      if (_po.lr != null && !(_initLr > 0)) { const el = document.getElementById('po-lr'); if (el) el.value = _po.lr; }
-      if (_po.lc != null && !(_initLc > 0)) { const el = document.getElementById('po-lc'); if (el) el.value = _po.lc; }
-      if (_po.dp != null && _initDp === null) { const el = document.getElementById('po-dp'); if (el) el.value = _po.dp; }
-      if (_po.cost != null && !_urlTotalCost)      { const el = document.getElementById('po-cost'); if (el) el.value = _po.cost; }
+      if (_po.lr   != null && !(_initLr > 0))  { const el = document.getElementById('po-lr');   if (el) el.value = _po.lr; }
+      if (_po.lc   != null && !(_initLc > 0))  { const el = document.getElementById('po-lc');   if (el) el.value = _po.lc; }
+      if (_po.dp   != null && _initDp === null) { const el = document.getElementById('po-dp');   if (el) el.value = _po.dp; }
+      if (_po.cost != null && !_urlTotalCost)   { const el = document.getElementById('po-cost'); if (el) el.value = _po.cost; }
       if (_po.method) {
         const r = document.querySelector(`input[name="po-method"][value="${_po.method}"]`);
         if (r) r.checked = true;
@@ -799,6 +784,22 @@ window.onload = () => {
       else updateLoan();
     }
   } catch(e) {}
+
+  // URLパラメータを最末尾で最優先適用（localStorageや初期値より後に実行）
+  if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
+  if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
+  if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
+  updateLoan();
+  updateSlideLink();
+
+  setTimeout(() => {
+    document.getElementById('po-cost').value = Math.round(_urlTotalCost - subsidy);
+    if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
+    if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
+    if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
+    updateLoan();
+    updateSlideLink();
+  }, 50);
 };
 
 // ── ローン戦略版PPTX ──
