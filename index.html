@@ -4467,10 +4467,14 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   if (_poLink) {
     const _rawCn = (custData.cn || document.getElementById('cn')?.value || '').trim();
     const _cnRateMatch = _rawCn.match(/金利\s*(\d+\.?\d*)\s*[%％]/);
-    const _lrVal = parseFloat(custData.lr) || v('lr') || 4.1;
+    const _lrEl = document.getElementById('lr');
+    const _lrFromDom = _lrEl ? parseFloat(_lrEl.value) : NaN;
+    const _lrStored  = (() => { try { return parseFloat(JSON.parse(localStorage.getItem('jibunden_po') || 'null')?.lr) || 0; } catch(e) { return 0; } })();
+    const _lrVal = (_lrFromDom > 0 && !isNaN(_lrFromDom)) ? _lrFromDom : (_lrStored > 0 ? _lrStored : 4.1);
     const _effectiveLr = _cnRateMatch ? parseFloat(_cnRateMatch[1]) : _lrVal;
-    const _lcVal = parseInt(custData.lc) || parseInt(v('lc')) || 180;
-    const _dpVal = (custData.dp != null && !isNaN(parseFloat(custData.dp))) ? parseFloat(custData.dp) : (v('dp') || 0);
+    const _lcVal = parseInt(document.getElementById('lc')?.value) || parseInt(custData.lc) || 180;
+    const _dpEl = document.getElementById('dp');
+    const _dpVal = _dpEl ? (parseFloat(_dpEl.value) || 0) : (parseFloat(custData.dp) || 0);
     const _cleanCn = _rawCn.replace(/[\s　]*金利\s*\d+\.?\d*\s*[%％]/g, '').trim();
     const _poParams = new URLSearchParams({
       totalCost:             v('ck'),
