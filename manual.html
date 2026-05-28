@@ -6,12 +6,21 @@
 <title>ユーザーマニュアル</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;}
-  body{background:#111;font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;color:#fff;}
-  .slides{width:1280px;margin:0 auto;}
-  .slide{width:1280px;height:720px;background:#111;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;border-bottom:2px solid #222;page-break-after:always;}
+  html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;color:#fff;}
+  .slides{position:relative;width:100%;height:100%;}
+  .slide{position:absolute;inset:0;width:100%;height:100%;background:#111;display:none;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;}
+  .slide.active{display:flex;}
   .accent{color:#deff9a;}
   .tag{display:inline-block;background:#deff9a;color:#111;font-weight:700;padding:3px 12px;border-radius:3px;font-size:0.9rem;margin-bottom:16px;}
   .slide-num{position:absolute;bottom:20px;right:30px;font-size:0.75rem;color:#555;}
+
+  /* ナビゲーション */
+  #nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:16px;z-index:100;}
+  #nav button{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;width:40px;height:40px;border-radius:50%;font-size:1.1rem;cursor:pointer;transition:background 0.2s;}
+  #nav button:hover{background:rgba(222,255,154,0.2);border-color:#deff9a;}
+  #nav .counter{font-size:0.8rem;color:#666;min-width:48px;text-align:center;}
+  #click-prev{position:fixed;left:0;top:0;width:15%;height:100%;z-index:50;cursor:w-resize;}
+  #click-next{position:fixed;right:0;top:0;width:15%;height:100%;z-index:50;cursor:e-resize;}
 
   /* ① 表紙 */
   #s1{background:radial-gradient(ellipse at center,#1a2a1a 0%,#0a0a0a 70%);}
@@ -112,10 +121,18 @@
 </style>
 </head>
 <body>
+<div id="click-prev"></div>
+<div id="click-next"></div>
+<div id="nav">
+  <button id="btn-prev">&#8592;</button>
+  <span class="counter" id="counter">1 / 12</span>
+  <button id="btn-next">&#8594;</button>
+</div>
+
 <div class="slides">
 
 <!-- ① 表紙 -->
-<div class="slide" id="s1">
+<div class="slide active" id="s1">
   <div class="logo">じぶん<span>電気</span>ツール</div>
   <div class="catch">PPTX自動生成 ユーザーマニュアル</div>
   <div class="version">ver 1.0 &nbsp;|&nbsp; 2026</div>
@@ -385,19 +402,29 @@
 </div><!-- /slides -->
 
 <script>
-// キーボードナビ
 (function(){
   const slides = document.querySelectorAll('.slide');
-  let current = 0;
+  const counter = document.getElementById('counter');
+  const total = slides.length;
+  let cur = 0;
+
   function go(n){
-    n = Math.max(0, Math.min(slides.length-1, n));
-    slides[n].scrollIntoView({behavior:'smooth'});
-    current = n;
+    n = Math.max(0, Math.min(total - 1, n));
+    slides[cur].classList.remove('active');
+    cur = n;
+    slides[cur].classList.add('active');
+    counter.textContent = (cur + 1) + ' / ' + total;
   }
+
   document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowDown' || e.key === 'ArrowRight') go(current+1);
-    if(e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  go(current-1);
+    if(e.key === 'ArrowRight' || e.key === 'ArrowDown') go(cur + 1);
+    if(e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(cur - 1);
   });
+
+  document.getElementById('btn-next').addEventListener('click', () => go(cur + 1));
+  document.getElementById('btn-prev').addEventListener('click', () => go(cur - 1));
+  document.getElementById('click-next').addEventListener('click', () => go(cur + 1));
+  document.getElementById('click-prev').addEventListener('click', () => go(cur - 1));
 })();
 </script>
 </body>
