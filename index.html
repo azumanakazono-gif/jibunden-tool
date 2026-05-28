@@ -5274,7 +5274,7 @@ async function generatePPTX(mode) {
       sl.addText("じぶん電気",{x:0.5,y:0.45,w:2.5,h:0.55,fontSize:19,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText("電気は、",{x:0.5,y:1.2,w:7,h:0.65,fontSize:34,bold:true,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addText("じぶんでつくる時代へ。",{x:0.5,y:1.8,w:7,h:0.9,fontSize:36,bold:true,color:C.white,fontFace:"Meiryo",margin:0});
-      sl.addText("太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
+      sl.addText(proposalMode==='pv_only'?"太陽光で、電気代を自分でコントロール。":"太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addShape(presM.ShapeType.rect,{x:0.5,y:3.55,w:4.5,h:0.65,fill:{color:C.lightGreen,transparency:20},line:{color:C.lightGreen}});
       sl.addText("モデルケースによる参考シミュレーションです",{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:12,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText([{text:`家族構成：${hCfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${hCfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
@@ -5533,7 +5533,7 @@ async function generatePPTX(mode) {
       sl.addText("じぶん電気",{x:0.5,y:0.45,w:2.5,h:0.55,fontSize:19,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText("電気は、",{x:0.5,y:1.2,w:7,h:0.65,fontSize:34,bold:true,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addText("じぶんでつくる時代へ。",{x:0.5,y:1.8,w:7,h:0.9,fontSize:36,bold:true,color:C.white,fontFace:"Meiryo",margin:0});
-      sl.addText("太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
+      sl.addText(proposalMode==='pv_only'?"太陽光で、電気代を自分でコントロール。":"太陽光＋蓄電池で、電気代を自分でコントロール。",{x:0.5,y:2.85,w:7,h:0.5,fontSize:14,color:C.accent,fontFace:"Meiryo",margin:0});
       sl.addShape(presR.ShapeType.rect,{x:0.5,y:3.55,w:4.5,h:0.65,fill:{color:C.lightGreen,transparency:20},line:{color:C.lightGreen}});
       sl.addText(`${cn}様　ご提案資料`,{x:0.5,y:3.55,w:4.5,h:0.65,fontSize:15,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText([{text:`家族構成：${cfg.familyComposition}`,options:{breakLine:true}},{text:`スタイル：${cfg.lifestyleNote}`}],{x:0.5,y:4.35,w:7,h:0.95,fontSize:12,color:C.accent,fontFace:"Meiryo"});
