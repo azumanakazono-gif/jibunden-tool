@@ -340,7 +340,10 @@ canvas#mini-chart { height: 220px !important; }
 <main class="main">
   <div class="main-header">
     <div>
-      <h1 id="main-title">お客様情報を入力してください</h1>
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <h1 id="main-title">お客様情報を入力してください</h1>
+        <button id="manualBtn" style="padding: 4px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">📖 ユーザーマニュアル</button>
+      </div>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
     </div>
     <div style="display:flex;gap:10px">
@@ -6212,6 +6215,9 @@ document.addEventListener('click', (e) => {
 window.onload = () => {
   setTimeout(() => { renderMiniChart(); }, 0);
 };
+document.getElementById('manualBtn').addEventListener('click', () => {
+  window.open('manual.html', '_blank');
+});
 </script>
 </body>
 </html>

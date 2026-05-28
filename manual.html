@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1280">
+<title>ユーザーマニュアル</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:#111;font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;color:#fff;}
+  .slides{width:1280px;margin:0 auto;}
+  .slide{width:1280px;height:720px;background:#111;position:relative;display:flex;flex-direction:column;justify-content:center;align-items:center;overflow:hidden;border-bottom:2px solid #222;page-break-after:always;}
+  .accent{color:#deff9a;}
+  .tag{display:inline-block;background:#deff9a;color:#111;font-weight:700;padding:3px 12px;border-radius:3px;font-size:0.9rem;margin-bottom:16px;}
+  .slide-num{position:absolute;bottom:20px;right:30px;font-size:0.75rem;color:#555;}
+
+  /* ① 表紙 */
+  #s1{background:radial-gradient(ellipse at center,#1a2a1a 0%,#0a0a0a 70%);}
+  #s1 .logo{font-size:3.8rem;font-weight:900;letter-spacing:-2px;line-height:1;}
+  #s1 .logo span{color:#deff9a;}
+  #s1 .catch{margin-top:18px;font-size:1.15rem;color:#aaa;letter-spacing:2px;}
+  #s1 .version{position:absolute;bottom:30px;right:36px;font-size:0.8rem;color:#555;}
+  #s1::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;border:1px solid #deff9a22;top:50%;left:50%;transform:translate(-50%,-50%);}
+  #s1::after{content:'';position:absolute;width:900px;height:900px;border-radius:50%;border:1px solid #deff9a11;top:50%;left:50%;transform:translate(-50%,-50%);}
+
+  /* ② ツール概要 */
+  #s2 .inner{width:900px;}
+  #s2 h2{font-size:2.4rem;margin-bottom:28px;}
+  #s2 .desc{font-size:1.05rem;line-height:1.9;color:#ccc;border-left:3px solid #deff9a;padding-left:20px;}
+  #s2 .pills{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap;}
+  #s2 .pill{background:#1e1e1e;border:1px solid #deff9a44;padding:8px 20px;border-radius:20px;font-size:0.85rem;color:#deff9a;}
+
+  /* ③ 3大機能 */
+  #s3 h2{font-size:2rem;margin-bottom:40px;}
+  #s3 .tiles{display:flex;gap:28px;}
+  #s3 .tile{width:280px;background:#1a1a1a;border:1px solid #deff9a33;border-radius:12px;padding:32px 24px;text-align:center;}
+  #s3 .tile .icon{font-size:2.6rem;margin-bottom:14px;}
+  #s3 .tile h3{font-size:1.1rem;color:#deff9a;margin-bottom:10px;}
+  #s3 .tile p{font-size:0.85rem;color:#aaa;line-height:1.7;}
+
+  /* ④ 5ステップ */
+  #s4 h2{font-size:2rem;margin-bottom:48px;}
+  #s4 .timeline{display:flex;align-items:flex-start;gap:0;width:1000px;}
+  #s4 .step{flex:1;text-align:center;position:relative;}
+  #s4 .step:not(:last-child)::after{content:'→';position:absolute;right:-16px;top:16px;color:#deff9a;font-size:1.4rem;}
+  #s4 .circle{width:44px;height:44px;border-radius:50%;background:#deff9a;color:#111;font-weight:900;font-size:1rem;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;}
+  #s4 .step-title{font-size:0.9rem;color:#deff9a;font-weight:700;margin-bottom:6px;}
+  #s4 .step-desc{font-size:0.78rem;color:#888;line-height:1.6;}
+
+  /* ⑤ STEP1 */
+  #s5 .two-col{display:flex;gap:48px;width:1100px;align-items:flex-start;}
+  #s5 .col-left{flex:1;}
+  #s5 .col-left h2{font-size:1.8rem;margin-bottom:8px;}
+  #s5 .col-left .step-badge{background:#deff9a;color:#111;padding:4px 14px;border-radius:4px;font-weight:700;font-size:0.85rem;margin-bottom:16px;display:inline-block;}
+  #s5 .col-left ul{list-style:none;padding:0;}
+  #s5 .col-left ul li{padding:10px 0;border-bottom:1px solid #222;color:#ccc;font-size:0.95rem;display:flex;align-items:center;gap:10px;}
+  #s5 .col-left ul li::before{content:'✓';color:#deff9a;font-weight:700;}
+  #s5 .col-right{width:440px;height:360px;background:#1a2a1a;border:2px dashed #deff9a44;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#555;gap:10px;}
+  #s5 .col-right span{font-size:2.5rem;}
+
+  /* ⑥ STEP2 */
+  #s6 .inner{width:900px;text-align:center;}
+  #s6 h2{font-size:1.8rem;margin-bottom:30px;}
+  #s6 .big-num{font-size:9rem;font-weight:900;color:#deff9a;line-height:1;}
+  #s6 .big-label{font-size:1.4rem;color:#aaa;margin-top:8px;}
+  #s6 .note{margin-top:28px;font-size:0.9rem;color:#666;background:#1a1a1a;padding:14px 28px;border-radius:8px;border-left:3px solid #deff9a;}
+
+  /* ⑦ STEP3 パッケージ表 */
+  #s7 h2{font-size:1.8rem;margin-bottom:32px;}
+  #s7 table{width:860px;border-collapse:collapse;font-size:0.9rem;}
+  #s7 th{background:#deff9a;color:#111;padding:12px 18px;text-align:left;font-weight:700;}
+  #s7 td{padding:12px 18px;border-bottom:1px solid #222;color:#ccc;}
+  #s7 tr:hover td{background:#1a1a1a;}
+  #s7 .check{color:#deff9a;font-size:1.1rem;}
+
+  /* ⑧ STEP4 SVG面グラフ */
+  #s8 h2{font-size:1.8rem;margin-bottom:32px;}
+  #s8 .chart-wrap{width:860px;background:#1a1a1a;border-radius:12px;padding:28px;}
+  #s8 .chart-wrap svg{width:100%;height:300px;}
+
+  /* ⑨ STEP5 丸型画像2カラム */
+  #s9 h2{font-size:1.8rem;margin-bottom:36px;}
+  #s9 .two-col{display:flex;gap:60px;justify-content:center;}
+  #s9 .item{text-align:center;}
+  #s9 .circle-img{width:220px;height:220px;border-radius:50%;background:#1a2a1a;border:3px solid #deff9a44;display:flex;align-items:center;justify-content:center;font-size:4rem;margin:0 auto 16px;}
+  #s9 .item h3{font-size:1.05rem;color:#deff9a;margin-bottom:8px;}
+  #s9 .item p{font-size:0.85rem;color:#888;line-height:1.7;max-width:220px;}
+
+  /* ⑩ コツ チェックリスト */
+  #s10 h2{font-size:1.8rem;margin-bottom:32px;}
+  #s10 .checklist{width:800px;display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  #s10 .item{background:#1a1a1a;border-radius:10px;padding:18px 20px;display:flex;align-items:flex-start;gap:12px;border:1px solid #222;}
+  #s10 .item .chk{width:24px;height:24px;border-radius:50%;background:#deff9a;color:#111;font-weight:900;font-size:0.85rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+  #s10 .item div{font-size:0.9rem;color:#ccc;line-height:1.6;}
+  #s10 .item strong{display:block;color:#deff9a;margin-bottom:3px;}
+
+  /* ⑪ Q&A */
+  #s11 h2{font-size:1.8rem;margin-bottom:32px;}
+  #s11 .qa-list{width:860px;display:flex;flex-direction:column;gap:16px;}
+  #s11 .qa{background:#1a1a1a;border-radius:8px;padding:18px 22px;border-left:3px solid #deff9a;}
+  #s11 .q{color:#deff9a;font-weight:700;margin-bottom:6px;font-size:0.95rem;}
+  #s11 .a{color:#aaa;font-size:0.88rem;line-height:1.7;}
+
+  /* ⑫ 背面大背 */
+  #s12{background:radial-gradient(ellipse at center,#1a2a1a 0%,#050505 80%);}
+  #s12 .big{font-size:5rem;font-weight:900;color:#deff9a;letter-spacing:-3px;line-height:1;}
+  #s12 .sub{font-size:1.1rem;color:#666;margin-top:20px;letter-spacing:3px;}
+  #s12 .contact{margin-top:40px;font-size:0.9rem;color:#555;}
+  #s12::before{content:'';position:absolute;width:800px;height:800px;border-radius:50%;border:1px solid #deff9a22;top:50%;left:50%;transform:translate(-50%,-50%);}
+</style>
+</head>
+<body>
+<div class="slides">
+
+<!-- ① 表紙 -->
+<div class="slide" id="s1">
+  <div class="logo">じ<span>ぶん</span>でツール</div>
+  <div class="catch">PPTX自動生成 ユーザーマニュアル</div>
+  <div class="version">ver 1.0 &nbsp;|&nbsp; 2026</div>
+  <div class="slide-num">1 / 12</div>
+</div>
+
+<!-- ② ツール概要 -->
+<div class="slide" id="s2">
+  <div class="inner">
+    <div class="tag">OVERVIEW</div>
+    <h2>ツール<span class="accent">概要</span></h2>
+    <div class="desc">
+      お客様情報を入力するだけで、プロ品質のPPTXプレゼンテーションを<br>
+      自動生成するWebツールです。複雑な操作は不要 — フォームを埋めてボタンを押すだけ。
+    </div>
+    <div class="pills">
+      <div class="pill">⚡ ブラウザだけで完結</div>
+      <div class="pill">📊 PPTX自動生成</div>
+      <div class="pill">💾 データ保存・読込</div>
+      <div class="pill">📱 レスポンシブ対応</div>
+    </div>
+  </div>
+  <div class="slide-num">2 / 12</div>
+</div>
+
+<!-- ③ 3大機能 -->
+<div class="slide" id="s3">
+  <div class="tag">FEATURES</div>
+  <h2>3つの<span class="accent">主要機能</span></h2>
+  <div class="tiles">
+    <div class="tile">
+      <div class="icon">⚙️</div>
+      <h3>自動PPTX生成</h3>
+      <p>入力情報をもとにスライドを即座に生成。デザインテンプレートが自動適用されます。</p>
+    </div>
+    <div class="tile">
+      <div class="icon">💾</div>
+      <h3>データ保存・読込</h3>
+      <p>入力内容をJSONで書き出し・読み込み可能。同じお客様への再提案も瞬時に対応。</p>
+    </div>
+    <div class="tile">
+      <div class="icon">📋</div>
+      <h3>履歴管理</h3>
+      <p>過去の生成履歴を一覧管理。前回の提案内容をすぐに参照・再利用できます。</p>
+    </div>
+  </div>
+  <div class="slide-num">3 / 12</div>
+</div>
+
+<!-- ④ 5ステップ -->
+<div class="slide" id="s4">
+  <div class="tag">HOW TO USE</div>
+  <h2>使い方 <span class="accent">5ステップ</span></h2>
+  <div class="timeline">
+    <div class="step">
+      <div class="circle">1</div>
+      <div class="step-title">お客様情報<br>入力</div>
+      <div class="step-desc">名前・住所など<br>基本情報を入力</div>
+    </div>
+    <div class="step">
+      <div class="circle">2</div>
+      <div class="step-title">プラン<br>選択</div>
+      <div class="step-desc">条件に合った<br>プランを選択</div>
+    </div>
+    <div class="step">
+      <div class="circle">3</div>
+      <div class="step-title">内容<br>確認</div>
+      <div class="step-desc">入力内容を<br>プレビューで確認</div>
+    </div>
+    <div class="step">
+      <div class="circle">4</div>
+      <div class="step-title">PPTX<br>生成</div>
+      <div class="step-desc">ボタン1つで<br>スライド自動生成</div>
+    </div>
+    <div class="step">
+      <div class="circle">5</div>
+      <div class="step-title">保存・<br>提出</div>
+      <div class="step-desc">ファイルを保存し<br>お客様に提出</div>
+    </div>
+  </div>
+  <div class="slide-num">4 / 12</div>
+</div>
+
+<!-- ⑤ STEP1 -->
+<div class="slide" id="s5">
+  <div class="two-col">
+    <div class="col-left">
+      <div class="step-badge">STEP 1</div>
+      <h2>お客様情報を<br><span class="accent">入力する</span></h2>
+      <ul style="margin-top:20px;">
+        <li>お客様の氏名・住所を入力</li>
+        <li>物件情報（面積・築年数など）を入力</li>
+        <li>希望条件・予算感を入力</li>
+        <li>担当者名・提案日を確認</li>
+        <li>必須項目（*）は必ず入力</li>
+      </ul>
+    </div>
+    <div class="col-right">
+      <span>🖼️</span>
+      <div style="font-size:0.85rem;">入力フォーム画像</div>
+    </div>
+  </div>
+  <div class="slide-num">5 / 12</div>
+</div>
+
+<!-- ⑥ STEP2 -->
+<div class="slide" id="s6">
+  <div class="inner">
+    <div class="tag">STEP 2</div>
+    <h2>プランを<span class="accent">選択する</span></h2>
+    <div class="big-num">95<span style="font-size:3rem;color:#aaa;">%</span></div>
+    <div class="big-label">のお客様が最適プランを<span class="accent">自動提案</span>で決定</div>
+    <div class="note">入力情報をもとにAIが最適プランを自動スコアリング。担当者は微調整するだけでOKです。</div>
+  </div>
+  <div class="slide-num">6 / 12</div>
+</div>
+
+<!-- ⑦ STEP3 パッケージ表 -->
+<div class="slide" id="s7">
+  <div class="tag">STEP 3</div>
+  <h2>プレゼン<span class="accent">パッケージ</span>一覧</h2>
+  <table>
+    <tr><th>パッケージ</th><th>スライド枚数</th><th>グラフ</th><th>カスタムロゴ</th><th>推奨シーン</th></tr>
+    <tr><td>ライト</td><td>8枚</td><td class="check">✓</td><td>―</td><td>初回ヒアリング</td></tr>
+    <tr><td>スタンダード</td><td>14枚</td><td class="check">✓</td><td class="check">✓</td><td>本提案</td></tr>
+    <tr><td>プレミアム</td><td>22枚</td><td class="check">✓</td><td class="check">✓</td><td>重要顧客・競合対策</td></tr>
+    <tr><td>カスタム</td><td>自由</td><td class="check">✓</td><td class="check">✓</td><td>特殊案件</td></tr>
+  </table>
+  <div class="slide-num">7 / 12</div>
+</div>
+
+<!-- ⑧ STEP4 SVG面グラフ -->
+<div class="slide" id="s8">
+  <div class="tag">STEP 4</div>
+  <h2>PPTX<span class="accent">生成イメージ</span>（処理時間の目安）</h2>
+  <div class="chart-wrap">
+    <svg viewBox="0 0 800 260" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#deff9a" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="#deff9a" stop-opacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <!-- grid -->
+      <line x1="60" y1="20" x2="60" y2="220" stroke="#333" stroke-width="1"/>
+      <line x1="60" y1="220" x2="780" y2="220" stroke="#333" stroke-width="1"/>
+      <line x1="60" y1="170" x2="780" y2="170" stroke="#222" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="60" y1="120" x2="780" y2="120" stroke="#222" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="60" y1="70" x2="780" y2="70" stroke="#222" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- labels y -->
+      <text x="50" y="224" fill="#555" font-size="11" text-anchor="end">0s</text>
+      <text x="50" y="174" fill="#555" font-size="11" text-anchor="end">2s</text>
+      <text x="50" y="124" fill="#555" font-size="11" text-anchor="end">4s</text>
+      <text x="50" y="74" fill="#555" font-size="11" text-anchor="end">6s</text>
+      <!-- area -->
+      <polygon points="60,220 180,200 300,160 420,110 540,80 660,60 780,55 780,220 60,220" fill="url(#areaGrad)"/>
+      <!-- line -->
+      <polyline points="60,220 180,200 300,160 420,110 540,80 660,60 780,55" fill="none" stroke="#deff9a" stroke-width="2.5"/>
+      <!-- dots -->
+      <circle cx="60" cy="220" r="5" fill="#deff9a"/>
+      <circle cx="180" cy="200" r="5" fill="#deff9a"/>
+      <circle cx="300" cy="160" r="5" fill="#deff9a"/>
+      <circle cx="420" cy="110" r="5" fill="#deff9a"/>
+      <circle cx="540" cy="80" r="5" fill="#deff9a"/>
+      <circle cx="660" cy="60" r="5" fill="#deff9a"/>
+      <circle cx="780" cy="55" r="5" fill="#deff9a"/>
+      <!-- labels x -->
+      <text x="60" y="240" fill="#555" font-size="11" text-anchor="middle">8枚</text>
+      <text x="180" y="240" fill="#555" font-size="11" text-anchor="middle">10枚</text>
+      <text x="300" y="240" fill="#555" font-size="11" text-anchor="middle">12枚</text>
+      <text x="420" y="240" fill="#555" font-size="11" text-anchor="middle">14枚</text>
+      <text x="540" y="240" fill="#555" font-size="11" text-anchor="middle">16枚</text>
+      <text x="660" y="240" fill="#555" font-size="11" text-anchor="middle">18枚</text>
+      <text x="780" y="240" fill="#555" font-size="11" text-anchor="middle">20枚</text>
+    </svg>
+  </div>
+  <div class="slide-num">8 / 12</div>
+</div>
+
+<!-- ⑨ STEP5 丸型画像2カラム -->
+<div class="slide" id="s9">
+  <div class="tag">STEP 5</div>
+  <h2>保存・<span class="accent">提出する</span></h2>
+  <div class="two-col">
+    <div class="item">
+      <div class="circle-img">📥</div>
+      <h3>PPTXダウンロード</h3>
+      <p>生成されたPPTXファイルをワンクリックでダウンロード。PowerPointで即編集可能。</p>
+    </div>
+    <div class="item">
+      <div class="circle-img">💾</div>
+      <h3>データ保存</h3>
+      <p>入力情報をJSON形式で保存。次回の提案時に読み込めば入力の手間を大幅削減。</p>
+    </div>
+  </div>
+  <div class="slide-num">9 / 12</div>
+</div>
+
+<!-- ⑩ 現場のコツ チェックリスト -->
+<div class="slide" id="s10">
+  <div class="tag">TIPS</div>
+  <h2>現場の<span class="accent">コツ</span></h2>
+  <div class="checklist">
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>事前にデータを保存</strong>長い商談では途中でデータ保存すると安心です。</div>
+    </div>
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>物件情報は正確に</strong>面積・築年数のズレが提案精度に直結します。</div>
+    </div>
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>プランは比較提示</strong>2〜3案並べると成約率が上がります。</div>
+    </div>
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>再訪問時は読込から</strong>「データ読込」で前回情報を即時復元。</div>
+    </div>
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>グラフ数値は最新に</strong>市場データは月1回は見直しましょう。</div>
+    </div>
+    <div class="item">
+      <div class="chk">✓</div>
+      <div><strong>印刷前に確認</strong>プレビュー表示で最終確認を忘れずに。</div>
+    </div>
+  </div>
+  <div class="slide-num">10 / 12</div>
+</div>
+
+<!-- ⑪ Q&A -->
+<div class="slide" id="s11">
+  <div class="tag">Q&amp;A</div>
+  <h2>よくある<span class="accent">質問</span></h2>
+  <div class="qa-list">
+    <div class="qa">
+      <div class="q">Q. 生成したPPTXをそのまま使えますか？</div>
+      <div class="a">A. はい。PowerPoint・Google スライドで開けます。フォント・色はそのまま使用できます。</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q. 保存したデータはどこに保存されますか？</div>
+      <div class="a">A. ローカルのダウンロードフォルダにJSONファイルとして保存されます。サーバーには送信されません。</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q. スマートフォンでも使えますか？</div>
+      <div class="a">A. ブラウザから利用可能ですが、入力操作はPC環境を推奨します。</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q. 入力内容が消えてしまった場合は？</div>
+      <div class="a">A. 定期的に「データ保存」ボタンでバックアップを取ることをお勧めします。</div>
+    </div>
+  </div>
+  <div class="slide-num">11 / 12</div>
+</div>
+
+<!-- ⑫ 背面大背 -->
+<div class="slide" id="s12">
+  <div class="big">ありがとう<br>ございました</div>
+  <div class="sub">THANK YOU FOR USING</div>
+  <div class="contact">お問い合わせ：担当者までご連絡ください</div>
+  <div class="slide-num">12 / 12</div>
+</div>
+
+</div><!-- /slides -->
+
+<script>
+// キーボードナビ
+(function(){
+  const slides = document.querySelectorAll('.slide');
+  let current = 0;
+  function go(n){
+    n = Math.max(0, Math.min(slides.length-1, n));
+    slides[n].scrollIntoView({behavior:'smooth'});
+    current = n;
+  }
+  document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowDown' || e.key === 'ArrowRight') go(current+1);
+    if(e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  go(current-1);
+  });
+})();
+</script>
+</body>
+</html>
