@@ -47,15 +47,18 @@
   #s4 .step-desc{font-size:0.78rem;color:#888;line-height:1.6;}
 
   /* ⑤ STEP1 */
-  #s5 .two-col{display:flex;gap:48px;width:1100px;align-items:flex-start;}
-  #s5 .col-left{flex:1;}
-  #s5 .col-left h2{font-size:1.8rem;margin-bottom:8px;}
-  #s5 .col-left .step-badge{background:#deff9a;color:#111;padding:4px 14px;border-radius:4px;font-weight:700;font-size:0.85rem;margin-bottom:16px;display:inline-block;}
+  #s5{flex-direction:row;justify-content:center;align-items:center;gap:0;padding:40px 60px;}
+  #s5 .two-col{display:flex;gap:40px;width:1160px;align-items:center;}
+  #s5 .col-left{flex:0 0 460px;}
+  #s5 .col-left .slide-title{font-size:0.8rem;color:#deff9a;letter-spacing:2px;margin-bottom:10px;font-weight:700;}
+  #s5 .col-left h2{font-size:1.7rem;margin-bottom:20px;line-height:1.4;}
+  #s5 .col-left .step-badge{background:#deff9a;color:#111;padding:4px 14px;border-radius:4px;font-weight:700;font-size:0.85rem;margin-bottom:14px;display:inline-block;}
   #s5 .col-left ul{list-style:none;padding:0;}
-  #s5 .col-left ul li{padding:10px 0;border-bottom:1px solid #222;color:#ccc;font-size:0.95rem;display:flex;align-items:center;gap:10px;}
-  #s5 .col-left ul li::before{content:'✓';color:#deff9a;font-weight:700;}
-  #s5 .col-right{width:440px;height:360px;background:#1a2a1a;border:2px dashed #deff9a44;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#555;gap:10px;}
-  #s5 .col-right span{font-size:2.5rem;}
+  #s5 .col-left ul li{padding:9px 0;border-bottom:1px solid #222;color:#ccc;font-size:0.92rem;display:flex;align-items:center;gap:10px;}
+  #s5 .col-left ul li::before{content:'✓';color:#deff9a;font-weight:700;flex-shrink:0;}
+  #s5 .col-right{flex:1;display:flex;align-items:center;justify-content:center;}
+  #s5 .image-wrapper{width:100%;max-height:580px;border-radius:10px;overflow:hidden;border:1px solid #deff9a22;}
+  #s5 .image-wrapper img{width:100%;height:100%;object-fit:cover;object-position:top;display:block;}
 
   /* ⑥ STEP2 */
   #s6 .inner{width:900px;text-align:center;}
@@ -201,8 +204,9 @@
   <div class="two-col">
     <div class="col-left">
       <div class="step-badge">STEP 1</div>
+      <div class="slide-title">| STEP 1 : お客様情報の入力</div>
       <h2>お客様情報を<br><span class="accent">入力する</span></h2>
-      <ul style="margin-top:20px;">
+      <ul>
         <li>お客様の氏名・住所を入力</li>
         <li>物件情報（面積・築年数など）を入力</li>
         <li>希望条件・予算感を入力</li>
@@ -211,8 +215,9 @@
       </ul>
     </div>
     <div class="col-right">
-      <span>🖼️</span>
-      <div style="font-size:0.85rem;">入力フォーム画像</div>
+      <div class="image-wrapper">
+        <img src="https://lh3.googleusercontent.com/rd-gg-dl/AFfU-fK5Q8ZIZKWu8xeGN0EXsm7QXWHU4zdD33dz4HPT2P_Ia9qiSmtBikzM6Ype0Kp7-jpG8zJuWYd2sRYEOHAtVNJZL7X2W-OxEn0wMLZmBc26KPlN3d8yBUz8OmccXaH_n-DcPy6IbRith9mA4XM_dSv7bcBbRoS-9T9BCVqWDFjCX89WA7o2JAkei3lOEjFsaG70RqtguTjqI7EbxFNFm9op6_mm4vTjEkhpRfCeJfpPVlqhVAEqAZbK30HbasRJG1tFje354fPZivnspKovNA1vXOSnNcy0H6J2Hcfl-GIT5Vntp0V8uJgcF5hQ9o5Z5lRzcw2oTryUHXfYRmm8VUvyGsIfz4NnJO64sPNuvZbcGY1UAPkAP5e9hSVC6rjGqhQTf6Vit79uncvaLiMEEt4G95x_cmSfgf5VxFehhbe2jq3W0mOLfS_MygqPEOGDGXl_1f_s47or3QFPZGBw9ddvAH63_GsXAcrb15M9J2cy6pLvGFU9hJHdVyvUhV7YGM6porNHBsiw-UiPln22PyCdMGw-SvFihLRcmGeDZzYjHUcKQH0--7vRAMZddynauGtcrobPa7qyVGTs31EJPJuQu8m6mhekn292eZBMebxwSFFHKIORGlO2ewosoBGEzkbSAPKZfehGdS9KxSKJkEkF853ApRn4Ah6YboeBdKh2Su8nDc6UfIjYzjE8RVt7sOseUymLuO3AkWlu_0P_nFd_p7hS1XVYYoMEdl7J4NLVomyPE3Yr_w-HmRVCfX7cTBD7TstYFfSVzyktgtDJHOjVcMeghd_QSyHwlAFZJYOpd91i2rNWcVi1ZSJDALWl3i3Ijokx6xU5OznnWtaOOtouhQmk5Hc0IuvQHI_FjoIFdTl9lx8ErJC-A3k3JTM8ai3OakDGtZ8uAJYs8Sh1ND5p_H4LBHbVX3DpI8jDk9B_FjfzCpmJr_Ig-vkwwhplXIHwHFlwyEqAHBTNhQQ70iBlkql-OZlNbW3p7i3jZCcdHq35N55KGKR9uY7f37j2IpDzPyWaIMoIBE3-zA7S3e3Ly36RzPPznLilB4Y4iyeIze7KR3BXlr-jkx4JB3rTQxX4sz9k7sf2pFj1yZn76lq_lai_LtjMFEqZsGW-VIJ4N_J-j8v3dVXDLdtNcRnOwXAFiRjZP_NsRpyGd-GdXDiXukhpZzd1S_5V7uQ7Aq3dtFR_1UyU42AabZbL_9CsxlDpQCBPRUVPmSxqGp-V2iAWDdEIMldVdCuX2A9AHwgJUFs2V8kW5bB5AL4-Q1Mh3ERfAd5T5ja-Fh8PKZxvUN-ijsZFdQ_E=s1024-rj" alt="お客様情報入力フォーム">
+      </div>
     </div>
   </div>
   <div class="slide-num">5 / 12</div>
