@@ -68,8 +68,33 @@
   #s5 .col-left ul li{padding:9px 0;border-bottom:1px solid #e2e8f0;color:#475569;font-size:0.92rem;display:flex;align-items:center;gap:10px;}
   #s5 .col-left ul li::before{content:'✓';color:#10b981;font-weight:700;flex-shrink:0;}
   #s5 .col-right{flex:1;display:flex;align-items:center;justify-content:center;}
-  #s5 .image-wrapper{width:100%;height:580px;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;background:#ecfdf5;display:flex;align-items:center;justify-content:center;}
-  #s5 .image-wrapper img{width:100%;height:100%;object-fit:contain;display:block;}
+  #s5 .image-wrapper{width:100%;height:580px;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;background:#fff;}
+  /* mock-form styles */
+  .mf-wrap{font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;font-size:12px;color:#1e293b;height:100%;overflow-y:auto;display:flex;flex-direction:column;}
+  .mf-header{background:#1e293b;color:#fff;font-size:12px;font-weight:700;padding:7px 14px;letter-spacing:.03em;flex-shrink:0;}
+  .mf-title-row{display:flex;align-items:center;gap:8px;padding:8px 14px 6px;border-bottom:1px solid #e2e8f0;flex-shrink:0;background:#fff;}
+  .mf-title-row span{font-size:13px;font-weight:700;color:#1e293b;}
+  .mf-manual-btn{font-size:10px;padding:3px 9px;background:#17a2b8;color:#fff;border:none;border-radius:4px;cursor:default;white-space:nowrap;}
+  .mf-body{padding:8px 14px;display:flex;flex-direction:column;gap:7px;flex:1;}
+  .mf-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:8px 10px;}
+  .mf-stitle{font-size:11px;font-weight:700;color:#475569;margin-bottom:6px;}
+  .mf-pm-bar{display:flex;gap:6px;}
+  .mf-pm-btn{flex:1;padding:5px 4px;border:2px solid #e2e8f0;border-radius:6px;background:#fff;font-size:10px;color:#475569;cursor:default;line-height:1.4;text-align:center;}
+  .mf-pm-btn.mf-active{border-color:#10b981;background:#ecfdf5;color:#065f46;font-weight:700;}
+  .mf-pm-btn.mf-dim{opacity:.5;}
+  .mf-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:5px;}
+  .mf-field label{display:block;font-size:10px;font-weight:700;color:#64748b;margin-bottom:2px;}
+  .mf-field input,.mf-field select{width:100%;border:1.5px solid #cbd5e1;border-radius:6px;padding:4px 7px;font-size:11px;background:#fff;font-family:inherit;color:#1e293b;}
+  .mf-hear-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+  .mf-hear-row{display:flex;align-items:center;justify-content:space-between;gap:4px;}
+  .mf-hear-lbl{font-size:10px;color:#475569;flex:1;}
+  .mf-hear-btns{display:flex;gap:3px;}
+  .mf-htgl{padding:2px 8px;border:1px solid #e2e8f0;border-radius:4px;font-size:10px;background:#fff;cursor:default;color:#475569;}
+  .mf-htgl.mf-on{background:#10b981;color:#fff;border-color:#10b981;}
+  .mf-est-row{display:flex;align-items:center;gap:5px;margin-top:4px;}
+  .mf-est-note{font-size:10px;color:#0369a1;}
+  .mf-reest-btn{font-size:10px;padding:2px 8px;border:1.5px solid #2563eb;border-radius:5px;background:#2563eb;color:#fff;cursor:default;font-weight:700;}
+  .mf-bottom-title{font-size:11px;font-weight:700;color:#475569;padding:6px 10px;background:#f1f5f9;border-radius:6px;border-left:3px solid #10b981;flex-shrink:0;margin:0 0 2px;}
 
   /* ⑥ STEP2 丸型2カラム */
   #s9 h2{font-size:1.8rem;margin-bottom:36px;}
@@ -191,7 +216,61 @@
     </div>
     <div class="col-right">
       <div class="image-wrapper">
-        <img src="./form-capture.png" alt="お客様情報入力フォーム">
+        <div class="mf-wrap">
+          <div class="mf-header">じぶん電気 提案書作成ツール</div>
+          <div class="mf-title-row">
+            <span>お客様情報を入力してください</span>
+            <button class="mf-manual-btn">📖 ユーザーマニュアル</button>
+          </div>
+          <div class="mf-body">
+            <!-- 提案モード -->
+            <div class="mf-card">
+              <div class="mf-stitle">🏗️ 提案モード</div>
+              <div class="mf-pm-bar">
+                <button class="mf-pm-btn mf-active">☀️ 太陽光<br>＋蓄電池</button>
+                <button class="mf-pm-btn">☀️ 太陽光<br>のみ</button>
+                <button class="mf-pm-btn mf-dim">🔋 蓄電池<br>のみ（後付け）</button>
+              </div>
+            </div>
+            <!-- 冒頭ヒアリング -->
+            <div class="mf-card">
+              <div class="mf-stitle">📋 冒頭ヒアリング</div>
+              <div class="mf-hear-grid">
+                <div class="mf-hear-row"><span class="mf-hear-lbl">📄 電気料金明細</span><div class="mf-hear-btns"><button class="mf-htgl mf-on">なし</button><button class="mf-htgl">あり</button></div></div>
+                <div class="mf-hear-row"><span class="mf-hear-lbl">☀️ 太陽光（PV）</span><div class="mf-hear-btns"><button class="mf-htgl mf-on">なし</button><button class="mf-htgl">あり</button></div></div>
+                <div class="mf-hear-row"><span class="mf-hear-lbl">🔋 蓄電池</span><div class="mf-hear-btns"><button class="mf-htgl mf-on">なし</button><button class="mf-htgl">あり</button></div></div>
+                <div class="mf-hear-row"><span class="mf-hear-lbl">🏡 オール電化</span><div class="mf-hear-btns"><button class="mf-htgl mf-on">なし</button><button class="mf-htgl">あり</button></div></div>
+              </div>
+            </div>
+            <!-- お客様情報 -->
+            <div class="mf-card">
+              <div class="mf-stitle">👤 お客様情報</div>
+              <div class="mf-grid2">
+                <div class="mf-field"><label>名前</label><input type="text" value="○○様" readonly></div>
+                <div class="mf-field"><label>家族</label><select><option>4人家族（夫婦＋子ども2人）</option></select></div>
+              </div>
+              <div class="mf-field"><label>ライフスタイル</label><input type="text" value="日中は共働きで外出多め・夜間使用が中心" readonly></div>
+            </div>
+            <!-- 電気使用状況 -->
+            <div class="mf-card">
+              <div class="mf-stitle">⚡ 電気使用状況</div>
+              <div class="mf-grid2">
+                <div class="mf-field"><label>会社</label><input type="text" placeholder="例：○○電力" readonly></div>
+                <div></div>
+              </div>
+              <div class="mf-grid2" style="margin-top:4px;">
+                <div class="mf-field"><label>月料金(円)</label><input type="text" value="20000" readonly></div>
+                <div class="mf-field"><label>月初回使用量(kWh)</label><input type="text" value="606" readonly></div>
+              </div>
+              <div class="mf-est-row">
+                <span class="mf-est-note">📊 電気代から自動推定</span>
+                <button class="mf-reest-btn">再推定</button>
+              </div>
+            </div>
+            <!-- 導入前プラン見出し -->
+            <div class="mf-bottom-title">⚡【導入前】現在の電気料金プラン</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
