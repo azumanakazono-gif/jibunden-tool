@@ -27,58 +27,84 @@
 
   /* スマホ対応 */
   @media(max-width:768px){
-    .slide{padding:16px 16px 80px!important;}
-    .slide-num{top:10px;right:14px;font-size:0.65rem;}
-    .tag{font-size:0.75rem;padding:2px 10px;margin-bottom:10px;}
-    h2{font-size:1.2rem!important;padding-left:10px;}
-    #s1 h1{font-size:1.6rem!important;}
-    #s1 p{font-size:0.85rem!important;}
-    /* 表紙サブテキスト */
-    #s1 .sub{font-size:0.78rem!important;}
-    /* 概要 */
-    #s2 h2{font-size:1.1rem!important;}
-    #s2 p{font-size:0.82rem!important;max-width:100%!important;}
-    /* 3機能タイル */
+    /* スライド共通：上部余白＋スクロール可能 */
+    .slide{padding:48px 16px 72px!important;justify-content:flex-start!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;}
+    .slide-num{top:8px;right:12px;font-size:0.65rem;}
+    .tag{font-size:0.72rem;padding:2px 9px;margin-bottom:8px;}
+    h2{font-size:1.1rem!important;padding-left:10px!important;margin-bottom:16px!important;}
+
+    /* ① 表紙 */
+    #s1{justify-content:center!important;padding-top:0!important;}
+    #s1 .logo{font-size:2.2rem!important;}
+    #s1 .catch{font-size:0.85rem!important;letter-spacing:1px!important;margin-top:12px!important;}
+    #s1::after{width:280px!important;height:280px!important;}
+    #s1 .version{bottom:72px!important;right:16px!important;font-size:0.7rem!important;}
+
+    /* ② ツール概要 */
+    #s2 .inner{width:100%!important;}
+    #s2 h2{font-size:1.1rem!important;margin-bottom:14px!important;}
+    #s2 .desc{font-size:0.82rem!important;line-height:1.7!important;padding-left:12px!important;}
+    #s2 .pills{gap:8px!important;margin-top:16px!important;}
+    #s2 .pill{font-size:0.75rem!important;padding:5px 12px!important;}
+
+    /* ③ 3大機能 */
+    #s3 h2{margin-bottom:16px!important;}
     #s3 .tiles{flex-direction:column!important;gap:10px!important;width:100%!important;}
-    #s3 .tile{padding:14px 16px!important;}
-    #s3 .tile h3{font-size:0.95rem!important;}
-    #s3 .tile p{font-size:0.8rem!important;}
-    /* タイムライン */
-    #s4 .timeline{flex-direction:column!important;gap:16px!important;}
-    #s4 .step{flex-direction:row!important;align-items:center!important;gap:12px!important;}
-    #s4 .circle{width:36px!important;height:36px!important;font-size:1rem!important;flex-shrink:0;}
-    #s4 .step-title{font-size:0.9rem!important;}
-    #s4 .step-desc{font-size:0.78rem!important;}
-    /* STEP1 2カラム → 縦積み */
-    #s5 .two-col{flex-direction:column!important;width:100%!important;gap:16px!important;}
+    #s3 .tile{width:100%!important;padding:14px 16px!important;display:flex!important;align-items:center!important;gap:12px!important;text-align:left!important;}
+    #s3 .tile .icon{margin:0!important;width:44px!important;height:44px!important;font-size:1.6rem!important;flex-shrink:0;}
+    #s3 .tile h3{font-size:0.9rem!important;margin-bottom:4px!important;}
+    #s3 .tile p{font-size:0.78rem!important;}
+
+    /* ④ 2ステップ */
+    #s4 h2{margin-bottom:24px!important;}
+    #s4 .timeline{width:100%!important;flex-direction:column!important;gap:12px!important;}
+    #s4 .step{flex-direction:row!important;text-align:left!important;align-items:center!important;gap:14px!important;}
+    #s4 .step:not(:last-child)::after{content:'↓'!important;position:static!important;display:block!important;text-align:center!important;font-size:1.2rem!important;margin:4px 0 4px 18px!important;}
+    #s4 .circle{width:36px!important;height:36px!important;font-size:1rem!important;flex-shrink:0;margin:0!important;}
+    #s4 .step-title{font-size:0.88rem!important;margin-bottom:2px!important;}
+    #s4 .step-desc{font-size:0.76rem!important;}
+
+    /* ⑤ STEP1 */
+    #s5{padding:48px 16px 72px!important;flex-direction:column!important;justify-content:flex-start!important;}
+    #s5 .two-col{flex-direction:column!important;width:100%!important;gap:12px!important;}
     #s5 .col-left{flex:none!important;width:100%!important;}
-    #s5 .col-left h2{font-size:1.1rem!important;}
-    #s5 .col-left ul li{font-size:0.82rem!important;}
+    #s5 .col-left h2{font-size:1rem!important;}
+    #s5 .col-left ul li{font-size:0.8rem!important;padding:6px 0!important;}
     #s5 .col-right{width:100%!important;}
-    #s5 .image-wrapper{height:240px!important;}
-    .ic-card{padding:20px 16px!important;}
-    .ic-heading{font-size:0.85rem!important;}
+    #s5 .image-wrapper{height:200px!important;}
+    .ic-card{padding:16px!important;}
+    .ic-heading{font-size:0.82rem!important;}
+    .ic-item{padding:10px 0!important;}
     .ic-label{font-size:0.75rem!important;min-width:90px!important;}
     .ic-value{font-size:0.75rem!important;}
-    /* STEP2 */
-    #s9 h2{font-size:1.1rem!important;margin-bottom:20px!important;}
-    #s9 .two-col{flex-direction:column!important;gap:20px!important;}
-    #s9 .circle-img{width:120px!important;height:120px!important;font-size:2.4rem!important;}
-    #s9 .item p{font-size:0.8rem!important;}
-    /* コツ */
-    #s10 h2{font-size:1.1rem!important;margin-bottom:16px!important;}
-    #s10 .checklist{width:100%!important;grid-template-columns:1fr!important;gap:10px!important;}
-    #s10 .item div{font-size:0.8rem!important;}
-    /* Q&A */
-    #s11 h2{font-size:1.1rem!important;margin-bottom:16px!important;}
-    #s11 .qa-list{width:100%!important;}
-    #s11 .q{font-size:0.85rem!important;}
-    #s11 .a{font-size:0.8rem!important;}
+
+    /* ⑥ STEP2 */
+    #s9 h2{margin-bottom:16px!important;}
+    #s9 .two-col{flex-direction:column!important;gap:16px!important;}
+    #s9 .circle-img{width:80px!important;height:80px!important;font-size:2rem!important;}
+    #s9 .item h3{font-size:0.88rem!important;}
+    #s9 .item p{font-size:0.78rem!important;max-width:100%!important;}
+
+    /* ⑦ コツ */
+    #s10 h2{margin-bottom:12px!important;}
+    #s10 .checklist{width:100%!important;grid-template-columns:1fr!important;gap:8px!important;}
+    #s10 .item{padding:12px 14px!important;}
+    #s10 .item div{font-size:0.78rem!important;}
+    #s10 .item strong{font-size:0.82rem!important;}
+
+    /* ⑧ Q&A */
+    #s11 h2{margin-bottom:12px!important;}
+    #s11 .qa-list{width:100%!important;gap:10px!important;}
+    #s11 .qa{padding:14px 16px!important;}
+    #s11 .q{font-size:0.82rem!important;}
+    #s11 .a{font-size:0.78rem!important;}
+
     /* ナビ */
-    #nav{bottom:14px;gap:10px;}
-    #nav button{width:36px!important;height:36px!important;font-size:1rem!important;}
-    #btn-home{font-size:0.72rem!important;padding:0 10px!important;}
-    #nav .counter{font-size:0.72rem!important;}
+    #nav{bottom:10px;gap:8px;}
+    #nav button{width:34px!important;height:34px!important;font-size:0.95rem!important;}
+    #btn-home{font-size:0.7rem!important;padding:0 10px!important;}
+    #nav .counter{font-size:0.7rem!important;min-width:36px!important;}
+
     /* クリックゾーン無効化（スワイプで代替） */
     #click-prev,#click-next{display:none;}
   }
