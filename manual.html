@@ -124,6 +124,8 @@
   #s2 .desc{font-size:1.05rem;line-height:1.9;color:#475569;border-left:3px solid #10b981;padding-left:20px;}
   #s2 .pills{display:flex;gap:12px;margin-top:30px;flex-wrap:wrap;}
   #s2 .pill{background:#ecfdf5;border:1px solid #10b98144;padding:8px 20px;border-radius:20px;font-size:0.85rem;color:#10b981;}
+  #s2 .pill-link{text-decoration:none;cursor:pointer;transition:opacity .18s,box-shadow .18s;}
+  #s2 .pill-link:hover{opacity:.75;box-shadow:0 2px 8px #10b98133;}
 
   /* ③ 3大機能 */
   #s3 h2{font-size:2rem;margin-bottom:40px;}
@@ -217,7 +219,7 @@
     </div>
     <div class="pills">
       <div class="pill">⚡ ブラウザだけで完結</div>
-      <div class="pill">📊 PPTX自動生成</div>
+      <a class="pill pill-link" href="./pptx-detail.html" target="_blank">📊 PPTX自動生成 <span style="font-size:0.75rem">→ 詳しく見る</span></a>
       <div class="pill">💾 データ保存・読込</div>
       <div class="pill">📱 レスポンシブ対応</div>
     </div>

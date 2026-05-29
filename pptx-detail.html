@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>提案書（PPTX）の出力方法 | じぶん電気ツール</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html,body{background:#fffaf1;font-family:'Helvetica Neue',Arial,'Hiragino Sans','Meiryo',sans-serif;color:#1e293b;min-height:100%;}
+
+  /* ヘッダー */
+  .page-header{background:#fff;border-bottom:1px solid #e2e8f0;padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px #0000000a;}
+  .btn-back{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:8px;font-size:0.82rem;color:#475569;cursor:pointer;text-decoration:none;transition:border-color .15s,color .15s;}
+  .btn-back:hover{border-color:#10b981;color:#10b981;}
+  .page-title{font-size:1rem;font-weight:700;color:#1e293b;}
+
+  /* メインコンテンツ */
+  .container{max-width:960px;margin:0 auto;padding:48px 24px 64px;}
+  .hero-tag{display:inline-block;background:#10b981;color:#fff;font-weight:700;padding:3px 14px;border-radius:3px;font-size:0.85rem;margin-bottom:16px;}
+  .hero-title{font-size:2rem;font-weight:900;color:#1e293b;border-left:4px solid #10b981;padding-left:16px;line-height:1.4;margin-bottom:10px;}
+  .hero-sub{font-size:0.92rem;color:#475569;margin-left:20px;margin-bottom:48px;}
+
+  /* 2カラムレイアウト */
+  .two-col{display:flex;gap:48px;align-items:flex-start;}
+  .col-steps{flex:1;}
+  .col-img{flex:0 0 340px;}
+
+  /* ステップカード */
+  .step-card{background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:28px 28px 24px;margin-bottom:20px;box-shadow:0 2px 8px #0000000a;position:relative;}
+  .step-num{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:#10b981;color:#fff;font-weight:900;font-size:1rem;margin-bottom:14px;}
+  .step-card h3{font-size:1.05rem;font-weight:700;color:#1e293b;margin-bottom:8px;border:none;padding:0;}
+  .step-card p{font-size:0.88rem;color:#475569;line-height:1.7;}
+  .step-card .hint{margin-top:12px;padding:10px 14px;background:#ecfdf5;border-radius:8px;border-left:3px solid #10b981;font-size:0.82rem;color:#065f46;line-height:1.6;}
+  .step-card .hint strong{display:block;margin-bottom:2px;color:#047857;}
+
+  /* コネクター矢印 */
+  .step-arrow{text-align:center;font-size:1.4rem;color:#10b981;margin:-8px 0;padding:4px 0;}
+
+  /* 画像エリア */
+  .img-wrapper{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;box-shadow:0 2px 12px #0000000f;}
+  .img-wrapper img{width:100%;display:block;object-fit:contain;}
+  .img-caption{padding:12px 16px;font-size:0.78rem;color:#94a3b8;text-align:center;border-top:1px solid #f1f5f9;}
+
+  /* ボタンサンプル */
+  .btn-sample{display:inline-flex;align-items:center;gap:8px;padding:13px 24px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border-radius:10px;font-weight:700;font-size:0.95rem;box-shadow:0 4px 14px #10b98133;margin-top:16px;}
+
+  /* スマホ */
+  @media(max-width:640px){
+    .page-header{padding:10px 16px;}
+    .container{padding:28px 16px 48px;}
+    .hero-title{font-size:1.3rem;}
+    .two-col{flex-direction:column;}
+    .col-img{flex:none;width:100%;}
+    .step-card{padding:20px 18px;}
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <a class="btn-back" href="./manual.html">← 戻る</a>
+  <span class="page-title">提案書（PPTX）の出力方法</span>
+</div>
+
+<div class="container">
+  <div class="hero-tag">PPTX OUTPUT</div>
+  <h1 class="hero-title">提案書を<span style="color:#10b981">出力する</span>には</h1>
+  <p class="hero-sub">フォーム入力後、たった2ステップで完成します。</p>
+
+  <div class="two-col">
+    <!-- ステップ説明 -->
+    <div class="col-steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>画面最下部までスクロール</h3>
+        <p>入力フォームの一番下まで画面をスクロールしてください。</p>
+        <div class="hint">
+          <strong>💡 ポイント</strong>
+          PPTX出力ボタンはページの最下部に固定されています。すべての入力項目の下に表示されます。
+        </div>
+      </div>
+
+      <div class="step-arrow">↓</div>
+
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>「実データ版PPTXを出力」ボタンをクリック</h3>
+        <p>下記のボタンをクリックすると、入力されたデータをもとにPPTXファイルが自動生成され、ダウンロードが始まります。</p>
+        <div style="margin-top:16px;">
+          <div class="btn-sample">📥 実データ版PPTXを出力</div>
+        </div>
+        <div class="hint" style="margin-top:16px;">
+          <strong>💡 ポイント</strong>
+          ダウンロードされたファイルはそのままPowerPointで開いて編集できます。
+        </div>
+      </div>
+    </div>
+
+    <!-- 画像エリア -->
+    <div class="col-img">
+      <div class="img-wrapper">
+        <img src="./pptx-button-capture.png" alt="PPTXボタンの場所">
+        <div class="img-caption">▲ ページ最下部のPPTX出力ボタン（画像は差し替え予定）</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
