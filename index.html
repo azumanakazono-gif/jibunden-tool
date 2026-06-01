@@ -457,7 +457,7 @@ canvas#mini-chart { height: 220px !important; }
     <div class="section-card">
       <div class="section-title">👤 お客様情報</div>
       <div class="grid2" style="margin-bottom:12px">
-        <div class="field"><label>お客様名</label><input type="text" id="cn" value="○○様" oninput="calc()"></div>
+        <div class="field"><label>ご提案名</label><input type="text" id="cn" placeholder="例：〇〇様 提案" value="○○様 提案" oninput="calc()"></div>
         <div class="field"><label>家族構成</label>
           <select id="fm" onchange="onFamilyChange()">
             <option value="1人暮らし">1人暮らし</option>
@@ -5251,7 +5251,7 @@ async function generatePPTX(mode) {
   const outReal  = mode === 'real';
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
-  const cn = (cfg.customerName || 'お客様').replace(/様$/, '');
+  const cn = (cfg.customerName || 'ご提案').replace(/様$/, '');
   const m = calcMetrics(cfg);
   const hCfg = buildCfg(hypData, 0, 20);
   const hM = calcMetrics(hCfg);
@@ -5398,7 +5398,7 @@ async function generatePPTX(mode) {
       const comps=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${hCfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${hM.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
       ];
       comps.forEach((item,i)=>{
         const x=0.4+i*3.1;
@@ -5578,7 +5578,7 @@ async function generatePPTX(mode) {
           ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
           : '手動入力');
       const hItems=[
-        {label:"お客様名",       value:cn + '様'},
+        {label:"ご提案名",       value:cn + '様'},
         {label:"家族構成",       value:cfg.familyComposition},
         {label:"月間電気代",     value:`¥${fmt(cfg.monthlyElectricBill)}`},
         {label:"現在の平均単価",  value:`${cfg.currentUnitPrice} 円/kWh`},
@@ -5678,7 +5678,7 @@ async function generatePPTX(mode) {
       const compsC=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${cfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${m.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
       ];
       compsC.forEach((item,i)=>{
         const x=0.4+i*3.1;
