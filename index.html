@@ -5171,11 +5171,12 @@ function saveCustomer() {
     const last = h[0];
     const baseLastName    = (last.cn || last.customerName || '').replace(/（内容変更版）.*$/, '');
     const baseCurrentName = _cn.replace(/（内容変更版）.*$/, '');
-    if (baseLastName === baseCurrentName) {
+    if (baseCurrentName !== '' && baseLastName === baseCurrentName) {
+      const norm = v => (v == null ? '' : String(v));
       const isSameContent =
-        last.mb       === data.mb &&
-        last.mkwh     === data.mkwh &&
-        last.pkgSelect === data.pkgSelect;
+        last.mb   === data.mb   &&
+        last.mkwh === data.mkwh &&
+        norm(last.pkgSelect) === norm(data.pkgSelect);
       if (isSameContent) return;
       data.cn = `${baseCurrentName}（内容変更版）`;
     }
