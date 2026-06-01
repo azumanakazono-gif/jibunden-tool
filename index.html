@@ -5165,15 +5165,30 @@ function _applyMonthlyData(monthly) {
 function saveCustomer() {
   const data = getFormData();
   const _cn = (data.cn || '').trim();
+
+  const h = getHistory();
+  if (h.length > 0) {
+    const last = h[0];
+    const baseLastName    = (last.cn || last.customerName || '').replace(/（内容変更版）.*$/, '');
+    const baseCurrentName = _cn.replace(/（内容変更版）.*$/, '');
+    if (baseLastName === baseCurrentName) {
+      const isSameContent =
+        last.mb       === data.mb &&
+        last.mkwh     === data.mkwh &&
+        last.pkgSelect === data.pkgSelect;
+      if (isSameContent) return;
+      data.cn = `${baseCurrentName}（内容変更版）`;
+    }
+  }
+
   const entry = {
     ...data,
     id: Date.now(),
     date: new Date().toLocaleString('ja-JP'),
-    customerName:        _cn || '名称未設定',
+    customerName:        (data.cn || '').trim() || '名称未設定',
     monthlyElectricBill: data.mb || 0,
     familyComposition:   data.fm || '',
   };
-  const h = getHistory();
   h.unshift(entry);
   if(h.length>30) h.pop();
   saveHistory(h);
