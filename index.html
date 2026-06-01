@@ -533,8 +533,8 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
         <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
-          固定購入単価（実質単価・逆算値）：<b id="up-auto" style="color:var(--dg)">-</b>
-          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※月間電気代13,317円 ÷ 月間使用量400kWh の逆算値で固定</span>
+          現在の平均単価（月額 ÷ 使用量）：<b id="up-auto" style="color:var(--dg)">-</b>
+          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※概算月額合計 ÷ 月間使用量のリアルタイム逆算値</span>
         </div>
         <!-- 年間電気代・年間消費電力量の自動表示 -->
         <div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -1772,7 +1772,9 @@ function autoEstimateKwhFromBill(force) {
     if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
     est = estimateJyuryoKwhFromBill(mb, basic);
   } else {
-    est = Math.max(1, Math.min(3000, Math.round(mb / BEFORE_FIXED_UP)));
+    const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
+    const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
+    est = Math.max(1, Math.min(3000, Math.round(mb / planUp)));
   }
   if (est <= 0) return;
   mkwhEl.value = est;
@@ -1821,7 +1823,9 @@ function onMkwhInput() {
         document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
       }
     } else {
-      document.getElementById('mb').value = Math.round(kwh * BEFORE_FIXED_UP);
+      const isTOUkp = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
+      const planUp = isTOUkp ? (calcBeforeEffectiveUnitPrice(kp) || 0) : (parseFloat(kp) || 0);
+      if (planUp > 0) document.getElementById('mb').value = Math.round(kwh * planUp);
     }
   }
   calc();
@@ -4646,7 +4650,7 @@ function calc() {
   const _kpCalc = document.getElementById('kyuden-plan').value;
   const _isJuuryoCalc = _kpCalc === 'kyushu_juuryo_b' || _kpCalc === 'kyushu_juuryo_c';
   const _calcData = activeTab === 'hypothesis' ? hypData : custData;
-  const up = BEFORE_FIXED_UP; // 固定購入単価（13,317円 ÷ 400kWh）
+  const up = mkwh > 0 ? Math.round(mb / mkwh * 100) / 100 : 0; // 月額合計 ÷ 使用量のリアルタイム逆算
 
   // 導入後プラン単価
   const _postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
@@ -4680,7 +4684,7 @@ function calc() {
   _updateBeforeBreakdownToggleVisibility();
   // 最優先表示：mb/mkwhがあれば何があっても必ず更新
   const upEl = document.getElementById('up-auto');
-  if (upEl) upEl.textContent = `${BEFORE_FIXED_UP} 円/kWh（固定）`;
+  if (upEl) upEl.textContent = up > 0 ? `${up.toFixed(2)} 円/kWh` : '月間使用量を入力してください';
   document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
   document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
