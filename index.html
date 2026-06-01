@@ -521,10 +521,10 @@ canvas#mini-chart { height: 220px !important; }
         <!-- 💴 現在の電気料金 -->
         <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px">💴 現在の電気料金</div>
         <div class="grid2" style="margin-bottom:4px">
-          <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="1000" max="200000" step="1000" oninput="onMbInput()"></div>
+          <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="13317" min="1000" max="200000" step="1000" oninput="onMbInput()"></div>
           <div class="field">
             <label>月間使用量（kWh）<span id="mkwh-label-note" style="font-size:10px;margin-left:4px;color:var(--muted)"></span></label>
-            <input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="onMkwhInput()">
+            <input type="number" id="mkwh" value="400" min="1" max="5000" step="10" oninput="onMkwhInput()">
             <span id="mkwh-est-note" style="font-size:11px;color:#0369a1;display:none">📊 電気代から自動推定
               <button id="btn-reestimate" onclick="reEstimateJyuryoKwh()" style="margin-left:4px;font-size:12px;padding:3px 10px;border:2px solid #2563eb;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;transition:background 0.15s">再推定</button>
               <span id="mb-changed-warn" style="display:none;font-size:10px;color:#dc2626;font-weight:700;margin-left:6px">※電気代を変更した場合は、必ず[再推定]を押してください</span>
@@ -533,8 +533,8 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
         <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
-          現在の平均単価（自動計算・税込）：<b id="up-auto" style="color:var(--dg)">-</b>
-          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※再エネ賦課金・燃料費調整額含む実質単価</span>
+          現在の平均単価（月額 ÷ 使用量）：<b id="up-auto" style="color:var(--dg)">-</b>
+          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※概算月額合計 ÷ 月間使用量のリアルタイム逆算値</span>
         </div>
         <!-- 年間電気代・年間消費電力量の自動表示 -->
         <div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -1714,6 +1714,9 @@ const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
 const FUEL_ADJUST  = 1.33; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
 
+// ── 導入前 固定購入単価（13,317円 ÷ 400kWh の逆算値で固定）──
+const BEFORE_FIXED_UP = 33.29;
+
 // ── 九州電力 従量電灯B・C 段階料金マスタ ──
 const KYUSHU_JUURYO = {
   basicB: {10:316.24,15:474.36,20:632.48,30:948.72,40:1264.96,50:1581.20,60:1897.44},
@@ -1769,10 +1772,9 @@ function autoEstimateKwhFromBill(force) {
     if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
     est = estimateJyuryoKwhFromBill(mb, basic);
   } else {
-    // プラン定義の単価のみ使用（mb/mkwh 逆算値は使わない → 反復縮小ループ防止）
     const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
-    const up = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
-    est = Math.max(1, Math.min(3000, Math.round(mb / up)));
+    const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
+    est = Math.max(1, Math.min(3000, Math.round(mb / planUp)));
   }
   if (est <= 0) return;
   mkwhEl.value = est;
@@ -1821,10 +1823,9 @@ function onMkwhInput() {
         document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
       }
     } else {
-      const _numericKpUp = parseFloat(kp);
-      const upText = document.getElementById('up-auto')?.textContent || '';
-      const up = (_numericKpUp > 0) ? _numericKpUp : (parseFloat(upText) || 0);
-      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up);
+      const isTOUkp = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
+      const planUp = isTOUkp ? (calcBeforeEffectiveUnitPrice(kp) || 0) : (parseFloat(kp) || 0);
+      if (planUp > 0) document.getElementById('mb').value = Math.round(kwh * planUp);
     }
   }
   calc();
@@ -4649,16 +4650,7 @@ function calc() {
   const _kpCalc = document.getElementById('kyuden-plan').value;
   const _isJuuryoCalc = _kpCalc === 'kyushu_juuryo_b' || _kpCalc === 'kyushu_juuryo_c';
   const _calcData = activeTab === 'hypothesis' ? hypData : custData;
-  let up;
-  if (_isJuuryoCalc && !_calcData.hasBill) {
-    up = mkwh > 0 ? calcJuuryoSteps(mkwh).eff : 0;
-  } else if (!_calcData.hasBill && (_kpCalc === 'kyushu_denka_night' || _kpCalc === 'kyushu_kiji' || _kpCalc === 'kyushu_ohisama')) {
-    const _beforeUp = calcBeforeEffectiveUnitPrice(_kpCalc);
-    up = (_beforeUp > 0) ? _beforeUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
-  } else {
-    const _numericUp = parseFloat(_kpCalc);
-    up = (_numericUp > 0) ? _numericUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
-  }
+  const up = mkwh > 0 ? Math.round(mb / mkwh * 100) / 100 : 0; // 月額合計 ÷ 使用量のリアルタイム逆算
 
   // 導入後プラン単価
   const _postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
@@ -4692,7 +4684,7 @@ function calc() {
   _updateBeforeBreakdownToggleVisibility();
   // 最優先表示：mb/mkwhがあれば何があっても必ず更新
   const upEl = document.getElementById('up-auto');
-  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
+  if (upEl) upEl.textContent = up > 0 ? `${up.toFixed(2)} 円/kWh` : '月間使用量を入力してください';
   document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
   document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
