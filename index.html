@@ -2348,7 +2348,7 @@ const HYPOTHESIS_DEFAULTS = {
   ...HEARING_DEFAULTS,
 };
 const CUSTOMER_DEFAULTS = {
-  cn:'○○様', fm:'4人家族（夫婦＋子ども2人）',
+  cn:'○○様○○システム', fm:'4人家族（夫婦＋子ども2人）',
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
@@ -2397,7 +2397,7 @@ let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
   return {
-    customerName: data.cn || '○○様',
+    customerName: data.cn || '○○様○○システム',
     familyComposition: data.fm || '',
     lifestyleNote: data.ls || '',
     monthlyElectricBill: data.mb || 0,
@@ -5108,7 +5108,7 @@ function renderMiniChart() {
 
 function clearForm() {
   if(!confirm('フォームをリセットしますか？')) return;
-  ['cn','ls'].forEach(id=>{ const d={'cn':'○○様','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
+  ['cn','ls'].forEach(id=>{ const d={'cn':'○○様○○システム','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
   document.getElementById('fm').value='4人家族（夫婦＋子ども2人）';
   document.getElementById('ls-preset').value='away';
   document.getElementById('kyuden-plan').value='';
