@@ -1738,9 +1738,13 @@ function _juuryoBasicCharge(kp) {
     const amp = parseInt(document.getElementById('juuryo-amp').value) || 30;
     return KYUSHU_JUURYO.basicB[amp] || 948.72;
   }
-  if (kp !== 'kyushu_juuryo_c') return 0;
-  const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
-  return kva > 0 ? Math.round(kva * KYUSHU_JUURYO.basicCPerKva*100)/100 : 0;
+  if (kp === 'kyushu_juuryo_c') {
+    const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
+    return kva > 0 ? Math.round(kva * KYUSHU_JUURYO.basicCPerKva*100)/100 : 0;
+  }
+  if (kp === 'kyushu_kiji') return 1320.00;
+  if (kp === 'kyushu_denka_night' || kp === 'kyushu_ohisama') return 1888.80;
+  return 0;
 }
 
 let mkwhManualEdited = false;
