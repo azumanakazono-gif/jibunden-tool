@@ -793,7 +793,7 @@ canvas#mini-chart { height: 220px !important; }
         <div>
           <div class="field" id="field-dc-wrap">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
-            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="calc()">
+            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="onDcInput()">
             <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
           </div>
           <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid #16a34a">
@@ -1749,6 +1749,7 @@ function _juuryoBasicCharge(kp) {
 
 let mkwhManualEdited = false;
 let bcManualEdited = false;
+let dcManualEdited = false;
 
 function estimateJyuryoKwhFromBill(monthlyBill, basicCharge) {
   let bestKwh = 0, bestDiff = Infinity;
@@ -2159,6 +2160,11 @@ function applyAIResult(data) {
   }
 }
 
+function onDcInput() {
+  dcManualEdited = true;
+  calc();
+}
+
 function onBcInput() {
   bcManualEdited = true;
   _updateBcManualUI();
@@ -2417,6 +2423,7 @@ function buildCfg(data, lp, ly) {
 function onPkgChange() {
   loanAmountEdited = false;
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const key = document.getElementById('pkg-select').value;
   const isManual = !key;
@@ -2440,6 +2447,7 @@ function onPkgChange() {
 function onPkgChangePv() {
   loanAmountEdited = false;
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const key = document.getElementById('pkg-select-pv').value;
   const isManual = !key;
@@ -2552,6 +2560,8 @@ function saveFormToData(data) {
   data.fitCapacity  = fitCapacity;
   data.salePrice    = parseFloat(document.getElementById('sale-price').value) || fitAutoPrice() || 24;
   data.salePriceEdited = salePriceEdited;
+  data.bcManualEdited = bcManualEdited;
+  data.dcManualEdited = dcManualEdited;
 }
 
 function loadDataToForm(data) {
@@ -2634,6 +2644,15 @@ function loadDataToForm(data) {
     updatePkgSummaryPv();
   }
   _updateMonthlyDetailVisibility(!!data.hasBill);
+  if (data.bcManualEdited && data.bc !== undefined) {
+    bcManualEdited = true;
+    document.getElementById('bc').value = data.bc;
+    _updateBcManualUI();
+  }
+  if (data.dcManualEdited && data.dc !== undefined) {
+    dcManualEdited = true;
+    document.getElementById('dc').value = data.dc;
+  }
 }
 
 function switchTab(tab) {
@@ -3064,7 +3083,7 @@ function applyDaytimeRate() {
   const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
   const dc  = Math.round(Math.min(ag * 0.65, annualConsumption * rate));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
   if (!bcManualEdited) {
     const bcMax = Math.max(0, ag * 0.65 - dc);
     const bc  = Math.round(Math.min(bcMax, annualConsumption * (1 - rate) * 0.80));
@@ -3073,9 +3092,10 @@ function applyDaytimeRate() {
   calc();
 }
 
-function onFamilyChange() { bcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
+function onFamilyChange() { bcManualEdited = false; dcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
 function onLifestyleChange() {
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const preset = document.getElementById('ls-preset').value;
   const lsInput = document.getElementById('ls');
@@ -3236,7 +3256,7 @@ function _applyRatioDcBefore(kp) {
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 667;
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, ag));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
 }
 
 function updateRatioPanelVisibility() {
@@ -3663,7 +3683,7 @@ function _applyRatioDc(kp) {
   const annualConsumption = mkwh * 12;
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(annualConsumption * daytimeDemandRatio, ag));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
 }
 
 function updateRatioStyleStatus() {
