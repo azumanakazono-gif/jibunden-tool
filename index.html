@@ -5398,7 +5398,7 @@ async function generatePPTX(mode) {
       const comps=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${hCfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${hM.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
       ];
       comps.forEach((item,i)=>{
         const x=0.4+i*3.1;
@@ -5678,7 +5678,7 @@ async function generatePPTX(mode) {
       const compsC=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${cfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${m.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
       ];
       compsC.forEach((item,i)=>{
         const x=0.4+i*3.1;
