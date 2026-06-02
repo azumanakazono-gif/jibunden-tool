@@ -5171,6 +5171,7 @@ function saveCustomer() {
         return;
     }
 
+    // 2重定義を完全に排除し、実際のHTMLの正確なID（pvKw, totalCost等）から最新値を絶対の最優先で取得
     const data = {
         cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
         mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
@@ -5198,6 +5199,7 @@ function saveCustomer() {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
         const existing = h[existingIndex];
 
+        // 5項目を確実に含めた厳密な中身の文字列一致チェック
         const isSameContent =
             norm(existing.mb) === norm(data.mb) &&
             norm(existing.mkwh) === norm(data.mkwh) &&
@@ -5223,6 +5225,7 @@ function saveCustomer() {
         }
     }
 
+    // 保存用オブジェクトの構築（重複・データ欠落を完全に排除し、互換キー名も維持）
     const entry = {
         ...base,
         id: Date.now(),
