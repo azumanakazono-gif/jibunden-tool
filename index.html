@@ -457,7 +457,7 @@ canvas#mini-chart { height: 220px !important; }
     <div class="section-card">
       <div class="section-title">👤 お客様情報</div>
       <div class="grid2" style="margin-bottom:12px">
-        <div class="field"><label>お客様名</label><input type="text" id="cn" value="○○様" oninput="calc()"></div>
+        <div class="field"><label>ご提案名</label><input type="text" id="cn" placeholder="例：〇〇様 提案" value="○○様○○システム" oninput="calc()"></div>
         <div class="field"><label>家族構成</label>
           <select id="fm" onchange="onFamilyChange()">
             <option value="1人暮らし">1人暮らし</option>
@@ -521,10 +521,10 @@ canvas#mini-chart { height: 220px !important; }
         <!-- 💴 現在の電気料金 -->
         <div style="font-size:11px;font-weight:700;color:#475569;margin-bottom:8px">💴 現在の電気料金</div>
         <div class="grid2" style="margin-bottom:4px">
-          <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="20000" min="1000" max="200000" step="1000" oninput="onMbInput()"></div>
+          <div class="field"><label>月間電気代（円）</label><input type="number" id="mb" value="13317" min="1000" max="200000" step="1000" oninput="onMbInput()"></div>
           <div class="field">
             <label>月間使用量（kWh）<span id="mkwh-label-note" style="font-size:10px;margin-left:4px;color:var(--muted)"></span></label>
-            <input type="number" id="mkwh" value="667" min="1" max="5000" step="10" oninput="onMkwhInput()">
+            <input type="number" id="mkwh" value="400" min="1" max="5000" step="10" oninput="onMkwhInput()">
             <span id="mkwh-est-note" style="font-size:11px;color:#0369a1;display:none">📊 電気代から自動推定
               <button id="btn-reestimate" onclick="reEstimateJyuryoKwh()" style="margin-left:4px;font-size:12px;padding:3px 10px;border:2px solid #2563eb;border-radius:6px;background:#2563eb;color:#fff;cursor:pointer;font-family:inherit;font-weight:700;transition:background 0.15s">再推定</button>
               <span id="mb-changed-warn" style="display:none;font-size:10px;color:#dc2626;font-weight:700;margin-left:6px">※電気代を変更した場合は、必ず[再推定]を押してください</span>
@@ -533,8 +533,8 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div id="billing-guide" style="display:none;margin-bottom:8px;padding:8px 12px;border-radius:8px;border:1px solid var(--border);font-size:12px"></div>
         <div style="margin-bottom:12px;padding:6px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:12px;color:var(--muted)">
-          現在の平均単価（自動計算・税込）：<b id="up-auto" style="color:var(--dg)">-</b>
-          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※再エネ賦課金・燃料費調整額含む実質単価</span>
+          現在の平均単価（月額 ÷ 使用量）：<b id="up-auto" style="color:var(--dg)">-</b>
+          <span style="font-size:10px;margin-left:6px;color:var(--muted)">※概算月額合計 ÷ 月間使用量のリアルタイム逆算値</span>
         </div>
         <!-- 年間電気代・年間消費電力量の自動表示 -->
         <div style="display:flex;gap:16px;flex-wrap:wrap;padding:8px 12px;background:#f8fffe;border-radius:8px;border:1px solid var(--border);font-size:13px">
@@ -793,7 +793,7 @@ canvas#mini-chart { height: 220px !important; }
         <div>
           <div class="field" id="field-dc-wrap">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
-            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="calc()">
+            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="onDcInput()">
             <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
           </div>
           <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid #16a34a">
@@ -849,8 +849,10 @@ canvas#mini-chart { height: 220px !important; }
               <option value="5+7">5+7パッケージ（14枚 / 5.46kW / 7.7kWh）</option>
               <option value="5+15">5+15パッケージ（14枚 / 5.46kW / 15.4kWh）</option>
               <option value="6+7">6+7パッケージ（16枚 / 6.24kW / 7.7kWh）</option>
+              <option value="6+9">6+9パッケージ（16枚 / 6.24kW / 9.7kWh）</option>
               <option value="6+15">6+15パッケージ（16枚 / 6.24kW / 15.4kWh）</option>
               <option value="7+7" selected>7+7パッケージ（18枚 / 7.02kW / 7.7kWh）</option>
+              <option value="7+9">7+9パッケージ（18枚 / 7.02kW / 9.7kWh）</option>
               <option value="7+15">7+15パッケージ（18枚 / 7.02kW / 15.4kWh）</option>
               <option value="8+7">8+7パッケージ（21枚 / 8.16kW / 7.7kWh）</option>
               <option value="8+15">8+15パッケージ（21枚 / 8.16kW / 15.4kWh）</option>
@@ -1714,6 +1716,9 @@ const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
 const FUEL_ADJUST  = 1.33; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
 
+// ── 導入前 固定購入単価（13,317円 ÷ 400kWh の逆算値で固定）──
+const BEFORE_FIXED_UP = 33.29;
+
 // ── 九州電力 従量電灯B・C 段階料金マスタ ──
 const KYUSHU_JUURYO = {
   basicB: {10:316.24,15:474.36,20:632.48,30:948.72,40:1264.96,50:1581.20,60:1897.44},
@@ -1733,13 +1738,18 @@ function _juuryoBasicCharge(kp) {
     const amp = parseInt(document.getElementById('juuryo-amp').value) || 30;
     return KYUSHU_JUURYO.basicB[amp] || 948.72;
   }
-  if (kp !== 'kyushu_juuryo_c') return 0;
-  const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
-  return kva > 0 ? Math.round(kva * KYUSHU_JUURYO.basicCPerKva*100)/100 : 0;
+  if (kp === 'kyushu_juuryo_c') {
+    const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
+    return kva > 0 ? Math.round(kva * KYUSHU_JUURYO.basicCPerKva*100)/100 : 0;
+  }
+  if (kp === 'kyushu_kiji') return 1320.00;
+  if (kp === 'kyushu_denka_night' || kp === 'kyushu_ohisama') return 1888.80;
+  return 0;
 }
 
 let mkwhManualEdited = false;
 let bcManualEdited = false;
+let dcManualEdited = false;
 
 function estimateJyuryoKwhFromBill(monthlyBill, basicCharge) {
   let bestKwh = 0, bestDiff = Infinity;
@@ -1769,10 +1779,9 @@ function autoEstimateKwhFromBill(force) {
     if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
     est = estimateJyuryoKwhFromBill(mb, basic);
   } else {
-    // プラン定義の単価のみ使用（mb/mkwh 逆算値は使わない → 反復縮小ループ防止）
     const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
-    const up = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
-    est = Math.max(1, Math.min(3000, Math.round(mb / up)));
+    const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
+    est = Math.max(1, Math.min(3000, Math.round(mb / planUp)));
   }
   if (est <= 0) return;
   mkwhEl.value = est;
@@ -1821,10 +1830,9 @@ function onMkwhInput() {
         document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
       }
     } else {
-      const _numericKpUp = parseFloat(kp);
-      const upText = document.getElementById('up-auto')?.textContent || '';
-      const up = (_numericKpUp > 0) ? _numericKpUp : (parseFloat(upText) || 0);
-      if (up > 0) document.getElementById('mb').value = Math.round(kwh * up);
+      const isTOUkp = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
+      const planUp = isTOUkp ? (calcBeforeEffectiveUnitPrice(kp) || 0) : (parseFloat(kp) || 0);
+      if (planUp > 0) document.getElementById('mb').value = Math.round(kwh * planUp);
     }
   }
   calc();
@@ -2152,6 +2160,11 @@ function applyAIResult(data) {
   }
 }
 
+function onDcInput() {
+  dcManualEdited = true;
+  calc();
+}
+
 function onBcInput() {
   bcManualEdited = true;
   _updateBcManualUI();
@@ -2335,7 +2348,7 @@ const HYPOTHESIS_DEFAULTS = {
   ...HEARING_DEFAULTS,
 };
 const CUSTOMER_DEFAULTS = {
-  cn:'○○様', fm:'4人家族（夫婦＋子ども2人）',
+  cn:'○○様○○システム', fm:'4人家族（夫婦＋子ども2人）',
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
   mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
@@ -2365,8 +2378,10 @@ const PACKAGES = {
   '5+7' :{panels:14,sk:5.46, bk:7.7, cost:265,ag:6006, bc:1967},
   '5+15':{panels:14,sk:5.46, bk:15.4,cost:365,ag:6006, bc:3935},
   '6+7' :{panels:16,sk:6.24, bk:7.7, cost:270,ag:6864, bc:1967},
+  '6+9' :{panels:16,sk:6.24, bk:9.7, cost:320,ag:6864, bc:2478},
   '6+15':{panels:16,sk:6.24, bk:15.4,cost:390,ag:6864, bc:3935},
   '7+7' :{panels:18,sk:7.02, bk:7.7, cost:280,ag:7722, bc:1967},
+  '7+9' :{panels:18,sk:7.02, bk:9.7, cost:330,ag:7722, bc:2478},
   '7+15':{panels:18,sk:7.02, bk:15.4,cost:385,ag:7722, bc:3935},
   '8+7' :{panels:21,sk:8.16, bk:7.7, cost:320,ag:8976, bc:1967},
   '8+15':{panels:21,sk:8.16, bk:15.4,cost:397,ag:8976, bc:3935},
@@ -2382,7 +2397,7 @@ let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
   return {
-    customerName: data.cn || '○○様',
+    customerName: data.cn || '○○様○○システム',
     familyComposition: data.fm || '',
     lifestyleNote: data.ls || '',
     monthlyElectricBill: data.mb || 0,
@@ -2408,6 +2423,7 @@ function buildCfg(data, lp, ly) {
 function onPkgChange() {
   loanAmountEdited = false;
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const key = document.getElementById('pkg-select').value;
   const isManual = !key;
@@ -2431,6 +2447,7 @@ function onPkgChange() {
 function onPkgChangePv() {
   loanAmountEdited = false;
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const key = document.getElementById('pkg-select-pv').value;
   const isManual = !key;
@@ -2543,6 +2560,8 @@ function saveFormToData(data) {
   data.fitCapacity  = fitCapacity;
   data.salePrice    = parseFloat(document.getElementById('sale-price').value) || fitAutoPrice() || 24;
   data.salePriceEdited = salePriceEdited;
+  data.bcManualEdited = bcManualEdited;
+  data.dcManualEdited = dcManualEdited;
 }
 
 function loadDataToForm(data) {
@@ -2625,6 +2644,15 @@ function loadDataToForm(data) {
     updatePkgSummaryPv();
   }
   _updateMonthlyDetailVisibility(!!data.hasBill);
+  if (data.bcManualEdited && data.bc !== undefined) {
+    bcManualEdited = true;
+    document.getElementById('bc').value = data.bc;
+    _updateBcManualUI();
+  }
+  if (data.dcManualEdited && data.dc !== undefined) {
+    dcManualEdited = true;
+    document.getElementById('dc').value = data.dc;
+  }
 }
 
 function switchTab(tab) {
@@ -3055,7 +3083,7 @@ function applyDaytimeRate() {
   const annualConsumption = v('mkwh') * 12;
   const ag = v('ag');
   const dc  = Math.round(Math.min(ag * 0.65, annualConsumption * rate));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
   if (!bcManualEdited) {
     const bcMax = Math.max(0, ag * 0.65 - dc);
     const bc  = Math.round(Math.min(bcMax, annualConsumption * (1 - rate) * 0.80));
@@ -3064,9 +3092,10 @@ function applyDaytimeRate() {
   calc();
 }
 
-function onFamilyChange() { bcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
+function onFamilyChange() { bcManualEdited = false; dcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
 function onLifestyleChange() {
   bcManualEdited = false;
+  dcManualEdited = false;
   _updateBcManualUI();
   const preset = document.getElementById('ls-preset').value;
   const lsInput = document.getElementById('ls');
@@ -3227,7 +3256,7 @@ function _applyRatioDcBefore(kp) {
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 667;
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, ag));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
 }
 
 function updateRatioPanelVisibility() {
@@ -3654,7 +3683,7 @@ function _applyRatioDc(kp) {
   const annualConsumption = mkwh * 12;
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(annualConsumption * daytimeDemandRatio, ag));
-  document.getElementById('dc').value = dc;
+  if (!dcManualEdited) document.getElementById('dc').value = dc;
 }
 
 function updateRatioStyleStatus() {
@@ -4649,16 +4678,7 @@ function calc() {
   const _kpCalc = document.getElementById('kyuden-plan').value;
   const _isJuuryoCalc = _kpCalc === 'kyushu_juuryo_b' || _kpCalc === 'kyushu_juuryo_c';
   const _calcData = activeTab === 'hypothesis' ? hypData : custData;
-  let up;
-  if (_isJuuryoCalc && !_calcData.hasBill) {
-    up = mkwh > 0 ? calcJuuryoSteps(mkwh).eff : 0;
-  } else if (!_calcData.hasBill && (_kpCalc === 'kyushu_denka_night' || _kpCalc === 'kyushu_kiji' || _kpCalc === 'kyushu_ohisama')) {
-    const _beforeUp = calcBeforeEffectiveUnitPrice(_kpCalc);
-    up = (_beforeUp > 0) ? _beforeUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
-  } else {
-    const _numericUp = parseFloat(_kpCalc);
-    up = (_numericUp > 0) ? _numericUp : (mkwh > 0 ? Math.round(mb / mkwh * 10) / 10 : 0);
-  }
+  const up = mkwh > 0 ? Math.round(mb / mkwh * 100) / 100 : 0; // 月額合計 ÷ 使用量のリアルタイム逆算
 
   // 導入後プラン単価
   const _postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
@@ -4692,7 +4712,7 @@ function calc() {
   _updateBeforeBreakdownToggleVisibility();
   // 最優先表示：mb/mkwhがあれば何があっても必ず更新
   const upEl = document.getElementById('up-auto');
-  if (upEl) upEl.textContent = mkwh > 0 ? `${up.toFixed(1)} 円/kWh` : '月間使用量を入力してください';
+  if (upEl) upEl.textContent = up > 0 ? `${up.toFixed(2)} 円/kWh` : '月間使用量を入力してください';
   document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
   document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
@@ -5088,7 +5108,7 @@ function renderMiniChart() {
 
 function clearForm() {
   if(!confirm('フォームをリセットしますか？')) return;
-  ['cn','ls'].forEach(id=>{ const d={'cn':'○○様','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
+  ['cn','ls'].forEach(id=>{ const d={'cn':'○○様○○システム','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
   document.getElementById('fm').value='4人家族（夫婦＋子ども2人）';
   document.getElementById('ls-preset').value='away';
   document.getElementById('kyuden-plan').value='';
@@ -5313,7 +5333,7 @@ async function generatePPTX(mode) {
   const outReal  = mode === 'real';
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
-  const cn = (cfg.customerName || 'お客様').replace(/様$/, '');
+  const cn = (cfg.customerName || 'ご提案').replace(/様$/, '');
   const m = calcMetrics(cfg);
   const hCfg = buildCfg(hypData, 0, 20);
   const hM = calcMetrics(hCfg);
@@ -5460,7 +5480,7 @@ async function generatePPTX(mode) {
       const comps=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${hCfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${hM.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoM.value,sub:fitInfoM.sub,color:C.gray},
       ];
       comps.forEach((item,i)=>{
         const x=0.4+i*3.1;
@@ -5640,7 +5660,7 @@ async function generatePPTX(mode) {
           ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
           : '手動入力');
       const hItems=[
-        {label:"お客様名",       value:cn + '様'},
+        {label:"ご提案名",       value:cn + '様'},
         {label:"家族構成",       value:cfg.familyComposition},
         {label:"月間電気代",     value:`¥${fmt(cfg.monthlyElectricBill)}`},
         {label:"現在の平均単価",  value:`${cfg.currentUnitPrice} 円/kWh`},
@@ -5740,7 +5760,7 @@ async function generatePPTX(mode) {
       const compsC=[
         {icon:"❌",label:"現在の平均単価\n（税込）",value:`${cfg.currentUnitPrice}円`,sub:"/kWh",color:C.orange},
         {icon:"✅",label:"じぶん電気の\n発電コスト",value:`約${m.costPerKWh}円`,sub:"/kWh",color:C.midGreen},
-        {icon:"📋",label:"FIT売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
+        {icon:"📋",label:"売電\n買取単価",value:fitInfoC.value,sub:fitInfoC.sub,color:C.gray},
       ];
       compsC.forEach((item,i)=>{
         const x=0.4+i*3.1;
