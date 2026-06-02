@@ -5163,94 +5163,99 @@ function _applyMonthlyData(monthly) {
 }
 
 function saveCustomer() {
-  const gv = id => { const el = document.getElementById(id); return el ? String(el.value).trim() : ''; };
+    const gv = id => {
+        const el = document.getElementById(id);
+        return el ? String(el.value).trim() : '';
+    };
 
-  let base;
-  try { base = getFormData(); } catch(e) { base = {}; }
-  if (!base) base = {};
-
-  const data = {
-    ...base,
-    cn:        gv('cn')         || base.cn        || '',
-    mb:        gv('mb')         || base.mb         || '',
-    mkwh:      gv('mkwh')       || base.mkwh       || '',
-    pkgSelect: gv('pkg-select') || base.pkgSelect  || '',
-    sk:        gv('sk'),
-    ck:        gv('ck'),
-    ag:        gv('ag'),
-    sub:       gv('sub'),
-    wy:        gv('wy'),
-    fm:        gv('fm')         || base.fm         || '',
-    ls:        gv('ls')         || base.ls         || '',
-  };
-
-  if (!data.cn) return;
-
-  const cleanName = str => (str || '').replace(/（内容変更版）.*$/, '').replace(/[\s　]+/g, '').trim();
-  const currentBaseName = cleanName(data.cn);
-  if (currentBaseName === '') return;
-
-  const h = getHistory();
-  const existingIndex = h.findIndex(item =>
-    cleanName(item.cn || item.customerName) === currentBaseName
-  );
-
-  if (existingIndex !== -1) {
-    const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, '').trim());
-    const existing = h[existingIndex];
-    const isSameContent =
-      norm(existing.mb)        === norm(data.mb)        &&
-      norm(existing.mkwh)      === norm(data.mkwh)      &&
-      norm(existing.pkgSelect) === norm(data.pkgSelect) &&
-      norm(existing.sk)        === norm(data.sk)        &&
-      norm(existing.ck)        === norm(data.ck)        &&
-      norm(existing.ag)        === norm(data.ag)        &&
-      norm(existing.sub)       === norm(data.sub)       &&
-      norm(existing.wy)        === norm(data.wy);
-
-    if (isSameContent) {
-      console.log('内容が完全に一致するため、処理をスキップします。');
-      return;
+    let base = {};
+    try {
+        base = getFormData() || {};
+    } catch (e) {
+        base = {};
     }
 
-    const isOverwrite = confirm(
-      '同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）'
-    );
-    if (isOverwrite) {
-      h.splice(existingIndex, 1);
-    } else {
-      const baseCurrentName = (data.cn || '').replace(/（内容変更版）.*$/, '').trim();
-      data.cn = `${baseCurrentName}（内容変更版）`;
-    }
-  }
+    const data = {
+        ...base,
+        cn: gv('cn') || base.cn || '',
+        mb: gv('mb') || base.mb || '',
+        mkwh: gv('mkwh') || base.mkwh || '',
+        pkgSelect: gv('pkg-select') || base.pkgSelect || '',
+        sk: gv('sk') || base.sk || '',
+        ck: gv('ck') || base.ck || '',
+        ag: gv('ag') || base.ag || '',
+        sub: gv('sub') || base.sub || '',
+        wy: gv('wy') || base.wy || '',
+        fm: gv('fm') || base.fm || '',
+        ls: gv('ls') || base.ls || ''
+    };
 
-  const entry = {
-    id:                  Date.now(),
-    date:                new Date().toLocaleString('ja-JP'),
-    customerName:        (data.cn || '').trim() || '名称未設定',
-    cn:                  data.cn,
-    mb:                  data.mb,
-    mkwh:                data.mkwh,
-    pkgSelect:           data.pkgSelect,
-    sk:                  data.sk,
-    ck:                  data.ck,
-    ag:                  data.ag,
-    sub:                 data.sub,
-    wy:                  data.wy,
-    fm:                  data.fm,
-    ls:                  data.ls,
-    monthlyElectricBill: parseFloat(data.mb) || 0,
-    familyComposition:   data.fm || '',
-    ...Object.fromEntries(
-      Object.entries(base).filter(([k]) =>
-        !['id','date','customerName','cn','mb','mkwh','pkgSelect','sk','ck','ag','sub','wy','fm','ls','monthlyElectricBill','familyComposition'].includes(k)
-      )
-    ),
-  };
-  h.unshift(entry);
-  if(h.length>30) h.pop();
-  saveHistory(h);
-  renderSidebarHistory();
+    if (!data.cn) return;
+
+    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
+    const currentBaseName = cleanName(data.cn);
+    if (currentBaseName === "") return;
+
+    const h = getHistory();
+    const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
+
+    if (existingIndex !== -1) {
+        const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
+        const existing = h[existingIndex];
+
+        const isSameContent =
+            norm(existing.mb) === norm(data.mb) &&
+            norm(existing.mkwh) === norm(data.mkwh) &&
+            norm(existing.pkgSelect) === norm(data.pkgSelect) &&
+            norm(existing.sk) === norm(data.sk) &&
+            norm(existing.ck) === norm(data.ck) &&
+            norm(existing.ag) === norm(data.ag) &&
+            norm(existing.sub) === norm(data.sub) &&
+            norm(existing.wy) === norm(data.wy);
+
+        if (isSameContent) {
+            console.log("内容が完全に一致するため、処理をスキップします。");
+            return;
+        }
+
+        const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
+
+        if (isOverwrite) {
+            h.splice(existingIndex, 1);
+        } else {
+            const baseCurrentName = (data.cn || "").replace(/（内容変更版）.*$/, "").trim();
+            data.cn = `${baseCurrentName}（内容変更版）`;
+        }
+    }
+
+    const entry = {
+        ...data,
+        id: Date.now(),
+        date: new Date().toLocaleString('ja-JP'),
+        customerName: data.cn.trim() || '名称未設定',
+        cn: data.cn,
+        mb: data.mb,
+        mkwh: data.mkwh,
+        pkgSelect: data.pkgSelect,
+        sk: data.sk,
+        ck: data.ck,
+        ag: data.ag,
+        sub: data.sub,
+        wy: data.wy,
+        monthlyElectricBill: parseFloat(data.mb) || 0,
+        familyComposition: data.fm || '',
+        lifeStyle: data.ls || ''
+    };
+
+    h.unshift(entry);
+    if (h.length > 30) h.pop();
+
+    localStorage.setItem('jibunden_history', JSON.stringify(h));
+    if (typeof renderSidebarHistory === 'function') {
+        renderSidebarHistory();
+    } else if (typeof refreshHistoryDOM === 'function') {
+        refreshHistoryDOM();
+    }
 }
 
 function loadCustomer(id) {
