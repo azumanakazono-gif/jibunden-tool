@@ -5164,39 +5164,38 @@ function _applyMonthlyData(monthly) {
 
 function saveCustomer() {
   const data = getFormData();
+  if (!data || !data.cn) return;
 
   const cleanName = str => (str || '').replace(/（内容変更版）.*$/, '').replace(/[\s　]+/g, '').trim();
   const currentBaseName = cleanName(data.cn);
+  if (currentBaseName === '') return;
 
   const h = getHistory();
+  const existingIndex = h.findIndex(item =>
+    cleanName(item.cn || item.customerName) === currentBaseName
+  );
 
-  if (currentBaseName !== '') {
-    const existingIndex = h.findIndex(item =>
-      cleanName(item.cn || item.customerName) === currentBaseName
+  if (existingIndex !== -1) {
+    const norm = v => (v == null ? '' : String(v).trim());
+    const existing = h[existingIndex];
+    const isSameContent =
+      norm(existing.mb)        === norm(data.mb)        &&
+      norm(existing.mkwh)      === norm(data.mkwh)      &&
+      norm(existing.pkgSelect) === norm(data.pkgSelect);
+
+    if (isSameContent) {
+      console.log('内容が完全に一致するため、処理をスキップします。');
+      return;
+    }
+
+    const isOverwrite = confirm(
+      '同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）'
     );
-
-    if (existingIndex !== -1) {
-      const norm = v => (v == null ? '' : String(v).trim());
-      const existing = h[existingIndex];
-      const isSameContent =
-        norm(existing.mb)        === norm(data.mb)        &&
-        norm(existing.mkwh)      === norm(data.mkwh)      &&
-        norm(existing.pkgSelect) === norm(data.pkgSelect);
-
-      if (isSameContent) {
-        console.log('内容が完全に一致するため、処理をスキップします。');
-        return;
-      }
-
-      const isOverwrite = confirm(
-        '同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）'
-      );
-      if (isOverwrite) {
-        h.splice(existingIndex, 1);
-      } else {
-        const baseCurrentName = (data.cn || '').replace(/（内容変更版）.*$/, '').trim();
-        data.cn = `${baseCurrentName}（内容変更版）`;
-      }
+    if (isOverwrite) {
+      h.splice(existingIndex, 1);
+    } else {
+      const baseCurrentName = (data.cn || '').replace(/（内容変更版）.*$/, '').trim();
+      data.cn = `${baseCurrentName}（内容変更版）`;
     }
   }
 
