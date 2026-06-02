@@ -5163,31 +5163,25 @@ function _applyMonthlyData(monthly) {
 }
 
 function saveCustomer() {
-    const gv = id => {
-        const el = document.getElementById(id);
-        return el ? String(el.value).trim() : '';
-    };
-
     let base = {};
     try {
         base = getFormData() || {};
     } catch (e) {
-        base = {};
+        console.error("データ取得エラー:", e);
+        return;
     }
 
     const data = {
         ...base,
-        cn: gv('cn') || base.cn || '',
-        mb: gv('mb') || base.mb || '',
-        mkwh: gv('mkwh') || base.mkwh || '',
-        pkgSelect: gv('pkg-select') || base.pkgSelect || '',
-        sk: gv('sk') || base.sk || '',
-        ck: gv('ck') || base.ck || '',
-        ag: gv('ag') || base.ag || '',
-        sub: gv('sub') || base.sub || '',
-        wy: gv('wy') || base.wy || '',
-        fm: gv('fm') || base.fm || '',
-        ls: gv('ls') || base.ls || ''
+        cn: base.cn || base.customerName || document.getElementById('cn')?.value || '',
+        mb: base.mb || base.monthlyCost || document.getElementById('mb')?.value || '',
+        mkwh: base.mkwh || base.monthlyUsage || document.getElementById('mkwh')?.value || '',
+        pkgSelect: base.pkgSelect || base.systemPackage || document.getElementById('pkg-select')?.value || '',
+        sk: base.sk || base.pvKw || '',
+        ck: base.ck || base.totalCost || '',
+        ag: base.ag || base.annualGen || '',
+        sub: base.sub || base.subsidy || '',
+        wy: base.wy || base.warranty || ''
     };
 
     if (!data.cn) return;
@@ -5229,6 +5223,7 @@ function saveCustomer() {
     }
 
     const entry = {
+        ...base,
         ...data,
         id: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
@@ -5242,15 +5237,14 @@ function saveCustomer() {
         ag: data.ag,
         sub: data.sub,
         wy: data.wy,
-        monthlyElectricBill: parseFloat(data.mb) || 0,
-        familyComposition: data.fm || '',
-        lifeStyle: data.ls || ''
+        monthlyElectricBill: parseFloat(data.mb) || 0
     };
 
     h.unshift(entry);
     if (h.length > 30) h.pop();
 
     localStorage.setItem('jibunden_history', JSON.stringify(h));
+
     if (typeof renderSidebarHistory === 'function') {
         renderSidebarHistory();
     } else if (typeof refreshHistoryDOM === 'function') {
