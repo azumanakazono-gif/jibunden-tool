@@ -5181,7 +5181,11 @@ function saveCustomer() {
         existing.mb   === data.mb   &&
         existing.mkwh === data.mkwh &&
         norm(existing.pkgSelect) === norm(data.pkgSelect);
-      if (isSameContent) return;
+
+      if (isSameContent) {
+        console.log('内容が完全に一致するため、履歴追加をスキップします。');
+        return;
+      }
 
       const isOverwrite = confirm(
         '同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）'
