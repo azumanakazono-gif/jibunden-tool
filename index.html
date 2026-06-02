@@ -5167,15 +5167,15 @@ function saveCustomer() {
     try { base = getFormData() || {}; } catch (e) { console.error(e); return; }
 
     const data = {
-        cn: document.getElementById('cn')?.value || base.cn || base.customerName || '',
-        mb: document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
-        mkwh: document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
-        pkgSelect: document.getElementById('pkgSelect')?.value || document.getElementById('pkg-select')?.value || base.pkgSelect || base.systemPackage || '',
-        sk: document.getElementById('sk')?.value || base.sk || base.pvKw || '',
-        ck: document.getElementById('ck')?.value || base.ck || base.totalCost || '',
-        ag: document.getElementById('ag')?.value || base.ag || base.annualGen || '',
-        sub: document.getElementById('sub')?.value || base.sub || base.subsidy || '',
-        wy: document.getElementById('wy')?.value || base.wy || base.warranty || '',
+        cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
+        mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
+        mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
+        pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
+        sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || base.pvKw || '',
+        ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || base.totalCost || '',
+        ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || base.annualGen || '',
+        sub: document.getElementById('subsidy')?.value || document.getElementById('sub')?.value || base.sub || base.subsidy || '',
+        wy: document.getElementById('warranty')?.value || document.getElementById('wy')?.value || base.wy || base.warranty || '',
         fm: base.fm || '',
         ls: base.ls || ''
     };
