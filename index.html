@@ -5167,7 +5167,7 @@ function saveCustomer() {
   if (!data || !data.cn) return;
 
   // 5項目をDOMから明示的に再取得してデータに確実に反映
-  const gv = id => parseFloat(document.getElementById(id)?.value) || 0;
+  const gv = id => { const el = document.getElementById(id); return el ? String(el.value).trim() : ''; };
   data.sk  = gv('sk');
   data.ck  = gv('ck');
   data.ag  = gv('ag');
@@ -5184,7 +5184,7 @@ function saveCustomer() {
   );
 
   if (existingIndex !== -1) {
-    const norm = v => (v == null ? '' : String(v).trim());
+    const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, '').trim());
     const existing = h[existingIndex];
     const isSameContent =
       norm(existing.mb)        === norm(data.mb)        &&
