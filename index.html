@@ -5172,15 +5172,15 @@ function saveCustomer() {
     }
 
     const data = {
-        cn: base.cn || base.customerName || document.getElementById('cn')?.value || '',
-        mb: base.mb || base.monthlyCost || document.getElementById('mb')?.value || '',
-        mkwh: base.mkwh || base.monthlyUsage || document.getElementById('mkwh')?.value || '',
-        pkgSelect: base.pkgSelect || base.systemPackage || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || '',
-        sk: base.sk || document.getElementById('sk')?.value || '',
-        ck: base.ck || document.getElementById('ck')?.value || '',
-        ag: base.ag || document.getElementById('ag')?.value || '',
-        sub: base.sub || document.getElementById('sub')?.value || '',
-        wy: base.wy || document.getElementById('wy')?.value || '',
+        cn: document.getElementById('cn')?.value || base.cn || base.customerName || '',
+        mb: document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
+        mkwh: document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
+        pkgSelect: document.getElementById('pkgSelect')?.value || document.getElementById('pkg-select')?.value || base.pkgSelect || base.systemPackage || '',
+        sk: document.getElementById('sk')?.value || base.sk || '',
+        ck: document.getElementById('ck')?.value || base.ck || '',
+        ag: document.getElementById('ag')?.value || base.ag || '',
+        sub: document.getElementById('sub')?.value || base.sub || '',
+        wy: document.getElementById('wy')?.value || base.wy || '',
         fm: base.fm || '',
         ls: base.ls || ''
     };
