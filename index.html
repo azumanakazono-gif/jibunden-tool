@@ -5172,16 +5172,17 @@ function saveCustomer() {
     }
 
     const data = {
-        ...base,
         cn: base.cn || base.customerName || document.getElementById('cn')?.value || '',
         mb: base.mb || base.monthlyCost || document.getElementById('mb')?.value || '',
         mkwh: base.mkwh || base.monthlyUsage || document.getElementById('mkwh')?.value || '',
-        pkgSelect: base.pkgSelect || base.systemPackage || document.getElementById('pkg-select')?.value || '',
-        sk: base.sk || base.pvKw || '',
-        ck: base.ck || base.totalCost || '',
-        ag: base.ag || base.annualGen || '',
-        sub: base.sub || base.subsidy || '',
-        wy: base.wy || base.warranty || ''
+        pkgSelect: base.pkgSelect || base.systemPackage || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || '',
+        sk: base.sk || document.getElementById('sk')?.value || '',
+        ck: base.ck || document.getElementById('ck')?.value || '',
+        ag: base.ag || document.getElementById('ag')?.value || '',
+        sub: base.sub || document.getElementById('sub')?.value || '',
+        wy: base.wy || document.getElementById('wy')?.value || '',
+        fm: base.fm || '',
+        ls: base.ls || ''
     };
 
     if (!data.cn) return;
@@ -5224,7 +5225,6 @@ function saveCustomer() {
 
     const entry = {
         ...base,
-        ...data,
         id: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
@@ -5237,7 +5237,9 @@ function saveCustomer() {
         ag: data.ag,
         sub: data.sub,
         wy: data.wy,
-        monthlyElectricBill: parseFloat(data.mb) || 0
+        monthlyElectricBill: parseFloat(data.mb) || 0,
+        familyComposition: data.fm,
+        lifeStyle: data.ls
     };
 
     h.unshift(entry);
