@@ -5171,6 +5171,7 @@ function saveCustomer() {
         return;
     }
 
+    // 2重定義を完全に排除し、実際のHTMLの正確なIDから最新値を絶対の最優先で取得
     const data = {
         cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
         mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
@@ -5187,7 +5188,7 @@ function saveCustomer() {
 
     if (!data.cn) return;
 
-    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
+    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s\u3000]+/g, "").trim();
     const currentBaseName = cleanName(data.cn);
     if (currentBaseName === "") return;
 
@@ -5195,12 +5196,13 @@ function saveCustomer() {
     const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
 
     if (existingIndex !== -1) {
-        const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
+        const norm = v => (v == null ? '' : String(v).replace(/[\s\u3000]+/g, "").trim());
         const existing = h[existingIndex];
-
-        const isSameContent =
-            norm(existing.mb) === norm(data.mb) &&
-            norm(existing.mkwh) === norm(data.mkwh) &&
+        
+        // 5項目を確実に含めた厳密な中身の文字列一致チェック
+        const isSameContent = 
+            norm(existing.mb) === norm(data.mb) && 
+            norm(existing.mkwh) === norm(data.mkwh) && 
             norm(existing.pkgSelect) === norm(data.pkgSelect) &&
             (norm(existing.sk) === norm(data.sk) || norm(existing.pvKw) === norm(data.sk)) &&
             (norm(existing.ck) === norm(data.ck) || norm(existing.totalCost) === norm(data.ck)) &&
@@ -5210,11 +5212,11 @@ function saveCustomer() {
 
         if (isSameContent) {
             console.log("内容が完全に一致するため、処理をスキップします。");
-            return;
+            return; 
         }
 
         const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
-
+        
         if (isOverwrite) {
             h.splice(existingIndex, 1);
         } else {
@@ -5223,6 +5225,7 @@ function saveCustomer() {
         }
     }
 
+    // 保存用オブジェクトの構築（重複・データ欠落を完全に排除し、互換キー名も維持）
     const entry = {
         ...base,
         id: Date.now(),
@@ -5249,9 +5252,9 @@ function saveCustomer() {
 
     h.unshift(entry);
     if (h.length > 30) h.pop();
-
+    
     localStorage.setItem('jibunden_history', JSON.stringify(h));
-
+    
     if (typeof renderSidebarHistory === 'function') {
         renderSidebarHistory();
     } else if (typeof refreshHistoryDOM === 'function') {
