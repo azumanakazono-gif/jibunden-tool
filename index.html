@@ -5181,7 +5181,12 @@ function saveCustomer() {
     const isSameContent =
       norm(existing.mb)        === norm(data.mb)        &&
       norm(existing.mkwh)      === norm(data.mkwh)      &&
-      norm(existing.pkgSelect) === norm(data.pkgSelect);
+      norm(existing.pkgSelect) === norm(data.pkgSelect) &&
+      norm(existing.sk)        === norm(data.sk)        &&
+      norm(existing.ck)        === norm(data.ck)        &&
+      norm(existing.ag)        === norm(data.ag)        &&
+      norm(existing.sub)       === norm(data.sub)       &&
+      norm(existing.wy)        === norm(data.wy);
 
     if (isSameContent) {
       console.log('内容が完全に一致するため、処理をスキップします。');
