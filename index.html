@@ -5163,21 +5163,26 @@ function _applyMonthlyData(monthly) {
 }
 
 function saveCustomer() {
-  const gv = id => { try { const el = document.getElementById(id); return el ? String(el.value).trim() : ''; } catch(e) { return ''; } };
+  const gv = id => { const el = document.getElementById(id); return el ? String(el.value).trim() : ''; };
 
-  let data;
-  try { data = getFormData(); } catch(e) { data = {}; }
-  if (!data) data = {};
+  let base;
+  try { base = getFormData(); } catch(e) { base = {}; }
+  if (!base) base = {};
 
-  data.cn  = gv('cn')  || data.cn  || '';
-  data.mb  = gv('mb')  || data.mb  || '';
-  data.mkwh = gv('mkwh') || data.mkwh || '';
-  data.pkgSelect = gv('pkg-select') || data.pkgSelect || '';
-  data.sk  = gv('sk');
-  data.ck  = gv('ck');
-  data.ag  = gv('ag');
-  data.sub = gv('sub');
-  data.wy  = gv('wy');
+  const data = {
+    ...base,
+    cn:        gv('cn')         || base.cn        || '',
+    mb:        gv('mb')         || base.mb         || '',
+    mkwh:      gv('mkwh')       || base.mkwh       || '',
+    pkgSelect: gv('pkg-select') || base.pkgSelect  || '',
+    sk:        gv('sk'),
+    ck:        gv('ck'),
+    ag:        gv('ag'),
+    sub:       gv('sub'),
+    wy:        gv('wy'),
+    fm:        gv('fm')         || base.fm         || '',
+    ls:        gv('ls')         || base.ls         || '',
+  };
 
   if (!data.cn) return;
 
@@ -5220,9 +5225,8 @@ function saveCustomer() {
   }
 
   const entry = {
-    ...data,
-    id: Date.now(),
-    date: new Date().toLocaleString('ja-JP'),
+    id:                  Date.now(),
+    date:                new Date().toLocaleString('ja-JP'),
     customerName:        (data.cn || '').trim() || '名称未設定',
     cn:                  data.cn,
     mb:                  data.mb,
@@ -5233,9 +5237,15 @@ function saveCustomer() {
     ag:                  data.ag,
     sub:                 data.sub,
     wy:                  data.wy,
+    fm:                  data.fm,
+    ls:                  data.ls,
     monthlyElectricBill: parseFloat(data.mb) || 0,
     familyComposition:   data.fm || '',
-    lifeStyle:           data.ls || '',
+    ...Object.fromEntries(
+      Object.entries(base).filter(([k]) =>
+        !['id','date','customerName','cn','mb','mkwh','pkgSelect','sk','ck','ag','sub','wy','fm','ls','monthlyElectricBill','familyComposition'].includes(k)
+      )
+    ),
   };
   h.unshift(entry);
   if(h.length>30) h.pop();
