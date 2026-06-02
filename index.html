@@ -5165,20 +5165,32 @@ function _applyMonthlyData(monthly) {
 function saveCustomer() {
   const data = getFormData();
   const _cn = (data.cn || '').trim();
+  const baseCurrentName = _cn.replace(/（内容変更版）.*$/, '');
 
   const h = getHistory();
-  if (h.length > 0) {
-    const last = h[0];
-    const baseLastName    = (last.cn || last.customerName || '').replace(/（内容変更版）.*$/, '');
-    const baseCurrentName = _cn.replace(/（内容変更版）.*$/, '');
-    if (baseCurrentName !== '' && baseLastName === baseCurrentName) {
+
+  if (baseCurrentName !== '') {
+    const existingIndex = h.findIndex(item =>
+      (item.cn || item.customerName || '').replace(/（内容変更版）.*$/, '') === baseCurrentName
+    );
+
+    if (existingIndex !== -1) {
       const norm = v => (v == null ? '' : String(v));
+      const existing = h[existingIndex];
       const isSameContent =
-        last.mb   === data.mb   &&
-        last.mkwh === data.mkwh &&
-        norm(last.pkgSelect) === norm(data.pkgSelect);
+        existing.mb   === data.mb   &&
+        existing.mkwh === data.mkwh &&
+        norm(existing.pkgSelect) === norm(data.pkgSelect);
       if (isSameContent) return;
-      data.cn = `${baseCurrentName}（内容変更版）`;
+
+      const isOverwrite = confirm(
+        '同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）'
+      );
+      if (isOverwrite) {
+        h.splice(existingIndex, 1);
+      } else {
+        data.cn = `${baseCurrentName}（内容変更版）`;
+      }
     }
   }
 
