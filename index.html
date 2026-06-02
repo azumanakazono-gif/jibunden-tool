@@ -5143,21 +5143,103 @@ function _applyMonthlyData(monthly) {
 }
 
 function saveCustomer() {
-  const data = getFormData();
-  const _cn = (data.cn || '').trim();
-  const entry = {
-    ...data,
-    id: Date.now(),
-    date: new Date().toLocaleString('ja-JP'),
-    customerName:        _cn || '名称未設定',
-    monthlyElectricBill: data.mb || 0,
-    familyComposition:   data.fm || '',
-  };
-  const h = getHistory();
-  h.unshift(entry);
-  if(h.length>30) h.pop();
-  saveHistory(h);
-  renderSidebarHistory();
+    let base = {};
+    try {
+        base = getFormData() || {};
+    } catch (e) {
+        console.error("データ取得エラー:", e);
+        return;
+    }
+
+    // 2重定義を完全に排除し、実際のHTMLの正確なID（pvKw, totalCost等）から最新値を絶対の最優先で取得
+    const data = {
+        cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
+        mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
+        mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
+        pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
+        sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || base.pvKw || '',
+        ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || base.totalCost || '',
+        ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || base.annualGen || '',
+        sub: document.getElementById('subsidy')?.value || document.getElementById('sub')?.value || base.sub || base.subsidy || '',
+        wy: document.getElementById('warranty')?.value || document.getElementById('wy')?.value || base.warranty || '',
+        fm: base.fm || '',
+        ls: base.ls || ''
+    };
+
+    if (!data.cn) return;
+
+    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
+    const currentBaseName = cleanName(data.cn);
+    if (currentBaseName === "") return;
+
+    const h = getHistory();
+    const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
+
+    if (existingIndex !== -1) {
+        const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
+        const existing = h[existingIndex];
+
+        // 5項目を確実に含めた厳密な中身の文字列一致チェック
+        const isSameContent =
+            norm(existing.mb) === norm(data.mb) &&
+            norm(existing.mkwh) === norm(data.mkwh) &&
+            norm(existing.pkgSelect) === norm(data.pkgSelect) &&
+            (norm(existing.sk) === norm(data.sk) || norm(existing.pvKw) === norm(data.sk)) &&
+            (norm(existing.ck) === norm(data.ck) || norm(existing.totalCost) === norm(data.ck)) &&
+            (norm(existing.ag) === norm(data.ag) || norm(existing.annualGen) === norm(data.ag)) &&
+            (norm(existing.sub) === norm(data.sub) || norm(existing.subsidy) === norm(data.sub)) &&
+            (norm(existing.wy) === norm(data.wy) || norm(existing.warranty) === norm(data.wy));
+
+        if (isSameContent) {
+            console.log("内容が完全に一致するため、処理をスキップします。");
+            return;
+        }
+
+        const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
+
+        if (isOverwrite) {
+            h.splice(existingIndex, 1);
+        } else {
+            const baseCurrentName = (data.cn || "").replace(/（内容変更版）.*$/, "").trim();
+            data.cn = `${baseCurrentName}（内容変更版）`;
+        }
+    }
+
+    // 保存用オブジェクトの構築（重複・データ欠落を完全に排除し、互換キー名も維持）
+    const entry = {
+        ...base,
+        id: Date.now(),
+        date: new Date().toLocaleString('ja-JP'),
+        customerName: data.cn.trim() || '名称未設定',
+        cn: data.cn,
+        mb: data.mb,
+        mkwh: data.mkwh,
+        pkgSelect: data.pkgSelect,
+        sk: data.sk,
+        ck: data.ck,
+        ag: data.ag,
+        sub: data.sub,
+        wy: data.wy,
+        pvKw: data.sk,
+        totalCost: data.ck,
+        annualGen: data.ag,
+        subsidy: data.sub,
+        warranty: data.wy,
+        monthlyElectricBill: parseFloat(data.mb) || 0,
+        familyComposition: data.fm,
+        lifeStyle: data.ls
+    };
+
+    h.unshift(entry);
+    if (h.length > 30) h.pop();
+
+    localStorage.setItem('jibunden_history', JSON.stringify(h));
+
+    if (typeof renderSidebarHistory === 'function') {
+        renderSidebarHistory();
+    } else if (typeof refreshHistoryDOM === 'function') {
+        refreshHistoryDOM();
+    }
 }
 
 function loadCustomer(id) {
