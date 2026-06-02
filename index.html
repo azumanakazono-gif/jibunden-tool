@@ -5224,8 +5224,18 @@ function saveCustomer() {
     id: Date.now(),
     date: new Date().toLocaleString('ja-JP'),
     customerName:        (data.cn || '').trim() || '名称未設定',
-    monthlyElectricBill: parseFloat(data.mb)  || 0,
+    cn:                  data.cn,
+    mb:                  data.mb,
+    mkwh:                data.mkwh,
+    pkgSelect:           data.pkgSelect,
+    sk:                  data.sk,
+    ck:                  data.ck,
+    ag:                  data.ag,
+    sub:                 data.sub,
+    wy:                  data.wy,
+    monthlyElectricBill: parseFloat(data.mb) || 0,
     familyComposition:   data.fm || '',
+    lifeStyle:           data.ls || '',
   };
   h.unshift(entry);
   if(h.length>30) h.pop();
