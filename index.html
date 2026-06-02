@@ -5172,15 +5172,15 @@ function saveCustomer() {
     }
 
     const data = {
-        cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
-        mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
-        mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
-        pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
-        sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || '',
-        ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || '',
-        ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || '',
-        sub: document.getElementById('subsidy')?.value || document.getElementById('sub')?.value || base.sub || '',
-        wy: document.getElementById('warranty')?.value || document.getElementById('wy')?.value || base.wy || '',
+        cn: document.getElementById('cn')?.value || base.cn || base.customerName || '',
+        mb: document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
+        mkwh: document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
+        pkgSelect: document.getElementById('pkgSelect')?.value || document.getElementById('pkg-select')?.value || base.pkgSelect || base.systemPackage || '',
+        sk: document.getElementById('sk')?.value || base.sk || '',
+        ck: document.getElementById('ck')?.value || base.ck || '',
+        ag: document.getElementById('ag')?.value || base.ag || '',
+        sub: document.getElementById('sub')?.value || base.sub || '',
+        wy: document.getElementById('wy')?.value || base.wy || '',
         fm: base.fm || '',
         ls: base.ls || ''
     };
