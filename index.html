@@ -5164,12 +5164,7 @@ function _applyMonthlyData(monthly) {
 
 function saveCustomer() {
     let base = {};
-    try {
-        base = getFormData() || {};
-    } catch (e) {
-        console.error("データ取得エラー:", e);
-        return;
-    }
+    try { base = getFormData() || {}; } catch (e) { console.error(e); return; }
 
     const data = {
         cn: document.getElementById('cn')?.value || base.cn || base.customerName || '',
@@ -5186,7 +5181,6 @@ function saveCustomer() {
     };
 
     if (!data.cn) return;
-
     const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
     const currentBaseName = cleanName(data.cn);
     if (currentBaseName === "") return;
@@ -5197,7 +5191,6 @@ function saveCustomer() {
     if (existingIndex !== -1) {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
         const existing = h[existingIndex];
-
         const isSameContent =
             norm(existing.mb) === norm(data.mb) &&
             norm(existing.mkwh) === norm(data.mkwh) &&
@@ -5208,13 +5201,9 @@ function saveCustomer() {
             (norm(existing.sub) === norm(data.sub) || norm(existing.subsidy) === norm(data.sub)) &&
             (norm(existing.wy) === norm(data.wy) || norm(existing.warranty) === norm(data.wy));
 
-        if (isSameContent) {
-            console.log("内容が完全に一致するため、処理をスキップします。");
-            return;
-        }
+        if (isSameContent) return;
 
         const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
-
         if (isOverwrite) {
             h.splice(existingIndex, 1);
         } else {
@@ -5228,35 +5217,16 @@ function saveCustomer() {
         id: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
-        cn: data.cn,
-        mb: data.mb,
-        mkwh: data.mkwh,
-        pkgSelect: data.pkgSelect,
-        sk: data.sk,
-        ck: data.ck,
-        ag: data.ag,
-        sub: data.sub,
-        wy: data.wy,
-        pvKw: data.sk,
-        totalCost: data.ck,
-        annualGen: data.ag,
-        subsidy: data.sub,
-        warranty: data.wy,
-        monthlyElectricBill: parseFloat(data.mb) || 0,
-        familyComposition: data.fm,
-        lifeStyle: data.ls
+        cn: data.cn, mb: data.mb, mkwh: data.mkwh, pkgSelect: data.pkgSelect,
+        sk: data.sk, ck: data.ck, ag: data.ag, sub: data.sub, wy: data.wy,
+        pvKw: data.sk, totalCost: data.ck, annualGen: data.ag, subsidy: data.sub, warranty: data.wy,
+        monthlyElectricBill: parseFloat(data.mb) || 0, familyComposition: data.fm, lifeStyle: data.ls
     };
 
     h.unshift(entry);
     if (h.length > 30) h.pop();
-
     localStorage.setItem('jibunden_history', JSON.stringify(h));
-
-    if (typeof renderSidebarHistory === 'function') {
-        renderSidebarHistory();
-    } else if (typeof refreshHistoryDOM === 'function') {
-        refreshHistoryDOM();
-    }
+    if (typeof renderSidebarHistory === 'function') { renderSidebarHistory(); } else if (typeof refreshHistoryDOM === 'function') { refreshHistoryDOM(); }
 }
 
 function loadCustomer(id) {
