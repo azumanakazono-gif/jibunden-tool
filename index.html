@@ -5164,26 +5164,27 @@ function _applyMonthlyData(monthly) {
 
 function saveCustomer() {
   const data = getFormData();
-  const _cn = (data.cn || '').trim();
-  const baseCurrentName = _cn.replace(/（内容変更版）.*$/, '');
+
+  const cleanName = str => (str || '').replace(/（内容変更版）.*$/, '').replace(/[\s　]+/g, '').trim();
+  const currentBaseName = cleanName(data.cn);
 
   const h = getHistory();
 
-  if (baseCurrentName !== '') {
+  if (currentBaseName !== '') {
     const existingIndex = h.findIndex(item =>
-      (item.cn || item.customerName || '').replace(/（内容変更版）.*$/, '') === baseCurrentName
+      cleanName(item.cn || item.customerName) === currentBaseName
     );
 
     if (existingIndex !== -1) {
-      const norm = v => (v == null ? '' : String(v));
+      const norm = v => (v == null ? '' : String(v).trim());
       const existing = h[existingIndex];
       const isSameContent =
-        existing.mb   === data.mb   &&
-        existing.mkwh === data.mkwh &&
+        norm(existing.mb)        === norm(data.mb)        &&
+        norm(existing.mkwh)      === norm(data.mkwh)      &&
         norm(existing.pkgSelect) === norm(data.pkgSelect);
 
       if (isSameContent) {
-        console.log('内容が完全に一致するため、履歴追加をスキップします。');
+        console.log('内容が完全に一致するため、処理をスキップします。');
         return;
       }
 
@@ -5193,6 +5194,7 @@ function saveCustomer() {
       if (isOverwrite) {
         h.splice(existingIndex, 1);
       } else {
+        const baseCurrentName = (data.cn || '').replace(/（内容変更版）.*$/, '').trim();
         data.cn = `${baseCurrentName}（内容変更版）`;
       }
     }
