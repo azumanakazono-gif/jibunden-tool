@@ -2601,6 +2601,12 @@ function loadDataToForm(data) {
     document.getElementById('bc').value = _pp.bc;
     document.getElementById('ck').value = _pp.cost + _extra;
   }
+  // パッケージ初期値より保存済み手動入力値を最優先で復元
+  if (data.sk) document.getElementById('sk').value = data.sk;
+  if (data.ag) document.getElementById('ag').value = data.ag;
+  if (data.ck) document.getElementById('ck').value = data.ck;
+  if (data.sub != null) document.getElementById('sub').value = data.sub;
+  if (data.wy  != null) document.getElementById('wy').value  = data.wy;
   const isManual = !ps;
   document.getElementById('pkg-manual-area').style.display = isManual ? '' : 'none';
   document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
@@ -2635,6 +2641,10 @@ function loadDataToForm(data) {
       document.getElementById('sk').value = p.sk;
       document.getElementById('ag').value = p.ag;
       document.getElementById('ck').value = p.cost + extra;
+      // パッケージ初期値より保存済み手動入力値を最優先で復元
+      if (data.sk) document.getElementById('sk').value = data.sk;
+      if (data.ag) document.getElementById('ag').value = data.ag;
+      if (data.ck) document.getElementById('ck').value = data.ck;
       document.getElementById('pkg-manual-area').style.display = 'none';
       const extraFieldEl     = document.getElementById('pkg-extra-pv-field');
       const extraNoteFieldEl = document.getElementById('pkg-extra-pv-note-field');
