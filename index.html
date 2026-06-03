@@ -5171,12 +5171,13 @@ function saveCustomer() {
         return;
     }
 
-    // 2重定義を完全に排除し、実際のHTMLの正確なIDから最新値を絶対の最優先で取得
+    // パッケージの初期値（120万円等）よりも、ユーザーが画面に手動で打ち込んだ最新の入力値（280万円等）を絶対の最優先で取得するロジック
     const data = {
         cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
         mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
         mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
         pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
+        // 画面の入力欄（pvKw / totalCost）に値があれば、それを最優先（baseや初期値より優先）で取得
         sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || base.pvKw || '',
         ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || base.totalCost || '',
         ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || base.annualGen || '',
@@ -5188,7 +5189,7 @@ function saveCustomer() {
 
     if (!data.cn) return;
 
-    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s\u3000]+/g, "").trim();
+    const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
     const currentBaseName = cleanName(data.cn);
     if (currentBaseName === "") return;
 
@@ -5196,10 +5197,9 @@ function saveCustomer() {
     const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
 
     if (existingIndex !== -1) {
-        const norm = v => (v == null ? '' : String(v).replace(/[\s\u3000]+/g, "").trim());
+        const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
         const existing = h[existingIndex];
         
-        // 5項目を確実に含めた厳密な中身の文字列一致チェック
         const isSameContent = 
             norm(existing.mb) === norm(data.mb) && 
             norm(existing.mkwh) === norm(data.mkwh) && 
@@ -5225,7 +5225,6 @@ function saveCustomer() {
         }
     }
 
-    // 保存用オブジェクトの構築（重複・データ欠落を完全に排除し、互換キー名も維持）
     const entry = {
         ...base,
         id: Date.now(),
