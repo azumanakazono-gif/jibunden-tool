@@ -5172,12 +5172,14 @@ function saveCustomer() {
     }
 
     // パッケージの初期値（120万円等）よりも、ユーザーが画面に手動で打ち込んだ最新の入力値（280万円等）を絶対の最優先で取得するロジック
+    // 画面の要素（pvKw、totalCostなど）に入力されている生の値を、baseよりも最優先で評価します
     const data = {
         cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
         mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
         mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
         pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
-        // 画面の入力欄（pvKw / totalCost）に値があれば、それを最優先（baseや初期値より優先）で取得
+        
+        // 画面の入力欄の数値をbaseより先に評価して、手動入力の280万円等を絶対死守する
         sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || base.pvKw || '',
         ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || base.totalCost || '',
         ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || base.annualGen || '',
