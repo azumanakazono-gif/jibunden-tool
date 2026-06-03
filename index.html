@@ -5171,11 +5171,15 @@ function saveCustomer() {
         return;
     }
 
+    // パッケージの初期値（120万円等）よりも、ユーザーが画面に手動で打ち込んだ最新の入力値（280万円等）を絶対の最優先で取得するロジック
+    // 画面の要素（pvKw、totalCostなど）に入力されている生の値を、baseよりも最優先で評価します
     const data = {
         cn: document.getElementById('proposal-name')?.value || document.getElementById('cn')?.value || base.cn || base.customerName || '',
         mb: document.getElementById('monthlyCost')?.value || document.getElementById('mb')?.value || base.mb || base.monthlyCost || '',
         mkwh: document.getElementById('monthlyUsage')?.value || document.getElementById('mkwh')?.value || base.mkwh || base.monthlyUsage || '',
         pkgSelect: document.getElementById('systemPackage')?.value || document.getElementById('pkg-select')?.value || document.getElementById('pkgSelect')?.value || base.pkgSelect || base.systemPackage || '',
+        
+        // 画面の入力欄の数値をbaseより先に評価して、手動入力の280万円等を絶対死守する
         sk: document.getElementById('pvKw')?.value || document.getElementById('sk')?.value || base.sk || base.pvKw || '',
         ck: document.getElementById('totalCost')?.value || document.getElementById('ck')?.value || base.ck || base.totalCost || '',
         ag: document.getElementById('annualGen')?.value || document.getElementById('ag')?.value || base.ag || base.annualGen || '',
@@ -5197,10 +5201,10 @@ function saveCustomer() {
     if (existingIndex !== -1) {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
         const existing = h[existingIndex];
-
-        const isSameContent =
-            norm(existing.mb) === norm(data.mb) &&
-            norm(existing.mkwh) === norm(data.mkwh) &&
+        
+        const isSameContent = 
+            norm(existing.mb) === norm(data.mb) && 
+            norm(existing.mkwh) === norm(data.mkwh) && 
             norm(existing.pkgSelect) === norm(data.pkgSelect) &&
             (norm(existing.sk) === norm(data.sk) || norm(existing.pvKw) === norm(data.sk)) &&
             (norm(existing.ck) === norm(data.ck) || norm(existing.totalCost) === norm(data.ck)) &&
@@ -5210,11 +5214,11 @@ function saveCustomer() {
 
         if (isSameContent) {
             console.log("内容が完全に一致するため、処理をスキップします。");
-            return;
+            return; 
         }
 
         const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
-
+        
         if (isOverwrite) {
             h.splice(existingIndex, 1);
         } else {
@@ -5249,9 +5253,9 @@ function saveCustomer() {
 
     h.unshift(entry);
     if (h.length > 30) h.pop();
-
+    
     localStorage.setItem('jibunden_history', JSON.stringify(h));
-
+    
     if (typeof renderSidebarHistory === 'function') {
         renderSidebarHistory();
     } else if (typeof refreshHistoryDOM === 'function') {
