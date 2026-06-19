@@ -4953,6 +4953,9 @@ function calc() {
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
   if (proposalMode !== 'pv_only') {
     document.getElementById('dc-so').value = dc;
+    document.getElementById('sk-so').value = sk;
+    document.getElementById('ag-so').value = ag;
+    document.getElementById('ck-so').value = v('ck');
     var _mainPkgVal = document.getElementById('pkg-select').value;
     var _soMapped = _mainPkgVal ? 'pv' + _mainPkgVal.split('+')[0] : '';
     var _soPkgEl = document.getElementById('pkg-select-so');
