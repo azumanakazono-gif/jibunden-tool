@@ -1084,7 +1084,7 @@ canvas#mini-chart { height: 220px !important; }
       <div class="grid2" style="margin-bottom:12px">
         <div class="field">
           <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
-          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="calc()">
+          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="calc()" readonly style="background:#f1f5f9;cursor:not-allowed">
         </div>
       </div>
       <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
@@ -5204,9 +5204,7 @@ function calc() {
       if (_pbPkg) {
         pbAg = _pbPkg.ag; pbSk = _pbPkg.sk; pbBc = _pbPkg.bc;
         pbCk = _pbPkg.cost + (parseFloat(document.getElementById('pkg-extra').value) || 0);
-        var _pbRate = getDaytimeRate();
-        var _pbAnnCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
-        pbDc = _pbRate !== null ? Math.round(Math.min(pbAg * 0.65, _pbAnnCons * _pbRate)) : Math.round(pbAg * 0.30);
+        pbDc = dc;
       } else {
         pbAg = ag; pbDc = dc; pbBc = bc; pbSk = sk; pbCk = v('ck');
       }
