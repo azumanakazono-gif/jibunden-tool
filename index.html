@@ -1058,6 +1058,7 @@ canvas#mini-chart { height: 220px !important; }
             </div>
           </div>
         </div>
+        <div id="self-detail-so" style="display:none"></div>
       </div>
     </div>
 
@@ -5213,6 +5214,21 @@ function calc() {
     document.getElementById('pv-only-sell-prefix').style.display = hasRevSo ? '' : 'none';
     document.getElementById('pv-only-sell-unit').style.display = hasRevSo ? '' : 'none';
     document.getElementById('pv-only-sell-card').style.opacity = hasRevSo ? '1' : '0.4';
+    // ── 太陽光のみ：詳細情報エリア ──
+    var remainKwhSo = Math.max(0, annualConsumptionKWh - dcSo);
+    var detailSoEl = document.getElementById('self-detail-so');
+    if (detailSoEl) {
+      detailSoEl.style.display = '';
+      detailSoEl.innerHTML =
+        '<div style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">' +
+          '<span>⚡ 年間発電量：<b>' + fmt(agSo) + ' kWh</b></span>' +
+          '<span>🏠 自家消費量：<b>' + fmt(dcSo) + ' kWh/年</b></span>' +
+          '<span>📤 余剰電力量：<b>' + fmt(surplusSo) + ' kWh/年</b></span>' +
+          '<span style="color:var(--or)">🛒 残り購入量：<b>' + fmt(remainKwhSo) + ' kWh/年</b>（月平均 ¥' + fmt(mSo.remainBill) + '）</span>' +
+          '<span>💡 買電単価：<b>' + up.toFixed(1) + '円/kWh</b></span>' +
+          (soValid && _saleP0 > 0 ? '<span>💴 売電単価：<b>' + _saleP0 + '円/kWh</b></span>' : '') +
+        '</div>';
+    }
   })();
   // バリデーションバッジ (Solar+Battery)
   (function() {
