@@ -1039,11 +1039,11 @@ canvas#mini-chart { height: 220px !important; }
     <!-- ══════ 太陽光のみ システム設計カード ══════ -->
     <div class="section-card" id="system-design-card-so" style="border:2px solid #7dd3fc;background:#f8fbff">
       <div class="section-title" style="color:#fff;background:#2563eb;border-bottom:none;padding:10px 14px;border-radius:8px;margin-bottom:12px">☀️ システム設計（太陽光のみ）</div>
-      <div id="pkg-area-so" style="background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;padding:10px 14px;margin-bottom:12px">
+      <div id="pkg-area-so" style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;margin-bottom:12px">
         <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
           <div class="field" style="flex:2;min-width:200px">
             <label>📦 システムパッケージ（太陽光のみ）</label>
-            <select id="pkg-select-so" onchange="onPkgChangeSo()" style="border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
+            <select id="pkg-select-so" onchange="onPkgChangeSo()" disabled style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#f1f5f9;color:var(--text);font-family:inherit;width:100%;cursor:not-allowed">
               <option value="">— 手動入力（パッケージ選択なし）—</option>
               <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
               <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
