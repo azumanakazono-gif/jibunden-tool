@@ -1739,12 +1739,12 @@ function applyProposalMode() {
   document.getElementById('field-sk-wrap').style.display   = hasSolar   ? '' : 'none';
   document.getElementById('field-ag-wrap').style.display   = hasSolar   ? '' : 'none';
   document.getElementById('field-dc-wrap').style.display   = hasSolar   ? '' : 'none';
-  document.getElementById('field-bk-wrap').style.display   = hasBattery ? '' : 'none';
-  document.getElementById('field-bc-wrap').style.display   = hasBattery ? '' : 'none';
+  document.getElementById('field-bk-wrap').style.display   = '';
+  document.getElementById('field-bc-wrap').style.display   = '';
 
   // パッケージ選択（全パッケージが太陽光＋蓄電池のため pv_battery のみ表示）
   document.getElementById('pkg-area').style.display           = proposalMode !== 'battery_only' ? '' : 'none';
-  document.getElementById('pkg-row-pv-battery').style.display = proposalMode === 'pv_battery' ? 'flex' : 'none';
+  document.getElementById('pkg-row-pv-battery').style.display = proposalMode !== 'battery_only' ? 'flex' : 'none';
   document.getElementById('pkg-row-pv-only').style.display    = 'none'; // Solar Only は独立カード化済み
   // pv_only 切替時は手動入力状態で初期化
   if (proposalMode === 'pv_only') {
