@@ -5084,7 +5084,11 @@ function calc() {
   // 上昇率がある場合は20年電気代を上昇後の数値で表示
   const bill20Show = er > 0 ? m.bill20YMan_rise : m.bill20YMan;
   const ratio = Math.min(m.totalCostMan/bill20Show, 1);
-  updateSelfSummary(dc, bc_eff, ag, mb, up, m.remainKWh, m.remainBill, bk);
+  // 蓄電池側カードには常に蓄電池ありの値を表示（pv_onlyモードでも上書きしない）
+  const m_pb = proposalMode === 'pv_only'
+    ? calcMetrics({ ...c, batteryConsumptionKWh: bc })
+    : m;
+  updateSelfSummary(dc, bc, ag, mb, up, m_pb.remainKWh, m_pb.remainBill, bk);
 
   // 補助金サマリー表示
   const subEl = document.getElementById('subsidy-summary');
