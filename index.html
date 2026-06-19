@@ -4815,6 +4815,9 @@ function _renderDualBreakdown(pbData, soData) {
   var row = function(icon, label, val, unit, color) {
     return '<div class="dual-breakdown-row"><span class="db-label">' + icon + ' ' + label + '</span><span class="db-val" style="color:' + (color||'#1e293b') + '">' + val + ' ' + (unit||'') + '</span></div>';
   };
+  var spacerRow = function() {
+    return '<div class="dual-breakdown-row" style="visibility:hidden"><span class="db-label"> </span><span class="db-val"> </span></div>';
+  };
   var section = function(title, rows) {
     return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;padding:2px 0;border-bottom:1px dashed #cbd5e1">' + title + '</div>' + rows + '</div>';
   };
@@ -4833,7 +4836,7 @@ function _renderDualBreakdown(pbData, soData) {
         row('🏗️','初期費用（実質）', pbData.totalCostMan + '万円','','#1e40af') +
         row('💡','月額残り電気代', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
         row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
-        (pbData.annualSell > 0 ? row('💴','年間売電収入', '約 ¥' + f(pbData.annualSell),'','#0f766e') : '') +
+        row('💴','年間売電収入', pbData.annualSell > 0 ? '約 ¥' + f(pbData.annualSell) : '—','', pbData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
       ) +
       section('🔢 自家消費率',
@@ -4855,6 +4858,7 @@ function _renderDualBreakdown(pbData, soData) {
       section('📊 エネルギー収支',
         row('⚡','年間発電量', f(soData.ag) + ' kWh','','#1d4ed8') +
         row('☀️','太陽光直接消費', f(soData.dc) + ' kWh/年','（月' + f(Math.round(soData.dc/12)) + 'kWh）','#22c55e') +
+        spacerRow() +
         row('📤','余剰（売電）', f(soData.surplus) + ' kWh/年','','#0369a1') +
         row('🛒','残り買電量', f(soData.remainKwh) + ' kWh/年','（月' + f(Math.round(soData.remainKwh/12)) + 'kWh）','#dc2626')
       ) +
@@ -4862,7 +4866,7 @@ function _renderDualBreakdown(pbData, soData) {
         row('🏗️','初期費用（実質）', soData.totalCostMan + '万円','','#1e40af') +
         row('💡','月額残り電気代', '約 ¥' + f(soData.remainBill),'','#dc2626') +
         row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
-        (soData.annualSell > 0 ? row('💴','年間売電収入', '約 ¥' + f(soData.annualSell),'','#0f766e') : '') +
+        row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
       ) +
       section('🔢 自家消費率',
@@ -5187,8 +5191,8 @@ function calc() {
     var selfKwhPb = dc + bc_eff;
     var surplusPb = Math.max(0, ag - selfKwhPb);
     var remainKwhPb = Math.max(0, annualConsumptionKWh - selfKwhPb);
-    var selfRatePb = parseInt(document.getElementById('self-rate-val').textContent) || 0;
-    var surplusRatePb = parseInt(document.getElementById('surplus-rate-val').textContent) || 0;
+    var selfRatePb = ag > 0 ? Math.min(100, Math.round(selfKwhPb / ag * 100)) : 0;
+    var surplusRatePb = ag > 0 ? Math.round(surplusPb / ag * 100) : 0;
     var pbData = {
       ag: ag, dc: dc, bc: bc_eff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: m.remainBill,
@@ -5218,8 +5222,8 @@ function calc() {
     var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
     var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
     var diffSo2 = mSo2.costDiff_with_rise + Math.round(annSellSo2 * wySo2 / 10000);
-    var selfRateSo2 = parseInt(document.getElementById('self-rate-val').textContent) || 0;
-    var surplusRateSo2 = parseInt(document.getElementById('surplus-rate-val').textContent) || 0;
+    var selfRateSo2 = agSo2 > 0 ? Math.min(100, Math.round(dcSo2 / agSo2 * 100)) : 0;
+    var surplusRateSo2 = agSo2 > 0 ? Math.round(surplusSo2 / agSo2 * 100) : 0;
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
       remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
