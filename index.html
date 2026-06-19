@@ -2612,6 +2612,11 @@ function onPkgChangeSo() {
     document.getElementById('sk-so').value = p.sk;
     document.getElementById('ag-so').value = p.ag;
     document.getElementById('ck-so').value = p.cost + extra;
+    var rate = getDaytimeRate();
+    if (rate !== null) {
+      var annCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
+      document.getElementById('dc-so').value = Math.round(Math.min(p.ag * 0.65, annCons * rate));
+    }
   }
   updatePkgSummarySo();
   calc();
