@@ -1036,6 +1036,29 @@ canvas#mini-chart { height: 220px !important; }
         </div>
       </div>
       <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
+      <!-- 金額カード（年間自家消費メリット / 年間余剰売電収入）太陽光のみ -->
+      <div id="kpi-area-so" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
+        <div class="grid2" style="gap:10px">
+          <div style="border-radius:12px;padding:16px 12px;border:2px solid #93c5fd;background:#eff6ff;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:2px">年間自家消費メリット</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">買電を減らせる見込み額</div>
+            <div style="display:flex;align-items:baseline;gap:2px">
+              <span style="font-size:11px;color:#1d4ed8;font-weight:700">約</span>
+              <span id="pv-only-solar-benefit" style="font-size:26px;font-weight:900;color:#1d4ed8;line-height:1">-</span>
+              <span style="font-size:12px;color:#1d4ed8;font-weight:700">円/年</span>
+            </div>
+          </div>
+          <div id="pv-only-sell-card" style="border-radius:12px;padding:16px 12px;border:2px solid #7dd3fc;background:#f0f9ff;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:2px">年間余剰売電収入</div>
+            <div style="font-size:11px;color:var(--muted);margin-bottom:6px">余剰電力を売る見込み額</div>
+            <div style="display:flex;align-items:baseline;gap:2px">
+              <span id="pv-only-sell-prefix" style="font-size:11px;color:#0369a1;font-weight:700">約</span>
+              <span id="pv-only-sell-benefit" style="font-size:26px;font-weight:900;color:#0369a1;line-height:1">-</span>
+              <span id="pv-only-sell-unit" style="font-size:12px;color:#0369a1;font-weight:700">円/年</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- 売電設定（グローバル共有） -->
@@ -5182,6 +5205,14 @@ function calc() {
       if (subSo > 0) { subElSo.style.display=''; subElSo.innerHTML='工事費用：<b>'+mSo.grossCostMan+'万円</b> − 補助金：<b style="color:#16a34a">'+mSo.subsidyMan+'万円</b> ＝ <b style="font-size:15px">実質：'+mSo.totalCostMan+'万円</b>'; }
       else { subElSo.style.display='none'; }
     }
+    // ── 太陽光のみ：年間自家消費メリット / 年間余剰売電収入 カード ──
+    var selfSavingSo = Math.round(dcSo * up);
+    document.getElementById('pv-only-solar-benefit').textContent = fmt(selfSavingSo);
+    var hasRevSo = soValid && surplusSo > 0 && _saleP0 > 0;
+    document.getElementById('pv-only-sell-benefit').textContent = hasRevSo ? fmt(annualSellSo) : '-';
+    document.getElementById('pv-only-sell-prefix').style.display = hasRevSo ? '' : 'none';
+    document.getElementById('pv-only-sell-unit').style.display = hasRevSo ? '' : 'none';
+    document.getElementById('pv-only-sell-card').style.opacity = hasRevSo ? '1' : '0.4';
   })();
   // バリデーションバッジ (Solar+Battery)
   (function() {
