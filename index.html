@@ -2520,6 +2520,7 @@ const PACKAGES = {
   '14+15':{panels:36,sk:14.04,bk:15.4,cost:500,ag:15444,bc:3935},
 };
 let pkgBaseCost = 280;
+let pkgBaseCostPv = 120;
 let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
@@ -2589,7 +2590,7 @@ function onPkgChangePv() {
   if (!isManual && PACKAGES_PV[key]) {
     const p = PACKAGES_PV[key];
     const extra = parseFloat(document.getElementById('pkg-extra-pv').value) || 0;
-    pkgBaseCost = p.cost;
+    pkgBaseCostPv = p.cost;
     document.getElementById('sk').value = p.sk;
     document.getElementById('ag').value = p.ag;
     document.getElementById('ck').value = p.cost + extra;
@@ -2602,7 +2603,7 @@ function onPkgExtraChangePv() {
   const extra = parseFloat(document.getElementById('pkg-extra-pv').value) || 0;
   const key = document.getElementById('pkg-select-pv').value;
   if (key && PACKAGES_PV[key]) {
-    document.getElementById('ck').value = pkgBaseCost + extra;
+    document.getElementById('ck').value = pkgBaseCostPv + extra;
   }
   updatePkgSummaryPv();
   calc();
@@ -2611,16 +2612,14 @@ function onPkgExtraChangePv() {
 let pkgBaseCostSo = 120;
 function onPkgChangeSo() {
   const soVal = document.getElementById('pkg-select-so').value;
-  const mainSel = document.getElementById('pkg-select');
-  if (soVal && mainSel) {
-    const pvNum = soVal.replace('pv', '');
-    const bkVal = parseFloat(document.getElementById('bk').value) || 7.7;
-    const bkKey = bkVal > 12 ? '15' : (bkVal > 8 ? '9' : '7');
-    mainSel.value = pvNum + '+' + bkKey;
-  }
   if (soVal && PACKAGES_PV[soVal]) {
-    document.getElementById('ck-so').value = PACKAGES_PV[soVal].cost;
+    const p = PACKAGES_PV[soVal];
+    pkgBaseCostSo = p.cost;
+    document.getElementById('sk-so').value = p.sk;
+    document.getElementById('ag-so').value = p.ag;
+    document.getElementById('ck-so').value = p.cost;
   }
+  updatePkgSummarySo();
   calc();
 }
 
@@ -2850,7 +2849,7 @@ function loadDataToForm(data) {
     if (PACKAGES_PV[pvKey]) {
       const p = PACKAGES_PV[pvKey];
       const extra = data.pkgExtraPv || 0;
-      pkgBaseCost = p.cost;
+      pkgBaseCostPv = p.cost;
       document.getElementById('sk').value = p.sk;
       document.getElementById('ag').value = p.ag;
       document.getElementById('ck').value = p.cost + extra;
@@ -4953,14 +4952,6 @@ function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
   document.getElementById('dc-so').value = dc;
-  document.getElementById('sk-so').value = sk;
-  document.getElementById('ag-so').value = ag;
-  if (proposalMode === 'pv_only') { document.getElementById('ck').value = document.getElementById('ck-so').value; }
-  else { document.getElementById('ck-so').value = v('ck'); }
-  var _mainPkgVal = document.getElementById('pkg-select').value;
-  var _soMapped = _mainPkgVal ? 'pv' + _mainPkgVal.split('+')[0] : '';
-  var _soPkgEl = document.getElementById('pkg-select-so');
-  if (_soPkgEl && _soPkgEl.querySelector('option[value="'+_soMapped+'"]')) { _soPkgEl.value = _soMapped; }
   document.getElementById('pkg-area-so').style.display = '';
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
@@ -5603,7 +5594,7 @@ function clearForm() {
   document.getElementById('ag-so').value=7722; document.getElementById('sub-so').value=0;
   document.getElementById('wy-so').value=20; document.getElementById('dc-so').value=2310;
   document.getElementById('pkg-select-so').value='pv7'; document.getElementById('pkg-extra-so').value=0;
-  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=120; updatePkgSummarySo();
+  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=120; pkgBaseCostPv=120; updatePkgSummarySo();
 }
 
 // ══════════════════════════════════════════
