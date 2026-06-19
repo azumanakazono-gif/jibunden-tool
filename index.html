@@ -2606,35 +2606,14 @@ function onPkgExtraChangePv() {
 
 let pkgBaseCostSo = 120;
 function onPkgChangeSo() {
-  const key = document.getElementById('pkg-select-so').value;
-  const isManual = !key;
-  const extraFieldEl     = document.getElementById('pkg-extra-so-field');
-  const extraNoteFieldEl = document.getElementById('pkg-extra-so-note-field');
-  if (extraFieldEl)     extraFieldEl.style.display     = isManual ? 'none' : '';
-  if (extraNoteFieldEl) extraNoteFieldEl.style.display = isManual ? 'none' : '';
-  if (!isManual && PACKAGES_PV[key]) {
-    const p = PACKAGES_PV[key];
-    const extra = parseFloat(document.getElementById('pkg-extra-so').value) || 0;
-    pkgBaseCostSo = p.cost;
-    document.getElementById('sk-so').value = p.sk;
-    document.getElementById('ag-so').value = p.ag;
-    document.getElementById('ck-so').value = p.cost + extra;
-    var rate = getDaytimeRate();
-    if (rate !== null) {
-      var annCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
-      document.getElementById('dc-so').value = Math.round(Math.min(p.ag * 0.65, annCons * rate));
-    }
+  const soVal = document.getElementById('pkg-select-so').value;
+  const mainSel = document.getElementById('pkg-select');
+  if (soVal && mainSel) {
+    const pvNum = soVal.replace('pv', '');
+    const bkVal = parseFloat(document.getElementById('bk').value) || 7.7;
+    const bkKey = bkVal > 12 ? '15' : (bkVal > 8 ? '9' : '7');
+    mainSel.value = pvNum + '+' + bkKey;
   }
-  // SO→PBパッケージ逆マッピング
-  if (!isManual) {
-    var _pvNum = key.replace('pv','');
-    var _bkVal = parseFloat(document.getElementById('bk').value) || 7.7;
-    var _bkKey = _bkVal > 12 ? '15' : _bkVal > 8 ? '9' : '7';
-    var _pbKey = _pvNum + '+' + _bkKey;
-    var _pbSel = document.getElementById('pkg-select');
-    if (_pbSel.querySelector('option[value="'+_pbKey+'"]')) { _pbSel.value = _pbKey; onPkgChange(); }
-  }
-  updatePkgSummarySo();
   calc();
 }
 
