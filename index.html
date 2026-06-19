@@ -1742,12 +1742,18 @@ function applyProposalMode() {
   document.getElementById('field-bk-wrap').style.display   = '';
   document.getElementById('field-bc-wrap').style.display   = '';
 
-  // 緑カードの有効/無効表示
+  // カードの有効/無効表示
   var _sdCard = document.getElementById('system-design-card');
+  var _sdCardSo = document.getElementById('system-design-card-so');
+  var _pkgSelSo = document.getElementById('pkg-select-so');
   if (proposalMode === 'pv_only') {
     _sdCard.style.opacity = '0.5'; _sdCard.style.pointerEvents = 'none'; _sdCard.style.background = '#f1f5f9';
+    _sdCardSo.style.opacity = '1'; _sdCardSo.style.pointerEvents = 'auto'; _sdCardSo.style.background = '';
+    if (_pkgSelSo) { _pkgSelSo.disabled = false; _pkgSelSo.style.background = '#fff'; _pkgSelSo.style.cursor = ''; }
   } else {
     _sdCard.style.opacity = '1'; _sdCard.style.pointerEvents = 'auto'; _sdCard.style.background = '';
+    _sdCardSo.style.opacity = '0.5'; _sdCardSo.style.pointerEvents = 'none'; _sdCardSo.style.background = '#f1f5f9';
+    if (_pkgSelSo) { _pkgSelSo.disabled = true; _pkgSelSo.style.background = '#f1f5f9'; _pkgSelSo.style.cursor = 'not-allowed'; }
   }
 
   // パッケージ選択（全パッケージが太陽光＋蓄電池のため pv_battery のみ表示）
@@ -2600,26 +2606,14 @@ function onPkgExtraChangePv() {
 
 let pkgBaseCostSo = 120;
 function onPkgChangeSo() {
-  const key = document.getElementById('pkg-select-so').value;
-  const isManual = !key;
-  const extraFieldEl     = document.getElementById('pkg-extra-so-field');
-  const extraNoteFieldEl = document.getElementById('pkg-extra-so-note-field');
-  if (extraFieldEl)     extraFieldEl.style.display     = isManual ? 'none' : '';
-  if (extraNoteFieldEl) extraNoteFieldEl.style.display = isManual ? 'none' : '';
-  if (!isManual && PACKAGES_PV[key]) {
-    const p = PACKAGES_PV[key];
-    const extra = parseFloat(document.getElementById('pkg-extra-so').value) || 0;
-    pkgBaseCostSo = p.cost;
-    document.getElementById('sk-so').value = p.sk;
-    document.getElementById('ag-so').value = p.ag;
-    document.getElementById('ck-so').value = p.cost + extra;
-    var rate = getDaytimeRate();
-    if (rate !== null) {
-      var annCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
-      document.getElementById('dc-so').value = Math.round(Math.min(p.ag * 0.65, annCons * rate));
-    }
+  const soVal = document.getElementById('pkg-select-so').value;
+  const mainSel = document.getElementById('pkg-select');
+  if (soVal && mainSel) {
+    const pvNum = soVal.replace('pv', '');
+    const bkVal = parseFloat(document.getElementById('bk').value) || 7.7;
+    const bkKey = bkVal > 12 ? '15' : (bkVal > 8 ? '9' : '7');
+    mainSel.value = pvNum + '+' + bkKey;
   }
-  updatePkgSummarySo();
   calc();
 }
 
@@ -4951,16 +4945,14 @@ function calcMetrics(c) {
 function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
-  if (proposalMode !== 'pv_only') {
-    document.getElementById('dc-so').value = dc;
-    document.getElementById('sk-so').value = sk;
-    document.getElementById('ag-so').value = ag;
-    document.getElementById('ck-so').value = v('ck');
-    var _mainPkgVal = document.getElementById('pkg-select').value;
-    var _soMapped = _mainPkgVal ? 'pv' + _mainPkgVal.split('+')[0] : '';
-    var _soPkgEl = document.getElementById('pkg-select-so');
-    if (_soPkgEl && _soPkgEl.querySelector('option[value="'+_soMapped+'"]')) { _soPkgEl.value = _soMapped; }
-  }
+  document.getElementById('dc-so').value = dc;
+  document.getElementById('sk-so').value = sk;
+  document.getElementById('ag-so').value = ag;
+  document.getElementById('ck-so').value = v('ck');
+  var _mainPkgVal = document.getElementById('pkg-select').value;
+  var _soMapped = _mainPkgVal ? 'pv' + _mainPkgVal.split('+')[0] : '';
+  var _soPkgEl = document.getElementById('pkg-select-so');
+  if (_soPkgEl && _soPkgEl.querySelector('option[value="'+_soMapped+'"]')) { _soPkgEl.value = _soMapped; }
   document.getElementById('pkg-area-so').style.display = '';
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
