@@ -1039,22 +1039,22 @@ canvas#mini-chart { height: 220px !important; }
       <!-- 金額カード（年間自家消費メリット / 年間余剰売電収入）太陽光のみ -->
       <div id="kpi-area-so" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
         <div class="grid2" style="gap:10px">
-          <div style="border-radius:12px;padding:16px 12px;border:2px solid #93c5fd;background:#eff6ff;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-            <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:2px">年間自家消費メリット</div>
+          <div style="border-radius:12px;padding:16px 12px;border:2px solid #60a5fa;background:#e1f5fe;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:2px">年間自家消費メリット</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px">買電を減らせる見込み額</div>
             <div style="display:flex;align-items:baseline;gap:2px">
-              <span style="font-size:11px;color:#1d4ed8;font-weight:700">約</span>
-              <span id="pv-only-solar-benefit" style="font-size:26px;font-weight:900;color:#1d4ed8;line-height:1">-</span>
-              <span style="font-size:12px;color:#1d4ed8;font-weight:700">円/年</span>
+              <span style="font-size:11px;color:#1e40af;font-weight:700">約</span>
+              <span id="pv-only-solar-benefit" style="font-size:26px;font-weight:900;color:#1e40af;line-height:1">-</span>
+              <span style="font-size:12px;color:#1e40af;font-weight:700">円/年</span>
             </div>
           </div>
-          <div id="pv-only-sell-card" style="border-radius:12px;padding:16px 12px;border:2px solid #7dd3fc;background:#f0f9ff;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-            <div style="font-size:12px;font-weight:700;color:#0369a1;margin-bottom:2px">年間余剰売電収入</div>
+          <div id="pv-only-sell-card" style="border-radius:12px;padding:16px 12px;border:2px solid #38bdf8;background:#e0f2fe;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div style="font-size:12px;font-weight:700;color:#0c4a6e;margin-bottom:2px">年間余剰売電収入</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px">余剰電力を売る見込み額</div>
             <div style="display:flex;align-items:baseline;gap:2px">
-              <span id="pv-only-sell-prefix" style="font-size:11px;color:#0369a1;font-weight:700">約</span>
-              <span id="pv-only-sell-benefit" style="font-size:26px;font-weight:900;color:#0369a1;line-height:1">-</span>
-              <span id="pv-only-sell-unit" style="font-size:12px;color:#0369a1;font-weight:700">円/年</span>
+              <span id="pv-only-sell-prefix" style="font-size:11px;color:#0c4a6e;font-weight:700">約</span>
+              <span id="pv-only-sell-benefit" style="font-size:26px;font-weight:900;color:#0c4a6e;line-height:1">-</span>
+              <span id="pv-only-sell-unit" style="font-size:12px;color:#0c4a6e;font-weight:700">円/年</span>
             </div>
           </div>
         </div>
@@ -5220,11 +5220,11 @@ function calc() {
     if (detailSoEl) {
       detailSoEl.style.display = '';
       detailSoEl.innerHTML =
-        '<div style="background:var(--pg);border-radius:8px;border:1px solid var(--border);padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:var(--mg)">' +
+        '<div style="background:#edf8ff;border-radius:8px;border:1px solid #bae6fd;padding:10px 14px;display:flex;flex-wrap:wrap;gap:8px 20px;font-size:12px;color:#1e40af">' +
           '<span>⚡ 年間発電量：<b>' + fmt(agSo) + ' kWh</b></span>' +
           '<span>🏠 自家消費量：<b>' + fmt(dcSo) + ' kWh/年</b></span>' +
           '<span>📤 余剰電力量：<b>' + fmt(surplusSo) + ' kWh/年</b></span>' +
-          '<span style="color:var(--or)">🛒 残り購入量：<b>' + fmt(remainKwhSo) + ' kWh/年</b>（月平均 ¥' + fmt(mSo.remainBill) + '）</span>' +
+          '<span style="color:#b45309">🛒 残り購入量：<b>' + fmt(remainKwhSo) + ' kWh/年</b>（月平均 ¥' + fmt(mSo.remainBill) + '）</span>' +
           '<span>💡 買電単価：<b>' + up.toFixed(1) + '円/kWh</b></span>' +
           (soValid && _saleP0 > 0 ? '<span>💴 売電単価：<b>' + _saleP0 + '円/kWh</b></span>' : '') +
         '</div>';
