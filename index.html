@@ -5218,8 +5218,8 @@ function calc() {
     var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
     var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
     var diffSo2 = mSo2.costDiff_with_rise + Math.round(annSellSo2 * wySo2 / 10000);
-    var selfRateSo2 = agSo2 > 0 ? Math.min(100, Math.round(dcSo2 / agSo2 * 100)) : 0;
-    var surplusRateSo2 = agSo2 > 0 ? Math.round(surplusSo2 / agSo2 * 100) : 0;
+    var selfRateSo2 = parseInt(document.getElementById('self-rate-val').textContent) || 0;
+    var surplusRateSo2 = parseInt(document.getElementById('surplus-rate-val').textContent) || 0;
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
       remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
