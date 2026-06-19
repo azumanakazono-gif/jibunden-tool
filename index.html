@@ -2789,10 +2789,12 @@ function loadDataToForm(data) {
     document.getElementById('bc').value = _pp.bc;
     document.getElementById('ck').value = _pp.cost + _extra;
   }
-  // パッケージ初期値より保存済み手動入力値を最優先で復元
-  if (data.sk) document.getElementById('sk').value = data.sk;
-  if (data.ag) document.getElementById('ag').value = data.ag;
-  if (data.ck) document.getElementById('ck').value = data.ck;
+  // 手動入力時のみ保存済み値で復元（パッケージ選択時はパッケージ値を優先）
+  if (!ps) {
+    if (data.sk) document.getElementById('sk').value = data.sk;
+    if (data.ag) document.getElementById('ag').value = data.ag;
+    if (data.ck) document.getElementById('ck').value = data.ck;
+  }
   if (data.sub != null) document.getElementById('sub').value = data.sub;
   if (data.wy  != null) document.getElementById('wy').value  = data.wy;
   const isManual = !ps;
@@ -2850,10 +2852,6 @@ function loadDataToForm(data) {
       document.getElementById('sk').value = p.sk;
       document.getElementById('ag').value = p.ag;
       document.getElementById('ck').value = p.cost + extra;
-      // パッケージ初期値より保存済み手動入力値を最優先で復元
-      if (data.sk) document.getElementById('sk').value = data.sk;
-      if (data.ag) document.getElementById('ag').value = data.ag;
-      if (data.ck) document.getElementById('ck').value = data.ck;
       document.getElementById('pkg-manual-area').style.display = 'none';
       const extraFieldEl     = document.getElementById('pkg-extra-pv-field');
       const extraNoteFieldEl = document.getElementById('pkg-extra-pv-note-field');
@@ -5572,9 +5570,9 @@ function clearForm() {
   isAfterSlidersDirty = false;
   _updateMonthlyDetailVisibility(false);
   document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
-  document.getElementById('ag').value=7700; document.getElementById('sk').value=7;
-  document.getElementById('bk').value=7; document.getElementById('ck').value=40;
-  document.getElementById('dc').value=2310; document.getElementById('bc').value=2520;
+  document.getElementById('ag').value=7722; document.getElementById('sk').value=7.02;
+  document.getElementById('bk').value=7.7; document.getElementById('ck').value=280;
+  document.getElementById('dc').value=2310; document.getElementById('bc').value=1967;
   document.getElementById('er').value=0;
   document.getElementById('wy').value=20;
   loanAmountEdited = false;
@@ -5586,6 +5584,10 @@ function clearForm() {
   document.getElementById('fit-period').value = 'fy2026';
   onFitCapacityChange('under10');
   onSaleModeChange('fit');
+  document.getElementById('pkg-select').value = '7+7';
+  document.getElementById('pkg-extra').value = 0;
+  document.getElementById('pkg-extra-note').value = '';
+  onPkgChange();
   setProposalMode('pv_battery');
   document.getElementById('sk-so').value=7.02; document.getElementById('ck-so').value=120;
   document.getElementById('ag-so').value=7722; document.getElementById('sub-so').value=0;
