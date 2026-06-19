@@ -4950,9 +4950,11 @@ function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
   document.getElementById('dc-so').value = dc;
-  const mainPkgSelect = document.getElementById('pkg-select');
-  const soPkgSelect = document.getElementById('pkg-select-so');
-  if (mainPkgSelect && soPkgSelect) { soPkgSelect.value = mainPkgSelect.value; }
+  var _mainPkgVal = document.getElementById('pkg-select').value;
+  var _soMapped = _mainPkgVal ? 'pv' + _mainPkgVal.split('+')[0] : '';
+  var _soPkgEl = document.getElementById('pkg-select-so');
+  if (_soPkgEl && _soPkgEl.querySelector('option[value="'+_soMapped+'"]')) { _soPkgEl.value = _soMapped; }
+  document.getElementById('pkg-area-so').style.display = '';
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
