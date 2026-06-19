@@ -5109,12 +5109,12 @@ function calc() {
   document.getElementById('rk-self-label').textContent = '自家消費単価（発電したうち自家消費する分の単価）';
   // 20年電気代：上昇率があれば上昇後の数値を表示
   document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
-  const _surplusKwhChart = proposalMode !== 'battery_only' ? Math.max(0, ag - (dc + bc_eff)) : 0;
+  const _surplusKwhChart = proposalMode !== 'battery_only' ? Math.max(0, ag - (dc + bc)) : 0;
   const _annualTotal = (() => {
     const hasSolarMode = proposalMode !== 'battery_only';
     const saleP = parseFloat(document.getElementById('sale-price').value) || 0;
     const surplusKwhCalc = _surplusKwhChart;
-    const annualSelfSaving    = Math.round((dc + bc_eff) * up);          // updateSelfSummary と同一式
+    const annualSelfSaving    = Math.round((dc + bc) * up);
     const annualSellRevenue   = hasSolarMode ? Math.round(surplusKwhCalc * saleP) : 0;
     return annualSelfSaving + annualSellRevenue;
   })();
@@ -5122,21 +5122,21 @@ function calc() {
   document.getElementById('rs-month').textContent = fmt(Math.round(_annualTotal / 12));
   document.getElementById('bbv').textContent = bill20Show+'万円';
   // 積み上げ棒グラフ：残り電気代（残り購入電力量 × 平均単価 ベース）
-  // m.remainBill = remainKWh × currentUnitPrice / 12（月額）
+  // m_pb = 蓄電池込みのメトリクス（pv_onlyモードでもbc込みで算出済み）
   const remain20Man = er > 0
-    ? Math.round(m.remain20Y_rise / 10000)          // 上昇率考慮の累計
-    : Math.round(m.remainBill * 12 * wy / 10000);   // 上昇なし
+    ? Math.round(m_pb.remain20Y_rise / 10000)
+    : Math.round(m_pb.remainBill * 12 * wy / 10000);
   const _saleP0 = parseFloat(document.getElementById('sale-price').value) || 0;
   const _hasSolar0 = proposalMode !== 'battery_only';
   const _annualSellRev0 = (_hasSolar0 && _surplusKwhChart > 0 && _saleP0 > 0)
     ? Math.round(_surplusKwhChart * _saleP0) : 0;
   const _sale20Man = Math.round(_annualSellRev0 * wy / 10000);
   const _netRemain20Man = remain20Man - _sale20Man;
-  const _netCost20Man = m.totalCostMan + _netRemain20Man;
-  const biCostW = Math.min(Math.round(m.totalCostMan / bill20Show * 100), 100);
+  const _netCost20Man = m_pb.totalCostMan + _netRemain20Man;
+  const biCostW = Math.min(Math.round(m_pb.totalCostMan / bill20Show * 100), 100);
   const biRemainW = Math.min(Math.round(Math.max(0,_netRemain20Man) / bill20Show * 100), 100 - biCostW);
   document.getElementById('bi').style.width = biCostW + '%';
-  document.getElementById('biv').textContent = m.totalCostMan + '万円';
+  document.getElementById('biv').textContent = m_pb.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
   document.getElementById('biv-r').textContent = biRemainW >= 4 ? Math.max(0,_netRemain20Man)+'万円' : '';
   const _netCostHtml = (n) => n < 0
@@ -5146,11 +5146,11 @@ function calc() {
   if (_biDetailEl) {
     _biDetailEl.style.display = '';
     _biDetailEl.innerHTML = _sale20Man > 0
-      ? `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span>${_netCostHtml(_netCost20Man)}`
-      : `<span class="cf-cost">初期費用 ${m.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_netCost20Man}万円</span>`;
+      ? `<span class="cf-cost">初期費用 ${m_pb.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${_sale20Man}万円</span><span class="cf-op">＝</span>${_netCostHtml(_netCost20Man)}`
+      : `<span class="cf-cost">初期費用 ${m_pb.totalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${remain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${_netCost20Man}万円</span>`;
   }
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代 - 売電収入)
-  const diffShow = m.costDiff_with_rise + _sale20Man;
+  const diffShow = m_pb.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
 
   // ── Solar Only バー計算 ──
@@ -5357,16 +5357,16 @@ function calc() {
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
     const loanTotal = lp * ly * 12;
-    const loanCostPerKWh = m.selfKWh > 0 ? Math.round(loanTotal / (m.selfKWh * wy)) : 0;
+    const loanCostPerKWh = m_pb.selfKWh > 0 ? Math.round(loanTotal / (m_pb.selfKWh * wy)) : 0;
     document.getElementById('rk-loan').textContent = loanCostPerKWh > 0 ? loanCostPerKWh + '円/kWh' : '-';
     document.getElementById('rk-loan-row').style.display = '';
     document.getElementById('rk-self').textContent = loanCostPerKWh > 0 ? loanCostPerKWh+'円/kWh' : '-';
     document.getElementById('rk-self-label').textContent = '自家消費単価（ローン総額ベース）';
-    const loanDiffMan = Math.round((m.bill20Y_rise - lp * ly * 12 - m.remain20Y_rise) / 10000) + _sale20Man;
+    const loanDiffMan = Math.round((m_pb.bill20Y_rise - lp * ly * 12 - m_pb.remain20Y_rise) / 10000) + _sale20Man;
     document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
-    const re = m.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
+    const re = m_pb.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
     const mt = lp+re;
     const mdiff = mb-mt;
     document.getElementById('loan-preview-box').style.display='';
@@ -5380,7 +5380,7 @@ function calc() {
     else{dd.textContent='月々 約'+fmt(Math.abs(mdiff))+'円 増加（返済後は削減）';dr.className='loan-row neg';}
 
     // ミニチャート（ローンON: 3系列）
-    _prepareChartData(m, mb, wy, re, lp, ly, mt, true, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
+    _prepareChartData(m_pb, mb, wy, re, lp, ly, mt, true, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（ローン総額ベース）
     const _genUP_loan = (ag > 0 && wy > 0) ? parseFloat((loanTotal / (ag * wy)).toFixed(1)) : null;
     const _loanYears = Math.round(lp > 0 ? ly : wy);
@@ -5393,9 +5393,9 @@ function calc() {
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
-    _prepareChartData(m, mb, wy, m.remainBill, 0, 0, 0, false, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
+    _prepareChartData(m_pb, mb, wy, m_pb.remainBill, 0, 0, 0, false, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（現金購入ベース）
-    const _genUP_cash = (ag > 0 && wy > 0) ? parseFloat((m.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
+    const _genUP_cash = (ag > 0 && wy > 0) ? parseFloat((m_pb.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
     _updateUnitPriceCompare(up, _genUP_cash, wy, { isLoan: false });
   }
   // 時間帯別比率パネルのkWh表示と単価内訳をリアルタイム同期（After優先）
