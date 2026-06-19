@@ -1777,8 +1777,7 @@ function applyProposalMode() {
     }
   }
 
-  // セクションタイトル更新
-  document.getElementById('system-design-title').textContent = cfg.sysTitle;
+  // セクションタイトル更新（緑セクションは常に太陽光＋蓄電池固定）
 
   // 工事費ラベル更新
   const ckLabel = document.getElementById('ck-label');
