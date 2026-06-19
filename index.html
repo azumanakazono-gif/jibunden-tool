@@ -3308,6 +3308,8 @@ function applyDaytimeRate() {
     const bc  = Math.round(Math.min(bcMax, annualConsumption * (1 - rate) * 0.80));
     document.getElementById('bc').value = bc;
   }
+  var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(agSo * 0.65, annualConsumption * rate));
   calc();
 }
 
@@ -3476,6 +3478,8 @@ function _applyRatioDcBefore(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
+  var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, agSo));
 }
 
 function updateRatioPanelVisibility() {
@@ -3903,6 +3907,8 @@ function _applyRatioDc(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(annualConsumption * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
+  var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(annualConsumption * daytimeDemandRatio, agSo));
 }
 
 function updateRatioStyleStatus() {
