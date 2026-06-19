@@ -5199,16 +5199,48 @@ function calc() {
 
   // ── 2列詳細内訳レンダリング ──
   (function() {
-    var selfKwhPb = dc + bc_eff;
-    var surplusPb = Math.max(0, ag - selfKwhPb);
+    var pbAg, pbDc, pbBc, pbSk, pbCk, pbSub, pbWy;
+    if (proposalMode !== 'pv_battery') {
+      var _pbKey = document.getElementById('pkg-select').value;
+      var _pbPkg = _pbKey ? PACKAGES[_pbKey] : null;
+      if (_pbPkg) {
+        pbAg = _pbPkg.ag; pbSk = _pbPkg.sk; pbBc = _pbPkg.bc;
+        pbCk = _pbPkg.cost + (parseFloat(document.getElementById('pkg-extra').value) || 0);
+        var _pbRate = getDaytimeRate();
+        var _pbAnnCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
+        pbDc = _pbRate !== null ? Math.round(Math.min(pbAg * 0.65, _pbAnnCons * _pbRate)) : Math.round(pbAg * 0.30);
+      } else {
+        pbAg = ag; pbDc = dc; pbBc = bc; pbSk = sk; pbCk = v('ck');
+      }
+      pbSub = v('sub'); pbWy = wy;
+    } else {
+      pbAg = ag; pbDc = dc; pbBc = bc_eff; pbSk = sk; pbCk = v('ck');
+      pbSub = v('sub'); pbWy = wy;
+    }
+    var pbBcEff = pbBc;
+    var selfKwhPb = pbDc + pbBcEff;
+    var surplusPb = Math.max(0, pbAg - selfKwhPb);
     var remainKwhPb = Math.max(0, annualConsumptionKWh - selfKwhPb);
-    var selfRatePb = ag > 0 ? Math.min(100, Math.round(selfKwhPb / ag * 100)) : 0;
-    var surplusRatePb = ag > 0 ? Math.round(surplusPb / ag * 100) : 0;
+    var selfRatePb = pbAg > 0 ? Math.min(100, Math.round(selfKwhPb / pbAg * 100)) : 0;
+    var surplusRatePb = pbAg > 0 ? Math.round(surplusPb / pbAg * 100) : 0;
+    var cPb = {
+      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      annualGenerationKWh: pbAg, solarCapacityKW: pbSk,
+      totalConstructionCost: (pbCk || 0) * 10000,
+      subsidyAmount: pbSub, warrantyYears: pbWy,
+      directConsumptionKWh: pbDc, batteryConsumptionKWh: pbBcEff,
+      annualConsumptionKWh: annualConsumptionKWh, escalationRate: er, postBasicCharge: postBasicCharge
+    };
+    var mPb = calcMetrics(cPb);
+    var _salePPb = parseFloat(document.getElementById('sale-price').value) || 0;
+    var annSellPb = (surplusPb > 0 && _salePPb > 0) ? Math.round(surplusPb * _salePPb) : 0;
+    var annSavePb = Math.round(selfKwhPb * up) + annSellPb;
+    var diffPb = mPb.costDiff_with_rise + Math.round(annSellPb * pbWy / 10000);
     var pbData = {
-      ag: ag, dc: dc, bc: bc_eff, surplus: surplusPb,
-      remainKwh: remainKwhPb, remainBill: m.remainBill,
-      totalCostMan: m.totalCostMan, annualSaving: _annualTotal,
-      annualSell: _annualSellRev0, diffMan: diffShow,
+      ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
+      remainKwh: remainKwhPb, remainBill: mPb.remainBill,
+      totalCostMan: mPb.totalCostMan, annualSaving: annSavePb,
+      annualSell: annSellPb, diffMan: diffPb,
       selfRate: selfRatePb, surplusRate: surplusRatePb
     };
     var skSo2 = parseFloat(document.getElementById('sk-so').value) || 0;
