@@ -2614,6 +2614,9 @@ function onPkgChangeSo() {
     const bkKey = bkVal > 12 ? '15' : (bkVal > 8 ? '9' : '7');
     mainSel.value = pvNum + '+' + bkKey;
   }
+  if (soVal && PACKAGES_PV[soVal]) {
+    document.getElementById('ck-so').value = PACKAGES_PV[soVal].cost;
+  }
   calc();
 }
 
