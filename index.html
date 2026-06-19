@@ -1765,7 +1765,8 @@ function applyProposalMode() {
   document.getElementById('pkg-row-pv-only').style.display    = 'none'; // Solar Only は独立カード化済み
 
   // 売電設定（太陽光がある場合のみ表示）
-  document.getElementById('sale-setting-area').style.display = hasSolar ? '' : 'none';
+  document.getElementById('sale-setting-area').style.display = '';
+  document.getElementById('sale-setting-card').style.display = '';
 
   // 蓄電池KPI：再計算で更新されるので reset のみ
   document.getElementById('self-margin-disp').style.display = 'none';
