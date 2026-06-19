@@ -5187,8 +5187,8 @@ function calc() {
     var selfKwhPb = dc + bc_eff;
     var surplusPb = Math.max(0, ag - selfKwhPb);
     var remainKwhPb = Math.max(0, annualConsumptionKWh - selfKwhPb);
-    var selfRatePb = ag > 0 ? Math.min(100, Math.round(selfKwhPb / ag * 100)) : 0;
-    var surplusRatePb = ag > 0 ? Math.round(surplusPb / ag * 100) : 0;
+    var selfRatePb = parseInt(document.getElementById('self-rate-val').textContent) || 0;
+    var surplusRatePb = parseInt(document.getElementById('surplus-rate-val').textContent) || 0;
     var pbData = {
       ag: ag, dc: dc, bc: bc_eff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: m.remainBill,
