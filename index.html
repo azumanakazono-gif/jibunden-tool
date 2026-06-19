@@ -957,58 +957,6 @@ canvas#mini-chart { height: 220px !important; }
       </div>
       <!-- 補助金適用後の実質費用表示 -->
       <div id="subsidy-summary" style="display:none;margin-bottom:12px;padding:10px 14px;background:var(--pg);border-radius:8px;border:1px solid var(--border);font-size:13px"></div>
-      <!-- 売電設定 -->
-      <div id="sale-setting-area" style="margin-top:4px;padding:12px 14px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0">
-        <div style="font-size:13px;font-weight:700;color:var(--mg);margin-bottom:10px">💴 売電設定</div>
-        <div class="field" style="margin-bottom:10px">
-          <label style="font-size:13px">売電方式</label>
-          <div class="sale-mode-bar" style="margin-top:4px">
-            <button class="sm-btn" id="sm-btn-fit" onclick="onSaleModeChange('fit')">FIT買取</button>
-            <button class="sm-btn active" id="sm-btn-post_fit" onclick="onSaleModeChange('post_fit')">非FIT</button>
-            <button class="sm-btn" id="sm-btn-manual" onclick="onSaleModeChange('manual')">手動入力</button>
-          </div>
-        </div>
-        <div id="fit-options" style="margin-bottom:10px">
-          <div class="field" style="margin-bottom:8px">
-            <label style="font-size:12px">FIT適用区分</label>
-            <select id="fit-period" onchange="onFitPeriodChange()" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;background:#fff;font-family:inherit;width:100%;margin-top:4px">
-              <option value="fy2024">2024年度</option>
-              <option value="fy2025_h1">2025年度（4月～9月）</option>
-              <option value="fy2025_h2">2025年度（10月～3月）</option>
-              <option value="fy2026" selected>2026年度（現行）</option>
-            </select>
-          </div>
-          <div class="field">
-            <label style="font-size:12px">容量・設置区分</label>
-            <div style="display:flex;flex-wrap:nowrap;gap:6px;margin-top:4px">
-              <button id="cap-btn-under10" onclick="onFitCapacityChange('under10')"
-                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--mg);background:var(--mg);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
-                10kW未満
-              </button>
-              <button id="cap-btn-over10_roof" onclick="onFitCapacityChange('over10_roof')"
-                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
-                10kW以上(屋根)
-              </button>
-              <button id="cap-btn-mid10_50" onclick="onFitCapacityChange('mid10_50')"
-                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
-                10〜50kW
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="field">
-          <label style="font-size:12px">売電単価（円/kWh）
-            <span class="sale-auto-badge" id="sale-auto-badge">自動セット済み</span>
-            <span class="sale-edited-badge" id="sale-edited-badge">手動変更</span>
-            <button id="sale-reset-btn" onclick="resetSalePrice()" style="display:none;margin-left:6px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;cursor:pointer;font-family:inherit">自動値に戻す</button>
-          </label>
-          <input type="number" id="sale-price" value="24" min="1" max="50" step="0.5"
-            style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:15px;background:#fff;font-family:inherit;max-width:160px;margin-top:4px"
-            oninput="onSalePriceInput()">
-          <div id="sale-price-note" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
-          <div id="fit-stepped-note" style="display:none;margin-top:6px;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;line-height:1.7"></div>
-        </div>
-      </div>
       <!-- 発電効果サマリー -->
       <div id="kpi-area" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
         <!-- 金額カード（年間自家消費メリット / 年間余剰売電収入） -->
@@ -1088,6 +1036,61 @@ canvas#mini-chart { height: 220px !important; }
         </div>
       </div>
       <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
+    </div>
+
+    <!-- 売電設定（グローバル共有） -->
+    <div class="section-card" id="sale-setting-card" style="opacity:1;pointer-events:auto">
+      <div id="sale-setting-area" style="padding:12px 14px;background:#f0fdf4;border-radius:10px;border:1px solid #bbf7d0">
+        <div style="font-size:13px;font-weight:700;color:var(--mg);margin-bottom:10px">💴 売電設定</div>
+        <div class="field" style="margin-bottom:10px">
+          <label style="font-size:13px">売電方式</label>
+          <div class="sale-mode-bar" style="margin-top:4px">
+            <button class="sm-btn" id="sm-btn-fit" onclick="onSaleModeChange('fit')">FIT買取</button>
+            <button class="sm-btn active" id="sm-btn-post_fit" onclick="onSaleModeChange('post_fit')">非FIT</button>
+            <button class="sm-btn" id="sm-btn-manual" onclick="onSaleModeChange('manual')">手動入力</button>
+          </div>
+        </div>
+        <div id="fit-options" style="margin-bottom:10px">
+          <div class="field" style="margin-bottom:8px">
+            <label style="font-size:12px">FIT適用区分</label>
+            <select id="fit-period" onchange="onFitPeriodChange()" style="border:1.5px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px;background:#fff;font-family:inherit;width:100%;margin-top:4px">
+              <option value="fy2024">2024年度</option>
+              <option value="fy2025_h1">2025年度（4月～9月）</option>
+              <option value="fy2025_h2">2025年度（10月～3月）</option>
+              <option value="fy2026" selected>2026年度（現行）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label style="font-size:12px">容量・設置区分</label>
+            <div style="display:flex;flex-wrap:nowrap;gap:6px;margin-top:4px">
+              <button id="cap-btn-under10" onclick="onFitCapacityChange('under10')"
+                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--mg);background:var(--mg);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
+                10kW未満
+              </button>
+              <button id="cap-btn-over10_roof" onclick="onFitCapacityChange('over10_roof')"
+                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
+                10kW以上(屋根)
+              </button>
+              <button id="cap-btn-mid10_50" onclick="onFitCapacityChange('mid10_50')"
+                style="flex:1;padding:7px 4px;border-radius:6px;border:1.5px solid var(--border);background:#fff;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap">
+                10〜50kW
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label style="font-size:12px">売電単価（円/kWh）
+            <span class="sale-auto-badge" id="sale-auto-badge">自動セット済み</span>
+            <span class="sale-edited-badge" id="sale-edited-badge">手動変更</span>
+            <button id="sale-reset-btn" onclick="resetSalePrice()" style="display:none;margin-left:6px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;cursor:pointer;font-family:inherit">自動値に戻す</button>
+          </label>
+          <input type="number" id="sale-price" value="24" min="1" max="50" step="0.5"
+            style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:15px;background:#fff;font-family:inherit;max-width:160px;margin-top:4px"
+            oninput="onSalePriceInput()">
+          <div id="sale-price-note" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
+          <div id="fit-stepped-note" style="display:none;margin-top:6px;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#1e40af;line-height:1.7"></div>
+        </div>
+      </div>
     </div>
 
     <div class="section-card">
