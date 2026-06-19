@@ -2557,7 +2557,7 @@ function onPkgChange() {
     document.getElementById('ck').value = p.cost + extra;
   }
   updatePkgSummary();
-  calc();
+  applyDaytimeRate();
 }
 
 function onPkgChangePv() {
@@ -2584,7 +2584,7 @@ function onPkgChangePv() {
     document.getElementById('ck').value = p.cost + extra;
   }
   updatePkgSummaryPv();
-  calc();
+  applyDaytimeRate();
 }
 
 function onPkgExtraChangePv() {
