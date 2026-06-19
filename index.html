@@ -1754,12 +1754,6 @@ function applyProposalMode() {
   document.getElementById('pkg-area').style.display           = proposalMode !== 'battery_only' ? '' : 'none';
   document.getElementById('pkg-row-pv-battery').style.display = proposalMode !== 'battery_only' ? 'flex' : 'none';
   document.getElementById('pkg-row-pv-only').style.display    = 'none'; // Solar Only は独立カード化済み
-  // pv_only 切替時は手動入力状態で初期化
-  if (proposalMode === 'pv_only') {
-    document.getElementById('pkg-select-pv').value = '';
-    document.getElementById('pkg-manual-area').style.display = '';
-    document.getElementById('pkg-manual-note').textContent = '💡 パッケージを使わず個別入力します。下のフィールドに太陽光容量・年間発電量・税込総工事費用を入力してください。';
-  }
 
   // 売電設定（太陽光がある場合のみ表示）
   document.getElementById('sale-setting-area').style.display = hasSolar ? '' : 'none';
