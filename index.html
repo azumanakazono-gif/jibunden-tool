@@ -1008,6 +1008,60 @@ canvas#mini-chart { height: 220px !important; }
       </div>
     </div>
 
+    <!-- ══════ 太陽光のみ システム設計カード ══════ -->
+    <div class="section-card" id="system-design-card-so" style="border:2px solid #7dd3fc;background:#f8fbff">
+      <div class="section-title" style="color:#1d4ed8">☀️ システム設計（太陽光のみ）</div>
+      <div id="pkg-area-so" style="background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;padding:10px 14px;margin-bottom:12px">
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="field" style="flex:2;min-width:200px">
+            <label>📦 システムパッケージ（太陽光のみ）</label>
+            <select id="pkg-select-so" onchange="onPkgChangeSo()" style="border:1.5px solid #bfdbfe;border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
+              <option value="">— 手動入力（パッケージ選択なし）—</option>
+              <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
+              <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
+              <option value="pv7" selected> 7kWパッケージ（18枚 / 7.02kW）</option>
+              <option value="pv8"> 8kWパッケージ（21枚 / 8.16kW）</option>
+              <option value="pv9"> 9kWパッケージ（24枚 / 9.36kW）</option>
+              <option value="pv10">10kWパッケージ（27枚 / 10.53kW）</option>
+              <option value="pv14">14kWパッケージ（36枚 / 14.04kW）</option>
+            </select>
+          </div>
+          <div class="field" id="pkg-extra-so-field" style="min-width:130px">
+            <label>追加費用（万円）</label>
+            <input type="number" id="pkg-extra-so" value="0" min="0" step="10" oninput="onPkgExtraChangeSo()">
+          </div>
+          <div class="field" id="pkg-extra-so-note-field" style="min-width:180px">
+            <label>追加費用の内容（任意）</label>
+            <input type="text" id="pkg-extra-so-note" placeholder="例：配線延長工事・足場追加など" oninput="calc()">
+          </div>
+        </div>
+        <div id="pkg-cost-summary-so" style="margin-top:8px;font-size:12px;color:#1d4ed8;display:none"></div>
+      </div>
+      <div class="grid3" style="margin-bottom:12px">
+        <div class="field"><label>太陽光容量（kW）</label><input type="number" id="sk-so" value="7.02" min="3" max="20" step="0.01" oninput="calc()"></div>
+        <div class="field" style="visibility:hidden"><label>&nbsp;</label><input type="hidden"></div>
+        <div class="field">
+          <label>税込総工事費用（万円）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光 工事込み</span></label>
+          <input type="number" id="ck-so" value="120" min="50" max="2000" step="10" oninput="calc()">
+        </div>
+      </div>
+      <div class="grid3" style="margin-bottom:12px">
+        <div class="field"><label>年間発電量（kWh）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光パネルの年間発電量</span></label><input type="number" id="ag-so" value="7722" min="2000" max="20000" step="100" oninput="calc()"></div>
+        <div class="field">
+          <label>補助金額（万円）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">国・自治体補助金（任意）</span></label>
+          <input type="number" id="sub-so" value="0" min="0" max="500" step="1" oninput="calc()">
+        </div>
+        <div class="field"><label>保証年数（年）</label><input type="number" id="wy-so" value="20" min="10" max="25" step="5" oninput="calc()"></div>
+      </div>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="field">
+          <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
+          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="calc()">
+        </div>
+      </div>
+      <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
+    </div>
+
     <div class="section-card">
       <!-- 互換性維持用の隠しチェックボックス -->
       <input type="checkbox" id="le" onchange="toggleLoan()" style="display:none">
@@ -1264,6 +1318,11 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
       </div>
+      <!-- バリデーションバッジ -->
+      <div id="validation-badges" style="display:flex;gap:8px;margin-bottom:10px;position:sticky;top:0;z-index:10;background:var(--card);padding:8px 0">
+        <span id="badge-pb" onclick="document.getElementById('system-design-card').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid #86efac;background:#f0fdf4;color:#15803d">&#x1F7E2; 太陽光＋蓄電池</span>
+        <span id="badge-so" onclick="document.getElementById('system-design-card-so').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid #7dd3fc;background:#eff6ff;color:#1d4ed8">&#x1F7E2; 太陽光のみ</span>
+      </div>
       <!-- 棒グラフタイトル -->
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">📊 20年間の総コスト比較</div>
       <div class="bar-compare">
@@ -1272,12 +1331,20 @@ canvas#mini-chart { height: 220px !important; }
           <div class="bar-track" style="display:flex"><div class="bar-fill or" id="bb" style="width:100%"><span id="bbv"></span></div></div>
         </div>
         <div class="bar-row" style="margin-top:8px">
-          <div class="bar-label">導入後</div>
+          <div class="bar-label">太陽光＋蓄電池</div>
           <div class="bar-track" style="display:flex">
             <div class="bar-fill gr" id="bi" style="width:40%;border-radius:0"><span id="biv"></span></div>
             <div id="bi-r" style="width:20%;height:100%;background:#86efac;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#14532d;transition:width .4s ease;overflow:hidden"><span id="biv-r"></span></div>
           </div>
           <div id="bi-detail" class="cost-formula-box" style="display:none"></div>
+        </div>
+        <div class="bar-row" id="bar-row-so" style="margin-top:8px">
+          <div class="bar-label">太陽光のみ</div>
+          <div class="bar-track" style="display:flex">
+            <div class="bar-fill" id="bi-so" style="width:40%;border-radius:0;background:#0369a1"><span id="biv-so"></span></div>
+            <div id="bi-so-r" style="width:20%;height:100%;background:#7dd3fc;display:flex;align-items:center;padding-left:6px;font-size:14px;font-weight:700;color:#0c4a6e;transition:width .4s ease;overflow:hidden"><span id="biv-so-r"></span></div>
+          </div>
+          <div id="bi-so-detail" class="cost-formula-box" style="display:none"></div>
         </div>
         <div class="bar-row loan-bar-only" style="display:none;margin-top:8px">
           <div class="bar-label">ローン活用</div>
@@ -1291,6 +1358,8 @@ canvas#mini-chart { height: 220px !important; }
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#374151"></span>電気料金（電力会社）</span>
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#2D6A4F"></span>初期費用</span>
           <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#0369a1"></span>初期費用（太陽光のみ）</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#7dd3fc"></span>残り電気代（太陽光のみ）</span>
           <span id="stacked-legend-loan" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#7c3aed"></span>ローン返済総額</span>
           <span id="stacked-legend-loan-r" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代</span>
         </div>
@@ -1298,6 +1367,10 @@ canvas#mini-chart { height: 220px !important; }
       <div class="diff-banner">
         <span class="d-label">20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
+      </div>
+      <div class="diff-banner" id="diff-banner-so" style="background:#0369a1;margin-top:8px">
+        <span class="d-label">太陽光のみ：20年間のコスト差<br><span id="diff-note-so" style="font-size:10px;opacity:.7"></span></span>
+        <span class="d-val" id="rd-so">-</span>
       </div>
       <div class="diff-banner loan-bar-only" id="loan-diff-banner" style="display:none;background:#5b21b6;margin-top:8px">
         <span class="d-label">ローン活用時の20年コスト差<br><span id="loan-diff-note" style="font-size:10px;opacity:.7"></span></span>
@@ -1644,7 +1717,7 @@ function applyProposalMode() {
   // パッケージ選択（全パッケージが太陽光＋蓄電池のため pv_battery のみ表示）
   document.getElementById('pkg-area').style.display           = proposalMode !== 'battery_only' ? '' : 'none';
   document.getElementById('pkg-row-pv-battery').style.display = proposalMode === 'pv_battery' ? 'flex' : 'none';
-  document.getElementById('pkg-row-pv-only').style.display    = proposalMode === 'pv_only'    ? '' : 'none';
+  document.getElementById('pkg-row-pv-only').style.display    = 'none'; // Solar Only は独立カード化済み
   // pv_only 切替時は手動入力状態で初期化
   if (proposalMode === 'pv_only') {
     document.getElementById('pkg-select-pv').value = '';
@@ -2481,6 +2554,57 @@ function onPkgExtraChangePv() {
   calc();
 }
 
+let pkgBaseCostSo = 120;
+function onPkgChangeSo() {
+  const key = document.getElementById('pkg-select-so').value;
+  const isManual = !key;
+  const extraFieldEl     = document.getElementById('pkg-extra-so-field');
+  const extraNoteFieldEl = document.getElementById('pkg-extra-so-note-field');
+  if (extraFieldEl)     extraFieldEl.style.display     = isManual ? 'none' : '';
+  if (extraNoteFieldEl) extraNoteFieldEl.style.display = isManual ? 'none' : '';
+  if (!isManual && PACKAGES_PV[key]) {
+    const p = PACKAGES_PV[key];
+    const extra = parseFloat(document.getElementById('pkg-extra-so').value) || 0;
+    pkgBaseCostSo = p.cost;
+    document.getElementById('sk-so').value = p.sk;
+    document.getElementById('ag-so').value = p.ag;
+    document.getElementById('ck-so').value = p.cost + extra;
+  }
+  updatePkgSummarySo();
+  calc();
+}
+
+function onPkgExtraChangeSo() {
+  const extra = parseFloat(document.getElementById('pkg-extra-so').value) || 0;
+  const key = document.getElementById('pkg-select-so').value;
+  if (key && PACKAGES_PV[key]) {
+    document.getElementById('ck-so').value = pkgBaseCostSo + extra;
+  }
+  updatePkgSummarySo();
+  calc();
+}
+
+function updatePkgSummarySo() {
+  const key = document.getElementById('pkg-select-so').value;
+  const el = document.getElementById('pkg-cost-summary-so');
+  if (!el) return;
+  if (!key) {
+    const ck = parseFloat(document.getElementById('ck-so').value) || 0;
+    if (ck > 0) {
+      el.style.display = '';
+      el.innerHTML = `税込総工事費用：<b style="font-size:13px">${ck}万円</b>　<span style="font-size:10px;color:var(--muted)">（手動入力値）</span>`;
+    } else { el.style.display = 'none'; }
+  } else if (PACKAGES_PV[key]) {
+    const p = PACKAGES_PV[key];
+    const extra = parseFloat(document.getElementById('pkg-extra-so').value) || 0;
+    const total = p.cost + extra;
+    el.style.display = '';
+    el.innerHTML = extra > 0
+      ? `標準パッケージ：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`
+      : `標準パッケージ：<b>${p.cost}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`;
+  } else { el.style.display = 'none'; }
+}
+
 function onPkgExtraChange() {
   const extra = parseFloat(document.getElementById('pkg-extra').value)||0;
   const key = document.getElementById('pkg-select').value;
@@ -2562,6 +2686,22 @@ function saveFormToData(data) {
   data.salePriceEdited = salePriceEdited;
   data.bcManualEdited = bcManualEdited;
   data.dcManualEdited = dcManualEdited;
+  data.systemDesignSolarAndBattery = {
+    sk: data.sk, bk: data.bk, ck: data.ck, ag: data.ag, sub: data.sub, wy: data.wy,
+    dc: data.dc, bc: data.bc, pkgSelect: data.pkgSelect, pkgExtra: data.pkgExtra,
+    pkgExtraNote: data.pkgExtraNote, sysName: data.sysName
+  };
+  data.systemDesignSolarOnly = {
+    sk: parseFloat(document.getElementById('sk-so').value)||0,
+    ck: parseFloat(document.getElementById('ck-so').value)||0,
+    ag: parseFloat(document.getElementById('ag-so').value)||0,
+    sub: parseFloat(document.getElementById('sub-so').value)||0,
+    wy: parseFloat(document.getElementById('wy-so').value)||20,
+    dc: parseFloat(document.getElementById('dc-so').value)||0,
+    pkgSelectSo: document.getElementById('pkg-select-so').value,
+    pkgExtraSo: parseFloat(document.getElementById('pkg-extra-so').value)||0,
+    pkgExtraSoNote: document.getElementById('pkg-extra-so-note').value
+  };
 }
 
 function loadDataToForm(data) {
@@ -2612,6 +2752,27 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra').closest('.field').style.display = isManual ? 'none' : '';
   document.getElementById('pkg-extra-note-field').style.display = isManual ? 'none' : '';
   updatePkgSummary();
+  // Solar Only カード復元
+  const so = data.systemDesignSolarOnly || {};
+  document.getElementById('sk-so').value  = so.sk  || 7.02;
+  document.getElementById('ck-so').value  = so.ck  || 120;
+  document.getElementById('ag-so').value  = so.ag  || 7722;
+  document.getElementById('sub-so').value = so.sub != null ? so.sub : 0;
+  document.getElementById('wy-so').value  = so.wy  || 20;
+  document.getElementById('dc-so').value  = so.dc  || 2310;
+  const soKey = so.pkgSelectSo || 'pv7';
+  document.getElementById('pkg-select-so').value = soKey;
+  document.getElementById('pkg-extra-so').value = so.pkgExtraSo || 0;
+  document.getElementById('pkg-extra-so-note').value = so.pkgExtraSoNote || '';
+  if (soKey && PACKAGES_PV[soKey]) {
+    pkgBaseCostSo = PACKAGES_PV[soKey].cost;
+  }
+  const isSoManual = !soKey;
+  const soExtraField = document.getElementById('pkg-extra-so-field');
+  const soExtraNoteField = document.getElementById('pkg-extra-so-note-field');
+  if (soExtraField) soExtraField.style.display = isSoManual ? 'none' : '';
+  if (soExtraNoteField) soExtraNoteField.style.display = isSoManual ? 'none' : '';
+  updatePkgSummarySo();
   toggleLoan();
   onHearingChange(data);
   // 売電設定の復元
@@ -4833,6 +4994,79 @@ function calc() {
   const diffShow = m.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
 
+  // ── Solar Only バー計算 ──
+  (function calcSolarOnlyBar() {
+    var skSo = parseFloat(document.getElementById('sk-so').value) || 0;
+    var ckSo = parseFloat(document.getElementById('ck-so').value) || 0;
+    var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+    var subSo = parseFloat(document.getElementById('sub-so').value) || 0;
+    var wySo = parseFloat(document.getElementById('wy-so').value) || 20;
+    var dcSo = parseFloat(document.getElementById('dc-so').value) || 0;
+    var soValid = skSo > 0 && ckSo > 0 && agSo > 0;
+    var cSo = {
+      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      annualGenerationKWh: agSo, solarCapacityKW: skSo,
+      totalConstructionCost: ckSo * 10000,
+      subsidyAmount: subSo, warrantyYears: wySo,
+      directConsumptionKWh: dcSo, batteryConsumptionKWh: 0,
+      annualConsumptionKWh: annualConsumptionKWh, escalationRate: er, postBasicCharge: postBasicCharge
+    };
+    var mSo = calcMetrics(cSo);
+    var surplusSo = Math.max(0, agSo - dcSo);
+    var annualSellSo = (surplusSo > 0 && _saleP0 > 0) ? Math.round(surplusSo * _saleP0) : 0;
+    var sale20ManSo = Math.round(annualSellSo * wySo / 10000);
+    var remain20ManSo = er > 0 ? Math.round(mSo.remain20Y_rise / 10000) : Math.round(mSo.remainBill * 12 * wySo / 10000);
+    var netRemain20ManSo = remain20ManSo - sale20ManSo;
+    var netCost20ManSo = mSo.totalCostMan + netRemain20ManSo;
+    var biSoCostW = bill20Show > 0 ? Math.min(Math.round(mSo.totalCostMan / bill20Show * 100), 100) : 0;
+    var biSoRemainW = bill20Show > 0 ? Math.min(Math.round(Math.max(0, netRemain20ManSo) / bill20Show * 100), 100 - biSoCostW) : 0;
+    document.getElementById('bi-so').style.width = biSoCostW + '%';
+    document.getElementById('biv-so').textContent = mSo.totalCostMan + '万円';
+    document.getElementById('bi-so-r').style.width = biSoRemainW + '%';
+    document.getElementById('biv-so-r').textContent = biSoRemainW >= 4 ? Math.max(0, netRemain20ManSo) + '万円' : '';
+    var biSoD = document.getElementById('bi-so-detail');
+    if (biSoD) {
+      biSoD.style.display = '';
+      biSoD.innerHTML = sale20ManSo > 0
+        ? '<span class="cf-cost">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 '+sale20ManSo+'万円</span><span class="cf-op">＝</span>'+_netCostHtml(netCost20ManSo)
+        : '<span class="cf-cost">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">＝</span><span class="cf-total">計 '+netCost20ManSo+'万円</span>';
+    }
+    var diffShowSo = mSo.costDiff_with_rise + sale20ManSo;
+    document.getElementById('rd-so').textContent = '約' + diffShowSo + '万円';
+    document.getElementById('diff-note-so').textContent = er > 0 ? '電気代年'+er+'%上昇想定' : '電気代現状維持';
+    var barRowSo = document.getElementById('bar-row-so');
+    var badgeSo = document.getElementById('badge-so');
+    var diffBannerSo = document.getElementById('diff-banner-so');
+    if (!soValid) {
+      if (barRowSo) barRowSo.style.opacity = '0.35';
+      if (badgeSo) { badgeSo.innerHTML = '⚠️ 太陽光のみ設計を入力してください'; badgeSo.style.background='#fef3c7'; badgeSo.style.color='#92400e'; badgeSo.style.borderColor='#fcd34d'; }
+      if (diffBannerSo) diffBannerSo.style.opacity = '0.35';
+    } else {
+      if (barRowSo) barRowSo.style.opacity = '1';
+      if (badgeSo) { badgeSo.innerHTML = '🟢 太陽光のみ'; badgeSo.style.background='#eff6ff'; badgeSo.style.color='#1d4ed8'; badgeSo.style.borderColor='#7dd3fc'; }
+      if (diffBannerSo) diffBannerSo.style.opacity = '1';
+    }
+    var subElSo = document.getElementById('subsidy-summary-so');
+    if (subElSo) {
+      if (subSo > 0) { subElSo.style.display=''; subElSo.innerHTML='工事費用：<b>'+mSo.grossCostMan+'万円</b> − 補助金：<b style="color:#16a34a">'+mSo.subsidyMan+'万円</b> ＝ <b style="font-size:15px">実質：'+mSo.totalCostMan+'万円</b>'; }
+      else { subElSo.style.display='none'; }
+    }
+  })();
+  // バリデーションバッジ (Solar+Battery)
+  (function() {
+    var pbValid = v('sk') > 0 && v('ck') > 0 && v('ag') > 0;
+    var badgePb = document.getElementById('badge-pb');
+    var biEl2 = document.getElementById('bi');
+    var biBarRow2 = biEl2 ? biEl2.closest('.bar-row') : null;
+    if (!pbValid) {
+      if (biBarRow2) biBarRow2.style.opacity = '0.35';
+      if (badgePb) { badgePb.innerHTML = '⚠️ 太陽光＋蓄電池設計を入力してください'; badgePb.style.background='#fef3c7'; badgePb.style.color='#92400e'; badgePb.style.borderColor='#fcd34d'; }
+    } else {
+      if (biBarRow2) biBarRow2.style.opacity = '1';
+      if (badgePb) { badgePb.innerHTML = '🟢 太陽光＋蓄電池'; badgePb.style.background='#f0fdf4'; badgePb.style.color='#15803d'; badgePb.style.borderColor='#86efac'; }
+    }
+  })();
+
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
   const _merit20Man = Math.round(_annualTotal * wy / 10000);
   document.getElementById('rd-top').textContent = _merit20Man;
@@ -4841,6 +5075,101 @@ function calc() {
     ? `<span style="font-size:11px;font-weight:500;opacity:.8">現在の平均単価</span><br><span style="font-size:20px;font-weight:800">${up.toFixed(1)}円/kWh</span>`
     : '';
   document.getElementById('diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
+
+  // ══════ Solar Only 計算 ══════
+  {
+    const soSk  = v('sk-so'),  soAg  = v('ag-so'), soCk = v('ck-so');
+    const soDc  = v('dc-so'),  soSub = v('sub-so'), soWy = v('wy-so') || 20;
+    const soValid = soSk > 0 && soAg > 0 && soCk > 0;
+    const barRowSo    = document.getElementById('bar-row-so');
+    const diffBannerSo= document.getElementById('diff-banner-so');
+    const badgePb = document.getElementById('badge-pb');
+    const badgeSo = document.getElementById('badge-so');
+    // バリデーションバッジ更新
+    const pbValid = sk > 0 && ag > 0 && v('ck') > 0;
+    if (badgePb) {
+      badgePb.innerHTML = pbValid ? '&#x1F7E2; 太陽光＋蓄電池' : '&#x1F7E1; 太陽光＋蓄電池（未入力）';
+      badgePb.style.borderColor = pbValid ? '#86efac' : '#fcd34d';
+      badgePb.style.background  = pbValid ? '#f0fdf4' : '#fefce8';
+      badgePb.style.color       = pbValid ? '#15803d' : '#92400e';
+    }
+    if (badgeSo) {
+      badgeSo.innerHTML = soValid ? '&#x1F7E2; 太陽光のみ' : '&#x1F7E1; 太陽光のみ（未入力）';
+      badgeSo.style.borderColor = soValid ? '#7dd3fc' : '#fcd34d';
+      badgeSo.style.background  = soValid ? '#eff6ff' : '#fefce8';
+      badgeSo.style.color       = soValid ? '#1d4ed8' : '#92400e';
+    }
+    if (soValid && bill20Show > 0) {
+      const soTotalCost = soCk * 10000;
+      const soSubAmt    = soSub * 10000;
+      const soNetCost   = Math.max(0, soTotalCost - soSubAmt);
+      const soSelfKWh   = soDc; // Solar Only: no battery
+      const soRemainKWh = Math.max(0, annualConsumptionKWh - soSelfKWh);
+      const soRemainBill= Math.round(soRemainKWh * (post_up || up) / 12) + postBasicCharge;
+      // 売電
+      const soSurplus   = Math.max(0, soAg - soDc);
+      const soAnnualSell= Math.round(soSurplus * _saleP0);
+      const soSale20Man = Math.round(soAnnualSell * soWy / 10000);
+      // 20年残電気代
+      let soRemain20Rise = 0;
+      for(let i=1; i<=soWy; i++) soRemain20Rise += soRemainBill*12 * Math.pow(1+(er/100), i-1);
+      const soRemain20Man = er > 0 ? Math.round(soRemain20Rise / 10000) : Math.round(soRemainBill * 12 * soWy / 10000);
+      const soNetRemain   = soRemain20Man - soSale20Man;
+      const soTotalCostMan= Math.round(soNetCost / 10000);
+      const soNetCost20Man= soTotalCostMan + soNetRemain;
+      // bar widths
+      const soBiW    = Math.min(Math.round(soTotalCostMan / bill20Show * 100), 100);
+      const soBiRW   = Math.min(Math.round(Math.max(0,soNetRemain) / bill20Show * 100), 100 - soBiW);
+      document.getElementById('bi-so').style.width   = soBiW + '%';
+      document.getElementById('biv-so').textContent   = soTotalCostMan + '万円';
+      document.getElementById('bi-so').style.opacity   = '1';
+      document.getElementById('bi-so-r').style.width  = soBiRW + '%';
+      document.getElementById('biv-so-r').textContent = soBiRW >= 4 ? Math.max(0,soNetRemain)+'万円' : '';
+      // detail
+      const soDetailEl = document.getElementById('bi-so-detail');
+      if (soDetailEl) {
+        soDetailEl.style.display = '';
+        soDetailEl.innerHTML = soSale20Man > 0
+          ? `<span class="cf-cost">初期費用 ${soTotalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${soRemain20Man}万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 ${soSale20Man}万円</span><span class="cf-op">＝</span>${_netCostHtml(soNetCost20Man)}`
+          : `<span class="cf-cost">初期費用 ${soTotalCostMan}万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 ${soRemain20Man}万円</span><span class="cf-op">＝</span><span class="cf-total">計 ${soNetCost20Man}万円</span>`;
+      }
+      // 20年間コスト差
+      let soBill20Rise = 0;
+      for(let i=1; i<=soWy; i++) soBill20Rise += (mb*12) * Math.pow(1+(er/100), i-1);
+      const soCostDiff = Math.round((soBill20Rise - soNetCost - soRemain20Rise) / 10000) + soSale20Man;
+      document.getElementById('rd-so').textContent  = '約'+soCostDiff+'万円';
+      document.getElementById('diff-note-so').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
+      if (barRowSo)     barRowSo.style.opacity = '1';
+      if (diffBannerSo) diffBannerSo.style.opacity = '1';
+      // 補助金サマリー（Solar Only）
+      const soSubEl = document.getElementById('subsidy-summary-so');
+      if (soSubEl) {
+        if (soSub > 0) {
+          soSubEl.style.display = '';
+          const soGrossMan = Math.round(soTotalCost/10000);
+          const soSubMan   = Math.round(soSubAmt/10000);
+          soSubEl.innerHTML = `<span style="color:var(--muted)">税込総工事費用：<b style="color:#1d4ed8">${soGrossMan}万円</b></span>` +
+            `<span style="color:var(--muted)">　－　補助金：<b style="color:#16a34a">${soSubMan}万円</b></span>` +
+            `<span style="color:var(--muted)">　＝　<b style="color:#1d4ed8;font-size:15px">実質費用：${soTotalCostMan}万円</b></span>`;
+        } else { soSubEl.style.display = 'none'; }
+      }
+    } else {
+      // Solar Only データ不足 → バーを半透明
+      document.getElementById('bi-so').style.width   = '0%';
+      document.getElementById('bi-so').style.opacity  = '0.3';
+      document.getElementById('bi-so-r').style.width = '0%';
+      document.getElementById('biv-so').textContent   = '';
+      document.getElementById('biv-so-r').textContent = '';
+      document.getElementById('rd-so').textContent    = '-';
+      document.getElementById('diff-note-so').textContent = '';
+      const soDetailEl2 = document.getElementById('bi-so-detail');
+      if (soDetailEl2) soDetailEl2.style.display = 'none';
+      if (barRowSo)     barRowSo.style.opacity = '0.4';
+      if (diffBannerSo) diffBannerSo.style.opacity = '0.5';
+      const soSubEl2 = document.getElementById('subsidy-summary-so');
+      if (soSubEl2) soSubEl2.style.display = 'none';
+    }
+  }
 
   const lon = document.getElementById('le').checked;
   if (lon) {
@@ -5143,6 +5472,11 @@ function clearForm() {
   onFitCapacityChange('under10');
   onSaleModeChange('fit');
   setProposalMode('pv_battery');
+  document.getElementById('sk-so').value=7.02; document.getElementById('ck-so').value=120;
+  document.getElementById('ag-so').value=7722; document.getElementById('sub-so').value=0;
+  document.getElementById('wy-so').value=20; document.getElementById('dc-so').value=2310;
+  document.getElementById('pkg-select-so').value='pv7'; document.getElementById('pkg-extra-so').value=0;
+  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=120; updatePkgSummarySo();
 }
 
 // ══════════════════════════════════════════
@@ -5258,7 +5592,9 @@ function saveCustomer() {
         warranty: data.wy,
         monthlyElectricBill: parseFloat(data.mb) || 0,
         familyComposition: data.fm,
-        lifeStyle: data.ls
+        lifeStyle: data.ls,
+        systemDesignSolarOnly: base.systemDesignSolarOnly || null,
+        systemDesignSolarAndBattery: base.systemDesignSolarAndBattery || null
     };
 
     h.unshift(entry);
