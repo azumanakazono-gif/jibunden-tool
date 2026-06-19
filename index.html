@@ -75,6 +75,18 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #breakdown-compare-row { display:flex !important; flex-wrap:wrap; gap:15px; align-items:flex-start; }
 #breakdown-compare-row > .breakdown-toggle { width:auto; flex:1; min-width:280px; }
 @media (max-width:768px) { #breakdown-compare-row { flex-direction:column; } #breakdown-compare-row > .breakdown-toggle { min-width:0; width:100%; } }
+#dual-breakdown-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px; }
+#dual-breakdown-grid .dual-col { border-radius:10px; padding:14px; position:relative; }
+#dual-breakdown-grid .dual-col-pb { background:#f0fdf4; border:1.5px solid #bbf7d0; }
+#dual-breakdown-grid .dual-col-so { background:#eff6ff; border:1.5px solid #7dd3fc; }
+#dual-breakdown-grid .dual-col-so.pending-input { opacity:0.5; pointer-events:none; }
+#dual-breakdown-grid .dual-col-so.pending-input::after { content:'⏳ 太陽光のみの設計を入力してください'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,.9); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:700; color:#92400e; border:1.5px solid #fcd34d; white-space:nowrap; pointer-events:auto; z-index:2; }
+.dual-col-title { font-size:13px; font-weight:800; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid; }
+.dual-breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; font-size:12px; border-bottom:1px solid rgba(0,0,0,.06); }
+.dual-breakdown-row:last-child { border-bottom:none; }
+.dual-breakdown-row .db-label { color:#475569; font-weight:600; }
+.dual-breakdown-row .db-val { font-weight:800; text-align:right; white-space:nowrap; }
+@media (max-width:768px) { #dual-breakdown-grid { grid-template-columns:1fr; } }
 #system-design-card { border-color:#bfdbfe; background:linear-gradient(160deg,#f0f9ff 0%,#fff 60%); }
 #system-design-card > .section-title { color:#1d4ed8; border-bottom:2px solid #bfdbfe; }
 .cost-formula-box { margin-top:8px; padding:10px 14px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); display:flex; flex-wrap:wrap; align-items:center; gap:4px 2px; font-size:12px; line-height:1.8; }
@@ -743,6 +755,22 @@ canvas#mini-chart { height: 220px !important; }
           <div id="post-plan-breakdown-body" style="padding:4px 8px;font-size:11px;line-height:1.9"></div>
           <div id="price-breakdown-body" style="padding:8px;background:#fff;font-size:11px;line-height:1.8"></div>
         </details>
+      </div>
+
+      <!-- ▼ 2列詳細内訳（太陽光＋蓄電池 vs 太陽光のみ） -->
+      <div id="dual-breakdown-grid">
+        <div class="dual-col dual-col-pb">
+          <div class="dual-col-title" style="color:#15803d;border-color:#bbf7d0">☀️🔋【太陽光＋蓄電池】詳細内訳</div>
+          <div id="dual-pb-body">
+            <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
+          </div>
+        </div>
+        <div id="dual-col-so" class="dual-col dual-col-so pending-input">
+          <div class="dual-col-title" style="color:#1d4ed8;border-color:#7dd3fc">☀️【太陽光のみ】詳細内訳</div>
+          <div id="dual-so-body">
+            <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
+          </div>
+        </div>
       </div>
 
       <!-- 概算月額合計 横並び比較行 -->
@@ -4767,6 +4795,78 @@ function _updateMeritBreakdown(dc, bc, up, totalMonthSaving) {
   }
 }
 
+function _renderDualBreakdown(pbData, soData) {
+  var f = function(n) { return Math.round(n).toLocaleString(); };
+  var row = function(icon, label, val, unit, color) {
+    return '<div class="dual-breakdown-row"><span class="db-label">' + icon + ' ' + label + '</span><span class="db-val" style="color:' + (color||'#1e293b') + '">' + val + ' ' + (unit||'') + '</span></div>';
+  };
+  var section = function(title, rows) {
+    return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;padding:2px 0;border-bottom:1px dashed #cbd5e1">' + title + '</div>' + rows + '</div>';
+  };
+  // Solar+Battery column
+  var pbEl = document.getElementById('dual-pb-body');
+  if (pbEl && pbData) {
+    var html =
+      section('📊 エネルギー収支',
+        row('⚡','年間発電量', f(pbData.ag) + ' kWh','','#15803d') +
+        row('☀️','太陽光直接消費', f(pbData.dc) + ' kWh/年','（月' + f(Math.round(pbData.dc/12)) + 'kWh）','#22c55e') +
+        row('🔋','蓄電池放電消費', f(pbData.bc) + ' kWh/年','（月' + f(Math.round(pbData.bc/12)) + 'kWh）','#6f42c1') +
+        row('📤','余剰（売電）', f(pbData.surplus) + ' kWh/年','','#0369a1') +
+        row('🛒','残り買電量', f(pbData.remainKwh) + ' kWh/年','（月' + f(Math.round(pbData.remainKwh/12)) + 'kWh）','#dc2626')
+      ) +
+      section('💰 コスト・メリット',
+        row('🏗️','初期費用（実質）', pbData.totalCostMan + '万円','','#1e40af') +
+        row('💡','月額残り電気代', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
+        row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
+        (pbData.annualSell > 0 ? row('💴','年間売電収入', '約 ¥' + f(pbData.annualSell),'','#0f766e') : '') +
+        row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
+      ) +
+      section('🔢 自家消費率',
+        row('🏠','自家消費率', pbData.selfRate + '%','','#15803d') +
+        row('📤','余剰率', pbData.surplusRate + '%','','#64748b')
+      );
+    pbEl.innerHTML = html;
+  }
+  // Solar Only column
+  var soEl = document.getElementById('dual-so-body');
+  var soCol = document.getElementById('dual-col-so');
+  if (soEl && soData) {
+    if (!soData.valid) {
+      if (soCol) soCol.classList.add('pending-input');
+    } else {
+      if (soCol) soCol.classList.remove('pending-input');
+    }
+    var htmlSo =
+      section('📊 エネルギー収支',
+        row('⚡','年間発電量', f(soData.ag) + ' kWh','','#1d4ed8') +
+        row('☀️','太陽光直接消費', f(soData.dc) + ' kWh/年','（月' + f(Math.round(soData.dc/12)) + 'kWh）','#22c55e') +
+        row('📤','余剰（売電）', f(soData.surplus) + ' kWh/年','','#0369a1') +
+        row('🛒','残り買電量', f(soData.remainKwh) + ' kWh/年','（月' + f(Math.round(soData.remainKwh/12)) + 'kWh）','#dc2626')
+      ) +
+      section('💰 コスト・メリット',
+        row('🏗️','初期費用（実質）', soData.totalCostMan + '万円','','#1e40af') +
+        row('💡','月額残り電気代', '約 ¥' + f(soData.remainBill),'','#dc2626') +
+        row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
+        (soData.annualSell > 0 ? row('💴','年間売電収入', '約 ¥' + f(soData.annualSell),'','#0f766e') : '') +
+        row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
+      ) +
+      section('🔢 自家消費率',
+        row('🏠','自家消費率', soData.selfRate + '%','','#1d4ed8') +
+        row('📤','余剰率', soData.surplusRate + '%','','#64748b')
+      );
+    // Comparison highlight
+    if (soData.valid) {
+      var pbDiff = parseInt(pbData.diffMan) || 0;
+      var soDiff = parseInt(soData.diffMan) || 0;
+      var winner = pbDiff >= soDiff ? '太陽光＋蓄電池' : '太陽光のみ';
+      var gap = Math.abs(pbDiff - soDiff);
+      htmlSo += '<div style="margin-top:6px;padding:8px 10px;border-radius:8px;background:#fefce8;border:1px solid #fde68a;font-size:11px;font-weight:700;color:#92400e;text-align:center">' +
+        '💡 ' + winner + 'が約' + gap + '万円おトク（20年間）</div>';
+    }
+    soEl.innerHTML = htmlSo;
+  }
+}
+
 // ══════════════════════════════════════════
 // 計算
 // ══════════════════════════════════════════
@@ -5065,6 +5165,54 @@ function calc() {
       if (biBarRow2) biBarRow2.style.opacity = '1';
       if (badgePb) { badgePb.innerHTML = '🟢 太陽光＋蓄電池'; badgePb.style.background='#f0fdf4'; badgePb.style.color='#15803d'; badgePb.style.borderColor='#86efac'; }
     }
+  })();
+
+  // ── 2列詳細内訳レンダリング ──
+  (function() {
+    var selfKwhPb = dc + bc_eff;
+    var surplusPb = Math.max(0, ag - selfKwhPb);
+    var remainKwhPb = Math.max(0, annualConsumptionKWh - selfKwhPb);
+    var selfRatePb = ag > 0 ? Math.min(100, Math.round(selfKwhPb / ag * 100)) : 0;
+    var surplusRatePb = ag > 0 ? Math.round(surplusPb / ag * 100) : 0;
+    var pbData = {
+      ag: ag, dc: dc, bc: bc_eff, surplus: surplusPb,
+      remainKwh: remainKwhPb, remainBill: m.remainBill,
+      totalCostMan: m.totalCostMan, annualSaving: _annualTotal,
+      annualSell: _annualSellRev0, diffMan: diffShow,
+      selfRate: selfRatePb, surplusRate: surplusRatePb
+    };
+    var skSo2 = parseFloat(document.getElementById('sk-so').value) || 0;
+    var ckSo2 = parseFloat(document.getElementById('ck-so').value) || 0;
+    var agSo2 = parseFloat(document.getElementById('ag-so').value) || 0;
+    var dcSo2 = parseFloat(document.getElementById('dc-so').value) || 0;
+    var subSo2 = parseFloat(document.getElementById('sub-so').value) || 0;
+    var wySo2 = parseFloat(document.getElementById('wy-so').value) || 20;
+    var soValid2 = skSo2 > 0 && ckSo2 > 0 && agSo2 > 0;
+    var cSo2 = {
+      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      annualGenerationKWh: agSo2, solarCapacityKW: skSo2,
+      totalConstructionCost: ckSo2 * 10000,
+      subsidyAmount: subSo2, warrantyYears: wySo2,
+      directConsumptionKWh: dcSo2, batteryConsumptionKWh: 0,
+      annualConsumptionKWh: annualConsumptionKWh, escalationRate: er, postBasicCharge: postBasicCharge
+    };
+    var mSo2 = calcMetrics(cSo2);
+    var surplusSo2 = Math.max(0, agSo2 - dcSo2);
+    var remainKwhSo2 = Math.max(0, annualConsumptionKWh - dcSo2);
+    var saleP2 = parseFloat(document.getElementById('sale-price').value) || 0;
+    var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
+    var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
+    var diffSo2 = mSo2.costDiff_with_rise + Math.round(annSellSo2 * wySo2 / 10000);
+    var selfRateSo2 = agSo2 > 0 ? Math.min(100, Math.round(dcSo2 / agSo2 * 100)) : 0;
+    var surplusRateSo2 = agSo2 > 0 ? Math.round(surplusSo2 / agSo2 * 100) : 0;
+    var soData = {
+      valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
+      remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
+      totalCostMan: mSo2.totalCostMan, annualSaving: annSaveSo2,
+      annualSell: annSellSo2, diffMan: diffSo2,
+      selfRate: selfRateSo2, surplusRate: surplusRateSo2
+    };
+    _renderDualBreakdown(pbData, soData);
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
