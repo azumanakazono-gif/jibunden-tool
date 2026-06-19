@@ -1745,12 +1745,15 @@ function applyProposalMode() {
   // カードの有効/無効表示
   var _sdCard = document.getElementById('system-design-card');
   var _sdCardSo = document.getElementById('system-design-card-so');
+  var _pkgSelSo = document.getElementById('pkg-select-so');
   if (proposalMode === 'pv_only') {
     _sdCard.style.opacity = '0.5'; _sdCard.style.pointerEvents = 'none'; _sdCard.style.background = '#f1f5f9';
     _sdCardSo.style.opacity = '1'; _sdCardSo.style.pointerEvents = 'auto'; _sdCardSo.style.background = '';
+    if (_pkgSelSo) { _pkgSelSo.disabled = false; _pkgSelSo.style.background = '#fff'; _pkgSelSo.style.cursor = ''; }
   } else {
     _sdCard.style.opacity = '1'; _sdCard.style.pointerEvents = 'auto'; _sdCard.style.background = '';
     _sdCardSo.style.opacity = '0.5'; _sdCardSo.style.pointerEvents = 'none'; _sdCardSo.style.background = '#f1f5f9';
+    if (_pkgSelSo) { _pkgSelSo.disabled = true; _pkgSelSo.style.background = '#f1f5f9'; _pkgSelSo.style.cursor = 'not-allowed'; }
   }
 
   // パッケージ選択（全パッケージが太陽光＋蓄電池のため pv_battery のみ表示）
@@ -2621,6 +2624,15 @@ function onPkgChangeSo() {
       var annCons = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
       document.getElementById('dc-so').value = Math.round(Math.min(p.ag * 0.65, annCons * rate));
     }
+  }
+  // SO→PBパッケージ逆マッピング
+  if (!isManual) {
+    var _pvNum = key.replace('pv','');
+    var _bkVal = parseFloat(document.getElementById('bk').value) || 7.7;
+    var _bkKey = _bkVal > 12 ? '15' : _bkVal > 8 ? '9' : '7';
+    var _pbKey = _pvNum + '+' + _bkKey;
+    var _pbSel = document.getElementById('pkg-select');
+    if (_pbSel.querySelector('option[value="'+_pbKey+'"]')) { _pbSel.value = _pbKey; onPkgChange(); }
   }
   updatePkgSummarySo();
   calc();
