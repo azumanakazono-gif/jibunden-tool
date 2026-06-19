@@ -4950,6 +4950,9 @@ function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
   document.getElementById('dc-so').value = dc;
+  const mainPkgSelect = document.getElementById('pkg-select');
+  const soPkgSelect = document.getElementById('pkg-select-so');
+  if (mainPkgSelect && soPkgSelect) { soPkgSelect.value = mainPkgSelect.value; }
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
