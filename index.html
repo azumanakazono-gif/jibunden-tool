@@ -5508,13 +5508,26 @@ function calc() {
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
-    var isPvOnlyMode = proposalMode === 'pv_only';
+    var allButtons = document.querySelectorAll('button, .btn, .nav-link');
+    var pvOnlyBtn = null;
+    for (var i = 0; i < allButtons.length; i++) {
+      var txt = (allButtons[i].textContent || '').replace(/\s+/g, '');
+      if (txt.indexOf('太陽光のみ') >= 0) { pvOnlyBtn = allButtons[i]; break; }
+    }
+    var isPvOnlyMode = pvOnlyBtn && (
+      pvOnlyBtn.classList.contains('active') ||
+      pvOnlyBtn.classList.contains('btn-primary') ||
+      pvOnlyBtn.getAttribute('aria-selected') === 'true'
+    );
     var finalSelf;
     if (isPvOnlyMode) {
-      finalSelf = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
+      var soSelfEl = document.getElementById('so-self-rate');
+      finalSelf = soSelfEl ? parseInt(soSelfEl.innerText) : 45;
     } else {
-      finalSelf = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 87;
+      var pbSelfEl = document.getElementById('pb-self-rate');
+      finalSelf = pbSelfEl ? parseInt(pbSelfEl.innerText) : 90;
     }
+    finalSelf = Math.round(parseFloat(finalSelf) || (isPvOnlyMode ? 45 : 90));
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
@@ -5525,7 +5538,7 @@ function calc() {
     if (_sc) { _sc.style.background = _ov ? '#DC2626' : 'var(--mg)'; _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)'; }
     var _sw = document.getElementById('self-rate-warning');
     if (_sw) _sw.style.display = _ov ? '' : 'none';
-  }, 100);
+  }, 60);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
