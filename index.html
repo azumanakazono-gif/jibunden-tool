@@ -6908,9 +6908,10 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 <script>
 (function() {
   function forceSyncUpperPanel() {
-    const modeBadge = document.getElementById('mode-badge');
-    const badgeText = modeBadge ? modeBadge.innerText : '';
-    const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
+    const checkedInput = document.querySelector('input[name="proposal_mode"]:checked');
+    const modeVal = checkedInput ? checkedInput.value : 'set';
+
+    const isPvOnlyMode = (modeVal === 'pv_only');
 
     const finalSelfVal = isPvOnlyMode ? 45 : 90;
     const finalSurplusVal = 100 - finalSelfVal;
@@ -6918,8 +6919,12 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     const sValEl = document.getElementById('self-rate-val');
     const curValEl = document.getElementById('surplus-rate-val');
 
-    if (sValEl) sValEl.innerText = finalSelfVal;
-    if (curValEl) curValEl.innerText = finalSurplusVal;
+    if (sValEl && parseInt(sValEl.innerText) !== finalSelfVal) {
+      sValEl.innerText = finalSelfVal;
+    }
+    if (curValEl && parseInt(curValEl.innerText) !== finalSurplusVal) {
+      curValEl.innerText = finalSurplusVal;
+    }
   }
 
   setInterval(forceSyncUpperPanel, 300);
