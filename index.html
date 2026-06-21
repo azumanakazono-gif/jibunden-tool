@@ -5372,16 +5372,6 @@ function calc() {
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
-    var _modeBadge = document.getElementById('mode-badge');
-    var _badgeText = _modeBadge ? _modeBadge.innerText : '';
-    var _isPvOnly = _badgeText.includes('太陽光のみ') || _badgeText.includes('太陽光 のみ');
-    var _exactSelfRate = _isPvOnly ? soData.selfRate : pbData.selfRate;
-    var _finalSelfVal = Math.round(parseFloat(_exactSelfRate));
-    var _finalSurplusVal = 100 - _finalSelfVal;
-    var _sValEl = document.getElementById('self-rate-val');
-    var _curValEl = document.getElementById('surplus-rate-val');
-    if (_sValEl) _sValEl.innerText = _finalSelfVal;
-    if (_curValEl) _curValEl.innerText = _finalSurplusVal;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -6744,42 +6734,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function forceSyncUpperPanel() {
-  const modeBadge = document.getElementById('mode-badge');
-  const badgeText = modeBadge ? modeBadge.innerText : '';
-  const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
-  let exactSelfRate = 90;
-  if (isPvOnlyMode) {
-    exactSelfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
-  } else {
-    exactSelfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
-  }
-  if (!exactSelfRate || exactSelfRate === 90 || exactSelfRate === 45) {
-    if (isPvOnlyMode) {
-      const soSpan = document.querySelector('.dual-col-so b, #so-self-rate');
-      exactSelfRate = soSpan ? parseInt(soSpan.innerText) : 45;
-    } else {
-      const pbSpan = document.querySelector('.dual-col-pb b, #pb-self-rate');
-      exactSelfRate = pbSpan ? parseInt(pbSpan.innerText) : 90;
-    }
-  }
-  const finalSelfVal = Math.round(parseFloat(exactSelfRate));
-  const finalSurplusVal = 100 - finalSelfVal;
-  const sValEl = document.getElementById('self-rate-val');
-  const curValEl = document.getElementById('surplus-rate-val');
-  if (sValEl) sValEl.innerText = finalSelfVal;
-  if (curValEl) curValEl.innerText = finalSurplusVal;
-}
 
-if (typeof calc === 'function') {
-  const originalCalc = calc;
-  window.calc = function(...args) {
-    originalCalc(...args);
-    setTimeout(forceSyncUpperPanel, 50);
-  };
-}
-
-setInterval(forceSyncUpperPanel, 300);
 </script>
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
 
@@ -6930,6 +6885,31 @@ window.onload = () => {
 document.getElementById('manualBtn').addEventListener('click', () => {
   window.open('manual.html', '_blank');
 });
+</script>
+<script>
+(function() {
+  function forceSyncUpperPanel() {
+    const modeBadge = document.getElementById('mode-badge');
+    const badgeText = modeBadge ? modeBadge.innerText : '';
+    const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
+    let exactSelfRate = 90;
+    if (isPvOnlyMode) {
+      const soSpan = document.querySelector('.dual-col-so b, #so-self-rate');
+      exactSelfRate = soSpan ? parseInt(soSpan.innerText) : 45;
+    } else {
+      const pbSpan = document.querySelector('.dual-col-pb b, #pb-self-rate');
+      exactSelfRate = pbSpan ? parseInt(pbSpan.innerText) : 90;
+    }
+    const finalSelfVal = Math.round(parseFloat(exactSelfRate) || (isPvOnlyMode ? 45 : 90));
+    const finalSurplusVal = 100 - finalSelfVal;
+    const sValEl = document.getElementById('self-rate-val');
+    const curValEl = document.getElementById('surplus-rate-val');
+    if (sValEl && parseInt(sValEl.innerText) !== finalSelfVal) sValEl.innerText = finalSelfVal;
+    if (curValEl && parseInt(curValEl.innerText) !== finalSurplusVal) curValEl.innerText = finalSurplusVal;
+  }
+  setInterval(forceSyncUpperPanel, 300);
+  window.addEventListener('click', () => setTimeout(forceSyncUpperPanel, 50));
+})();
 </script>
 </body>
 </html>
