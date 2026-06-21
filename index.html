@@ -817,9 +817,9 @@ canvas#mini-chart { height: 220px !important; }
           ⚠️ 電気代の上昇予測はあくまで試算です。実際の上昇率は料金改定により異なります。
         </div>
       </div>
-      <div id="dual-input-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;align-items:start">
+      <div id="dual-input-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;align-items:stretch">
         <!-- ── 左列：太陽光＋蓄電池 ── -->
-        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px">
+        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#15803d;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #bbf7d0">☀️🔋 太陽光＋蓄電池</div>
           <div class="field" id="field-dc-wrap">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
@@ -847,6 +847,7 @@ canvas#mini-chart { height: 220px !important; }
             <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
             <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
           </div>
+          <div style="flex:1"></div>
           <div id="result-area" style="margin-top:12px;background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
             <div id="self-rate-warn-input" style="display:none;padding:10px 14px;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:8px;font-size:12px;font-weight:700;color:#B91C1C;line-height:1.6">
               ⚠ 自家消費率が100%を超えています<br>
@@ -861,7 +862,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
         <!-- ── 右列：太陽光のみ ── -->
-        <div style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px">
+        <div style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#1d4ed8;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #7dd3fc">☀️ 太陽光のみ</div>
           <div class="field">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
@@ -884,6 +885,7 @@ canvas#mini-chart { height: 220px !important; }
             <div style="font-size:22px;font-weight:900;color:#cbd5e1">--</div>
             <div style="font-size:10px;color:#94a3b8;margin-top:2px">蓄電池なしのため対象外</div>
           </div>
+          <div style="flex:1"></div>
           <div id="result-area-so" style="margin-top:12px;background:#fff;border:2px solid #bfdbfe;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
             <div id="daytime-rate-disp-so" style="padding:6px 10px;background:#eff6ff;border-radius:6px;font-size:12px;color:#1d4ed8;font-weight:600"></div>
             <div id="self-detail-so-input" style="display:none"></div>
