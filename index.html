@@ -5506,38 +5506,25 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // ── 最終行：上部パネルの自家消費率・余剰率をDOM確定後に強制同期 ──
-  setTimeout(function() {
-    var soCard = document.getElementById('so-self-rate');
-    var soCol = soCard ? soCard.closest('.dual-col-so') || soCard : null;
-    var isPvOnlyActive = soCol && soCol.offsetHeight > 0 && window.getComputedStyle(soCol).display !== 'none';
-    var pmEl = document.getElementById('proposal-mode');
-    var isPvOnly = isPvOnlyActive || (pmEl && pmEl.value === 'pv_only') || proposalMode === 'pv_only';
-    var selfVal, surplusVal;
-    if (isPvOnly) {
-      var _s = document.getElementById('so-self-rate');
-      var _x = document.getElementById('so-surplus-rate');
-      selfVal = _s ? _s.textContent.replace('%','').trim() : '0';
-      surplusVal = _x ? _x.textContent.replace('%','').trim() : '0';
+  // ── 最終行：上部パネルの自家消費率・余剰率を強制同期（同期＋遅延の二重書き込み） ──
+  var _syncTopPanel = function() {
+    var _sr, _xr;
+    if (proposalMode === 'pv_only') {
+      _sr = _finalSoSelfRate; _xr = _finalSoSurplusRate;
     } else {
-      var _s2 = document.getElementById('pb-self-rate');
-      var _x2 = document.getElementById('pb-surplus-rate');
-      selfVal = _s2 ? _s2.textContent.replace('%','').trim() : '0';
-      surplusVal = _x2 ? _x2.textContent.replace('%','').trim() : '0';
+      _sr = _finalPbSelfRate; _xr = _finalPbSurplusRate;
     }
-    var srEl = document.getElementById('self-rate-val');
-    var xrEl = document.getElementById('surplus-rate-val');
-    if (srEl) srEl.textContent = selfVal;
-    if (xrEl) xrEl.textContent = surplusVal;
-    var _ov = parseInt(selfVal) > 100;
+    document.getElementById('self-rate-val').textContent = _sr;
+    document.getElementById('surplus-rate-val').textContent = _xr;
+    var _ov = _sr > 100;
     var _sc = document.getElementById('self-rate-card');
-    if (_sc) {
-      _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
-      _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
-    }
-    var _sw = document.getElementById('self-rate-warning');
-    if (_sw) _sw.style.display = _ov ? '' : 'none';
-  }, 50);
+    _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
+    _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
+    document.getElementById('self-rate-warning').style.display = _ov ? '' : 'none';
+  };
+  _syncTopPanel();
+  setTimeout(_syncTopPanel, 0);
+  setTimeout(_syncTopPanel, 100);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
