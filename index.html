@@ -5510,21 +5510,15 @@ function calc() {
   setTimeout(function() {
     var pvOnlyBtn = document.getElementById('pm-btn-pv_only');
     var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
-    var selfRate = 90;
-    if (isPvOnlyMode) {
-      selfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
-    } else {
-      selfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
-    }
-    if (typeof selfRate === 'object' && selfRate !== null) {
-      selfRate = selfRate.selfRate || (isPvOnlyMode ? 45 : 90);
-    }
-    var finalSelf = Math.round(parseFloat(selfRate) || (isPvOnlyMode ? 45 : 90));
+    var selfRate = isPvOnlyMode ? _finalSoSelfRate : _finalPbSelfRate;
+    if (typeof selfRate !== 'number' || isNaN(selfRate)) selfRate = isPvOnlyMode ? 45 : 90;
+    var finalSelf = Math.round(selfRate);
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
+    console.log('[SYNC DEBUG] proposalMode=' + proposalMode + ' isPvOnlyMode=' + isPvOnlyMode + ' _finalPbSelfRate=' + _finalPbSelfRate + ' _finalSoSelfRate=' + _finalSoSelfRate + ' => displayed=' + finalSelf);
   }, 50);
 }
 
