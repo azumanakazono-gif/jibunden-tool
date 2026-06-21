@@ -5507,33 +5507,30 @@ function calc() {
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
-  var _doSyncTopRates = function() {
-    var _n = function(id) { var e = document.getElementById(id); return e ? parseFloat(String(e.value).replace(/,/g,'')) || 0 : 0; };
+  setTimeout(function() {
     var soCol = document.querySelector('.dual-col-so');
-    var isPvOnly = proposalMode === 'pv_only' || (soCol && !soCol.classList.contains('pending-input') && soCol.offsetHeight > 0);
-    var _topAg, _topSelf;
+    var isPvOnly = proposalMode === 'pv_only' || (soCol && soCol.offsetHeight > 0 && !soCol.classList.contains('pending-input'));
+    var selfRate = isPvOnly ? 45 : 87;
+    var pbBody = (document.getElementById('dual-pb-body') || {}).textContent || '';
+    var soBody = (document.getElementById('dual-so-body') || {}).textContent || '';
     if (isPvOnly) {
-      _topAg   = _n('ag-so');
-      _topSelf = _n('dc-so');
+      var m = soBody.match(/自家消費率\s*(\d+)\s*%/);
+      if (m) selfRate = parseInt(m[1]);
     } else {
-      _topAg   = _n('ag');
-      _topSelf = _n('dc') + _n('bc');
+      var m2 = pbBody.match(/自家消費率\s*(\d+)\s*%/);
+      if (m2) selfRate = parseInt(m2[1]);
     }
-    var _sr = _topAg > 0 ? Math.min(100, Math.round(_topSelf / _topAg * 100)) : 0;
-    var _xr = _topAg > 0 ? Math.round(Math.max(0, _topAg - _topSelf) / _topAg * 100) : 0;
+    var surplusRate = 100 - selfRate;
     var selfEl = document.getElementById('self-rate-val');
     var surpEl = document.getElementById('surplus-rate-val');
-    if (selfEl) selfEl.textContent = _sr;
-    if (surpEl) surpEl.textContent = _xr;
-    var _ov = _sr > 100;
+    if (selfEl) selfEl.textContent = selfRate;
+    if (surpEl) surpEl.textContent = surplusRate;
+    var _ov = selfRate > 100;
     var _sc = document.getElementById('self-rate-card');
     if (_sc) { _sc.style.background = _ov ? '#DC2626' : 'var(--mg)'; _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)'; }
     var _sw = document.getElementById('self-rate-warning');
     if (_sw) _sw.style.display = _ov ? '' : 'none';
-  };
-  _doSyncTopRates();
-  setTimeout(_doSyncTopRates, 30);
-  setTimeout(_doSyncTopRates, 150);
+  }, 50);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
