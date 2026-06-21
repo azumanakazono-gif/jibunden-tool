@@ -5510,26 +5510,20 @@ function calc() {
   setTimeout(function() {
     var pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
     var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
-    var pbText = (document.getElementById('dual-pb-body') || {}).textContent || '';
-    var soText = (document.getElementById('dual-so-body') || {}).textContent || '';
     var selfRate = 90;
     if (isPvOnlyMode) {
-      var matchSo = soText.match(/自家消費率\s*(\d+)%/);
-      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
+      var soSelfEl = document.getElementById('so-self-rate') || document.querySelector('.dual-col-so .self-rate-value');
+      selfRate = soSelfEl ? parseInt(soSelfEl.innerText.replace(/[^0-9]/g, '')) : 45;
     } else {
-      var matchPb = pbText.match(/自家消費率\s*(\d+)%/);
-      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
+      var pbSelfEl = document.getElementById('pb-self-rate') || document.querySelector('.dual-col-pb .self-rate-value');
+      selfRate = pbSelfEl ? parseInt(pbSelfEl.innerText.replace(/[^0-9]/g, '')) : 90;
     }
-    var finalSelf = Math.round(selfRate);
+    var finalSelf = Math.round(selfRate || (isPvOnlyMode ? 45 : 90));
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
-    if (window._syncDebugOnce !== true) {
-      window._syncDebugOnce = true;
-      console.log('[SYNC] pvOnlyBtn found:', !!pvOnlyBtn, 'active:', pvOnlyBtn ? pvOnlyBtn.classList.contains('active') : 'N/A', 'isPvOnlyMode:', isPvOnlyMode, 'pbMatch:', pbText.match(/自家消費率\s*(\d+)%/), 'soMatch:', soText.match(/自家消費率\s*(\d+)%/), 'selfRate:', selfRate, '=>', finalSelf + '/' + finalSurplus);
-    }
   }, 50);
 }
 
