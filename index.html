@@ -5286,20 +5286,6 @@ function calc() {
         '</div>';
     }
   })();
-  // ── 太陽光のみモード時: 上部パネルの自家消費率・余剰率を太陽光のみの値で上書き ──
-  if (proposalMode === 'pv_only') {
-    var _agSoTop = parseFloat(document.getElementById('ag-so').value) || 0;
-    var _dcSoTop = parseFloat(document.getElementById('dc-so').value) || 0;
-    var _selfRateSo = _agSoTop > 0 ? Math.round(_dcSoTop / _agSoTop * 100) : 0;
-    var _surplusRateSo = _agSoTop > 0 ? Math.round(Math.max(0, _agSoTop - _dcSoTop) / _agSoTop * 100) : 0;
-    document.getElementById('self-rate-val').textContent = _selfRateSo;
-    document.getElementById('surplus-rate-val').textContent = _surplusRateSo;
-    var _srCard = document.getElementById('self-rate-card');
-    var _overSo = _selfRateSo > 100;
-    _srCard.style.background = _overSo ? '#DC2626' : 'var(--mg)';
-    _srCard.style.borderColor = _overSo ? '#B91C1C' : 'var(--dg)';
-    document.getElementById('self-rate-warning').style.display = _overSo ? '' : 'none';
-  }
   // バリデーションバッジ (Solar+Battery)
   (function() {
     var pbValid = v('sk') > 0 && v('ck') > 0 && v('ag') > 0;
@@ -5391,6 +5377,15 @@ function calc() {
       selfRate: selfRateSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
+    // ── 上部パネル自家消費率・余剰率を詳細内訳と完全一致させる ──
+    var _topSrc = proposalMode === 'pv_only' ? soData : pbData;
+    document.getElementById('self-rate-val').textContent = _topSrc.selfRate;
+    document.getElementById('surplus-rate-val').textContent = _topSrc.surplusRate;
+    var _overTop = _topSrc.selfRate > 100;
+    var _srCardTop = document.getElementById('self-rate-card');
+    _srCardTop.style.background = _overTop ? '#DC2626' : 'var(--mg)';
+    _srCardTop.style.borderColor = _overTop ? '#B91C1C' : 'var(--dg)';
+    document.getElementById('self-rate-warning').style.display = _overTop ? '' : 'none';
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
