@@ -5302,6 +5302,7 @@ function calc() {
   })();
 
   // ── 2列詳細内訳レンダリング ──
+  var _finalPbSelfRate = 0, _finalPbSurplusRate = 0, _finalSoSelfRate = 0, _finalSoSurplusRate = 0;
   (function() {
     var pbAg, pbDc, pbBc, pbSk, pbCk, pbSub, pbWy;
     if (proposalMode !== 'pv_battery') {
@@ -5377,6 +5378,8 @@ function calc() {
       selfRate: selfRateSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
+    _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
+    _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -5511,20 +5514,15 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // ── 最終行：上部パネルの自家消費率・余剰率を詳細内訳と強制同期 ──
-  var _pbSR = document.getElementById('pb-self-rate');
-  var _pbXR = document.getElementById('pb-surplus-rate');
-  var _soSR = document.getElementById('so-self-rate');
-  var _soXR = document.getElementById('so-surplus-rate');
-  if (proposalMode === 'pv_only' && _soSR && _soXR) {
-    document.getElementById('self-rate-val').textContent = _soSR.textContent;
-    document.getElementById('surplus-rate-val').textContent = _soXR.textContent;
-  } else if (_pbSR && _pbXR) {
-    document.getElementById('self-rate-val').textContent = _pbSR.textContent;
-    document.getElementById('surplus-rate-val').textContent = _pbXR.textContent;
+  // ── 最終行：上部パネルの自家消費率・余剰率を計算データから強制同期 ──
+  if (proposalMode === 'pv_only') {
+    document.getElementById('self-rate-val').textContent = _finalSoSelfRate;
+    document.getElementById('surplus-rate-val').textContent = _finalSoSurplusRate;
+  } else {
+    document.getElementById('self-rate-val').textContent = _finalPbSelfRate;
+    document.getElementById('surplus-rate-val').textContent = _finalPbSurplusRate;
   }
-  var _finalSR = parseInt(document.getElementById('self-rate-val').textContent) || 0;
-  var _finalOver = _finalSR > 100;
+  var _finalOver = (proposalMode === 'pv_only' ? _finalSoSelfRate : _finalPbSelfRate) > 100;
   var _srC = document.getElementById('self-rate-card');
   _srC.style.background = _finalOver ? '#DC2626' : 'var(--mg)';
   _srC.style.borderColor = _finalOver ? '#B91C1C' : 'var(--dg)';
