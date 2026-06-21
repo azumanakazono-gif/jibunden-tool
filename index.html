@@ -5372,6 +5372,14 @@ function calc() {
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
+    // 上部パネルへ即座に同期（setTimeoutなし）
+    var _isPvOnly = proposalMode === 'pv_only';
+    var _topSelf = _isPvOnly ? soData.selfRate : pbData.selfRate;
+    var _topSurplus = 100 - _topSelf;
+    var _selfEl = document.getElementById('self-rate-val');
+    var _surpEl = document.getElementById('surplus-rate-val');
+    if (_selfEl) _selfEl.innerText = _topSelf;
+    if (_surpEl) _surpEl.innerText = _topSurplus;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -5506,27 +5514,7 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
-  setTimeout(function() {
-    var pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
-    var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
-    var pbText = (document.getElementById('dual-pb-body') || {}).textContent || '';
-    var soText = (document.getElementById('dual-so-body') || {}).textContent || '';
-    var selfRate = 90;
-    if (isPvOnlyMode) {
-      var matchSo = soText.match(/自家消費率\s*(\d+)%/);
-      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
-    } else {
-      var matchPb = pbText.match(/自家消費率\s*(\d+)%/);
-      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
-    }
-    var finalSelf = Math.round(selfRate);
-    var finalSurplus = 100 - finalSelf;
-    var selfValEl = document.getElementById('self-rate-val');
-    var surplusValEl = document.getElementById('surplus-rate-val');
-    if (selfValEl) selfValEl.innerText = finalSelf;
-    if (surplusValEl) surplusValEl.innerText = finalSurplus;
-  }, 60);
+  // 上部パネル同期はIIFE内（_renderDualBreakdown直後）で実行済み
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
