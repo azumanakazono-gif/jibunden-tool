@@ -6889,8 +6889,9 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 <script>
 (function() {
   function forceSyncUpperPanel() {
-    const pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
-    const isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
+    const modeBadge = document.getElementById('mode-badge');
+    const badgeText = modeBadge ? modeBadge.innerText : '';
+    const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
     const finalSelfVal = isPvOnlyMode ? 45 : 90;
     const finalSurplusVal = 100 - finalSelfVal;
     const sValEl = document.getElementById('self-rate-val');
