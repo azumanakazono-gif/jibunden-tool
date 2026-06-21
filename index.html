@@ -760,13 +760,13 @@ canvas#mini-chart { height: 220px !important; }
       <!-- ▼ 2列詳細内訳（太陽光＋蓄電池 vs 太陽光のみ） -->
       <div id="dual-breakdown-grid">
         <div class="dual-col dual-col-pb">
-          <div class="dual-col-title" style="color:#15803d;border-color:#bbf7d0">☀️🔋【太陽光＋蓄電池】詳細内訳</div>
+          <div class="dual-col-title" style="color:#15803d;border-color:#bbf7d0">☀️🔋【太陽光＋蓄電池】詳細内訳 <span id="title-pv-cap" style="font-weight:400"></span></div>
           <div id="dual-pb-body">
             <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
           </div>
         </div>
         <div id="dual-col-so" class="dual-col dual-col-so pending-input">
-          <div class="dual-col-title" style="color:#1d4ed8;border-color:#7dd3fc">☀️【太陽光のみ】詳細内訳</div>
+          <div class="dual-col-title" style="color:#1d4ed8;border-color:#7dd3fc">☀️【太陽光のみ】詳細内訳 <span id="title-pv-cap-so" style="font-weight:400"></span></div>
           <div id="dual-so-body">
             <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
           </div>
@@ -4977,6 +4977,9 @@ function calc() {
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
   document.getElementById('dc-so').value = dc;
   document.getElementById('pkg-area-so').style.display = '';
+  document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${sk} kW)` : '';
+  var _skSoTitle = parseFloat(document.getElementById('sk-so').value) || 0;
+  document.getElementById('title-pv-cap-so').textContent = _skSoTitle > 0 ? `(${_skSoTitle} kW)` : '';
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
