@@ -5372,14 +5372,6 @@ function calc() {
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
-    // 上部パネルへ即座に同期（setTimeoutなし）
-    var _isPvOnly = proposalMode === 'pv_only';
-    var _topSelf = _isPvOnly ? soData.selfRate : pbData.selfRate;
-    var _topSurplus = 100 - _topSelf;
-    var _selfEl = document.getElementById('self-rate-val');
-    var _surpEl = document.getElementById('surplus-rate-val');
-    if (_selfEl) _selfEl.innerText = _topSelf;
-    if (_surpEl) _surpEl.innerText = _topSurplus;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -5514,7 +5506,27 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // 上部パネル同期はIIFE内（_renderDualBreakdown直後）で実行済み
+  setTimeout(() => {
+    const modeBadge = document.getElementById('mode-badge');
+    const badgeText = modeBadge ? modeBadge.innerText : (document.body.innerText || '');
+    const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
+    let selfRate = 90;
+    const pbText = document.getElementById('dual-pb-body')?.textContent || '';
+    const soText = document.getElementById('dual-so-body')?.textContent || '';
+    if (isPvOnlyMode) {
+      const matchSo = soText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
+    } else {
+      const matchPb = pbText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
+    }
+    const finalSelf = Math.round(selfRate);
+    const finalSurplus = 100 - finalSelf;
+    const selfValEl = document.getElementById('self-rate-val');
+    const surplusValEl = document.getElementById('surplus-rate-val');
+    if (selfValEl) selfValEl.innerText = finalSelf;
+    if (surplusValEl) surplusValEl.innerText = finalSurplus;
+  }, 50);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
