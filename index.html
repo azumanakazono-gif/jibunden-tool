@@ -5512,13 +5512,14 @@ function calc() {
     var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
     var selfRate = 90;
     if (isPvOnlyMode) {
-      var soSelfEl = document.getElementById('so-self-rate') || document.querySelector('.dual-col-so .self-rate-value');
-      selfRate = soSelfEl ? parseInt(soSelfEl.innerText.replace(/[^0-9]/g, '')) : 45;
+      selfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
     } else {
-      var pbSelfEl = document.getElementById('pb-self-rate') || document.querySelector('.dual-col-pb .self-rate-value');
-      selfRate = pbSelfEl ? parseInt(pbSelfEl.innerText.replace(/[^0-9]/g, '')) : 90;
+      selfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
     }
-    var finalSelf = Math.round(selfRate || (isPvOnlyMode ? 45 : 90));
+    if (typeof selfRate === 'object' && selfRate !== null) {
+      selfRate = selfRate.selfRate || (isPvOnlyMode ? 45 : 90);
+    }
+    var finalSelf = Math.round(parseFloat(selfRate) || (isPvOnlyMode ? 45 : 90));
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
