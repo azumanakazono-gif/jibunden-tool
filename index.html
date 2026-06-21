@@ -6889,9 +6889,9 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 <script>
 (function() {
   function forceSyncUpperPanel() {
-    const titlePvCap = document.getElementById('title-pv-cap');
-    const isPbModeActive = titlePvCap && titlePvCap.innerText.trim() !== '';
-    const finalSelfVal = isPbModeActive ? 90 : 45;
+    const pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
+    const isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
+    const finalSelfVal = isPvOnlyMode ? 45 : 90;
     const finalSurplusVal = 100 - finalSelfVal;
     const sValEl = document.getElementById('self-rate-val');
     const curValEl = document.getElementById('surplus-rate-val');
