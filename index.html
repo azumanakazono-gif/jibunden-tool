@@ -5507,20 +5507,28 @@ function calc() {
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
+  // pb-self-rate / so-self-rate のspan要素から直接読み取り（_renderDualBreakdownで生成済み）
   setTimeout(function() {
-    var soCol = document.querySelector('.dual-col-so');
-    var isPvOnly = proposalMode === 'pv_only' || (soCol && soCol.offsetHeight > 0 && !soCol.classList.contains('pending-input'));
-    var selfRate = isPvOnly ? 45 : 87;
-    var pbBody = (document.getElementById('dual-pb-body') || {}).textContent || '';
-    var soBody = (document.getElementById('dual-so-body') || {}).textContent || '';
-    if (isPvOnly) {
-      var m = soBody.match(/自家消費率\s*(\d+)\s*%/);
-      if (m) selfRate = parseInt(m[1]);
+    var isPvOnly = proposalMode === 'pv_only';
+    var selfRate, surplusRate;
+    var pbSrEl = document.getElementById('pb-self-rate');
+    var pbXrEl = document.getElementById('pb-surplus-rate');
+    var soSrEl = document.getElementById('so-self-rate');
+    var soXrEl = document.getElementById('so-surplus-rate');
+    if (isPvOnly && soSrEl) {
+      selfRate = parseInt(soSrEl.textContent) || 0;
+      surplusRate = parseInt(soXrEl ? soXrEl.textContent : '') || (100 - selfRate);
+    } else if (pbSrEl) {
+      selfRate = parseInt(pbSrEl.textContent) || 0;
+      surplusRate = parseInt(pbXrEl ? pbXrEl.textContent : '') || (100 - selfRate);
     } else {
-      var m2 = pbBody.match(/自家消費率\s*(\d+)\s*%/);
-      if (m2) selfRate = parseInt(m2[1]);
+      // フォールバック：入力要素から再計算
+      var _n = function(id) { var e = document.getElementById(id); return e ? parseFloat(String(e.value).replace(/,/g,'')) || 0 : 0; };
+      var _ag = isPvOnly ? _n('ag-so') : _n('ag');
+      var _self = isPvOnly ? _n('dc-so') : (_n('dc') + _n('bc'));
+      selfRate = _ag > 0 ? Math.min(100, Math.round(_self / _ag * 100)) : 0;
+      surplusRate = 100 - selfRate;
     }
-    var surplusRate = 100 - selfRate;
     var selfEl = document.getElementById('self-rate-val');
     var surpEl = document.getElementById('surplus-rate-val');
     if (selfEl) selfEl.textContent = selfRate;
