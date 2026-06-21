@@ -1376,7 +1376,7 @@ canvas#mini-chart { height: 220px !important; }
       <!-- バリデーションバッジ -->
       <div id="validation-badges" style="display:flex;gap:8px;margin-bottom:10px;position:sticky;top:0;z-index:10;background:var(--card);padding:8px 0">
         <span id="badge-pb" onclick="document.getElementById('system-design-card').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid #86efac;background:#f0fdf4;color:#15803d">&#x1F7E2; 太陽光＋蓄電池</span>
-        <span id="badge-so" onclick="document.getElementById('system-design-card-so').scrollIntoView({behavior:'smooth'})" style="cursor:pointer;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid #7dd3fc;background:#eff6ff;color:#1d4ed8">&#x1F7E2; 太陽光のみ</span>
+        <span id="badge-so" onclick="setProposalMode('pv_only');setTimeout(function(){document.getElementById('system-design-card-so').scrollIntoView({behavior:'smooth'})},100)" style="cursor:pointer;padding:4px 10px;border-radius:6px;font-size:12px;font-weight:700;border:1px solid #7dd3fc;background:#eff6ff;color:#1d4ed8">&#x1F7E2; 太陽光のみ</span>
       </div>
       <!-- 棒グラフタイトル -->
       <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border)">📊 20年間の総コスト比較</div>
