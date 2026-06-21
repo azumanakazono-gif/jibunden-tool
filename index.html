@@ -5508,25 +5508,17 @@ function calc() {
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
-    var pbBody = (document.getElementById('dual-pb-body') || {}).textContent || '';
-    var soBody = (document.getElementById('dual-so-body') || {}).textContent || '';
-    var gridBody = (document.getElementById('dual-breakdown-grid') || {}).textContent || '';
-    var soCard = document.getElementById('so-breakdown-card') || document.querySelector('.dual-col-so');
-    var modeInput = document.querySelector('input[name="proposal_mode"]:checked');
-    var isPvOnlyMode = (modeInput && modeInput.value === 'pv_only') ||
-      (soCard && window.getComputedStyle(soCard).opacity !== '0' && pbBody.indexOf('現在選択中') < 0);
-    var selfRate = isPvOnlyMode ? 45 : 90;
-    var pbMatch = pbBody.match(/自家消費率\s*(\d+)%/) || gridBody.match(/【太陽光＋蓄電池】[\s\S]*?自家消費率\s*(\d+)%/);
-    var soMatch = soBody.match(/自家消費率\s*(\d+)%/) || gridBody.match(/【太陽光のみ】[\s\S]*?自家消費率\s*(\d+)%/);
-    var pbSrEl = document.getElementById('pb-self-rate');
-    var soSrEl = document.getElementById('so-self-rate');
-    if (pbSrEl && pbSrEl.innerText) {
-      selfRate = isPvOnlyMode
-        ? (parseInt((soSrEl || {}).innerText) || 45)
-        : (parseInt(pbSrEl.innerText) || 90);
+    var pvOnlyBtn = document.getElementById('pm-btn-pv_only');
+    var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
+    var pbText = (document.getElementById('dual-pb-body') || {}).textContent || '';
+    var soText = (document.getElementById('dual-so-body') || {}).textContent || '';
+    var selfRate = 90;
+    if (isPvOnlyMode) {
+      var matchSo = soText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
     } else {
-      if (isPvOnlyMode && soMatch) selfRate = parseInt(soMatch[1]);
-      if (!isPvOnlyMode && pbMatch) selfRate = parseInt(pbMatch[1]);
+      var matchPb = pbText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
     }
     var finalSelf = Math.round(selfRate);
     var finalSurplus = 100 - finalSelf;
@@ -5534,7 +5526,7 @@ function calc() {
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
-  }, 100);
+  }, 80);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
