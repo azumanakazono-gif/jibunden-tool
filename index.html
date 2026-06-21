@@ -5507,17 +5507,20 @@ function calc() {
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
-  var _syncPb = _finalPbSelfRate, _syncSo = _finalSoSelfRate;
   setTimeout(function() {
-    var badgeEl = document.getElementById('mode-badge');
-    var isPbModeActive = badgeEl && badgeEl.innerText.indexOf('太陽光＋蓄電池') >= 0;
+    var modeBadgeText = (document.getElementById('mode-badge') || {}).innerText || '';
+    var pvOnlyBtn = document.getElementById('pm-btn-pv_only');
+    var isPvOnlyMode = modeBadgeText.indexOf('太陽光のみ') >= 0 || (pvOnlyBtn && pvOnlyBtn.classList.contains('active'));
     var selfRate = 90;
-    if (!isPbModeActive) {
-      selfRate = (typeof _syncSo === 'number' && !isNaN(_syncSo)) ? _syncSo : 45;
+    if (isPvOnlyMode) {
+      selfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
     } else {
-      selfRate = (typeof _syncPb === 'number' && !isNaN(_syncPb)) ? _syncPb : 90;
+      selfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
     }
-    var finalSelf = Math.round(selfRate);
+    if (typeof selfRate === 'object' && selfRate !== null) {
+      selfRate = selfRate.selfRate || (isPvOnlyMode ? 45 : 90);
+    }
+    var finalSelf = Math.round(parseFloat(selfRate));
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
