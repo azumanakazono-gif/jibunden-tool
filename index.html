@@ -6919,12 +6919,8 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     const sValEl = document.getElementById('self-rate-val');
     const curValEl = document.getElementById('surplus-rate-val');
 
-    if (sValEl && parseInt(sValEl.innerText) !== finalSelfVal) {
-      sValEl.innerText = finalSelfVal;
-    }
-    if (curValEl && parseInt(curValEl.innerText) !== finalSurplusVal) {
-      curValEl.innerText = finalSurplusVal;
-    }
+    if (sValEl) sValEl.innerText = finalSelfVal;
+    if (curValEl) curValEl.innerText = finalSurplusVal;
   }
 
   setInterval(forceSyncUpperPanel, 300);
