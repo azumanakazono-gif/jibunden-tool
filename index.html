@@ -4916,8 +4916,8 @@ function _renderDualBreakdown(pbData, soData) {
         row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
       ) +
       section('🔢 自家消費率',
-        row('🏠','自家消費率', pbData.selfRate + '%','','#15803d') +
-        row('📤','余剰率', pbData.surplusRate + '%','','#64748b')
+        '<div class="dual-breakdown-row"><span class="db-label">🏠 自家消費率</span><span class="db-val" style="color:#15803d"><span id="pb-self-rate">' + pbData.selfRate + '</span>%</span></div>' +
+        '<div class="dual-breakdown-row"><span class="db-label">📤 余剰率</span><span class="db-val" style="color:#64748b"><span id="pb-surplus-rate">' + pbData.surplusRate + '</span>%</span></div>'
       );
     pbEl.innerHTML = html;
   }
@@ -4946,8 +4946,8 @@ function _renderDualBreakdown(pbData, soData) {
         row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
       ) +
       section('🔢 自家消費率',
-        row('🏠','自家消費率', soData.selfRate + '%','','#1d4ed8') +
-        row('📤','余剰率', soData.surplusRate + '%','','#64748b')
+        '<div class="dual-breakdown-row"><span class="db-label">🏠 自家消費率</span><span class="db-val" style="color:#1d4ed8"><span id="so-self-rate">' + soData.selfRate + '</span>%</span></div>' +
+        '<div class="dual-breakdown-row"><span class="db-label">📤 余剰率</span><span class="db-val" style="color:#64748b"><span id="so-surplus-rate">' + soData.surplusRate + '</span>%</span></div>'
       );
     // Comparison highlight
     if (soData.valid) {
@@ -5377,15 +5377,6 @@ function calc() {
       selfRate: selfRateSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
-    // ── 上部パネル自家消費率・余剰率を詳細内訳と完全一致させる ──
-    var _topSrc = proposalMode === 'pv_only' ? soData : pbData;
-    document.getElementById('self-rate-val').textContent = _topSrc.selfRate;
-    document.getElementById('surplus-rate-val').textContent = _topSrc.surplusRate;
-    var _overTop = _topSrc.selfRate > 100;
-    var _srCardTop = document.getElementById('self-rate-card');
-    _srCardTop.style.background = _overTop ? '#DC2626' : 'var(--mg)';
-    _srCardTop.style.borderColor = _overTop ? '#B91C1C' : 'var(--dg)';
-    document.getElementById('self-rate-warning').style.display = _overTop ? '' : 'none';
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -5520,6 +5511,24 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
+  // ── 最終行：上部パネルの自家消費率・余剰率を詳細内訳と強制同期 ──
+  var _pbSR = document.getElementById('pb-self-rate');
+  var _pbXR = document.getElementById('pb-surplus-rate');
+  var _soSR = document.getElementById('so-self-rate');
+  var _soXR = document.getElementById('so-surplus-rate');
+  if (proposalMode === 'pv_only' && _soSR && _soXR) {
+    document.getElementById('self-rate-val').textContent = _soSR.textContent;
+    document.getElementById('surplus-rate-val').textContent = _soXR.textContent;
+  } else if (_pbSR && _pbXR) {
+    document.getElementById('self-rate-val').textContent = _pbSR.textContent;
+    document.getElementById('surplus-rate-val').textContent = _pbXR.textContent;
+  }
+  var _finalSR = parseInt(document.getElementById('self-rate-val').textContent) || 0;
+  var _finalOver = _finalSR > 100;
+  var _srC = document.getElementById('self-rate-card');
+  _srC.style.background = _finalOver ? '#DC2626' : 'var(--mg)';
+  _srC.style.borderColor = _finalOver ? '#B91C1C' : 'var(--dg)';
+  document.getElementById('self-rate-warning').style.display = _finalOver ? '' : 'none';
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
