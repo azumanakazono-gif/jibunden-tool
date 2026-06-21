@@ -5507,26 +5507,26 @@ function calc() {
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
-  var _currentMode = proposalMode;
-  var _capturedPbRate = _finalPbSelfRate;
-  var _capturedSoRate = _finalSoSelfRate;
   setTimeout(function() {
-    var isPvOnlyMode = _currentMode === 'pv_only';
+    var pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
+    var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
+    var pbText = (document.getElementById('dual-pb-body') || {}).textContent || '';
+    var soText = (document.getElementById('dual-so-body') || {}).textContent || '';
     var selfRate = 90;
     if (isPvOnlyMode) {
-      var soSelfEl = document.getElementById('so-self-rate');
-      selfRate = soSelfEl ? parseInt(soSelfEl.innerText.replace(/[^0-9]/g, '')) : _capturedSoRate || 45;
+      var matchSo = soText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
     } else {
-      var pbSelfEl = document.getElementById('pb-self-rate');
-      selfRate = pbSelfEl ? parseInt(pbSelfEl.innerText.replace(/[^0-9]/g, '')) : _capturedPbRate || 90;
+      var matchPb = pbText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
     }
-    var finalSelf = Math.round(selfRate || (isPvOnlyMode ? 45 : 90));
+    var finalSelf = Math.round(selfRate);
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
-  }, 50);
+  }, 60);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
