@@ -5508,8 +5508,7 @@ function calc() {
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
-    var soCard = document.getElementById('so-breakdown-card') || document.querySelector('.dual-col-so');
-    var isPvOnlyMode = soCard && soCard.offsetHeight > 0 && window.getComputedStyle(soCard).display !== 'none';
+    var isPvOnlyMode = proposalMode === 'pv_only';
     var finalSelf;
     if (isPvOnlyMode) {
       finalSelf = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
