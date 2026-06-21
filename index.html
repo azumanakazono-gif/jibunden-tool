@@ -6889,23 +6889,20 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 <script>
 (function() {
   function forceSyncUpperPanel() {
-    const modeBadge = document.getElementById('mode-badge');
-    const badgeText = modeBadge ? modeBadge.innerText : '';
-    const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
-    let exactSelfRate = 90;
-    if (isPvOnlyMode) {
-      const soSpan = document.querySelector('.dual-col-so b, #so-self-rate');
-      exactSelfRate = soSpan ? parseInt(soSpan.innerText) : 45;
-    } else {
-      const pbSpan = document.querySelector('.dual-col-pb b, #pb-self-rate');
-      exactSelfRate = pbSpan ? parseInt(pbSpan.innerText) : 90;
-    }
-    const finalSelfVal = Math.round(parseFloat(exactSelfRate) || (isPvOnlyMode ? 45 : 90));
+    const checkedInput = document.querySelector('input[name="proposal_mode"]:checked');
+    const modeVal = checkedInput ? checkedInput.value : '';
+    const pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
+    const isPvOnlyMode = (modeVal === 'pv_only') || (pvOnlyBtn && pvOnlyBtn.classList.contains('active'));
+    const finalSelfVal = isPvOnlyMode ? 45 : 90;
     const finalSurplusVal = 100 - finalSelfVal;
     const sValEl = document.getElementById('self-rate-val');
     const curValEl = document.getElementById('surplus-rate-val');
-    if (sValEl && parseInt(sValEl.innerText) !== finalSelfVal) sValEl.innerText = finalSelfVal;
-    if (curValEl && parseInt(curValEl.innerText) !== finalSurplusVal) curValEl.innerText = finalSurplusVal;
+    if (sValEl && parseInt(sValEl.innerText) !== finalSelfVal) {
+      sValEl.innerText = finalSelfVal;
+    }
+    if (curValEl && parseInt(curValEl.innerText) !== finalSurplusVal) {
+      curValEl.innerText = finalSurplusVal;
+    }
   }
   setInterval(forceSyncUpperPanel, 300);
   window.addEventListener('click', () => setTimeout(forceSyncUpperPanel, 50));
