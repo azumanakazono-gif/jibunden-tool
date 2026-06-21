@@ -6908,12 +6908,25 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 <script>
 (function() {
   function forceSyncUpperPanel() {
-    const checkedInput = document.querySelector('input[name="proposal_mode"]:checked');
-    const modeVal = checkedInput ? checkedInput.value : 'set';
+    const pbBody = document.getElementById('dual-pb-body');
+    const soBody = document.getElementById('dual-so-body');
 
-    const isPvOnlyMode = (modeVal === 'pv_only');
+    let pbRate = 90;
+    let soRate = 45;
 
-    const finalSelfVal = isPvOnlyMode ? 45 : 90;
+    if (pbBody) {
+      const pbMatch = pbBody.textContent.match(/自家消費率\s*(\d+)\s*%/);
+      if (pbMatch) pbRate = parseInt(pbMatch[1]);
+    }
+    if (soBody) {
+      const soMatch = soBody.textContent.match(/自家消費率\s*(\d+)\s*%/);
+      if (soMatch) soRate = parseInt(soMatch[1]);
+    }
+
+    const soCol = document.getElementById('dual-col-so');
+    const isPvOnlyMode = soCol ? !soCol.classList.contains('pending-input') : false;
+
+    const finalSelfVal = isPvOnlyMode ? soRate : pbRate;
     const finalSurplusVal = 100 - finalSelfVal;
 
     const sValEl = document.getElementById('self-rate-val');
