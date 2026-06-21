@@ -5372,6 +5372,15 @@ function calc() {
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
+    var _pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
+    var _isPvOnly = _pvOnlyBtn ? _pvOnlyBtn.classList.contains('active') : false;
+    var _exactSelfRate = _isPvOnly ? soData.selfRate : pbData.selfRate;
+    var _finalSelfVal = Math.round(parseFloat(_exactSelfRate));
+    var _finalSurplusVal = 100 - _finalSelfVal;
+    var _sValEl = document.getElementById('self-rate-val');
+    var _curValEl = document.getElementById('surplus-rate-val');
+    if (_sValEl) _sValEl.innerText = _finalSelfVal;
+    if (_curValEl) _curValEl.innerText = _finalSurplusVal;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
