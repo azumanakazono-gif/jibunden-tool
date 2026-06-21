@@ -5506,19 +5506,29 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // ── 最終行：上部パネルの自家消費率・余剰率を計算データから強制同期 ──
-  if (proposalMode === 'pv_only') {
-    document.getElementById('self-rate-val').textContent = _finalSoSelfRate;
-    document.getElementById('surplus-rate-val').textContent = _finalSoSurplusRate;
-  } else {
-    document.getElementById('self-rate-val').textContent = _finalPbSelfRate;
-    document.getElementById('surplus-rate-val').textContent = _finalPbSurplusRate;
-  }
-  var _finalOver = (proposalMode === 'pv_only' ? _finalSoSelfRate : _finalPbSelfRate) > 100;
-  var _srC = document.getElementById('self-rate-card');
-  _srC.style.background = _finalOver ? '#DC2626' : 'var(--mg)';
-  _srC.style.borderColor = _finalOver ? '#B91C1C' : 'var(--dg)';
-  document.getElementById('self-rate-warning').style.display = _finalOver ? '' : 'none';
+  // ── 最終行：上部パネルの自家消費率・余剰率をDOM確定後に強制同期 ──
+  setTimeout(function() {
+    var isPvOnly = proposalMode === 'pv_only';
+    var selfVal, surplusVal;
+    if (isPvOnly) {
+      var _soSR = document.getElementById('so-self-rate');
+      var _soXR = document.getElementById('so-surplus-rate');
+      selfVal = _soSR ? _soSR.textContent : String(_finalSoSelfRate);
+      surplusVal = _soXR ? _soXR.textContent : String(_finalSoSurplusRate);
+    } else {
+      var _pbSR = document.getElementById('pb-self-rate');
+      var _pbXR = document.getElementById('pb-surplus-rate');
+      selfVal = _pbSR ? _pbSR.textContent : String(_finalPbSelfRate);
+      surplusVal = _pbXR ? _pbXR.textContent : String(_finalPbSurplusRate);
+    }
+    document.getElementById('self-rate-val').textContent = selfVal;
+    document.getElementById('surplus-rate-val').textContent = surplusVal;
+    var _ov = parseInt(selfVal) > 100;
+    var _sc = document.getElementById('self-rate-card');
+    _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
+    _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
+    document.getElementById('self-rate-warning').style.display = _ov ? '' : 'none';
+  }, 0);
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
