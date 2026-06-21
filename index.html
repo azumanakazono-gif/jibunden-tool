@@ -5526,6 +5526,10 @@ function calc() {
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
+    if (window._syncDebugOnce !== true) {
+      window._syncDebugOnce = true;
+      console.log('[SYNC] pvOnlyBtn found:', !!pvOnlyBtn, 'active:', pvOnlyBtn ? pvOnlyBtn.classList.contains('active') : 'N/A', 'isPvOnlyMode:', isPvOnlyMode, 'pbMatch:', pbText.match(/自家消費率\s*(\d+)%/), 'soMatch:', soText.match(/自家消費率\s*(\d+)%/), 'selfRate:', selfRate, '=>', finalSelf + '/' + finalSurplus);
+    }
   }, 50);
 }
 
