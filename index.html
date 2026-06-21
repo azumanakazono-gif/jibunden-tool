@@ -6936,8 +6936,20 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     if (curValEl) curValEl.innerText = finalSurplusVal;
   }
 
+  if (typeof window.calc === 'function') {
+    const originalCalc = window.calc;
+    window.calc = function(...args) {
+      originalCalc(...args);
+      forceSyncUpperPanel();
+      setTimeout(forceSyncUpperPanel, 50);
+      setTimeout(forceSyncUpperPanel, 150);
+    };
+  }
+
   setInterval(forceSyncUpperPanel, 300);
   window.addEventListener('click', () => setTimeout(forceSyncUpperPanel, 50));
+
+  setTimeout(forceSyncUpperPanel, 50);
 })();
 </script>
 </body>
