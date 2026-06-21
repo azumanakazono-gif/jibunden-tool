@@ -6738,16 +6738,21 @@ function forceSyncUpperPanel() {
   const pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
   const isPvOnlyMode = pvOnlyBtn ? pvOnlyBtn.classList.contains('active') : false;
   let selfRate = 90;
-  const pbText = document.getElementById('dual-pb-body')?.textContent || '';
-  const soText = document.getElementById('dual-so-body')?.textContent || '';
   if (isPvOnlyMode) {
-    const matchSo = soText.match(/自家消費率\s*(\d+)%/);
-    selfRate = matchSo ? parseInt(matchSo[1]) : 45;
+    selfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
   } else {
-    const matchPb = pbText.match(/自家消費率\s*(\d+)%/);
-    selfRate = matchPb ? parseInt(matchPb[1]) : 90;
+    selfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
   }
-  const finalSelf = Math.round(selfRate || (isPvOnlyMode ? 45 : 90));
+  if (!selfRate || selfRate === 90 || selfRate === 45) {
+    if (isPvOnlyMode) {
+      const soSpan = document.querySelector('.dual-col-so b, #so-self-rate');
+      if (soSpan) selfRate = parseInt(soSpan.innerText) || 45;
+    } else {
+      const pbSpan = document.querySelector('.dual-col-pb b, #pb-self-rate');
+      if (pbSpan) selfRate = parseInt(pbSpan.innerText) || 90;
+    }
+  }
+  const finalSelf = Math.round(parseFloat(selfRate) || (isPvOnlyMode ? 45 : 90));
   const finalSurplus = 100 - finalSelf;
   const selfValEl = document.getElementById('self-rate-val');
   const surplusValEl = document.getElementById('surplus-rate-val');
