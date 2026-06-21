@@ -1785,6 +1785,7 @@ function setProposalMode(mode) {
     document.getElementById('pm-btn-' + m).classList.toggle('active', m === mode);
   });
   applyProposalMode();
+  autoSaveToCurrent();
 }
 
 function applyProposalMode() {
@@ -2805,6 +2806,25 @@ function saveFormToData(data) {
     pkgExtraSo: parseFloat(document.getElementById('pkg-extra-so').value)||0,
     pkgExtraSoNote: document.getElementById('pkg-extra-so-note').value
   };
+}
+
+// 自動保存: 両モードの全データをLocalStorageに一括保存
+let _autoSaveTimer = null;
+function autoSaveToCurrent() {
+  if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  _autoSaveTimer = setTimeout(() => {
+    try {
+      saveFormToData(custData);
+      localStorage.setItem('jibunden_current', JSON.stringify(custData));
+    } catch(e) {}
+  }, 300);
+}
+function autoSaveImmediate() {
+  if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
+  try {
+    saveFormToData(custData);
+    localStorage.setItem('jibunden_current', JSON.stringify(custData));
+  } catch(e) {}
 }
 
 function loadDataToForm(data) {
@@ -6735,8 +6755,13 @@ function scrollToTopHandler(e) {
 }
 // ページが完全に読み込まれてから実行するようにします
 window.addEventListener('DOMContentLoaded', () => {
+    // 自動保存データがあれば復元
+    try {
+      const saved = localStorage.getItem('jibunden_current');
+      if (saved) { Object.assign(custData, JSON.parse(saved)); }
+    } catch(e) {}
     setLoanMethod('zansai');
-    loadDataToForm(custData); // 初期表示：kyudenPlan='kyushu_juuryo_b' / postKyudenPlan='kyushu_denka_night'
+    loadDataToForm(custData); // 初期表示 or 復元データ
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
     updateJuuryoPanel();          // 従量電灯B 段階料金パネルを初期表示
@@ -6929,6 +6954,7 @@ document.getElementById('manualBtn').addEventListener('click', () => {
       forceSyncUpperPanel();
       setTimeout(forceSyncUpperPanel, 50);
       setTimeout(forceSyncUpperPanel, 150);
+      autoSaveToCurrent();
     };
   }
 
