@@ -5506,14 +5506,19 @@ function calc() {
   _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
   _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
-  // ── 最終行：上部パネルの自家消費率・余剰率を強制同期（同期＋遅延の二重書き込み） ──
-  var _syncTopPanel = function() {
-    var _sr, _xr;
+  // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
+  // 詳細内訳と同一の計算式で再計算して直接書き込む（変数スコープに依存しない）
+  (function _syncTopRates() {
+    var _topAg, _topSelf;
     if (proposalMode === 'pv_only') {
-      _sr = _finalSoSelfRate; _xr = _finalSoSurplusRate;
+      _topAg   = parseFloat(document.getElementById('ag-so').value) || 0;
+      _topSelf = parseFloat(document.getElementById('dc-so').value) || 0;
     } else {
-      _sr = _finalPbSelfRate; _xr = _finalPbSurplusRate;
+      _topAg   = parseFloat(document.getElementById('ag').value) || 0;
+      _topSelf = (parseFloat(document.getElementById('dc').value) || 0) + (parseFloat(document.getElementById('bc').value) || 0);
     }
+    var _sr = _topAg > 0 ? Math.min(100, Math.round(_topSelf / _topAg * 100)) : 0;
+    var _xr = _topAg > 0 ? Math.round(Math.max(0, _topAg - _topSelf) / _topAg * 100) : 0;
     document.getElementById('self-rate-val').textContent = _sr;
     document.getElementById('surplus-rate-val').textContent = _xr;
     var _ov = _sr > 100;
@@ -5521,10 +5526,7 @@ function calc() {
     _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
     _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
     document.getElementById('self-rate-warning').style.display = _ov ? '' : 'none';
-  };
-  _syncTopPanel();
-  setTimeout(_syncTopPanel, 0);
-  setTimeout(_syncTopPanel, 100);
+  })();
 }
 
 function _updateUnitPriceCompare(buyUP, genUP, years, opts) {
