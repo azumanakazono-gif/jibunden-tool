@@ -86,7 +86,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .dual-breakdown-row:last-child { border-bottom:none; }
 .dual-breakdown-row .db-label { color:#475569; font-weight:600; }
 .dual-breakdown-row .db-val { font-weight:800; text-align:right; white-space:nowrap; }
-@media (max-width:768px) { #dual-breakdown-grid { grid-template-columns:1fr; } }
+@media (max-width:768px) { #dual-breakdown-grid { grid-template-columns:1fr; } #dual-input-grid { grid-template-columns:1fr; } }
 #system-design-card { border-color:#bfdbfe; background:linear-gradient(160deg,#f0f9ff 0%,#fff 60%); }
 #system-design-card > .section-title { color:#fff; background:#10b981; border-bottom:none; padding:10px 14px; border-radius:8px; margin-bottom:12px; }
 .cost-formula-box { margin-top:8px; padding:10px 14px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); display:flex; flex-wrap:wrap; align-items:center; gap:4px 2px; font-size:12px; line-height:1.8; }
@@ -817,22 +817,22 @@ canvas#mini-chart { height: 220px !important; }
           ⚠️ 電気代の上昇予測はあくまで試算です。実際の上昇率は料金改定により異なります。
         </div>
       </div>
-      <div class="grid2" style="margin-top:4px;align-items:start">
-        <div>
+      <div id="dual-input-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;align-items:start">
+        <!-- ── 左列：太陽光＋蓄電池 ── -->
+        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px">
+          <div style="font-size:13px;font-weight:800;color:#15803d;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #bbf7d0">☀️🔋 太陽光＋蓄電池</div>
           <div class="field" id="field-dc-wrap">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
             <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="onDcInput()">
             <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
           </div>
-          <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid #16a34a">
+          <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #16a34a">
             <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
             <div style="font-size:10px;color:var(--muted);margin-bottom:6px">あと自家消費に回せる見込み量</div>
             <div><span id="self-margin-big" style="font-size:26px;font-weight:900;color:#15803d">-</span></div>
             <div id="self-margin-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
           </div>
-        </div>
-        <div>
-          <div class="field" id="field-bc-wrap">
+          <div class="field" id="field-bc-wrap" style="margin-top:12px">
             <label style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
               蓄電池で賄う量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:2px">夜間・曇天時に放電</span>
               <span id="bc-manual-badge" style="display:none;font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px">手動入力中</span>
@@ -842,24 +842,52 @@ canvas#mini-chart { height: 220px !important; }
             <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
             <span id="bc-warn" style="display:none;font-size:11px;color:#dc2626;font-weight:600"></span>
           </div>
-          <div id="bk-remain-disp" style="display:none;margin-top:8px;padding:12px 14px;background:var(--pg);border-radius:8px;border-left:4px solid var(--mg)">
+          <div id="bk-remain-disp" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid var(--mg)">
             <div style="font-size:11px;color:var(--muted);margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
             <div><span id="bk-remain-big" style="font-size:26px;font-weight:900;color:var(--mg)">-</span></div>
             <div id="bk-remain-sub" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
           </div>
+          <div id="result-area" style="margin-top:12px;background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div id="self-rate-warn-input" style="display:none;padding:10px 14px;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:8px;font-size:12px;font-weight:700;color:#B91C1C;line-height:1.6">
+              ⚠ 自家消費率が100%を超えています<br>
+              <span style="font-weight:400;color:#DC2626">昼間直接使用量・蓄電池放電量・システム設計の設定を見直してください</span>
+            </div>
+            <div id="daytime-rate-disp" style="padding:6px 10px;background:var(--pg);border-radius:6px;font-size:12px;color:var(--mg);font-weight:600"></div>
+            <div id="self-detail-bk" style="display:none"></div>
+            <div id="bk-error" style="display:none;padding:12px 14px;border-radius:8px;background:#FEF2F2;border-left:4px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
+              ⚠️ 蓄電池で賄う量が実効蓄電容量を超えています<br>
+              <span style="font-size:12px;font-weight:400;margin-top:4px;display:inline-block">実効蓄電容量×365日を上限に自動補正しました。「蓄電池で賄う量（kWh/年）」を見直してください。</span>
+            </div>
+          </div>
         </div>
-      </div>
-      <!-- ── 結果エリア（入力直後のひとまとまりブロック） ── -->
-      <div id="result-area" style="margin-top:12px;background:var(--card);border:2px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-        <div id="self-rate-warn-input" style="display:none;padding:10px 14px;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:8px;font-size:12px;font-weight:700;color:#B91C1C;line-height:1.6">
-          ⚠ 自家消費率が100%を超えています<br>
-          <span style="font-weight:400;color:#DC2626">昼間直接使用量・蓄電池放電量・システム設計の設定を見直してください</span>
-        </div>
-        <div id="daytime-rate-disp" style="padding:6px 10px;background:var(--pg);border-radius:6px;font-size:12px;color:var(--mg);font-weight:600"></div>
-        <div id="self-detail-bk" style="display:none"></div>
-        <div id="bk-error" style="display:none;padding:12px 14px;border-radius:8px;background:#FEF2F2;border-left:4px solid #DC2626;font-size:13px;font-weight:700;color:#B91C1C">
-          ⚠️ 蓄電池で賄う量が実効蓄電容量を超えています<br>
-          <span style="font-size:12px;font-weight:400;margin-top:4px;display:inline-block">実効蓄電容量×365日を上限に自動補正しました。「蓄電池で賄う量（kWh/年）」を見直してください。</span>
+        <!-- ── 右列：太陽光のみ ── -->
+        <div style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px">
+          <div style="font-size:13px;font-weight:800;color:#1d4ed8;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #7dd3fc">☀️ 太陽光のみ</div>
+          <div class="field">
+            <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
+            <input type="number" id="dc-so-input" value="2310" min="0" max="15000" step="10" readonly style="background:#f1f5f9;cursor:not-allowed">
+            <span id="dc-so-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+          </div>
+          <div id="self-margin-disp-so" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #3b82f6">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
+            <div style="font-size:10px;color:var(--muted);margin-bottom:6px">あと自家消費に回せる見込み量</div>
+            <div><span id="self-margin-big-so" style="font-size:26px;font-weight:900;color:#1d4ed8">-</span></div>
+            <div id="self-margin-sub-so" style="font-size:11px;color:var(--muted);margin-top:2px"></div>
+          </div>
+          <div style="margin-top:12px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #cbd5e1">
+            <label style="font-size:13px;font-weight:600;color:#94a3b8">蓄電池で賄う量（kWh/年）</label>
+            <div style="font-size:22px;font-weight:900;color:#cbd5e1;margin-top:4px">--</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px">蓄電池なしのため対象外</div>
+          </div>
+          <div style="margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #cbd5e1">
+            <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">🔋 蓄電池の残容量余地（年間）</div>
+            <div style="font-size:22px;font-weight:900;color:#cbd5e1">--</div>
+            <div style="font-size:10px;color:#94a3b8;margin-top:2px">蓄電池なしのため対象外</div>
+          </div>
+          <div id="result-area-so" style="margin-top:12px;background:#fff;border:2px solid #bfdbfe;border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
+            <div id="daytime-rate-disp-so" style="padding:6px 10px;background:#eff6ff;border-radius:6px;font-size:12px;color:#1d4ed8;font-weight:600"></div>
+            <div id="self-detail-so-input" style="display:none"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -4801,6 +4829,18 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   } else {
     selfMarginEl.style.display = 'none';
   }
+  // ── 太陽光のみ側 自家消費余地カード同期 ──
+  var _smSoEl = document.getElementById('self-margin-disp-so');
+  if (_smSoEl) {
+    if (hasSolarMode && ag > 0) {
+      _smSoEl.style.display = '';
+      document.getElementById('self-margin-big-so').textContent = `${fmt(surplusKwh)} kWh/年`;
+      document.getElementById('self-margin-sub-so').textContent =
+        `約${fmt(Math.round(surplusKwh / 12))} kWh/月・約${(surplusKwh / 365).toFixed(1)} kWh/日`;
+    } else {
+      _smSoEl.style.display = 'none';
+    }
+  }
 
   // ── 蓄電池残容量カード ──
   const bkEff = effectiveBatteryKwh(bk);
@@ -5074,6 +5114,13 @@ function calc() {
       `昼間使用率（目安）：${daytimePct}%<br>` +
       `昼間使用量（目安）：${fmt(dc)}kWh/年（約${fmt(dcMonthly)}kWh/月）`;
   }
+  // ── 右列（太陽光のみ）入力グリッド同期 ──
+  var _dcSoInputEl = document.getElementById('dc-so-input');
+  if (_dcSoInputEl) _dcSoInputEl.value = dc;
+  var _dcSoHintEl = document.getElementById('dc-so-monthly-hint');
+  if (_dcSoHintEl) _dcSoHintEl.textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月・約 ${(dc/365).toFixed(1)} kWh/日` : '';
+  var _dtSoEl = document.getElementById('daytime-rate-disp-so');
+  if (_dtSoEl) _dtSoEl.innerHTML = document.getElementById('daytime-rate-disp').innerHTML.replace(/#15803d|var\(--mg\)/g,'#1d4ed8');
   const _postBasicPlans = ['kyushu_juuryo_b','kyushu_juuryo_c','kyushu_ohisama','kyushu_denka_night','kyushu_kiji'];
   const postBasicCharge = _postBasicPlans.includes(_postKp) ? Math.round(_juuryoBasicCharge(_postKp)) : 0;
   const c = { monthlyElectricBill:mb, currentUnitPrice:up, postUnitPrice:post_up,
