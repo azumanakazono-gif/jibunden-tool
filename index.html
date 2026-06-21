@@ -5508,19 +5508,19 @@ function calc() {
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
-    var modeBadgeText = (document.getElementById('mode-badge') || {}).innerText || '';
-    var pvOnlyBtn = document.getElementById('pm-btn-pv_only');
-    var isPvOnlyMode = modeBadgeText.indexOf('太陽光のみ') >= 0 || (pvOnlyBtn && pvOnlyBtn.classList.contains('active'));
+    var pvOnlyBtn = document.getElementById('pm-btn-pv-only') || document.getElementById('pm-btn-pv_only');
+    var isPvOnlyMode = pvOnlyBtn && pvOnlyBtn.classList.contains('active');
+    var pbText = (document.getElementById('dual-pb-body') || {}).textContent || '';
+    var soText = (document.getElementById('dual-so-body') || {}).textContent || '';
     var selfRate = 90;
     if (isPvOnlyMode) {
-      selfRate = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
+      var matchSo = soText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchSo ? parseInt(matchSo[1]) : 45;
     } else {
-      selfRate = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 90;
+      var matchPb = pbText.match(/自家消費率\s*(\d+)%/);
+      selfRate = matchPb ? parseInt(matchPb[1]) : 90;
     }
-    if (typeof selfRate === 'object' && selfRate !== null) {
-      selfRate = selfRate.selfRate || (isPvOnlyMode ? 45 : 90);
-    }
-    var finalSelf = Math.round(parseFloat(selfRate));
+    var finalSelf = Math.round(selfRate);
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
