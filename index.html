@@ -4751,16 +4751,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const annualSurplusRevenue = Math.round(surplusKwh * saleP);
   const hasSolarMode = proposalMode !== 'battery_only';
 
-  // ── 自家消費率カード ──
-  const selfRateCard = document.getElementById('self-rate-card');
-  selfRateCard.style.background  = over ? '#DC2626' : 'var(--mg)';
-  selfRateCard.style.borderColor = over ? '#B91C1C' : 'var(--dg)';
-  document.getElementById('self-rate-val').textContent = selfRate;
-  document.getElementById('self-rate-warning').style.display      = over ? '' : 'none';
+  // ── 自家消費率カード（値の書き込みはcalc()最終行で一元管理） ──
   document.getElementById('self-rate-warn-input').style.display   = over ? '' : 'none';
-
-  // ── 余剰率カード ──
-  document.getElementById('surplus-rate-val').textContent = surplusRate;
 
   // ── 年間自家消費メリット ──
   document.getElementById('self-saving-val').textContent = fmt(annualSelfSaving);
