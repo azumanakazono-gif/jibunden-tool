@@ -5314,6 +5314,8 @@ function calc() {
   })();
 
   // ── 2列詳細内訳レンダリング ──
+  window._finalPbSelfRate = window._finalPbSelfRate || 0; window._finalPbSurplusRate = window._finalPbSurplusRate || 0;
+  window._finalSoSelfRate = window._finalSoSelfRate || 0; window._finalSoSurplusRate = window._finalSoSurplusRate || 0;
   var _finalPbSelfRate = 0, _finalPbSurplusRate = 0, _finalSoSelfRate = 0, _finalSoSurplusRate = 0;
   (function() {
     var pbAg, pbDc, pbBc, pbSk, pbCk, pbSub, pbWy;
@@ -5392,6 +5394,8 @@ function calc() {
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
+    window._finalPbSelfRate = _finalPbSelfRate; window._finalPbSurplusRate = _finalPbSurplusRate;
+    window._finalSoSelfRate = _finalSoSelfRate; window._finalSoSurplusRate = _finalSoSurplusRate;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -6937,7 +6941,9 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     const badgeText = modeBadge ? modeBadge.innerText : '';
     const isPvOnlyMode = badgeText.includes('太陽光のみ') || badgeText.includes('太陽光 のみ');
 
-    const finalSelfVal = isPvOnlyMode ? 45 : 90;
+    const finalSelfVal = isPvOnlyMode
+      ? (window._finalSoSelfRate || 45)
+      : (window._finalPbSelfRate || 90);
     const finalSurplusVal = 100 - finalSelfVal;
 
     const sValEl = document.getElementById('self-rate-val');
@@ -6945,6 +6951,12 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 
     if (sValEl) sValEl.innerText = finalSelfVal;
     if (curValEl) curValEl.innerText = finalSurplusVal;
+
+    var _ov = finalSelfVal > 100;
+    var _sc = document.getElementById('self-rate-card');
+    if (_sc) { _sc.style.background = _ov ? '#DC2626' : 'var(--mg)'; _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)'; }
+    var _sw = document.getElementById('self-rate-warning');
+    if (_sw) _sw.style.display = _ov ? '' : 'none';
   }
 
   if (typeof window.calc === 'function') {
