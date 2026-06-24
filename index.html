@@ -91,10 +91,13 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #system-design-card > .section-title { color:#fff; background:#10b981; border-bottom:none; padding:10px 14px; border-radius:8px; margin-bottom:12px; }
 .cost-formula-box { margin-top:8px; padding:10px 14px; background:#f8fafc; border:2px solid #e2e8f0; border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.07); display:flex; flex-wrap:wrap; align-items:center; gap:4px 2px; font-size:12px; line-height:1.8; }
 .cf-op { font-size:14px; font-weight:900; color:#475569; padding:0 4px; }
-.cf-cost   { font-weight:800; color:#1d4ed8; }
+.cf-cost   { font-weight:800; color:#15803d; }
 .cf-remain { font-weight:800; color:#15803d; }
 .cf-sell   { font-weight:800; color:#ea580c; }
 .cf-total  { font-weight:900; color:#16a34a; font-size:15px; }
+.cf-cost-so   { font-weight:800; color:#0369a1; }
+.cf-remain-so { font-weight:800; color:#0369a1; }
+.cf-total-so  { font-weight:900; color:#1d4ed8; font-size:15px; }
 .slider-row { display: flex; align-items: center; gap: 12px; margin-top: 4px; }
 .slider-row label { font-size: 14px; color: var(--muted); min-width: 100px; font-weight: 500; }
 .slider-row input[type=range] { flex: 1; accent-color: var(--mg); }
@@ -5253,8 +5256,8 @@ function calc() {
     if (biSoD) {
       biSoD.style.display = '';
       biSoD.innerHTML = sale20ManSo > 0
-        ? '<span class="cf-cost">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 '+sale20ManSo+'万円</span><span class="cf-op">＝</span>'+_netCostHtml(netCost20ManSo)
-        : '<span class="cf-cost">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">＝</span><span class="cf-total">計 '+netCost20ManSo+'万円</span>';
+        ? '<span class="cf-cost-so">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain-so">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">－</span><span class="cf-sell">売電収入 '+sale20ManSo+'万円</span><span class="cf-op">＝</span>'+_netCostHtml(netCost20ManSo).replace('cf-total','cf-total-so')
+        : '<span class="cf-cost-so">初期費用 '+mSo.totalCostMan+'万円</span><span class="cf-op">＋</span><span class="cf-remain-so">残電気代 '+remain20ManSo+'万円</span><span class="cf-op">＝</span><span class="cf-total-so">計 '+netCost20ManSo+'万円</span>';
     }
     var diffShowSo = mSo.costDiff_with_rise + sale20ManSo;
     document.getElementById('rd-so').textContent = '約' + diffShowSo + '万円';
