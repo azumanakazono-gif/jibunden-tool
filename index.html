@@ -5197,8 +5197,9 @@ function calc() {
   const _sale20Man = Math.round(_annualSellRev0 * wy / 10000);
   const _netRemain20Man = remain20Man - _sale20Man;
   const _netCost20Man = m_pb.totalCostMan + _netRemain20Man;
-  const biCostW = Math.min(Math.round(m_pb.totalCostMan / bill20Show * 100), 100);
-  const biRemainW = Math.min(Math.round(Math.max(0,_netRemain20Man) / bill20Show * 100), 100 - biCostW);
+  const totalW_pb = bill20Show > 0 ? Math.min(Math.round(Math.max(0, _netCost20Man) / bill20Show * 100), 100) : 0;
+  const biCostW = _netCost20Man > 0 ? Math.min(Math.round(m_pb.totalCostMan / _netCost20Man * totalW_pb), totalW_pb) : totalW_pb;
+  const biRemainW = Math.max(0, totalW_pb - biCostW);
   document.getElementById('bi').style.width = biCostW + '%';
   document.getElementById('biv').textContent = m_pb.totalCostMan + '万円';
   document.getElementById('bi-r').style.width = biRemainW + '%';
@@ -5241,8 +5242,9 @@ function calc() {
     var remain20ManSo = er > 0 ? Math.round(mSo.remain20Y_rise / 10000) : Math.round(mSo.remainBill * 12 * wySo / 10000);
     var netRemain20ManSo = remain20ManSo - sale20ManSo;
     var netCost20ManSo = mSo.totalCostMan + netRemain20ManSo;
-    var biSoCostW = bill20Show > 0 ? Math.min(Math.round(mSo.totalCostMan / bill20Show * 100), 100) : 0;
-    var biSoRemainW = bill20Show > 0 ? Math.min(Math.round(Math.max(0, netRemain20ManSo) / bill20Show * 100), 100 - biSoCostW) : 0;
+    var totalW_so = bill20Show > 0 ? Math.min(Math.round(Math.max(0, netCost20ManSo) / bill20Show * 100), 100) : 0;
+    var biSoCostW = netCost20ManSo > 0 ? Math.min(Math.round(mSo.totalCostMan / netCost20ManSo * totalW_so), totalW_so) : totalW_so;
+    var biSoRemainW = Math.max(0, totalW_so - biSoCostW);
     document.getElementById('bi-so').style.width = biSoCostW + '%';
     document.getElementById('biv-so').textContent = mSo.totalCostMan + '万円';
     document.getElementById('bi-so-r').style.width = biSoRemainW + '%';
@@ -5411,13 +5413,14 @@ function calc() {
   if (lon) {
     const lp=v('lp'), ly=v('ly')||10;
     const loanTotalMan = Math.round(lp * ly * 12 / 10000);
-    const blW = Math.min(Math.round(loanTotalMan / bill20Show * 100), 100);
-    const blRemainW = Math.min(Math.round(Math.max(0,_netRemain20Man) / bill20Show * 100), 100 - blW);
+    const _blNetCost20Man = loanTotalMan + _netRemain20Man;
+    const totalW_bl = bill20Show > 0 ? Math.min(Math.round(Math.max(0, _blNetCost20Man) / bill20Show * 100), 100) : 0;
+    const blW = _blNetCost20Man > 0 ? Math.min(Math.round(loanTotalMan / _blNetCost20Man * totalW_bl), totalW_bl) : totalW_bl;
+    const blRemainW = Math.max(0, totalW_bl - blW);
     document.getElementById('bl').style.width = blW + '%';
     document.getElementById('blv').textContent = loanTotalMan + '万円';
     document.getElementById('bl-r').style.width = blRemainW + '%';
     document.getElementById('blv-r').textContent = blRemainW >= 4 ? Math.max(0,_netRemain20Man)+'万円' : '';
-    const _blNetCost20Man = loanTotalMan + _netRemain20Man;
     const _blDetailEl = document.getElementById('bl-detail');
     if (_blDetailEl) {
       _blDetailEl.style.display = '';
