@@ -1898,8 +1898,9 @@ function effectiveBatteryKwh(nominalKwh) {
 
 // ── 電気単価 調整額（再エネ賦課金 + 燃料費調整額）──
 const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
-const FUEL_ADJUST  = 1.33; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
+const FUEL_ADJUST  = 1.39; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
+const JUURYO_B_KOZA_DISCOUNT = 55; // 従量電灯B 口座振替割引（一律・円）
 
 // ── 導入前 固定購入単価（13,317円 ÷ 400kWh の逆算値で固定）──
 const BEFORE_FIXED_UP = 33.29;
@@ -1909,6 +1910,13 @@ const KYUSHU_JUURYO = {
   basicB: {10:316.24,15:474.36,20:632.48,30:948.72,40:1264.96,50:1581.20,60:1897.44},
   basicCPerKva: 316.24,
 };
+// 従量電灯B 基本料金：使用量(kWh)に応じた契約アンペアの自動スライド
+function _juuryoBAmpFromKwh(mkwh) {
+  if (mkwh >= 450) return 60;
+  if (mkwh >= 375) return 50;
+  if (mkwh >= 250) return 40;
+  return 30;
+}
 function calcJuuryoSteps(mkwh) {
   const s1 = Math.min(mkwh, 120);
   const s2 = Math.min(Math.max(mkwh-120, 0), 180);
@@ -1920,8 +1928,8 @@ function calcJuuryoSteps(mkwh) {
 }
 function _juuryoBasicCharge(kp) {
   if (kp === 'kyushu_juuryo_b') {
-    const amp = parseInt(document.getElementById('juuryo-amp').value) || 30;
-    return KYUSHU_JUURYO.basicB[amp] || 948.72;
+    const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
+    return KYUSHU_JUURYO.basicB[_juuryoBAmpFromKwh(mkwh)];
   }
   if (kp === 'kyushu_juuryo_c') {
     const kva = parseFloat(document.getElementById('juuryo-kva').value) || 0;
@@ -1931,16 +1939,32 @@ function _juuryoBasicCharge(kp) {
   if (kp === 'kyushu_denka_night' || kp === 'kyushu_ohisama') return 1888.80;
   return 0;
 }
+// 従量電灯B/C 合計額：各項目（基本/電力量/燃料/再エネ）を個別に Math.round() した上で合算（Bのみ口座振替割引 -55円）
+function _juuryoGrandTotal(kp, mkwh) {
+  const { s1, s2, s3 } = calcJuuryoSteps(mkwh);
+  const energyAmt = Math.round(s1*18.37 + s2*23.97 + s3*26.97);
+  const fuelAmt   = Math.round(mkwh * FUEL_ADJUST);
+  const saieneAmt = Math.round(mkwh * SAIENE_LEVY);
+  const basicAmt  = Math.round(_juuryoBasicCharge(kp));
+  const discount  = kp === 'kyushu_juuryo_b' ? JUURYO_B_KOZA_DISCOUNT : 0;
+  return basicAmt + energyAmt + fuelAmt + saieneAmt - discount;
+}
 
 let mkwhManualEdited = false;
 let bcManualEdited = false;
 let dcManualEdited = false;
 
-function estimateJyuryoKwhFromBill(monthlyBill, basicCharge) {
+function estimateJyuryoKwhFromBill(monthlyBill, kp, kvaBasicCharge) {
+  const isB = kp === 'kyushu_juuryo_b';
   let bestKwh = 0, bestDiff = Infinity;
   for (let kwh = 0; kwh <= 3000; kwh++) {
-    const { energy } = calcJuuryoSteps(kwh);
-    const calc = basicCharge + energy + kwh * ADJUSTMENT_UNIT_PRICE;
+    const { s1, s2, s3 } = calcJuuryoSteps(kwh);
+    const energyAmt = Math.round(s1*18.37 + s2*23.97 + s3*26.97);
+    const fuelAmt   = Math.round(kwh * FUEL_ADJUST);
+    const saieneAmt = Math.round(kwh * SAIENE_LEVY);
+    const basicAmt  = isB ? KYUSHU_JUURYO.basicB[_juuryoBAmpFromKwh(kwh)] : kvaBasicCharge;
+    const discount  = isB ? JUURYO_B_KOZA_DISCOUNT : 0;
+    const calc = Math.round(basicAmt) + energyAmt + fuelAmt + saieneAmt - discount;
     const diff = Math.abs(calc - monthlyBill);
     if (diff < bestDiff) { bestDiff = diff; bestKwh = kwh; }
     if (calc > monthlyBill + 2000) break;
@@ -1962,7 +1986,7 @@ function autoEstimateKwhFromBill(force) {
   if (isJuuryo) {
     const basic = _juuryoBasicCharge(kp);
     if (kp === 'kyushu_juuryo_c' && basic <= 0) return; // kVA未入力
-    est = estimateJyuryoKwhFromBill(mb, basic);
+    est = estimateJyuryoKwhFromBill(mb, kp, basic);
   } else {
     const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
     const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
@@ -2011,8 +2035,7 @@ function onMkwhInput() {
     if (isJuuryo) {
       const basic = _juuryoBasicCharge(kp);
       if (basic > 0) {
-        const { energy } = calcJuuryoSteps(kwh);
-        document.getElementById('mb').value = Math.round(basic + energy + kwh * ADJUSTMENT_UNIT_PRICE);
+        document.getElementById('mb').value = _juuryoGrandTotal(kp, kwh);
       }
     } else {
       const isTOUkp = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
@@ -2397,6 +2420,15 @@ function updateJuuryoPanel() {
     contractRow.style.display = (isJuuryoB || isJuuryoC) ? '' : 'none';
     document.getElementById('juuryo-contract-b').style.display = isJuuryoB ? 'flex' : 'none';
     document.getElementById('juuryo-contract-c').style.display = isJuuryoC ? 'flex' : 'none';
+  }
+  if (isJuuryoB) {
+    const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
+    const ampEl = document.getElementById('juuryo-amp');
+    if (ampEl) {
+      ampEl.value = String(_juuryoBAmpFromKwh(mkwh));
+      ampEl.disabled = true;
+      ampEl.title = '使用量(kWh)に応じて自動判定されます';
+    }
   }
   document.getElementById('juuryo-panel').style.display = 'none';
   if (isJuuryoB || isJuuryoC) {
@@ -3255,11 +3287,12 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
   } else if (postKp === 'kyushu_juuryo_b' || postKp === 'kyushu_juuryo_c') {
     const isB = postKp === 'kyushu_juuryo_b';
     const { s1, s2, s3, base, eff } = calcJuuryoSteps(monthlyRemain);
-    const basicCharge = _juuryoBasicCharge(postKp);
-    const saieneAmt = Math.round(monthlyRemain * SAIENE_LEVY * 100) / 100;
-    const fuelAmt   = Math.round(monthlyRemain * FUEL_ADJUST  * 100) / 100;
-    const energyAmt = s1*18.37 + (s2>0 ? s2*23.97 : 0) + (s3>0 ? s3*26.97 : 0);
-    const totalAmt  = Math.round(energyAmt + saieneAmt + fuelAmt + basicCharge);
+    const basicCharge = Math.round(_juuryoBasicCharge(postKp));
+    const saieneAmt = Math.round(monthlyRemain * SAIENE_LEVY);
+    const fuelAmt   = Math.round(monthlyRemain * FUEL_ADJUST);
+    const energyAmt = Math.round(s1*18.37 + (s2>0 ? s2*23.97 : 0) + (s3>0 ? s3*26.97 : 0));
+    const discount  = isB ? JUURYO_B_KOZA_DISCOUNT : 0;
+    const totalAmt  = energyAmt + saieneAmt + fuelAmt + basicCharge - discount;
     body.innerHTML =
       fxTitle(isB ? '従量電灯B' : '従量電灯C', '（3段階）') +
       fxSubtitle(`残り購入電力量 ${fr(remainKwh)} kWh/年（月平均 ${fr(monthlyRemain)} kWh）の段階料金`) +
@@ -3269,7 +3302,8 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         (s3>0 ? fxRow('第3段階 301kWh〜',    `${s3}kWh × 26.97円`, f2(s3*26.97)) : '') +
         (fuelAmt > 0 ? fxRow('燃料費調整額', `${fr(monthlyRemain)}kWh × ${FUEL_ADJUST}円/kWh`, f2(fuelAmt)) : '') +
         fxRow('再エネ賦課金', `${fr(monthlyRemain)}kWh × ${SAIENE_LEVY}円/kWh`, f2(saieneAmt)) +
-        fxRow('基本料金', '', f2(basicCharge))
+        fxRow('基本料金', '', f2(basicCharge)) +
+        (isB ? fxRow('口座振替割引', '', '-' + JUURYO_B_KOZA_DISCOUNT) : '')
       ) +
       `<div style="font-size:10px;color:var(--muted)">電力量のみ平均：${base}円/kWh　／　調整済み：${eff}円/kWh</div>`;
     setTotal(totalAmt);
@@ -3752,9 +3786,7 @@ function _calcBeforeGrand(kp, mkwh) {
   const numUp = parseFloat(kp);
   if (numUp > 0) return Math.round(mkwh * numUp);
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
-    const { s1, s2, s3 } = calcJuuryoSteps(mkwh);
-    const basic = _juuryoBasicCharge(kp);
-    return Math.round(s1*18.37 + (s2>0?s2*23.97:0) + (s3>0?s3*26.97:0) + mkwh*SAIENE_LEVY + mkwh*FUEL_ADJUST + basic);
+    return _juuryoGrandTotal(kp, mkwh);
   }
   if (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama') {
     const eff = calcBeforeEffectiveUnitPrice(kp);
@@ -3858,9 +3890,9 @@ function _updateBeforePlanBreakdown(kp) {
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
     const isB = kp === 'kyushu_juuryo_b';
     const { s1, s2, s3, base, eff } = calcJuuryoSteps(mkwh);
-    const basicCharge = _juuryoBasicCharge(kp);
-    const saieneAmt = Math.round(mkwh * SAIENE_LEVY * 100) / 100;
-    const fuelAmt   = Math.round(mkwh * FUEL_ADJUST  * 100) / 100;
+    const basicCharge = Math.round(_juuryoBasicCharge(kp));
+    const saieneAmt = Math.round(mkwh * SAIENE_LEVY);
+    const fuelAmt   = Math.round(mkwh * FUEL_ADJUST);
     const grandAmt  = _calcBeforeGrand(kp, mkwh);
     bodyEl.innerHTML =
       fxTitle(isB ? '従量電灯B' : '従量電灯C', '（3段階）') +
@@ -3871,7 +3903,8 @@ function _updateBeforePlanBreakdown(kp) {
         (s3>0 ? fxRow('第3段階 301kWh〜',    `${s3}kWh × 26.97円`, f2(s3*26.97)) : '') +
         (fuelAmt > 0 ? fxRow('燃料費調整額', `${fr(mkwh)}kWh × ${FUEL_ADJUST}円/kWh`, f2(fuelAmt)) : '') +
         fxRow('再エネ賦課金', `${fr(mkwh)}kWh × ${SAIENE_LEVY}円/kWh`, f2(saieneAmt)) +
-        fxRow('基本料金', '', f2(basicCharge))
+        fxRow('基本料金', '', f2(basicCharge)) +
+        (isB ? fxRow('口座振替割引', '', '-' + JUURYO_B_KOZA_DISCOUNT) : '')
       ) +
       `<div style="font-size:10px;color:var(--muted)">電力量のみ平均：${base}円/kWh　／　調整済み：${eff}円/kWh</div>`;
     return;
