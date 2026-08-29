@@ -869,7 +869,7 @@ canvas#mini-chart { height: 220px !important; }
           <div style="font-size:13px;font-weight:800;color:#1d4ed8;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #7dd3fc">☀️ 太陽光のみ</div>
           <div class="field">
             <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
-            <input type="number" id="dc-so-input" value="2310" min="0" max="15000" step="10" readonly style="background:#f1f5f9;cursor:not-allowed">
+            <input type="number" id="dc-so-input" value="2310" min="0" max="15000" step="10" oninput="onDcSoInput()">
             <span id="dc-so-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
           </div>
           <div id="self-margin-disp-so" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #3b82f6">
@@ -1065,7 +1065,7 @@ canvas#mini-chart { height: 220px !important; }
       <div class="grid2" style="margin-bottom:12px">
         <div class="field">
           <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
-          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="calc()" readonly style="background:#f1f5f9;cursor:not-allowed">
+          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="onDcSoCardInput()">
         </div>
       </div>
       <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
@@ -1803,6 +1803,17 @@ function applyProposalMode() {
   document.getElementById('field-bk-wrap').style.display   = '';
   document.getElementById('field-bc-wrap').style.display   = '';
 
+  // 昼間直接使用量：アクティブな提案モード側の入力欄のみ編集可能にする
+  var _dcInputEl   = document.getElementById('dc');
+  var _dcSoInputEl = document.getElementById('dc-so-input');
+  if (proposalMode === 'pv_only') {
+    if (_dcInputEl)   { _dcInputEl.disabled   = true;  _dcInputEl.style.background   = '#f1f5f9'; _dcInputEl.style.cursor   = 'not-allowed'; }
+    if (_dcSoInputEl) { _dcSoInputEl.disabled = false; _dcSoInputEl.style.background = '';         _dcSoInputEl.style.cursor = ''; }
+  } else {
+    if (_dcInputEl)   { _dcInputEl.disabled   = false; _dcInputEl.style.background   = '';         _dcInputEl.style.cursor   = ''; }
+    if (_dcSoInputEl) { _dcSoInputEl.disabled = true;  _dcSoInputEl.style.background = '#f1f5f9'; _dcSoInputEl.style.cursor = 'not-allowed'; }
+  }
+
   // カードの有効/無効表示
   var _sdCard = document.getElementById('system-design-card');
   var _sdCardSo = document.getElementById('system-design-card-so');
@@ -1953,6 +1964,7 @@ function _juuryoGrandTotal(kp, mkwh) {
 let mkwhManualEdited = false;
 let bcManualEdited = false;
 let dcManualEdited = false;
+let dcSoManualEdited = false; // 太陽光のみ側の昼間直接使用量（dc-so）が独立編集されたか
 
 function estimateJyuryoKwhFromBill(monthlyBill, kp, kvaBasicCharge) {
   const isB = kp === 'kyushu_juuryo_b';
@@ -2370,6 +2382,22 @@ function applyAIResult(data) {
 
 function onDcInput() {
   dcManualEdited = true;
+  calc();
+}
+
+// ── 太陽光のみ：昼間直接使用量（dc-so が計算式の参照元。dc-so-input は同期表示用の編集欄）──
+function onDcSoInput() {
+  dcSoManualEdited = true;
+  const val = document.getElementById('dc-so-input').value;
+  const card = document.getElementById('dc-so');
+  if (card) card.value = val;
+  calc();
+}
+function onDcSoCardInput() {
+  dcSoManualEdited = true;
+  const val = document.getElementById('dc-so').value;
+  const mirror = document.getElementById('dc-so-input');
+  if (mirror) mirror.value = val;
   calc();
 }
 
@@ -2825,6 +2853,7 @@ function saveFormToData(data) {
   data.salePriceEdited = salePriceEdited;
   data.bcManualEdited = bcManualEdited;
   data.dcManualEdited = dcManualEdited;
+  data.dcSoManualEdited = dcSoManualEdited;
   data.systemDesignSolarAndBattery = {
     sk: data.sk, bk: data.bk, ck: data.ck, ag: data.ag, sub: data.sub, wy: data.wy,
     dc: data.dc, bc: data.bc, pkgSelect: data.pkgSelect, pkgExtra: data.pkgExtra,
@@ -2980,6 +3009,7 @@ function loadDataToForm(data) {
     dcManualEdited = true;
     document.getElementById('dc').value = data.dc;
   }
+  dcSoManualEdited = !!data.dcSoManualEdited;
 }
 
 function switchTab(tab) {
@@ -5065,7 +5095,8 @@ function calcMetrics(c) {
 function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
-  document.getElementById('dc-so').value = dc;
+  // 太陽光のみ側で直接編集済み、または太陽光のみモードがアクティブな場合は dc-so を独立入力として保持する
+  if (proposalMode !== 'pv_only' && !dcSoManualEdited) document.getElementById('dc-so').value = dc;
   document.getElementById('pkg-area-so').style.display = '';
   document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${sk} kW)` : '';
   var _skSoTitle = parseFloat(document.getElementById('sk-so').value) || 0;
@@ -5092,6 +5123,15 @@ function calc() {
   }
   // pv_only モードでは蓄電池消費を 0 として計算（フィールド値は保持）
   const bc_eff = proposalMode === 'pv_only' ? 0 : bc;
+  // ── アクティブな提案モード（太陽光のみ／太陽光＋蓄電池）の「作る電気」側 参照値 ──
+  // 太陽光のみモード時は system-design-card-so（sk-so/ag-so/ck-so/sub-so/wy-so）を参照する
+  const isPvOnlyActive = proposalMode === 'pv_only';
+  const skActive  = isPvOnlyActive ? (parseFloat(document.getElementById('sk-so').value)  || 0) : sk;
+  const agActive  = isPvOnlyActive ? (parseFloat(document.getElementById('ag-so').value)  || 0) : ag;
+  const ckActive  = isPvOnlyActive ? (parseFloat(document.getElementById('ck-so').value)  || 0) : v('ck');
+  const subActive = isPvOnlyActive ? (parseFloat(document.getElementById('sub-so').value) || 0) : v('sub');
+  const wyActive  = isPvOnlyActive ? (parseFloat(document.getElementById('wy-so').value)  || 20) : wy;
+  const dcActive  = isPvOnlyActive ? (parseFloat(document.getElementById('dc-so').value)  || 0) : dc;
   document.getElementById('dc-monthly-hint').textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月・約 ${(dc/365).toFixed(1)} kWh/日` : '';
   document.getElementById('bc-monthly-hint').textContent = bc > 0 ? `約 ${Math.round(bc/12).toLocaleString()} kWh/月・約 ${(bc/365).toFixed(1)} kWh/日` : '';
   const _kpCalc = document.getElementById('kyuden-plan').value;
@@ -5135,7 +5175,7 @@ function calc() {
   document.getElementById('annual-bill-disp').textContent = mb > 0 ? '¥' + fmt(mb * 12) : '-';
   document.getElementById('annual-kwh-disp').textContent = mkwh > 0 ? fmt(annualConsumptionKWh) + ' kWh' : '-';
   const totalConstructionCost = v('ck') * 10000;
-  if (!loanAmountEdited) { document.getElementById('la2').value = v('ck'); }
+  if (!loanAmountEdited) { document.getElementById('la2').value = ckActive; }
   calcLoan();
   const subsidyAmount = v('sub');
   // 昼間使用率・使用量表示（手動上書きも即時反映）
@@ -5164,11 +5204,12 @@ function calc() {
       `昼間使用率（目安）：${daytimePct}%<br>` +
       `昼間使用量（目安）：${fmt(dc)}kWh/年（約${fmt(dcMonthly)}kWh/月）`;
   }
-  // ── 右列（太陽光のみ）入力グリッド同期 ──
+  // ── 右列（太陽光のみ）入力グリッド同期：dc-so（独立入力）の値をミラー表示 ──
+  var _dcSoVal = parseFloat(document.getElementById('dc-so').value) || 0;
   var _dcSoInputEl = document.getElementById('dc-so-input');
-  if (_dcSoInputEl) _dcSoInputEl.value = dc;
+  if (_dcSoInputEl) _dcSoInputEl.value = _dcSoVal;
   var _dcSoHintEl = document.getElementById('dc-so-monthly-hint');
-  if (_dcSoHintEl) _dcSoHintEl.textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月・約 ${(dc/365).toFixed(1)} kWh/日` : '';
+  if (_dcSoHintEl) _dcSoHintEl.textContent = _dcSoVal > 0 ? `約 ${Math.round(_dcSoVal/12).toLocaleString()} kWh/月・約 ${(_dcSoVal/365).toFixed(1)} kWh/日` : '';
   var _dtSoEl = document.getElementById('daytime-rate-disp-so');
   if (_dtSoEl) _dtSoEl.innerHTML = document.getElementById('daytime-rate-disp').innerHTML.replace(/#15803d|var\(--mg\)/g,'#1d4ed8');
   const _postBasicPlans = ['kyushu_juuryo_b','kyushu_juuryo_c','kyushu_ohisama','kyushu_denka_night','kyushu_kiji'];
@@ -5178,6 +5219,12 @@ function calc() {
                subsidyAmount, warrantyYears:wy, directConsumptionKWh:dc,
                batteryConsumptionKWh:bc_eff, annualConsumptionKWh, escalationRate:er, postBasicCharge };
   const m = calcMetrics(c);
+  // アクティブモードの「作る電気」側メトリクス（太陽光のみモードでは system-design-card-so の値で再計算）
+  const mActive = isPvOnlyActive
+    ? calcMetrics({ ...c, annualGenerationKWh: agActive, solarCapacityKW: skActive,
+        totalConstructionCost: ckActive * 10000, subsidyAmount: subActive,
+        warrantyYears: wyActive, directConsumptionKWh: dcActive, batteryConsumptionKWh: 0 })
+    : m;
   const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, m.remainKWh);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
@@ -5205,16 +5252,18 @@ function calc() {
   }
   document.getElementById('rc').textContent = m.totalCostMan+'万円'+(subAmt>0?' （補助金適用後）':'');
   document.getElementById('rk').textContent = m.costPerKWh+'円/kWh';
-  document.getElementById('rk-self').textContent = m.selfCostPerKWh > 0 ? m.selfCostPerKWh+'円/kWh' : '-';
+  document.getElementById('rk-self').textContent = mActive.selfCostPerKWh > 0 ? mActive.selfCostPerKWh+'円/kWh' : '-';
   document.getElementById('rk-self-label').textContent = '自家消費単価（発電したうち自家消費する分の単価）';
   // 20年電気代：上昇率があれば上昇後の数値を表示
   document.getElementById('rb').textContent = bill20Show+'万円' + (er>0 ? `（年${er}%上昇）` : '');
   const _surplusKwhChart = proposalMode !== 'battery_only' ? Math.max(0, ag - (dc + bc)) : 0;
+  // アクティブモード（太陽光のみ時は agActive/dcActive、bc=0）での余剰電力量・年間経済メリット
+  const _surplusKwhActive = isPvOnlyActive ? Math.max(0, agActive - dcActive) : _surplusKwhChart;
   const _annualTotal = (() => {
     const hasSolarMode = proposalMode !== 'battery_only';
     const saleP = parseFloat(document.getElementById('sale-price').value) || 0;
-    const surplusKwhCalc = _surplusKwhChart;
-    const annualSelfSaving    = Math.round((dc + bc) * up);
+    const surplusKwhCalc = _surplusKwhActive;
+    const annualSelfSaving    = Math.round((dcActive + bc_eff) * up);
     const annualSellRevenue   = hasSolarMode ? Math.round(surplusKwhCalc * saleP) : 0;
     return annualSelfSaving + annualSellRevenue;
   })();
@@ -5437,7 +5486,7 @@ function calc() {
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
-  const _merit20Man = Math.round(_annualTotal * wy / 10000);
+  const _merit20Man = Math.round(_annualTotal * wyActive / 10000);
   document.getElementById('rd-top').textContent = _merit20Man;
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
   document.getElementById('rb-up').innerHTML = up > 0
@@ -5467,7 +5516,7 @@ function calc() {
     document.getElementById('stacked-legend-loan').style.display = 'flex';
     document.getElementById('stacked-legend-loan-r').style.display = 'flex';
     const loanTotal = lp * ly * 12;
-    const loanCostPerKWh = m_pb.selfKWh > 0 ? Math.round(loanTotal / (m_pb.selfKWh * wy)) : 0;
+    const loanCostPerKWh = mActive.selfKWh > 0 ? Math.round(loanTotal / (mActive.selfKWh * wyActive)) : 0;
     document.getElementById('rk-loan').textContent = loanCostPerKWh > 0 ? loanCostPerKWh + '円/kWh' : '-';
     document.getElementById('rk-loan-row').style.display = '';
     document.getElementById('rk-self').textContent = loanCostPerKWh > 0 ? loanCostPerKWh+'円/kWh' : '-';
@@ -5491,10 +5540,10 @@ function calc() {
 
     // ミニチャート（ローンON: 3系列）
     _prepareChartData(m_pb, mb, wy, re, lp, ly, mt, true, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
-    // 単価比較カード（ローン総額ベース）
-    const _genUP_loan = (ag > 0 && wy > 0) ? parseFloat((loanTotal / (ag * wy)).toFixed(1)) : null;
-    const _loanYears = Math.round(lp > 0 ? ly : wy);
-    _updateUnitPriceCompare(up, _genUP_loan, wy, { isLoan: true, loanYears: _loanYears });
+    // 単価比較カード（ローン総額ベース・アクティブな提案モードの発電量を参照）
+    const _genUP_loan = (agActive > 0 && wyActive > 0) ? parseFloat((loanTotal / (agActive * wyActive)).toFixed(1)) : null;
+    const _loanYears = Math.round(lp > 0 ? ly : wyActive);
+    _updateUnitPriceCompare(up, _genUP_loan, wyActive, { isLoan: true, loanYears: _loanYears });
   } else {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
@@ -5504,9 +5553,9 @@ function calc() {
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
     _prepareChartData(m_pb, mb, wy, m_pb.remainBill, 0, 0, 0, false, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
-    // 単価比較カード（現金購入ベース）
-    const _genUP_cash = (ag > 0 && wy > 0) ? parseFloat((m_pb.totalCostMan * 10000 / (ag * wy)).toFixed(1)) : null;
-    _updateUnitPriceCompare(up, _genUP_cash, wy, { isLoan: false });
+    // 単価比較カード（現金購入ベース・アクティブな提案モードの初期費用・発電量を参照）
+    const _genUP_cash = (agActive > 0 && wyActive > 0) ? parseFloat((mActive.totalCostMan * 10000 / (agActive * wyActive)).toFixed(1)) : null;
+    _updateUnitPriceCompare(up, _genUP_cash, wyActive, { isLoan: false });
   }
   // 時間帯別比率パネルのkWh表示と単価内訳をリアルタイム同期（After優先）
   const _kpRP     = document.getElementById('kyuden-plan').value;
