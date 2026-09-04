@@ -761,6 +761,11 @@ canvas#mini-chart { height: 220px !important; }
         </details>
       </div>
 
+      <!-- 導入前後比較エリアとシステム別詳細エリアの境界セパレーター -->
+      <div style="margin:20px 0 14px;padding:10px 16px;background:#334155;color:#fff;border-radius:8px;font-size:13px;font-weight:800;letter-spacing:.03em;text-align:center">
+        ▼ ここからシステム別の詳細・比較
+      </div>
+
       <!-- ▼ 2列詳細内訳（太陽光＋蓄電池 vs 太陽光のみ） -->
       <div id="dual-breakdown-grid">
         <div class="dual-col dual-col-pb">
@@ -5043,7 +5048,8 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', pbData.totalCostMan + '万円','','#1e40af') +
-        row('💡','月額残り電気代', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
+        row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
+        row('💰','月々の節約額', (pbData.monthlySaving >= 0 ? '約 ¥' + f(pbData.monthlySaving) : '－ ¥' + f(Math.abs(pbData.monthlySaving))),'','#15803d') +
         row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
         row('💴','年間売電収入', pbData.annualSell > 0 ? '約 ¥' + f(pbData.annualSell) : '—','', pbData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
@@ -5074,7 +5080,8 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', soData.totalCostMan + '万円','','#1e40af') +
-        row('💡','月額残り電気代', '約 ¥' + f(soData.remainBill),'','#dc2626') +
+        row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626') +
+        row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
         row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
         row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
@@ -5521,6 +5528,7 @@ function calc() {
     var pbData = {
       ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: mPb.remainBill,
+      monthlySaving: mb - mPb.remainBill,
       totalCostMan: mPb.totalCostMan, annualSaving: annSavePb,
       annualSell: annSellPb, diffMan: diffPb,
       selfRate: selfRatePb, surplusRate: surplusRatePb,
@@ -5553,6 +5561,7 @@ function calc() {
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
       remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
+      monthlySaving: mb - mSo2.remainBill,
       totalCostMan: mSo2.totalCostMan, annualSaving: annSaveSo2,
       annualSell: annSellSo2, diffMan: diffSo2,
       selfRate: selfRateSo2, surplusRate: surplusRateSo2
