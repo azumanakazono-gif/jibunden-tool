@@ -219,7 +219,7 @@ canvas#mini-chart { height: 220px !important; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
 
 /* ── 提案モードセレクター ── */
-.proposal-mode-card { position:sticky; top:0; z-index:20; background:var(--card); }
+.proposal-mode-card { position:sticky; top:0; z-index:1001; background:var(--card); }
 .proposal-mode-bar { display:flex; gap:0; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:12px; }
 .pm-btn { flex:1; padding:11px 8px; background:#fff; border:none; border-right:1px solid var(--border); cursor:pointer; font-size:13px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; line-height:1.4; text-align:center; }
 .pm-btn:last-child { border-right:none; }
@@ -286,7 +286,7 @@ canvas#mini-chart { height: 220px !important; }
 #solar-util-card {
   position: -webkit-sticky;
   position: sticky;
-  top: 0;
+  top: var(--pm-sticky-h, 0px);
   z-index: 1000;
   background: linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%);
   border: none;
@@ -6899,6 +6899,16 @@ async function generatePPTX(mode) {
     toast('エラーが発生しました: '+err.message, 'error');
   }
 }
+
+// ── 提案モードカードの高さを追従スタック用CSS変数に反映 ──
+(function initStickyStack(){
+  const pmCard = document.querySelector('.proposal-mode-card');
+  if (!pmCard) return;
+  const sync = () => document.documentElement.style.setProperty('--pm-sticky-h', pmCard.offsetHeight + 'px');
+  sync();
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(pmCard);
+  else window.addEventListener('resize', sync);
+})();
 
 // ── 初期化 ──
 onPkgChange();       // 7+7パッケージのデフォルト値を適用
