@@ -499,8 +499,8 @@ canvas#mini-chart { height: 220px !important; }
     </div>
 
     <div class="section-card" id="solar-util-card">
-      <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">☀️ 太陽光の活用割合<span id="mode-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池モードを表示中</span></div>
-      <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。シミュレーション結果は選択したモードの表示となります。</div>
+      <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">☀️ 太陽光の活用割合<span id="mode-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池を提案中</span></div>
+      <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。上部のハイライト表示は選択中モードの数値ですが、下部の「詳細内訳」比較エリアは太陽光＋蓄電池／太陽光のみの両方を常時表示・比較できます。</div>
       <!-- 自家消費率 / 余剰率 横並びコンパクト表示 -->
       <div style="display:flex;gap:8px">
         <div id="self-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid var(--dg);background:var(--mg);box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
@@ -1312,7 +1312,7 @@ canvas#mini-chart { height: 220px !important; }
     </div>
 
     <div class="section-card">
-      <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">📊 シミュレーション結果<span id="mode-badge-2" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池モードを表示中</span></div>
+      <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">📊 シミュレーション結果<span id="mode-badge-2" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池を提案中</span></div>
       <!-- 月額比較カード -->
       <div id="monthly-compare-card" style="border-radius:14px;padding:16px;border:2px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:12px">
         <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #bbf7d0">💰 月額電気代比較: 現在 → 導入後</div>
@@ -1876,13 +1876,13 @@ function applyProposalMode() {
   [_modeBadge, _modeBadge2].forEach(el => {
     if (!el) return;
     if (proposalMode === 'pv_only') {
-      el.textContent = '☀️ 太陽光のみモードを表示中';
+      el.textContent = '☀️ 太陽光のみを提案中';
       el.style.background = '#e0f2fe'; el.style.color = '#0c4a6e';
     } else if (proposalMode === 'battery_only') {
-      el.textContent = '🔋 蓄電池のみモードを表示中';
+      el.textContent = '🔋 蓄電池のみを提案中';
       el.style.background = '#f3e8ff'; el.style.color = '#6b21a8';
     } else {
-      el.textContent = '☀️🔋 太陽光＋蓄電池モードを表示中';
+      el.textContent = '☀️🔋 太陽光＋蓄電池を提案中';
       el.style.background = '#dcfce7'; el.style.color = '#166534';
     }
   });
@@ -1903,15 +1903,9 @@ function applyProposalMode() {
   if (batteryHearing) batteryHearing.style.display = hasBattery ? '' : 'none';
   if (meritBattery)   meritBattery.style.display   = hasBattery ? '' : 'none';
 
-  // pv_only 時：導入後プランを現在のプランに合わせる
-  if (proposalMode === 'pv_only') {
-    const curPlan = document.getElementById('kyuden-plan').value;
-    const postPlanEl = document.getElementById('post-kyuden-plan');
-    if (postPlanEl && curPlan) {
-      postPlanEl.value = curPlan;
-      onPostKyudenPlanChange();
-    }
-  }
+  // ※以前はここで pv_only モード時に「導入後プラン」を強制的に現在のプランへ
+  //   上書きしていたが、タブ切替のたびに詳細内訳（太陽光＋蓄電池／太陽光のみ）の
+  //   金額が変動してしまう原因になっていたため廃止。プラン選択は常にユーザー操作のみで変更する。
 
   calc();
 }
@@ -5048,6 +5042,7 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', pbData.totalCostMan + '万円','','#1e40af') +
+        row('📟','現在の概算月額合計', '約 ¥' + f(pbData.currentBill),'','#64748b') +
         row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
         row('💰','月々の節約額', (pbData.monthlySaving >= 0 ? '約 ¥' + f(pbData.monthlySaving) : '－ ¥' + f(Math.abs(pbData.monthlySaving))),'','#15803d') +
         row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
@@ -5080,6 +5075,7 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', soData.totalCostMan + '万円','','#1e40af') +
+        row('📟','現在の概算月額合計', '約 ¥' + f(soData.currentBill),'','#64748b') +
         row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626') +
         row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
         row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
@@ -5485,22 +5481,12 @@ function calc() {
   window._finalSoSelfRate = window._finalSoSelfRate || 0; window._finalSoSurplusRate = window._finalSoSurplusRate || 0;
   var _finalPbSelfRate = 0, _finalPbSurplusRate = 0, _finalSoSelfRate = 0, _finalSoSurplusRate = 0;
   (function() {
-    var pbAg, pbDc, pbBc, pbBk, pbSk, pbCk, pbSub, pbWy;
-    if (proposalMode !== 'pv_battery') {
-      var _pbKey = document.getElementById('pkg-select').value;
-      var _pbPkg = _pbKey ? PACKAGES[_pbKey] : null;
-      if (_pbPkg) {
-        pbAg = _pbPkg.ag; pbSk = _pbPkg.sk; pbBc = _pbPkg.bc; pbBk = _pbPkg.bk;
-        pbCk = _pbPkg.cost + (parseFloat(document.getElementById('pkg-extra').value) || 0);
-        pbDc = dc;
-      } else {
-        pbAg = ag; pbDc = dc; pbBc = bc; pbBk = bk; pbSk = sk; pbCk = v('ck');
-      }
-      pbSub = v('sub'); pbWy = wy;
-    } else {
-      pbAg = ag; pbDc = dc; pbBc = bc_eff; pbBk = bk; pbSk = sk; pbCk = v('ck');
-      pbSub = v('sub'); pbWy = wy;
-    }
+    // 「太陽光＋蓄電池」詳細内訳は提案モード（タブ切替）に関わらず、
+    // 常にシステム設計カードの実際の入力値（ag/dc/bc/bk/sk/ck）で算出する
+    // （選択中パッケージの値は onPkgChange() で既にこれらの欄へ反映済みのため、
+    //   ここでパッケージを別途参照すると手動上書き値が切替時に失われてしまう）
+    var pbAg = ag, pbDc = dc, pbBc = bc, pbBk = bk, pbSk = sk, pbCk = v('ck');
+    var pbSub = v('sub'), pbWy = wy;
     var pbBcEff = pbBc;
     var pbBkEffCap = effectiveBatteryKwh(pbBk);
     var pbBkEffYearMax = pbBkEffCap * 365;
@@ -5528,7 +5514,7 @@ function calc() {
     var pbData = {
       ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: mPb.remainBill,
-      monthlySaving: mb - mPb.remainBill,
+      currentBill: mb, monthlySaving: mb - mPb.remainBill,
       totalCostMan: mPb.totalCostMan, annualSaving: annSavePb,
       annualSell: annSellPb, diffMan: diffPb,
       selfRate: selfRatePb, surplusRate: surplusRatePb,
@@ -5561,7 +5547,7 @@ function calc() {
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
       remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
-      monthlySaving: mb - mSo2.remainBill,
+      currentBill: mb, monthlySaving: mb - mSo2.remainBill,
       totalCostMan: mSo2.totalCostMan, annualSaving: annSaveSo2,
       annualSell: annSellSo2, diffMan: diffSo2,
       selfRate: selfRateSo2, surplusRate: surplusRateSo2
