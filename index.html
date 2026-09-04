@@ -2670,21 +2670,25 @@ let pkgBaseCostPv = 120;
 let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
+  // 太陽光のみモードでは system-design-card-so（sk-so/ag-so/ck-so/sub-so/wy-so/dc-so）専用値を使用し、
+  // 太陽光＋蓄電池カードの値・蓄電池関連データが混入しないようにする
+  const isPvOnly = proposalMode === 'pv_only';
+  const so = data.systemDesignSolarOnly || {};
   return {
     customerName: data.cn || '○○様○○システム',
     familyComposition: data.fm || '',
     lifestyleNote: data.ls || '',
     monthlyElectricBill: data.mb || 0,
     currentUnitPrice: data.mkwh > 0 ? Math.round(data.mb / data.mkwh * 10) / 10 : 0,
-    annualGenerationKWh: data.ag || 0,
-    solarCapacityKW: data.sk || 0,
-    batteryCapacityKWh: (proposalMode === 'pv_only') ? 0 : (data.bk || 0),
-    directConsumptionKWh: data.dc || 0,
-    batteryConsumptionKWh: (proposalMode === 'pv_only') ? 0 : (data.bc || 0),
+    annualGenerationKWh: isPvOnly ? (so.ag || 0) : (data.ag || 0),
+    solarCapacityKW: isPvOnly ? (so.sk || 0) : (data.sk || 0),
+    batteryCapacityKWh: isPvOnly ? 0 : (data.bk || 0),
+    directConsumptionKWh: isPvOnly ? (so.dc || 0) : (data.dc || 0),
+    batteryConsumptionKWh: isPvOnly ? 0 : (data.bc || 0),
     annualConsumptionKWh: (data.mkwh||0) * 12,
-    totalConstructionCost: (data.ck||0) * 10000,
-    subsidyAmount: data.sub || 0,
-    warrantyYears: data.wy || 20,
+    totalConstructionCost: (isPvOnly ? (so.ck || 0) : (data.ck||0)) * 10000,
+    subsidyAmount: isPvOnly ? (so.sub || 0) : (data.sub || 0),
+    warrantyYears: isPvOnly ? (so.wy || 20) : (data.wy || 20),
     escalationRate: data.er || 0,
     monthlyLoanPayment: (data.le && lp) ? lp : 0,
     loanYears: ly || 15,
