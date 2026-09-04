@@ -826,9 +826,16 @@ canvas#mini-chart { height: 220px !important; }
         <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#15803d;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #bbf7d0">☀️🔋 太陽光＋蓄電池</div>
           <div class="field" id="field-dc-wrap">
-            <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光→直接消費</span></label>
-            <input type="number" id="dc" value="2310" min="0" max="15000" step="10" oninput="onDcInput()">
-            <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            <input type="hidden" id="dc" value="2310">
+            <div style="padding:10px 12px;background:#fff;border:1px dashed #bbf7d0;border-radius:8px">
+              <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:4px">☀️ 昼間直接消費量の調整について</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:6px">直接消費量を変更したい場合は、上の【導入後】時間帯別使用比率（おひさまタイムや平日デイタイム等）の割合を調整してください。自動連動してシミュレーション結果に反映されます。</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                <span style="color:var(--muted)">現在の昼間直接消費（自動算出）：</span>
+                <strong id="dc-auto-disp" style="color:#15803d">- kWh/年</strong>
+              </div>
+              <span id="dc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            </div>
           </div>
           <div id="self-margin-disp" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #16a34a">
             <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
@@ -869,9 +876,16 @@ canvas#mini-chart { height: 220px !important; }
         <div style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#1d4ed8;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #7dd3fc">☀️ 太陽光のみ</div>
           <div class="field">
-            <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
-            <input type="number" id="dc-so-input" value="2310" min="0" max="15000" step="10" oninput="onDcSoInput()">
-            <span id="dc-so-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            <input type="hidden" id="dc-so-input" value="2310">
+            <div style="padding:10px 12px;background:#fff;border:1px dashed #7dd3fc;border-radius:8px">
+              <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px">☀️ 昼間直接消費量の調整について</div>
+              <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:6px">直接消費量を変更したい場合は、上の【導入後】時間帯別使用比率（おひさまタイムや平日デイタイム等）の割合を調整してください。自動連動してシミュレーション結果に反映されます。</div>
+              <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+                <span style="color:var(--muted)">現在の昼間直接消費（自動算出）：</span>
+                <strong id="dc-so-input-auto-disp" style="color:#1d4ed8">- kWh/年</strong>
+              </div>
+              <span id="dc-so-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            </div>
           </div>
           <div id="self-margin-disp-so" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid #3b82f6">
             <div style="font-size:11px;color:var(--muted);margin-bottom:2px">☀️ 自家消費余地（年間）</div>
@@ -1065,8 +1079,15 @@ canvas#mini-chart { height: 220px !important; }
       </div>
       <div class="grid2" style="margin-bottom:12px">
         <div class="field">
-          <label>昼間 直接使用量（kWh/年）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光→直接消費</span></label>
-          <input type="number" id="dc-so" value="2310" min="0" max="15000" step="10" oninput="onDcSoCardInput()">
+          <input type="hidden" id="dc-so" value="2310">
+          <div style="padding:10px 12px;background:#fff;border:1px dashed #7dd3fc;border-radius:8px">
+            <div style="font-size:12px;font-weight:700;color:#1d4ed8;margin-bottom:4px">☀️ 昼間直接消費量の調整について</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:6px">直接消費量を変更したい場合は、上の【導入後】時間帯別使用比率（おひさまタイムや平日デイタイム等）の割合を調整してください。自動連動してシミュレーション結果に反映されます。</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;font-size:12px">
+              <span style="color:var(--muted)">現在の昼間直接消費（自動算出）：</span>
+              <strong id="dc-so-auto-disp" style="color:#1d4ed8">- kWh/年</strong>
+            </div>
+          </div>
         </div>
       </div>
       <div id="subsidy-summary-so" style="display:none;margin-bottom:12px;padding:10px 14px;background:#eff6ff;border-radius:8px;border:1px solid #bfdbfe;font-size:13px"></div>
@@ -5136,6 +5157,8 @@ function calc() {
   const wyActive  = isPvOnlyActive ? (parseFloat(document.getElementById('wy-so').value)  || 20) : wy;
   const dcActive  = isPvOnlyActive ? (parseFloat(document.getElementById('dc-so').value)  || 0) : dc;
   document.getElementById('dc-monthly-hint').textContent = dc > 0 ? `約 ${Math.round(dc/12).toLocaleString()} kWh/月・約 ${(dc/365).toFixed(1)} kWh/日` : '';
+  const _dcAutoDisp = document.getElementById('dc-auto-disp');
+  if (_dcAutoDisp) _dcAutoDisp.textContent = fmt(dc) + ' kWh/年';
   document.getElementById('bc-monthly-hint').textContent = bc > 0 ? `約 ${Math.round(bc/12).toLocaleString()} kWh/月・約 ${(bc/365).toFixed(1)} kWh/日` : '';
   const _kpCalc = document.getElementById('kyuden-plan').value;
   const _isJuuryoCalc = _kpCalc === 'kyushu_juuryo_b' || _kpCalc === 'kyushu_juuryo_c';
@@ -5213,6 +5236,10 @@ function calc() {
   if (_dcSoInputEl) _dcSoInputEl.value = _dcSoVal;
   var _dcSoHintEl = document.getElementById('dc-so-monthly-hint');
   if (_dcSoHintEl) _dcSoHintEl.textContent = _dcSoVal > 0 ? `約 ${Math.round(_dcSoVal/12).toLocaleString()} kWh/月・約 ${(_dcSoVal/365).toFixed(1)} kWh/日` : '';
+  const _dcSoInputAutoDisp = document.getElementById('dc-so-input-auto-disp');
+  if (_dcSoInputAutoDisp) _dcSoInputAutoDisp.textContent = fmt(_dcSoVal) + ' kWh/年';
+  const _dcSoAutoDisp = document.getElementById('dc-so-auto-disp');
+  if (_dcSoAutoDisp) _dcSoAutoDisp.textContent = fmt(_dcSoVal) + ' kWh/年';
   var _dtSoEl = document.getElementById('daytime-rate-disp-so');
   if (_dtSoEl) _dtSoEl.innerHTML = document.getElementById('daytime-rate-disp').innerHTML.replace(/#15803d|var\(--mg\)/g,'#1d4ed8');
   const _postBasicPlans = ['kyushu_juuryo_b','kyushu_juuryo_c','kyushu_ohisama','kyushu_denka_night','kyushu_kiji'];
