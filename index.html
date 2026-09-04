@@ -219,8 +219,10 @@ canvas#mini-chart { height: 220px !important; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
 
 /* ── 提案モードセレクター ── */
-.proposal-mode-bar { display:flex; gap:0; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:12px; }
-.pm-btn { flex:1; padding:11px 8px; background:#fff; border:none; border-right:1px solid var(--border); cursor:pointer; font-size:13px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; line-height:1.4; text-align:center; }
+.proposal-mode-card { position:sticky; top:0; z-index:1001; background:var(--card); padding:6px 24px; }
+.proposal-mode-card .section-title { margin-bottom:4px; padding-bottom:2px; }
+.proposal-mode-bar { display:flex; gap:0; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:6px; }
+.pm-btn { flex:1; padding:7px 8px; background:#fff; border:none; border-right:1px solid var(--border); cursor:pointer; font-size:13px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; line-height:1.4; text-align:center; }
 .pm-btn:last-child { border-right:none; }
 .pm-btn.active { background:var(--dg); color:#fff; }
 .pm-btn:hover:not(.active) { background:var(--pg); color:var(--text); }
@@ -285,7 +287,7 @@ canvas#mini-chart { height: 220px !important; }
 #solar-util-card {
   position: -webkit-sticky;
   position: sticky;
-  top: 0;
+  top: var(--pm-sticky-h, 0px);
   z-index: 1000;
   background: linear-gradient(135deg, #f59e0b 0%, #f97316 60%, #ea580c 100%);
   border: none;
@@ -412,17 +414,17 @@ canvas#mini-chart { height: 220px !important; }
     </div>
 
     <!-- ── 提案モード選択 ── -->
-    <div class="section-card">
+    <div class="section-card proposal-mode-card">
       <div class="section-title">🏗️ 提案モード</div>
       <div class="proposal-mode-bar">
         <button class="pm-btn active" id="pm-btn-pv_battery" onclick="setProposalMode('pv_battery')">☀️ 太陽光<br>＋蓄電池</button>
         <button class="pm-btn" id="pm-btn-pv_only" onclick="setProposalMode('pv_only')">☀️ 太陽光<br>のみ</button>
         <button class="pm-btn" id="pm-btn-battery_only" onclick="onWipModeClick('battery_only')" style="position:relative;cursor:not-allowed;opacity:.55">🔋 蓄電池<br>のみ（後付け）<br><span style="font-size:9px;background:#f59e0b;color:#fff;border-radius:3px;padding:1px 4px;font-weight:700">🚧 製作中</span></button>
       </div>
-      <div id="proposal-mode-desc" style="font-size:12px;color:var(--muted);padding:7px 12px;background:var(--pg);border-radius:8px;border:1px solid var(--border)">
+      <div id="proposal-mode-desc" style="font-size:12px;color:var(--muted);padding:4px 12px;background:var(--pg);border-radius:8px;border:1px solid var(--border)">
         太陽光発電と蓄電池を組み合わせた、最適な自家消費と経済メリットを算出します。
       </div>
-      <div id="wip-unlock-area" style="margin-top:8px;text-align:right">
+      <div id="wip-unlock-area" style="margin-top:2px;text-align:right">
         <button onclick="toggleUnlockPanel()" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;text-decoration:underline;padding:2px 4px">🔒 編集ロック解除</button>
         <div id="unlock-panel" style="display:none;margin-top:6px;padding:8px 10px;background:#fefce8;border:1px solid #fde68a;border-radius:8px;flex-direction:column;gap:6px;align-items:flex-start">
           <div style="font-size:11px;color:#92400e;font-weight:700">編集用パスワードを入力してください</div>
@@ -6898,6 +6900,16 @@ async function generatePPTX(mode) {
     toast('エラーが発生しました: '+err.message, 'error');
   }
 }
+
+// ── 提案モードカードの高さを追従スタック用CSS変数に反映 ──
+(function initStickyStack(){
+  const pmCard = document.querySelector('.proposal-mode-card');
+  if (!pmCard) return;
+  const sync = () => document.documentElement.style.setProperty('--pm-sticky-h', pmCard.offsetHeight + 'px');
+  sync();
+  if (window.ResizeObserver) new ResizeObserver(sync).observe(pmCard);
+  else window.addEventListener('resize', sync);
+})();
 
 // ── 初期化 ──
 onPkgChange();       // 7+7パッケージのデフォルト値を適用
