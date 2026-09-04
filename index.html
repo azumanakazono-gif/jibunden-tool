@@ -5025,9 +5025,6 @@ function _renderDualBreakdown(pbData, soData) {
   var row = function(icon, label, val, unit, color) {
     return '<div class="dual-breakdown-row"><span class="db-label">' + icon + ' ' + label + '</span><span class="db-val" style="color:' + (color||'#1e293b') + '">' + val + ' ' + (unit||'') + '</span></div>';
   };
-  var spacerRow = function() {
-    return '<div class="dual-breakdown-row" style="visibility:hidden"><span class="db-label"> </span><span class="db-val"> </span></div>';
-  };
   var section = function(title, rows) {
     return '<div style="margin-bottom:10px"><div style="font-size:11px;font-weight:700;color:#6b7280;margin-bottom:4px;padding:2px 0;border-bottom:1px dashed #cbd5e1">' + title + '</div>' + rows + '</div>';
   };
@@ -5038,8 +5035,8 @@ function _renderDualBreakdown(pbData, soData) {
       section('📊 エネルギー収支',
         row('⚡','年間発電量', f(pbData.ag) + ' kWh','','#15803d') +
         row('☀️','太陽光直接消費', f(pbData.dc) + ' kWh/年','（月' + f(Math.round(pbData.dc/12)) + 'kWh）','#22c55e') +
-        row('🔋','蓄電池放電消費', f(pbData.bc) + ' kWh/年','（月' + f(Math.round(pbData.bc/12)) + 'kWh）','#6f42c1') +
-        row('🪫','蓄電池残容量余地', pbData.bkNominal > 0 ? (pbData.bkOver ? '0 kWh/年（上限超過）' : 'あと ' + f(pbData.bkRemain) + ' kWh/年') : '—', pbData.bkNominal > 0 ? '活用率' + pbData.bkUsageRate + '%' : '', pbData.bkOver ? '#dc2626' : '#6f42c1') +
+        row('🔋','蓄電池で賄う量（kWh/年）', f(pbData.bc) + ' kWh/年','（月' + f(Math.round(pbData.bc/12)) + 'kWh）','#6f42c1') +
+        row('🪫','蓄電池の残容量余地（年間）', pbData.bkNominal > 0 ? (pbData.bkOver ? '0 kWh/年（上限超過）' : 'あと ' + f(pbData.bkRemain) + ' kWh/年') : '—', pbData.bkNominal > 0 ? '活用率' + pbData.bkUsageRate + '%' : '', pbData.bkOver ? '#dc2626' : '#6f42c1') +
         row('📤','余剰（売電）', f(pbData.surplus) + ' kWh/年','','#0369a1') +
         row('🛒','残り買電量', f(pbData.remainKwh) + ' kWh/年','（月' + f(Math.round(pbData.remainKwh/12)) + 'kWh）','#dc2626')
       ) +
@@ -5071,8 +5068,8 @@ function _renderDualBreakdown(pbData, soData) {
       section('📊 エネルギー収支',
         row('⚡','年間発電量', f(soData.ag) + ' kWh','','#1d4ed8') +
         row('☀️','太陽光直接消費', f(soData.dc) + ' kWh/年','（月' + f(Math.round(soData.dc/12)) + 'kWh）','#22c55e') +
-        spacerRow() +
-        row('🪫','蓄電池残容量余地', '—','蓄電池なしのため対象外','#94a3b8') +
+        row('🔋','蓄電池で賄う量（kWh/年）', '--','蓄電池なしのため対象外','#94a3b8') +
+        row('🪫','蓄電池の残容量余地（年間）', '--','蓄電池なしのため対象外','#94a3b8') +
         row('📤','余剰（売電）', f(soData.surplus) + ' kWh/年','','#0369a1') +
         row('🛒','残り買電量', f(soData.remainKwh) + ' kWh/年','（月' + f(Math.round(soData.remainKwh/12)) + 'kWh）','#dc2626')
       ) +
