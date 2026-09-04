@@ -3447,6 +3447,33 @@ function getDaytimeRate() {
   return Math.min(0.60, Math.max(0.10, base * mod));
 }
 
+// 昼間直接消費量を「その年間発電量」から算出するための共通基準（比率＋上限係数）
+// 太陽光＋蓄電池（ag）／太陽光のみ（ag-so）双方の個別算出に使う
+function _daytimeDemandBasis() {
+  const kp     = document.getElementById('kyuden-plan').value;
+  const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
+  const isAfterTOU = postKp === 'kyushu_denka_night' || postKp === 'kyushu_kiji' || postKp === 'kyushu_ohisama';
+  if (kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama') {
+    const effKp  = isAfterTOU ? postKp : kp;
+    const ratios = isAfterTOU ? getEffectiveRatios(effKp) : getBeforeEffectiveRatios(effKp);
+    if (!ratios) return null;
+    let ratio;
+    if (effKp === 'kyushu_denka_night') ratio = (ratios.day || 0) + (ratios.hol || 0) * 0.5 + (ratios.living || 0) * 0.1;
+    else if (effKp === 'kyushu_ohisama') ratio = (ratios.ohisama || 0) + (ratios.peak || 0) * 0.2;
+    else ratio = (ratios.day || 0) + (ratios.living || 0) * 0.5;
+    return { ratio, capFactor: 1.0 };
+  }
+  const rate = getDaytimeRate();
+  if (rate === null) return null;
+  return { ratio: rate, capFactor: 0.65 };
+}
+function _computeDcForAg(agVal) {
+  const basis = _daytimeDemandBasis();
+  if (!basis) return null;
+  const annualConsumption = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
+  return Math.round(Math.min(agVal * basis.capFactor, annualConsumption * basis.ratio));
+}
+
 function applyDaytimeRate() {
   const kp     = document.getElementById('kyuden-plan').value;
   const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
@@ -5118,9 +5145,20 @@ function calcMetrics(c) {
 
 function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
-  let bc=v('bc'); const bk=v('bk'), dc=v('dc'), er=v('er');
-  // 太陽光のみ側で直接編集済み、または太陽光のみモードがアクティブな場合は dc-so を独立入力として保持する
-  if (proposalMode !== 'pv_only' && !dcSoManualEdited) document.getElementById('dc-so').value = dc;
+  let bc=v('bc'); const bk=v('bk'), er=v('er');
+  // 太陽光＋蓄電池側：自動算出中は「このシステムの年間発電量（ag）」から都度再計算
+  if (!dcManualEdited) {
+    const _dcCalc = _computeDcForAg(ag);
+    if (_dcCalc !== null) document.getElementById('dc').value = _dcCalc;
+  }
+  const dc = v('dc');
+  // 太陽光のみ側：太陽光のみモードがアクティブな場合は dc-so を独立入力として保持する。
+  // それ以外は「太陽光のみの年間発電量（ag-so）」から個別に算出する（算出不能時のみ dc を暫定値として流用）
+  if (proposalMode !== 'pv_only' && !dcSoManualEdited) {
+    const agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+    const _dcSoCalc = agSo > 0 ? _computeDcForAg(agSo) : null;
+    document.getElementById('dc-so').value = _dcSoCalc !== null ? _dcSoCalc : dc;
+  }
   document.getElementById('pkg-area-so').style.display = '';
   document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${sk} kW)` : '';
   var _skSoTitle = parseFloat(document.getElementById('sk-so').value) || 0;
