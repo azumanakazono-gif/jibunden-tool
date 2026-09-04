@@ -81,6 +81,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #dual-breakdown-grid .dual-col-so { background:#eff6ff; border:1.5px solid #7dd3fc; }
 #dual-breakdown-grid .dual-col-so.pending-input { opacity:0.5; pointer-events:none; }
 #dual-breakdown-grid .dual-col-so.pending-input::after { content:'⏳ 太陽光のみの設計を入力してください'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,.9); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:700; color:#92400e; border:1.5px solid #fcd34d; white-space:nowrap; pointer-events:auto; z-index:2; }
+#dual-breakdown-grid .dual-col-pb.pending-input { opacity:0.5; pointer-events:none; }
+#dual-breakdown-grid .dual-col-pb.pending-input::after { content:'⏳ 太陽光＋蓄電池の設計を入力してください'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,.9); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:700; color:#166534; border:1.5px solid #86efac; white-space:nowrap; pointer-events:auto; z-index:2; }
 .dual-col-title { font-size:13px; font-weight:800; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid; }
 .dual-breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; font-size:12px; border-bottom:1px solid rgba(0,0,0,.06); }
 .dual-breakdown-row:last-child { border-bottom:none; }
@@ -976,7 +978,7 @@ canvas#mini-chart { height: 220px !important; }
 
       <!-- ▼ 2列詳細内訳（太陽光＋蓄電池 vs 太陽光のみ） -->
       <div id="dual-breakdown-grid">
-        <div class="dual-col dual-col-pb">
+        <div id="dual-col-pb" class="dual-col dual-col-pb">
           <div class="dual-col-title" style="color:#15803d;border-color:#bbf7d0">☀️🔋【太陽光＋蓄電池】詳細内訳 <span id="title-pv-cap" style="font-weight:400"></span></div>
           <div id="dual-pb-body">
             <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
@@ -5034,7 +5036,13 @@ function _renderDualBreakdown(pbData, soData) {
   };
   // Solar+Battery column
   var pbEl = document.getElementById('dual-pb-body');
+  var pbCol = document.getElementById('dual-col-pb');
   if (pbEl && pbData) {
+    if (!pbData.valid) {
+      if (pbCol) pbCol.classList.add('pending-input');
+    } else {
+      if (pbCol) pbCol.classList.remove('pending-input');
+    }
     var html =
       section('📊 エネルギー収支',
         row('⚡','年間発電量', f(pbData.ag) + ' kWh','','#15803d') +
@@ -5091,7 +5099,7 @@ function _renderDualBreakdown(pbData, soData) {
         '<div class="dual-breakdown-row"><span class="db-label">📤 余剰率</span><span class="db-val" style="color:#64748b"><span id="so-surplus-rate">' + soData.surplusRate + '</span>%</span></div>'
       );
     // Comparison highlight
-    if (soData.valid) {
+    if (soData.valid && pbData.valid) {
       var pbDiff = parseInt(pbData.diffMan) || 0;
       var soDiff = parseInt(soData.diffMan) || 0;
       var winner = pbDiff >= soDiff ? '太陽光＋蓄電池' : '太陽光のみ';
@@ -5515,7 +5523,9 @@ function calc() {
     var annSellPb = (surplusPb > 0 && _salePPb > 0) ? Math.round(surplusPb * _salePPb) : 0;
     var annSavePb = Math.round(selfKwhPb * up) + annSellPb;
     var diffPb = mPb.costDiff_with_rise + Math.round(annSellPb * pbWy / 10000);
+    var pbValid2 = pbSk > 0 && pbCk > 0 && pbAg > 0;
     var pbData = {
+      valid: pbValid2,
       ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: mPb.remainBill,
       currentBill: mb, monthlySaving: mb - mPb.remainBill,
