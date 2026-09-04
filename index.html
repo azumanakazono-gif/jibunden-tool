@@ -219,6 +219,7 @@ canvas#mini-chart { height: 220px !important; }
 .tab-btn.active { color:var(--mg); border-bottom-color:var(--mg); background:var(--pg); }
 
 /* ── 提案モードセレクター ── */
+.proposal-mode-card { position:sticky; top:0; z-index:20; background:var(--card); }
 .proposal-mode-bar { display:flex; gap:0; border:1.5px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:12px; }
 .pm-btn { flex:1; padding:11px 8px; background:#fff; border:none; border-right:1px solid var(--border); cursor:pointer; font-size:13px; font-weight:700; font-family:inherit; color:var(--muted); transition:all .15s; line-height:1.4; text-align:center; }
 .pm-btn:last-child { border-right:none; }
@@ -412,7 +413,7 @@ canvas#mini-chart { height: 220px !important; }
     </div>
 
     <!-- ── 提案モード選択 ── -->
-    <div class="section-card">
+    <div class="section-card proposal-mode-card">
       <div class="section-title">🏗️ 提案モード</div>
       <div class="proposal-mode-bar">
         <button class="pm-btn active" id="pm-btn-pv_battery" onclick="setProposalMode('pv_battery')">☀️ 太陽光<br>＋蓄電池</button>
