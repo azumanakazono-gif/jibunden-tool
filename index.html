@@ -5313,7 +5313,7 @@ function calc() {
         totalConstructionCost: ckActive * 10000, subsidyAmount: subActive,
         warrantyYears: wyActive, directConsumptionKWh: dcActive, batteryConsumptionKWh: 0 })
     : m;
-  const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, m.remainKWh);
+  const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, mActive.remainKWh);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
   // 上昇率がある場合は20年電気代を上昇後の数値で表示
@@ -5691,8 +5691,8 @@ function calc() {
     _p2.set('monthlyBill', _beforeGrand);
     _poLinkEl2.href = 'payment-options.html?' + _p2.toString();
   }
-  // 導入後：内訳grand優先、なければm.remainBill（売電収入は含まない純粋な買電コスト）
-  const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
+  // 導入後：内訳grand優先、なければmActive.remainBill（選択中モードの純粋な買電コスト、売電収入は含まない）
+  const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (mActive.remainBill > 0 ? mActive.remainBill : 0);
   const _afterNet = _afterDisplay; // 売電収入は年間売電収入・経済メリット側のみで扱う
   // after-plan-total-val を _afterNet で上書き（savings と辻褄を合わせるため）
   const _afterTotalEl = document.getElementById('after-plan-total-val');
@@ -5703,8 +5703,8 @@ function calc() {
   const _mcSavings = document.getElementById('mc-savings');
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
-  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
-  _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
+  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dcActive, bc_eff, up);
+  _updateMeritBreakdown(dcActive, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
