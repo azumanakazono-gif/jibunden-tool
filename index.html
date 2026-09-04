@@ -1285,7 +1285,7 @@ canvas#mini-chart { height: 220px !important; }
     </div>
 
     <div class="section-card">
-      <div class="section-title">📊 シミュレーション結果</div>
+      <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">📊 シミュレーション結果<span id="mode-badge-2" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池モードを表示中</span></div>
       <!-- 月額比較カード -->
       <div id="monthly-compare-card" style="border-radius:14px;padding:16px;border:2px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);box-shadow:0 2px 10px rgba(0,0,0,.08);margin-bottom:12px">
         <div style="font-size:13px;font-weight:700;color:#15803d;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid #bbf7d0">💰 月額電気代比較: 現在 → 導入後</div>
@@ -1845,18 +1845,20 @@ function applyProposalMode() {
 
   // モードバッジ更新
   const _modeBadge = document.getElementById('mode-badge');
-  if (_modeBadge) {
+  const _modeBadge2 = document.getElementById('mode-badge-2');
+  [_modeBadge, _modeBadge2].forEach(el => {
+    if (!el) return;
     if (proposalMode === 'pv_only') {
-      _modeBadge.textContent = '☀️ 太陽光のみモードを表示中';
-      _modeBadge.style.background = '#e0f2fe'; _modeBadge.style.color = '#0c4a6e';
+      el.textContent = '☀️ 太陽光のみモードを表示中';
+      el.style.background = '#e0f2fe'; el.style.color = '#0c4a6e';
     } else if (proposalMode === 'battery_only') {
-      _modeBadge.textContent = '🔋 蓄電池のみモードを表示中';
-      _modeBadge.style.background = '#f3e8ff'; _modeBadge.style.color = '#6b21a8';
+      el.textContent = '🔋 蓄電池のみモードを表示中';
+      el.style.background = '#f3e8ff'; el.style.color = '#6b21a8';
     } else {
-      _modeBadge.textContent = '☀️🔋 太陽光＋蓄電池モードを表示中';
-      _modeBadge.style.background = '#dcfce7'; _modeBadge.style.color = '#166534';
+      el.textContent = '☀️🔋 太陽光＋蓄電池モードを表示中';
+      el.style.background = '#dcfce7'; el.style.color = '#166534';
     }
-  }
+  });
 
   // セクションタイトル更新（緑セクションは常に太陽光＋蓄電池固定）
 
