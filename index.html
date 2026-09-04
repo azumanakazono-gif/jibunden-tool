@@ -4960,14 +4960,17 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   } else {
     selfMarginEl.style.display = 'none';
   }
-  // ── 太陽光のみ側 自家消費余地カード同期 ──
+  // ── 太陽光のみ側 自家消費余地カード（蓄電池側から独立して算出） ──
   var _smSoEl = document.getElementById('self-margin-disp-so');
   if (_smSoEl) {
-    if (hasSolarMode && ag > 0) {
+    const agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+    const dcSo = parseFloat(document.getElementById('dc-so').value) || 0;
+    const surplusKwhSo = Math.max(0, agSo - dcSo);
+    if (hasSolarMode && agSo > 0) {
       _smSoEl.style.display = '';
-      document.getElementById('self-margin-big-so').textContent = `${fmt(surplusKwh)} kWh/年`;
+      document.getElementById('self-margin-big-so').textContent = `${fmt(surplusKwhSo)} kWh/年`;
       document.getElementById('self-margin-sub-so').textContent =
-        `約${fmt(Math.round(surplusKwh / 12))} kWh/月・約${(surplusKwh / 365).toFixed(1)} kWh/日`;
+        `約${fmt(Math.round(surplusKwhSo / 12))} kWh/月・約${(surplusKwhSo / 365).toFixed(1)} kWh/日`;
     } else {
       _smSoEl.style.display = 'none';
     }
