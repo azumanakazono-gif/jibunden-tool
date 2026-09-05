@@ -1046,16 +1046,8 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
       </div>
-
-      <!-- 概算月額合計 横並び比較行 -->
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;margin-bottom:10px">
-        <div style="flex:1;min-width:200px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;border-top:2px solid #cbd5e1;background:#f1f5f9;border-radius:6px">
-          <span>現在の概算月額合計</span><span id="before-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
-        </div>
-        <div style="flex:1;min-width:200px;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:700;color:#475569;padding:8px 10px;border-top:2px solid #93c5fd;background:#dbeafe;border-radius:6px">
-          <span>導入後の月額残り電気代（概算）</span><span id="after-plan-total-val" style="font-size:20px;font-weight:700;color:#1e293b">-</span>
-        </div>
-      </div>
+      <span id="before-plan-total-val" style="display:none"></span>
+      <span id="after-plan-total-val" style="display:none"></span>
 
 
 
@@ -5031,6 +5023,9 @@ function _renderDualBreakdown(pbData, soData) {
   var row = function(icon, label, val, unit, color) {
     return '<div class="dual-breakdown-row"><span class="db-label">' + icon + ' ' + label + '</span><span class="db-val" style="color:' + (color||'#1e293b') + '">' + val + ' ' + (unit||'') + '</span></div>';
   };
+  var hlRow = function(icon, label, val, unit, color, bg, border) {
+    return '<div class="dual-breakdown-row" style="background:' + bg + ';border:1.5px solid ' + border + ';border-radius:8px;padding:10px 12px;margin:6px 0"><span class="db-label" style="font-size:13px">' + icon + ' ' + label + '</span><span class="db-val" style="font-size:20px;color:' + (color||'#1e293b') + '">' + val + ' ' + (unit||'') + '</span></div>';
+  };
   var spacerRow = function() {
     return '<div class="dual-breakdown-row" style="visibility:hidden"><span class="db-label"> </span><span class="db-val"> </span></div>';
   };
@@ -5051,8 +5046,8 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', pbData.totalCostMan + '万円','','#1e40af') +
-        row('📟','現在の概算月額合計', '約 ¥' + f(pbData.currentBill),'','#64748b') +
-        row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(pbData.remainBill),'','#dc2626') +
+        hlRow('📟','現在の概算月額合計', '約 ¥' + f(pbData.currentBill),'','#1e293b','#f1f5f9','#cbd5e1') +
+        hlRow('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(pbData.remainBill),'','#dc2626','#fef2f2','#fecaca') +
         row('💰','月々の節約額', (pbData.monthlySaving >= 0 ? '約 ¥' + f(pbData.monthlySaving) : '－ ¥' + f(Math.abs(pbData.monthlySaving))),'','#15803d') +
         row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
         row('💴','年間売電収入', pbData.annualSell > 0 ? '約 ¥' + f(pbData.annualSell) : '—','', pbData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
@@ -5084,8 +5079,8 @@ function _renderDualBreakdown(pbData, soData) {
       ) +
       section('💰 コスト・メリット',
         row('🏗️','初期費用（実質）', soData.totalCostMan + '万円','','#1e40af') +
-        row('📟','現在の概算月額合計', '約 ¥' + f(soData.currentBill),'','#64748b') +
-        row('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626') +
+        hlRow('📟','現在の概算月額合計', '約 ¥' + f(soData.currentBill),'','#1e293b','#f1f5f9','#cbd5e1') +
+        hlRow('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626','#dbeafe','#93c5fd') +
         row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
         row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
         row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
