@@ -309,6 +309,13 @@ canvas#mini-chart { height: 220px !important; }
 #surplus-rate-val {
   font-size: 26px !important;
 }
+@keyframes selfRateOverPulse {
+  0%, 100% { opacity: 1; box-shadow: 0 2px 8px rgba(220,38,38,.3); }
+  50% { opacity: .55; box-shadow: 0 2px 20px rgba(220,38,38,.95); }
+}
+.self-rate-over-pulse {
+  animation: selfRateOverPulse 1s ease-in-out infinite;
+}
 @media (max-width: 768px) {
   #solar-util-card {
     padding: 8px 12px;
@@ -512,7 +519,7 @@ canvas#mini-chart { height: 220px !important; }
             <div style="font-size:10px;color:rgba(255,255,255,.65)">宅内で使う割合</div>
           </div>
           <div id="self-rate-warning" style="display:none;margin-left:auto;font-size:10px;font-weight:700;color:#fff;background:rgba(0,0,0,.25);border-radius:5px;padding:4px 6px;line-height:1.4">
-            ⚠ 100%超<br><span style="font-weight:400;opacity:.85">前提を見直して</span>
+            ⚠ 100%超<span id="self-rate-warning-excess"></span><br><span style="font-weight:400;opacity:.85">前提を見直して</span>
           </div>
         </div>
         <div id="surplus-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid #0d9488;background:#0f766e;box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
@@ -1123,7 +1130,7 @@ canvas#mini-chart { height: 220px !important; }
           <div style="flex:1"></div>
           <div id="result-area" style="margin-top:12px;background:#fff;border:2px solid var(--border);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:10px;box-shadow:0 1px 4px rgba(0,0,0,.06)">
             <div id="self-rate-warn-input" style="display:none;padding:10px 14px;background:#FEF2F2;border:1.5px solid #FCA5A5;border-radius:8px;font-size:12px;font-weight:700;color:#B91C1C;line-height:1.6">
-              ⚠ 自家消費率が100%を超えています<br>
+              ⚠ 自家消費率が100%を超えています<span id="self-rate-warn-input-excess"></span><br>
               <span style="font-weight:400;color:#DC2626">昼間直接使用量・蓄電池放電量・システム設計の設定を見直してください</span>
             </div>
             <div id="daytime-rate-disp" style="padding:6px 10px;background:var(--pg);border-radius:6px;font-size:12px;color:var(--mg);font-weight:600"></div>
@@ -4889,7 +4896,11 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
   const hasSolarMode = proposalMode !== 'battery_only';
 
   // ── 自家消費率カード（値の書き込みはcalc()最終行で一元管理） ──
-  document.getElementById('self-rate-warn-input').style.display   = over ? '' : 'none';
+  const warnInputEl = document.getElementById('self-rate-warn-input');
+  warnInputEl.style.display = over ? '' : 'none';
+  warnInputEl.classList.toggle('self-rate-over-pulse', over);
+  const warnInputExcessEl = document.getElementById('self-rate-warn-input-excess');
+  if (warnInputExcessEl) warnInputExcessEl.textContent = over ? `（+${(total / ag * 100 - 100).toFixed(1)}%超過）` : '';
 
   // ── 年間自家消費メリット ──
   document.getElementById('self-saving-val').textContent = fmt(annualSelfSaving);
@@ -5500,7 +5511,8 @@ function calc() {
     var selfKwhPb = pbDc + pbBcEff;
     var surplusPb = Math.max(0, pbAg - selfKwhPb);
     var remainKwhPb = Math.max(0, annualConsumptionKWh - selfKwhPb);
-    var selfRatePb = pbAg > 0 ? Math.min(100, Math.round(selfKwhPb / pbAg * 100)) : 0;
+    var selfRateRawPb = pbAg > 0 ? (selfKwhPb / pbAg * 100) : 0;
+    var selfRatePb = Math.min(100, Math.round(selfRateRawPb));
     var surplusRatePb = pbAg > 0 ? Math.round(surplusPb / pbAg * 100) : 0;
     var cPb = {
       monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
@@ -5521,7 +5533,7 @@ function calc() {
       currentBill: mb, monthlySaving: mb - mPb.remainBill,
       totalCostMan: mPb.totalCostMan, annualSaving: annSavePb,
       annualSell: annSellPb, diffMan: diffPb,
-      selfRate: selfRatePb, surplusRate: surplusRatePb,
+      selfRate: selfRatePb, selfRateRaw: selfRateRawPb, surplusRate: surplusRatePb,
       bkNominal: pbBk, bkRemain: pbBkRemain, bkUsageRate: pbBkUsageRate, bkOver: pbBkOver
     };
     var skSo2 = parseFloat(document.getElementById('sk-so').value) || 0;
@@ -5546,7 +5558,8 @@ function calc() {
     var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
     var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
     var diffSo2 = mSo2.costDiff_with_rise + Math.round(annSellSo2 * wySo2 / 10000);
-    var selfRateSo2 = agSo2 > 0 ? Math.min(100, Math.round(dcSo2 / agSo2 * 100)) : 0;
+    var selfRateRawSo2 = agSo2 > 0 ? (dcSo2 / agSo2 * 100) : 0;
+    var selfRateSo2 = Math.min(100, Math.round(selfRateRawSo2));
     var surplusRateSo2 = agSo2 > 0 ? Math.round(surplusSo2 / agSo2 * 100) : 0;
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
@@ -5554,13 +5567,14 @@ function calc() {
       currentBill: mb, monthlySaving: mb - mSo2.remainBill,
       totalCostMan: mSo2.totalCostMan, annualSaving: annSaveSo2,
       annualSell: annSellSo2, diffMan: diffSo2,
-      selfRate: selfRateSo2, surplusRate: surplusRateSo2
+      selfRate: selfRateSo2, selfRateRaw: selfRateRawSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
     window._finalPbSelfRate = _finalPbSelfRate; window._finalPbSurplusRate = _finalPbSurplusRate;
     window._finalSoSelfRate = _finalSoSelfRate; window._finalSoSurplusRate = _finalSoSurplusRate;
+    window._finalPbSelfRateRaw = pbData.selfRateRaw; window._finalSoSelfRateRaw = soData.selfRateRaw;
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
@@ -5700,22 +5714,30 @@ function calc() {
   setTimeout(function() {
     var soCard = document.getElementById('so-breakdown-card') || document.querySelector('.dual-col-so');
     var isPvOnlyMode = soCard && soCard.offsetHeight > 0 && window.getComputedStyle(soCard).display !== 'none';
-    var finalSelf;
+    var finalSelf, finalSelfRaw;
     if (isPvOnlyMode) {
       finalSelf = (typeof _finalSoSelfRate !== 'undefined') ? _finalSoSelfRate : 45;
+      finalSelfRaw = (typeof window._finalSoSelfRateRaw === 'number') ? window._finalSoSelfRateRaw : finalSelf;
     } else {
       finalSelf = (typeof _finalPbSelfRate !== 'undefined') ? _finalPbSelfRate : 87;
+      finalSelfRaw = (typeof window._finalPbSelfRateRaw === 'number') ? window._finalPbSelfRateRaw : finalSelf;
     }
     var finalSurplus = 100 - finalSelf;
     var selfValEl = document.getElementById('self-rate-val');
     var surplusValEl = document.getElementById('surplus-rate-val');
     if (selfValEl) selfValEl.innerText = finalSelf;
     if (surplusValEl) surplusValEl.innerText = finalSurplus;
-    var _ov = finalSelf > 100;
+    var _ov = finalSelfRaw > 100;
     var _sc = document.getElementById('self-rate-card');
-    if (_sc) { _sc.style.background = _ov ? '#DC2626' : 'var(--mg)'; _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)'; }
+    if (_sc) {
+      _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
+      _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
+      _sc.classList.toggle('self-rate-over-pulse', _ov);
+    }
     var _sw = document.getElementById('self-rate-warning');
     if (_sw) _sw.style.display = _ov ? '' : 'none';
+    var _swe = document.getElementById('self-rate-warning-excess');
+    if (_swe) _swe.textContent = _ov ? `（+${(finalSelfRaw - 100).toFixed(1)}%）` : '';
   }, 100);
 }
 
@@ -7120,6 +7142,9 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     const finalSelfVal = isPvOnlyMode
       ? (window._finalSoSelfRate || 45)
       : (window._finalPbSelfRate || 90);
+    const finalSelfRawVal = isPvOnlyMode
+      ? (typeof window._finalSoSelfRateRaw === 'number' ? window._finalSoSelfRateRaw : finalSelfVal)
+      : (typeof window._finalPbSelfRateRaw === 'number' ? window._finalPbSelfRateRaw : finalSelfVal);
     const finalSurplusVal = 100 - finalSelfVal;
 
     const sValEl = document.getElementById('self-rate-val');
@@ -7128,11 +7153,17 @@ document.getElementById('manualBtn').addEventListener('click', () => {
     if (sValEl) sValEl.innerText = finalSelfVal;
     if (curValEl) curValEl.innerText = finalSurplusVal;
 
-    var _ov = finalSelfVal > 100;
+    var _ov = finalSelfRawVal > 100;
     var _sc = document.getElementById('self-rate-card');
-    if (_sc) { _sc.style.background = _ov ? '#DC2626' : 'var(--mg)'; _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)'; }
+    if (_sc) {
+      _sc.style.background = _ov ? '#DC2626' : 'var(--mg)';
+      _sc.style.borderColor = _ov ? '#B91C1C' : 'var(--dg)';
+      _sc.classList.toggle('self-rate-over-pulse', _ov);
+    }
     var _sw = document.getElementById('self-rate-warning');
     if (_sw) _sw.style.display = _ov ? '' : 'none';
+    var _swe = document.getElementById('self-rate-warning-excess');
+    if (_swe) _swe.textContent = _ov ? `（+${(finalSelfRawVal - 100).toFixed(1)}%）` : '';
   }
 
   if (typeof window.calc === 'function') {
