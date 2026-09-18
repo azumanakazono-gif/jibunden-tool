@@ -852,7 +852,7 @@ canvas#mini-chart { height: 220px !important; }
         <div class="field" id="field-bk-wrap"><label>蓄電池容量（kWh）</label><input type="number" id="bk" value="7.7" min="3" max="30" step="0.1" oninput="calc()"><span id="bk-eff-disp" style="font-size:11px;color:var(--muted)"></span></div>
         <div class="field" id="field-ck-wrap">
           <label id="ck-label">税込総工事費用（万円）<span style="font-size:10px;color:var(--mg);margin-left:4px">太陽光＋蓄電池 工事込み</span></label>
-          <input type="number" id="ck" value="280" min="50" max="2000" step="10" oninput="calc()">
+          <input type="number" id="ck" value="300" min="50" max="2000" step="10" oninput="calc()">
         </div>
       </div>
       <div class="grid3" style="margin-bottom:12px">
@@ -926,7 +926,7 @@ canvas#mini-chart { height: 220px !important; }
         <div class="field" style="visibility:hidden"><label>&nbsp;</label><input type="hidden"></div>
         <div class="field">
           <label>税込総工事費用（万円）<span style="font-size:10px;color:#1d4ed8;margin-left:4px">太陽光 工事込み</span></label>
-          <input type="number" id="ck-so" value="120" min="50" max="2000" step="10" oninput="calc()">
+          <input type="number" id="ck-so" value="131" min="50" max="2000" step="10" oninput="calc()">
         </div>
       </div>
       <div class="grid3" style="margin-bottom:12px">
@@ -1200,7 +1200,7 @@ canvas#mini-chart { height: 220px !important; }
         <div class="grid2" style="margin-bottom:8px">
           <div class="field">
             <label>借入金額（万円）</label>
-            <input type="number" id="la2" value="280" min="10" max="500" step="10" oninput="loanAmountEdited=true;calcDpBorrow();calc()">
+            <input type="number" id="la2" value="300" min="10" max="500" step="10" oninput="loanAmountEdited=true;calcDpBorrow();calc()">
           </div>
           <div class="field">
             <label>頭金（万円）</label>
@@ -2613,18 +2613,18 @@ const HEARING_DEFAULTS = { hasBill:false, hasPV:false, hasBattery:false, isAllEl
 const HYPOTHESIS_DEFAULTS = {
   cn:'モデルケース', fm:'5人以上の大家族',
   lsPreset:'custom', ls:'モデルケース（日中の使用量が比較的多いご家庭）',
-  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
+  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:300,
   dc:5000, bc:2500, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b', postKyudenPlan:'kyushu_denka_night',
+  la2:300, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b', postKyudenPlan:'kyushu_denka_night',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
 const CUSTOMER_DEFAULTS = {
   cn:'○○様○○システム', fm:'4人家族（夫婦＋子ども2人）',
   lsPreset:'away', ls:'日中は共働きで外出多め・夜間使用が中心',
-  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:280,
+  mb:20000, mkwh:667, ag:7700, sk:7, bk:7, ck:300,
   dc:2310, bc:2520, sub:0, wy:20, er:0,
-  la2:280, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b', postKyudenPlan:'kyushu_denka_night',
+  la2:300, lr:4.1, lc:180, le:false, kyudenPlan:'kyushu_juuryo_b', postKyudenPlan:'kyushu_denka_night',
   lp:0, ly:15, loanMethod:'zansai', loanInputMode:'auto', lpManual:0,
   ...HEARING_DEFAULTS,
 };
@@ -2637,35 +2637,35 @@ let modelUnlocked = false;
 const TAB_FIELDS = ['mb','mkwh','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
 
 const PACKAGES_PV = {
-  pv5:  {panels:14, sk:5.46,  ag:6006,  cost:100},
-  pv6:  {panels:16, sk:6.24,  ag:6864,  cost:110},
-  pv7:  {panels:18, sk:7.02,  ag:7722,  cost:120},
-  pv8:  {panels:21, sk:8.16,  ag:8976,  cost:140},
-  pv9:  {panels:24, sk:9.36,  ag:10296, cost:160},
-  pv10: {panels:27, sk:10.53, ag:11583, cost:190},
-  pv14: {panels:36, sk:14.04, ag:15444, cost:230},
+  pv5:  {panels:14, sk:5.46,  ag:6006,  cost:114},
+  pv6:  {panels:16, sk:6.24,  ag:6864,  cost:122},
+  pv7:  {panels:18, sk:7.02,  ag:7722,  cost:131},
+  pv8:  {panels:21, sk:8.16,  ag:8976,  cost:152},
+  pv9:  {panels:24, sk:9.36,  ag:10296, cost:174},
+  pv10: {panels:27, sk:10.53, ag:11583, cost:210},
+  pv14: {panels:36, sk:14.04, ag:15444, cost:249},
 };
 
 const PACKAGES = {
-  '5+7' :{panels:14,sk:5.46, bk:7.7, cost:265,ag:6006, bc:1967},
-  '5+15':{panels:14,sk:5.46, bk:15.4,cost:365,ag:6006, bc:3935},
-  '6+7' :{panels:16,sk:6.24, bk:7.7, cost:270,ag:6864, bc:1967},
-  '6+9' :{panels:16,sk:6.24, bk:9.7, cost:320,ag:6864, bc:2478},
-  '6+15':{panels:16,sk:6.24, bk:15.4,cost:390,ag:6864, bc:3935},
-  '7+7' :{panels:18,sk:7.02, bk:7.7, cost:280,ag:7722, bc:1967},
-  '7+9' :{panels:18,sk:7.02, bk:9.7, cost:330,ag:7722, bc:2478},
-  '7+15':{panels:18,sk:7.02, bk:15.4,cost:385,ag:7722, bc:3935},
-  '8+7' :{panels:21,sk:8.16, bk:7.7, cost:320,ag:8976, bc:1967},
-  '8+15':{panels:21,sk:8.16, bk:15.4,cost:397,ag:8976, bc:3935},
-  '9+7' :{panels:24,sk:9.36, bk:7.7, cost:370,ag:10296,bc:1967},
-  '9+15':{panels:24,sk:9.36, bk:15.4,cost:427,ag:10296,bc:3935},
-  '10+7':{panels:27,sk:10.53,bk:7.7, cost:420,ag:11583,bc:1967},
-  '10+15':{panels:27,sk:10.53,bk:15.4,cost:450,ag:11583,bc:3935},
-  '14+7':{panels:36,sk:14.04,bk:7.7, cost:450,ag:15444,bc:1967},
-  '14+15':{panels:36,sk:14.04,bk:15.4,cost:500,ag:15444,bc:3935},
+  '5+7' :{panels:14,sk:5.46, bk:7.7, cost:286,ag:6006, bc:1967},
+  '5+15':{panels:14,sk:5.46, bk:15.4,cost:407,ag:6006, bc:3935},
+  '6+7' :{panels:16,sk:6.24, bk:7.7, cost:297,ag:6864, bc:1967},
+  '6+9' :{panels:16,sk:6.24, bk:9.7, cost:345,ag:6864, bc:2478},
+  '6+15':{panels:16,sk:6.24, bk:15.4,cost:418,ag:6864, bc:3935},
+  '7+7' :{panels:18,sk:7.02, bk:7.7, cost:300,ag:7722, bc:1967},
+  '7+9' :{panels:18,sk:7.02, bk:9.7, cost:353,ag:7722, bc:2478},
+  '7+15':{panels:18,sk:7.02, bk:15.4,cost:429,ag:7722, bc:3935},
+  '8+7' :{panels:21,sk:8.16, bk:7.7, cost:313,ag:8976, bc:1967},
+  '8+15':{panels:21,sk:8.16, bk:15.4,cost:440,ag:8976, bc:3935},
+  '9+7' :{panels:24,sk:9.36, bk:7.7, cost:346,ag:10296,bc:1967},
+  '9+15':{panels:24,sk:9.36, bk:15.4,cost:473,ag:10296,bc:3935},
+  '10+7':{panels:27,sk:10.53,bk:7.7, cost:363,ag:11583,bc:1967},
+  '10+15':{panels:27,sk:10.53,bk:15.4,cost:484,ag:11583,bc:3935},
+  '14+7':{panels:36,sk:14.04,bk:7.7, cost:398,ag:15444,bc:1967},
+  '14+15':{panels:36,sk:14.04,bk:15.4,cost:520,ag:15444,bc:3935},
 };
-let pkgBaseCost = 280;
-let pkgBaseCostPv = 120;
+let pkgBaseCost = 300;
+let pkgBaseCostPv = 131;
 let loanAmountEdited = false;
 
 function buildCfg(data, lp, ly) {
@@ -2758,7 +2758,7 @@ function onPkgExtraChangePv() {
   calc();
 }
 
-let pkgBaseCostSo = 120;
+let pkgBaseCostSo = 131;
 function onPkgChangeSo() {
   const soVal = document.getElementById('pkg-select-so').value;
   if (soVal && PACKAGES_PV[soVal]) {
@@ -5903,7 +5903,7 @@ function clearForm() {
   _updateMonthlyDetailVisibility(false);
   document.getElementById('mb').value=20000; document.getElementById('mkwh').value=667;
   document.getElementById('ag').value=7722; document.getElementById('sk').value=7.02;
-  document.getElementById('bk').value=7.7; document.getElementById('ck').value=280;
+  document.getElementById('bk').value=7.7; document.getElementById('ck').value=300;
   document.getElementById('dc').value=2310; document.getElementById('bc').value=1967;
   document.getElementById('er').value=0;
   document.getElementById('wy').value=20;
@@ -5921,11 +5921,11 @@ function clearForm() {
   document.getElementById('pkg-extra-note').value = '';
   onPkgChange();
   setProposalMode('pv_battery');
-  document.getElementById('sk-so').value=7.02; document.getElementById('ck-so').value=120;
+  document.getElementById('sk-so').value=7.02; document.getElementById('ck-so').value=131;
   document.getElementById('ag-so').value=7722; document.getElementById('sub-so').value=0;
   document.getElementById('wy-so').value=20; document.getElementById('dc-so').value=2310;
   document.getElementById('pkg-select-so').value='pv7'; document.getElementById('pkg-extra-so').value=0;
-  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=120; pkgBaseCostPv=120; updatePkgSummarySo();
+  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=131; pkgBaseCostPv=131; updatePkgSummarySo();
 }
 
 // ══════════════════════════════════════════
