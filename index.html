@@ -78,6 +78,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .field textarea.ai-comment-negative:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.25); }
 .field textarea.ai-comment-editing { border: 2px solid #f97316; background: #fff7ed; box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
 .field textarea.ai-comment-editing:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,.25); }
+/* AI添削ボタン：自主編集中（✍️）になったときだけ滑らかに現れる */
+#ai-comment-polish-btn {
+  opacity: 0; transform: translateY(-4px) scale(.96); pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+#ai-comment-polish-btn.is-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 #price-breakdown summary,#before-price-breakdown summary { display:block; }
 #price-breakdown summary:hover { background:#c7d9f7; }
 #before-price-breakdown summary:hover { background:#e2e8f0; }
@@ -1547,7 +1553,7 @@ canvas#mini-chart { height: 220px !important; }
         <textarea id="ai-comment-text" rows="4" maxlength="200" placeholder="「AIコメント生成」を押すか、直接ご記入・編集してください（100〜150文字目安）"></textarea>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
-          <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
+          <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" disabled title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
           <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
         </div>
       </div>
@@ -2817,6 +2823,7 @@ async function generateAIComment() {
     _aiCommentNegative = costDiffMan < 0;
     textEl.classList.toggle('ai-comment-negative', _aiCommentNegative);
     textEl.classList.remove('ai-comment-editing'); // 生成直後は「自主編集中」ではない
+    _setPolishButtonVisible(false); // 生成直後はまだ自主編集していないため添削ボタンは隠す
     if (costDiffMan < 0) {
       statusEl.style.color = '#b91c1c';
       statusEl.textContent = '⚠️ コスト差がマイナスです。スタッフ向け注意文をプラン見直しの参考にし、お客様向けの内容に編集してください';
@@ -2851,7 +2858,7 @@ async function polishAIComment() {
     return;
   }
 
-  btn.disabled = true;
+  btn.disabled = true; // 添削中は連打防止のため一時的に無効化（表示自体は維持）
   statusEl.style.color = '';
   statusEl.textContent = '✨ 添削中...';
   try {
@@ -2867,19 +2874,28 @@ async function polishAIComment() {
     const data = await res.json();
     textEl.value = data.comment || current;
     textEl.classList.remove('ai-comment-editing'); // 添削済みなので「自主編集中」表示は解除（マイナス枠は維持）
+    _setPolishButtonVisible(false); // AIの添削結果に戻ったので、次に自主編集するまでボタンは隠す
     statusEl.style.color = '';
     statusEl.textContent = '✨ 添削完了（内容をご確認・編集ください）';
   } catch (e) {
     statusEl.style.color = '';
     statusEl.textContent = '❌ 添削エラー: ' + (e.message || '不明なエラー');
     console.error('[AI添削エラー]', e);
-  } finally {
-    btn.disabled = false;
+    _setPolishButtonVisible(true); // 失敗時は自主編集中の文章のままなのでボタンを再表示
   }
 }
 
 // 直近に生成したAIコメントのコスト差がマイナスだったか（テキストエリアの警告枠の維持に使う）
 let _aiCommentNegative = false;
+
+// 「✨ AI添削・ブラッシュアップ」ボタンの表示/無効化を切り替える。
+// デフォルトでは隠し、スタッフの自主編集中（✍️）にのみ滑らかに現れるようにする
+function _setPolishButtonVisible(visible) {
+  const btn = document.getElementById('ai-comment-polish-btn');
+  if (!btn) return;
+  btn.classList.toggle('is-visible', visible);
+  btn.disabled = !visible;
+}
 
 // 提案モード切替時などに、別モードの数値を前提とした古いAIコメントが
 // 残って誤解を招かないよう、テキストとステータス表示をリセットする
@@ -2889,17 +2905,20 @@ function clearAIComment() {
   _aiCommentNegative = false;
   if (textEl) { textEl.value = ''; textEl.classList.remove('ai-comment-negative', 'ai-comment-editing'); }
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
+  _setPolishButtonVisible(false);
 }
 
 // AIコメント欄をスタッフが手動編集し始めたときの処理。
 // ・本文（編集中の内容）は消さない
 // ・ステータス表示を「✍️ コメント自主編集中」にリアルタイムで切り替え、誤操作や状態の混同を防ぐ
 // ・コスト差マイナスの警告枠は編集中も維持し、それ以外は「自主編集中」のオレンジ枠で目立たせる
+// ・このタイミングでのみ「✨ AI添削・ブラッシュアップ」ボタンを滑らかに表示する
 function onAICommentManualEdit() {
   const statusEl = document.getElementById('ai-comment-status');
   if (statusEl) { statusEl.textContent = '✍️ コメント自主編集中'; statusEl.style.color = '#c2410c'; }
   const textEl = document.getElementById('ai-comment-text');
   if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
+  _setPolishButtonVisible(true);
 }
 
 // AIコメントへ渡している数値に関係する入力項目。ここが変わったら古いコメントが
