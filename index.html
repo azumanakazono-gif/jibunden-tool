@@ -2750,6 +2750,13 @@ async function generateAIComment() {
   const cfg = buildCfg(custData, custData.lp, custData.ly);
   const m = calcMetrics(cfg);
 
+  // 売電収入（20年分）を加味したコスト差。まとめスライドの「02」非表示判定と同じ計算式に揃える
+  const _acSaleP = parseFloat(document.getElementById('sale-price')?.value) || 0;
+  const _acSurplusKwh = proposalMode !== 'battery_only'
+    ? Math.max(0, cfg.annualGenerationKWh - cfg.directConsumptionKWh - cfg.batteryConsumptionKWh) : 0;
+  const _acSale20Man = Math.round(_acSurplusKwh * _acSaleP * cfg.warrantyYears / 10000);
+  const costDiffMan = m.costDiff_with_rise + _acSale20Man;
+
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
   try {
@@ -2765,7 +2772,7 @@ async function generateAIComment() {
         lifestyleNote: cfg.lifestyleNote,
         monthlyElectricBill: cfg.monthlyElectricBill,
         monthlySaving: Math.round((m.annualSaving || 0) / 12),
-        costDiffMan: m.costDiff_with_rise,
+        costDiffMan,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
       }),
@@ -2773,8 +2780,15 @@ async function generateAIComment() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     document.getElementById('ai-comment-text').value = data.comment || '';
-    statusEl.textContent = '✅ 生成完了（内容をご確認・編集ください）';
+    if (costDiffMan < 0) {
+      statusEl.style.color = '#b91c1c';
+      statusEl.textContent = '⚠️ コスト差がマイナスです。スタッフ向け注意文をプラン見直しの参考にし、お客様向けの内容に編集してください';
+    } else {
+      statusEl.style.color = '';
+      statusEl.textContent = '✅ 生成完了（内容をご確認・編集ください）';
+    }
   } catch (e) {
+    statusEl.style.color = '';
     statusEl.textContent = '❌ 生成エラー: ' + (e.message || '不明なエラー');
     console.error('[AIコメント生成エラー]', e);
   } finally {
