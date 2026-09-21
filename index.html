@@ -2832,6 +2832,29 @@ function clearAIComment() {
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
 }
 
+// AIコメント欄を手動編集し始めたときは、本文（編集中の内容）は消さず、
+// 「✅生成完了」等のステータス表示だけを消して「もう最新のAI生成そのものではない」ことを示す
+function clearAICommentStatus() {
+  const statusEl = document.getElementById('ai-comment-status');
+  if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
+}
+
+// AIコメントへ渡している数値に関係する入力項目。ここが変わったら古いコメントが
+// 実際の試算とズレてしまうため、自動的にクリアして再生成を促す
+const AI_COMMENT_SOURCE_FIELD_IDS = new Set([
+  'cn', 'fm', 'ls', 'mb', 'mkwh', 'kyuden-plan', 'post-kyuden-plan',
+  'sk', 'ag', 'bk', 'bc', 'ck', 'sub', 'wy',
+  'sk-so', 'ag-so', 'ck-so', 'sub-so', 'wy-so',
+  'er', 'sale-price', 'le', 'la2', 'lr', 'lc',
+]);
+function _onAICommentSourceFieldChange(e) {
+  const id = e.target && e.target.id;
+  if (id && AI_COMMENT_SOURCE_FIELD_IDS.has(id)) clearAIComment();
+}
+document.addEventListener('input', _onAICommentSourceFieldChange);
+document.addEventListener('change', _onAICommentSourceFieldChange);
+document.getElementById('ai-comment-text')?.addEventListener('input', clearAICommentStatus);
+
 function onPkgChange() {
   loanAmountEdited = false;
   bcManualEdited = false;
