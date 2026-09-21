@@ -5077,7 +5077,7 @@ function _renderDualBreakdown(pbData, soData) {
         hlRow('📟','現在の概算月額合計', '約 ¥' + f(pbData.currentBill),'','#1e293b','#f1f5f9','#cbd5e1') +
         hlRow('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(pbData.remainBill),'','#dc2626','#fef2f2','#fecaca') +
         row('💰','月々の節約額', (pbData.monthlySaving >= 0 ? '約 ¥' + f(pbData.monthlySaving) : '－ ¥' + f(Math.abs(pbData.monthlySaving))),'','#15803d') +
-        row('📈','年間経済メリット', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
+        row('📈','年間経済メリット（削減額＋売電収入）', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
         row('💴','年間売電収入', pbData.annualSell > 0 ? '約 ¥' + f(pbData.annualSell) : '—','', pbData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
       ) +
