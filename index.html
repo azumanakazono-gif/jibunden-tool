@@ -76,9 +76,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #breakdown-compare-row > .breakdown-toggle { width:auto; flex:1; min-width:280px; }
 @media (max-width:768px) { #breakdown-compare-row { flex-direction:column; } #breakdown-compare-row > .breakdown-toggle { min-width:0; width:100%; } }
 #dual-breakdown-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px; }
-#dual-breakdown-grid .dual-col { border-radius:10px; padding:14px; position:relative; }
+#dual-breakdown-grid .dual-col { border-radius:10px; padding:14px; position:relative; transition:opacity .2s ease,filter .2s ease,box-shadow .2s ease; }
 #dual-breakdown-grid .dual-col-pb { background:#f0fdf4; border:1.5px solid #bbf7d0; }
 #dual-breakdown-grid .dual-col-so { background:#eff6ff; border:1.5px solid #7dd3fc; }
+#dual-breakdown-grid .dual-col.mode-active-col { box-shadow:0 2px 10px rgba(0,0,0,.15); }
+#dual-breakdown-grid .dual-col.mode-active-col .dual-col-title::after { content:'📌 提案中'; margin-left:8px; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(0,0,0,.08); vertical-align:middle; }
+#dual-breakdown-grid .dual-col.mode-inactive-col { opacity:.5; filter:grayscale(40%); }
 #dual-breakdown-grid .dual-col-so.pending-input { opacity:0.5; pointer-events:none; }
 #dual-breakdown-grid .dual-col-so.pending-input::after { content:'⏳ 太陽光のみの設計を入力してください'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,.9); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:700; color:#92400e; border:1.5px solid #fcd34d; white-space:nowrap; pointer-events:auto; z-index:2; }
 .dual-col-title { font-size:13px; font-weight:800; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid; }
@@ -955,7 +958,7 @@ canvas#mini-chart { height: 220px !important; }
       <div id="kpi-area-so" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
         <div class="grid2" style="gap:10px">
           <div style="border-radius:12px;padding:16px 12px;border:2px solid #60a5fa;background:#e1f5fe;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:2px">年間自家消費メリット</div>
+            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:2px">自家消費による電気代削減額</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px">買電を減らせる見込み額</div>
             <div style="display:flex;align-items:baseline;gap:2px">
               <span style="font-size:11px;color:#1e40af;font-weight:700">約</span>
@@ -1040,7 +1043,7 @@ canvas#mini-chart { height: 220px !important; }
 
       <!-- ▼ 2列詳細内訳（太陽光＋蓄電池 vs 太陽光のみ） -->
       <div id="dual-breakdown-grid">
-        <div class="dual-col dual-col-pb">
+        <div id="dual-col-pb" class="dual-col dual-col-pb">
           <div class="dual-col-title" style="color:#15803d;border-color:#bbf7d0">☀️🔋【太陽光＋蓄電池】詳細内訳 <span id="title-pv-cap" style="font-weight:400"></span></div>
           <div id="dual-pb-body">
             <div style="font-size:12px;color:#6b7280;padding:8px 0">シミュレーション結果がここに表示されます</div>
@@ -1858,6 +1861,16 @@ function applyProposalMode() {
     _sdCardSo.style.opacity = '0.5'; _sdCardSo.style.pointerEvents = 'none'; _sdCardSo.style.background = '#f1f5f9';
     if (_pkgSelSo) { _pkgSelSo.disabled = true; _pkgSelSo.style.background = '#f1f5f9'; _pkgSelSo.style.cursor = 'not-allowed'; }
   }
+
+  // 下部「システム別の詳細・比較」：提案中の列を強調、非選択列をトーンダウン
+  var _dualColPb = document.getElementById('dual-col-pb');
+  var _dualColSo = document.getElementById('dual-col-so');
+  [[_dualColPb, 'pv_battery'], [_dualColSo, 'pv_only']].forEach(function(pair) {
+    var el = pair[0], m = pair[1];
+    if (!el) return;
+    el.classList.toggle('mode-active-col', proposalMode === m);
+    el.classList.toggle('mode-inactive-col', proposalMode !== m && proposalMode !== 'battery_only');
+  });
 
   // パッケージ選択（全パッケージが太陽光＋蓄電池のため pv_battery のみ表示）
   document.getElementById('pkg-area').style.display           = proposalMode !== 'battery_only' ? '' : 'none';
@@ -5093,7 +5106,7 @@ function _renderDualBreakdown(pbData, soData) {
         hlRow('📟','現在の概算月額合計', '約 ¥' + f(soData.currentBill),'','#1e293b','#f1f5f9','#cbd5e1') +
         hlRow('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626','#dbeafe','#93c5fd') +
         row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
-        row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
+        row('📈','年間経済メリット（削減額＋売電収入）', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
         row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
       ) +
