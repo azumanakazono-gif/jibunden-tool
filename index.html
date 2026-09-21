@@ -161,9 +161,18 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 14px; font-weight: 700; color: #fff; transition: width .4s ease; }
 .bar-fill.or { background: #374151; }
 .bar-fill.gr { background: var(--mg); }
-.diff-banner { background: var(--dg); border-radius: 10px; padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+.diff-banner { background: var(--dg); border-radius: 10px; padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; transition: background-color .2s, border-color .2s; }
 .diff-banner .d-label { font-size: 15px; color: var(--ac); }
 .diff-banner .d-val { font-size: 22px; font-weight: 700; color: #fff; }
+.diff-banner.is-negative { background: #7f1d1d !important; border-color: #f87171; animation: diffBannerBlink 1.4s ease-in-out infinite; }
+.diff-banner.is-negative .d-label, .diff-banner.is-negative .d-val { color: #fecaca; }
+@keyframes diffBannerBlink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.55); }
+  50% { box-shadow: 0 0 0 7px rgba(248,113,113,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diff-banner.is-negative { animation: none; }
+}
 
 /* ── ローンプレビュー ── */
 .loan-preview { background: var(--pg); border-radius: 10px; padding: 14px 16px; margin-top: 14px; border: 1px solid var(--border); }
@@ -1502,7 +1511,7 @@ canvas#mini-chart { height: 220px !important; }
           <span id="stacked-legend-loan-r" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代（太陽光＋蓄電池）</span>
         </div>
       </div>
-      <div class="diff-banner">
+      <div class="diff-banner" id="diff-banner-main">
         <span class="d-label">☀️🔋 太陽光＋蓄電池：20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
       </div>
@@ -5494,6 +5503,7 @@ function calc() {
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代 - 売電収入)
   const diffShow = m_pb.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
+  document.getElementById('diff-banner-main')?.classList.toggle('is-negative', diffShow < 0);
 
   // ── Solar Only バー計算 ──
   (function calcSolarOnlyBar() {
@@ -5535,6 +5545,7 @@ function calc() {
     }
     var diffShowSo = mSo.costDiff_with_rise + sale20ManSo;
     document.getElementById('rd-so').textContent = '約' + diffShowSo + '万円';
+    document.getElementById('diff-banner-so')?.classList.toggle('is-negative', diffShowSo < 0);
     document.getElementById('diff-note-so').textContent = er > 0 ? '電気代年'+er+'%上昇想定' : '電気代現状維持';
     var barRowSo = document.getElementById('bar-row-so');
     var badgeSo = document.getElementById('badge-so');
@@ -5716,6 +5727,7 @@ function calc() {
     document.getElementById('rk-self-label').textContent = '自家消費単価（ローン総額ベース）';
     const loanDiffMan = Math.round((m_pb.bill20Y_rise - lp * ly * 12 - m_pb.remain20Y_rise) / 10000) + _sale20Man;
     document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
+    document.getElementById('loan-diff-banner')?.classList.toggle('is-negative', loanDiffMan < 0);
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const re = m_pb.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
@@ -5740,6 +5752,7 @@ function calc() {
   } else {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
+    document.getElementById('loan-diff-banner')?.classList.remove('is-negative');
     const _lli=document.getElementById('legend-loan-item'); if(_lli)_lli.style.display='none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
