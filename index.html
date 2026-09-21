@@ -184,6 +184,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 @media (prefers-reduced-motion: reduce) {
   .diff-banner.is-negative { animation: none; }
 }
+.proposal-mode-card.is-negative { border-color: #f87171 !important; background: #fef2f2; animation: diffBannerBlink 1.4s ease-in-out infinite; }
+.pm-btn.is-negative:not(.active) { background: #fee2e2; color: #b91c1c; }
+.pm-btn.active.is-negative { background: #7f1d1d !important; color: #fecaca; animation: diffBannerBlink 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .proposal-mode-card.is-negative, .pm-btn.active.is-negative { animation: none; }
+}
 
 /* ── ローンプレビュー ── */
 .loan-preview { background: var(--pg); border-radius: 10px; padding: 14px 16px; margin-top: 14px; border: 1px solid var(--border); }
@@ -5904,6 +5910,13 @@ function calc() {
     const _genUP_cash = (agActive > 0 && wyActive > 0) ? parseFloat((mActive.totalCostMan * 10000 / (agActive * wyActive)).toFixed(1)) : null;
     _updateUnitPriceCompare(up, _genUP_cash, wyActive, { isLoan: false });
   }
+  // 提案モードカード・タブ：選択中モードのコスト差がマイナスなら赤枠点滅で警告
+  document.getElementById('pm-btn-pv_battery')?.classList.toggle('is-negative', window._simCostDiffPB < 0);
+  document.getElementById('pm-btn-pv_only')?.classList.toggle('is-negative', window._simCostDiffSO < 0);
+  const _activeModeDiff = proposalMode === 'pv_only'
+    ? window._simCostDiffSO
+    : (window._simCostDiffLoan != null ? window._simCostDiffLoan : window._simCostDiffPB);
+  document.querySelector('.proposal-mode-card')?.classList.toggle('is-negative', _activeModeDiff < 0);
   // 時間帯別比率パネルのkWh表示と単価内訳をリアルタイム同期（After優先）
   const _kpRP     = document.getElementById('kyuden-plan').value;
   const _postKpRP = (document.getElementById('post-kyuden-plan') || {}).value || '';
