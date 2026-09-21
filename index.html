@@ -73,6 +73,11 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
   line-height: 1.6; resize: vertical; transition: border-color .15s;
 }
 .field textarea:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+/* AIコメント欄：注意が必要な状態（コスト差マイナス／自主編集中）を見落とさないための強調表示 */
+.field textarea.ai-comment-negative { border: 2px solid #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+.field textarea.ai-comment-negative:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.25); }
+.field textarea.ai-comment-editing { border: 2px solid #f97316; background: #fff7ed; box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+.field textarea.ai-comment-editing:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,.25); }
 #price-breakdown summary,#before-price-breakdown summary { display:block; }
 #price-breakdown summary:hover { background:#c7d9f7; }
 #before-price-breakdown summary:hover { background:#e2e8f0; }
@@ -2806,7 +2811,11 @@ async function generateAIComment() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    document.getElementById('ai-comment-text').value = data.comment || '';
+    const textEl = document.getElementById('ai-comment-text');
+    textEl.value = data.comment || '';
+    _aiCommentNegative = costDiffMan < 0;
+    textEl.classList.toggle('ai-comment-negative', _aiCommentNegative);
+    textEl.classList.remove('ai-comment-editing'); // 生成直後は「自主編集中」ではない
     if (costDiffMan < 0) {
       statusEl.style.color = '#b91c1c';
       statusEl.textContent = '⚠️ コスト差がマイナスです。スタッフ向け注意文をプラン見直しの参考にし、お客様向けの内容に編集してください';
@@ -2823,20 +2832,28 @@ async function generateAIComment() {
   }
 }
 
+// 直近に生成したAIコメントのコスト差がマイナスだったか（テキストエリアの警告枠の維持に使う）
+let _aiCommentNegative = false;
+
 // 提案モード切替時などに、別モードの数値を前提とした古いAIコメントが
 // 残って誤解を招かないよう、テキストとステータス表示をリセットする
 function clearAIComment() {
   const textEl = document.getElementById('ai-comment-text');
   const statusEl = document.getElementById('ai-comment-status');
-  if (textEl) textEl.value = '';
+  _aiCommentNegative = false;
+  if (textEl) { textEl.value = ''; textEl.classList.remove('ai-comment-negative', 'ai-comment-editing'); }
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
 }
 
-// AIコメント欄を手動編集し始めたときは、本文（編集中の内容）は消さず、
-// 「✅生成完了」等のステータス表示だけを消して「もう最新のAI生成そのものではない」ことを示す
-function clearAICommentStatus() {
+// AIコメント欄をスタッフが手動編集し始めたときの処理。
+// ・本文（編集中の内容）は消さない
+// ・ステータス表示を「✍️ コメント自主編集中」にリアルタイムで切り替え、誤操作や状態の混同を防ぐ
+// ・コスト差マイナスの警告枠は編集中も維持し、それ以外は「自主編集中」のオレンジ枠で目立たせる
+function onAICommentManualEdit() {
   const statusEl = document.getElementById('ai-comment-status');
-  if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
+  if (statusEl) { statusEl.textContent = '✍️ コメント自主編集中'; statusEl.style.color = '#c2410c'; }
+  const textEl = document.getElementById('ai-comment-text');
+  if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
 }
 
 // AIコメントへ渡している数値に関係する入力項目。ここが変わったら古いコメントが
@@ -2853,7 +2870,7 @@ function _onAICommentSourceFieldChange(e) {
 }
 document.addEventListener('input', _onAICommentSourceFieldChange);
 document.addEventListener('change', _onAICommentSourceFieldChange);
-document.getElementById('ai-comment-text')?.addEventListener('input', clearAICommentStatus);
+document.getElementById('ai-comment-text')?.addEventListener('input', onAICommentManualEdit);
 
 function onPkgChange() {
   loanAmountEdited = false;
