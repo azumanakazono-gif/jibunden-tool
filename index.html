@@ -6496,7 +6496,7 @@ async function generatePPTX(mode) {
         sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
       });
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText("あなたのご家庭もシミュレーションしてみませんか？",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
     }
     setProgress("モデルケース版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
