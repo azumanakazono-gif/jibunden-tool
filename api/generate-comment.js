@@ -49,6 +49,9 @@ ${NUMBER_RULE}
 ・出力は本文のみ。説明や見出し、鉤括弧は付けない`;
   }
 
+  const monthlyBillSaving = Math.round(Number(d.monthlyBillSaving) || 0);
+  const monthlyTotalMerit = Math.round(Number(d.monthlyTotalMerit) || 0);
+
   return `あなたは太陽光発電・蓄電池の提案営業をサポートするアシスタントです。
 以下のお客様情報をもとに、提案書の最終ページに掲載する「共感＆クロージングコメント」を1つ作成してください。
 
@@ -57,9 +60,17 @@ ${NUMBER_RULE}
 ・家族構成：${d.familyComposition || '記載なし'}
 ・ライフスタイル：${d.lifestyleNote || '記載なし'}
 ・現在の月間電気代：${d.monthlyElectricBill || 0}円
-・じぶん電気導入後の月間電気代の削減目安：${d.monthlySaving || 0}円/月
+・Ａ：月々の電気代削減額（電気代が安くなる分のみ。売電収入は含まない）：${monthlyBillSaving}円/月
+・Ｂ：月平均の総合経済メリット（買電削減＋売電収入をすべて含む合計額）：${monthlyTotalMerit}円/月
 ・${d.warrantyYears || 20}年間のコスト差：約${costDiffMan}万円（電力会社より安い）
 ・提案モード：${modeLabel}
+
+【金額の使い分けルール（厳守）】
+・ＡとＢは意味が異なる別々の金額であり、絶対に混同・合算・言い換えをしないこと
+・「電気代が安くなる」「電気代の負担が減る」という趣旨で金額に触れる場合は、必ずＡ（月々の電気代削減額）の数値だけを使うこと
+・「売電収入も含めたトータルのお得額」「経済的メリット」という趣旨で金額に触れる場合は、必ずＢ（月平均の総合経済メリット）の数値だけを使うこと
+・どちらの意味で使うか迷う場合や、単に「お得」「メリットがある」と触れるだけで金額を明示する必要がない場合は、金額の記載を省略してもよい
+・ＡとＢを両方とも本文に書く必要はない。書く場合は1つの金額のみに絞ってもよい
 
 【条件】
 ・お客様の家族構成や暮らしに寄り添う共感の一言から始め、最後は導入への後押し・ご検討のお願いで締めくくる
@@ -83,12 +94,13 @@ function extractAmountTokens(text) {
 // 送信元データから「使ってよい数値」を単位ごとに列挙（画面の実測値のみを許可）
 function buildAllowedAmounts(d) {
   const costDiffMan = Math.abs(Number(d.costDiffMan) || 0);
-  const monthlySaving = Math.abs(Number(d.monthlySaving) || 0);
+  const monthlyBillSaving = Math.abs(Math.round(Number(d.monthlyBillSaving) || 0));
+  const monthlyTotalMerit = Math.abs(Math.round(Number(d.monthlyTotalMerit) || 0));
   const monthlyElectricBill = Math.abs(Number(d.monthlyElectricBill) || 0);
   const warrantyYears = Number(d.warrantyYears) || 20;
   return {
     '万円': new Set([costDiffMan]),
-    '円': new Set([monthlySaving, monthlyElectricBill]),
+    '円': new Set([monthlyBillSaving, monthlyTotalMerit, monthlyElectricBill]),
     '年': new Set([warrantyYears]),
   };
 }

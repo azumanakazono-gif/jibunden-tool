@@ -2767,8 +2767,13 @@ async function generateAIComment() {
     : proposalMode === 'pv_only'
       ? (window._simCostDiffSO ?? 0)
       : (window._simCostDiffPB ?? 0);
-  // 「削減額」も画面の「月平均メリット」カードと同じ実測値を使う
-  const monthlySaving = window._simMonthlySaving ?? 0;
+  // 金額は必ず区別して渡す：
+  // ・monthlyBillSaving = 「月々の電気代削減額」＝電気代の節約分のみ（画面「月々の節約額」と同じ値）
+  // ・monthlyTotalMerit = 「月平均の総合経済メリット」＝買電削減＋売電収入（画面「月平均メリット」と同じ値）
+  const monthlyBillSaving = proposalMode === 'pv_only'
+    ? (window._simMonthlyBillSavingSO ?? 0)
+    : (window._simMonthlyBillSavingPB ?? 0);
+  const monthlyTotalMerit = window._simMonthlySaving ?? 0;
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2784,7 +2789,8 @@ async function generateAIComment() {
         familyComposition: cfg.familyComposition,
         lifestyleNote: cfg.lifestyleNote,
         monthlyElectricBill: cfg.monthlyElectricBill,
-        monthlySaving,
+        monthlyBillSaving,
+        monthlyTotalMerit,
         costDiffMan,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
@@ -5690,6 +5696,9 @@ function calc() {
       selfRate: selfRateSo2, selfRateRaw: selfRateRawSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
+    // AIコメント生成が参照する「月々の電気代削減額（売電収入を含まない）」を画面表示と同じ値で保持
+    window._simMonthlyBillSavingPB = pbData.monthlySaving;
+    window._simMonthlyBillSavingSO = soData.monthlySaving;
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
     window._finalPbSelfRate = _finalPbSelfRate; window._finalPbSurplusRate = _finalPbSurplusRate;
