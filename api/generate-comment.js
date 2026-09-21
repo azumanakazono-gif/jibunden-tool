@@ -10,6 +10,9 @@ const PROPOSAL_MODE_LABEL = {
   battery_only: '蓄電池のみ',
 };
 
+// この自家消費率（%）以上なら「自分の屋根の電気を自宅で使い切れている」アピールを促す
+const HIGH_SELF_CONSUMPTION_THRESHOLD = 80;
+
 function setCORS(req, res) {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.has(origin)) {
@@ -51,6 +54,11 @@ ${NUMBER_RULE}
 
   const monthlyBillSaving = Math.round(Number(d.monthlyBillSaving) || 0);
   const monthlyTotalMerit = Math.round(Number(d.monthlyTotalMerit) || 0);
+  const selfConsumptionRate = Math.round(Number(d.selfConsumptionRate) || 0);
+  const isHighSelfConsumption = selfConsumptionRate >= HIGH_SELF_CONSUMPTION_THRESHOLD;
+  const HIGH_SELF_CONSUMPTION_RULE = isHighSelfConsumption
+    ? `\n\n【自家消費率が高いお客様への追加ルール】\n・自家消費率${selfConsumptionRate}%は非常に優れた数値です。「自分の屋根で作った電気を自宅でたっぷり有効活用できている」ことを、効率の良さやクリーンな魅力として文中に自然に盛り込んでアピールすること\n・自家消費率の数値（${selfConsumptionRate}%）を使う場合は、この値をそのまま使うこと`
+    : '';
 
   return `あなたは太陽光発電・蓄電池の提案営業をサポートするアシスタントです。
 以下のお客様情報をもとに、提案書の最終ページに掲載する「共感＆クロージングコメント」を1つ作成してください。
@@ -63,6 +71,7 @@ ${NUMBER_RULE}
 ・Ａ：月々の電気代削減額（電気代が安くなる分のみ。売電収入は含まない）：${monthlyBillSaving}円/月
 ・Ｂ：月平均の総合経済メリット（買電削減＋売電収入をすべて含む合計額）：${monthlyTotalMerit}円/月
 ・${d.warrantyYears || 20}年間のコスト差：約${costDiffMan}万円（電力会社より安い）
+・自家消費率（発電した電気のうち自宅で使えている割合）：${selfConsumptionRate}%
 ・提案モード：${modeLabel}
 
 【金額の使い分けルール（厳守）】
@@ -70,7 +79,7 @@ ${NUMBER_RULE}
 ・「電気代が安くなる」「電気代の負担が減る」という趣旨で金額に触れる場合は、必ずＡ（月々の電気代削減額）の数値だけを使うこと
 ・「売電収入も含めたトータルのお得額」「経済的メリット」という趣旨で金額に触れる場合は、必ずＢ（月平均の総合経済メリット）の数値だけを使うこと
 ・どちらの意味で使うか迷う場合や、単に「お得」「メリットがある」と触れるだけで金額を明示する必要がない場合は、金額の記載を省略してもよい
-・ＡとＢを両方とも本文に書く必要はない。書く場合は1つの金額のみに絞ってもよい
+・ＡとＢを両方とも本文に書く必要はない。書く場合は1つの金額のみに絞ってもよい${HIGH_SELF_CONSUMPTION_RULE}
 
 【条件】
 ・お客様の家族構成や暮らしに寄り添う共感の一言から始め、最後は導入への後押し・ご検討のお願いで締めくくる
@@ -98,10 +107,12 @@ function buildAllowedAmounts(d) {
   const monthlyTotalMerit = Math.abs(Math.round(Number(d.monthlyTotalMerit) || 0));
   const monthlyElectricBill = Math.abs(Number(d.monthlyElectricBill) || 0);
   const warrantyYears = Number(d.warrantyYears) || 20;
+  const selfConsumptionRate = Math.round(Number(d.selfConsumptionRate) || 0);
   return {
     '万円': new Set([costDiffMan]),
     '円': new Set([monthlyBillSaving, monthlyTotalMerit, monthlyElectricBill]),
     '年': new Set([warrantyYears]),
+    '%': new Set([selfConsumptionRate]),
   };
 }
 
@@ -123,7 +134,11 @@ function buildFallbackComment(d, isNegative) {
     return `⚠️【スタッフ向け注意】${warrantyYears}年間のコスト差が約${Math.abs(costDiffMan)}万円のマイナス（電力会社より高くなる試算）です。プラン内容やシステム構成の見直しをご検討のうえ、お客様には数値を断定せず、前提条件次第で結果が変わる旨を丁寧にご説明ください。`;
   }
   const family = d.familyComposition ? `${d.familyComposition}の皆さまの暮らしに寄り添う` : '毎日の暮らしに寄り添う';
-  return `${family}じぶん電気。${warrantyYears}年間で約${costDiffMan}万円、電力会社よりおトクになる見込みです。この機会にぜひご検討ください。`;
+  const selfConsumptionRate = Math.round(Number(d.selfConsumptionRate) || 0);
+  const selfConsumptionNote = selfConsumptionRate >= HIGH_SELF_CONSUMPTION_THRESHOLD
+    ? `自家消費率${selfConsumptionRate}%と、自分の屋根で作った電気をしっかり自宅で使い切れているクリーンなシステムです。`
+    : '';
+  return `${family}じぶん電気。${warrantyYears}年間で約${costDiffMan}万円、電力会社よりおトクになる見込みです。${selfConsumptionNote}この機会にぜひご検討ください。`;
 }
 
 export default async function handler(req, res) {

@@ -2777,6 +2777,10 @@ async function generateAIComment() {
     ? (window._simMonthlyBillSavingSO ?? 0)
     : (window._simMonthlyBillSavingPB ?? 0);
   const monthlyTotalMerit = window._simMonthlySaving ?? 0;
+  // 自家消費率（画面の「自家消費率」カードと同じ実測値）。高いほど「自分の屋根の電気を自宅で使い切れている」アピール材料になる
+  const selfConsumptionRate = proposalMode === 'pv_only'
+    ? (window._finalSoSelfRate ?? 0)
+    : (window._finalPbSelfRate ?? 0);
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2795,6 +2799,7 @@ async function generateAIComment() {
         monthlyBillSaving,
         monthlyTotalMerit,
         costDiffMan,
+        selfConsumptionRate,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
       }),
