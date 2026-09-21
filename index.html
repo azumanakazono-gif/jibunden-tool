@@ -2927,20 +2927,25 @@ function onAICommentManualEdit() {
   _setPolishButtonVisible(true);
 }
 
-// AIコメントへ渡している数値に関係する入力項目。ここが変わったら古いコメントが
-// 実際の試算とズレてしまうため、自動的にクリアして再生成を促す
-const AI_COMMENT_SOURCE_FIELD_IDS = new Set([
-  'cn', 'fm', 'ls', 'mb', 'mkwh', 'kyuden-plan', 'post-kyuden-plan',
-  'sk', 'ag', 'bk', 'bc', 'ck', 'sub', 'wy',
-  'sk-so', 'ag-so', 'ck-so', 'sub-so', 'wy-so',
-  'er', 'sale-price', 'le', 'la2', 'lr', 'lc',
-]);
+// フォーム内のあらゆる数値・パッケージ・各種設定（お客様情報／システム設計／太陽光のみ設計／
+// 電気使用状況／売電・ローン設定／パッケージ選択 等）を漏れなく監視し、変更されたら
+// 古い試算に基づくAIコメントが残らないよう、例外なく自動クリアして再生成を促す。
+// パッケージ選択（onPkgChange等）のようにJSでフィールド値だけを書き換えるケースも、
+// 入力起点（select等）のinput/changeを拾うことで連鎖的にクリアされる。
+// フォーム全体（#section-form）を対象にした委譲イベントとして監視する。
+// 対象外：AIコメントのテキストエリア自体（onAICommentManualEditで別途処理）と
+// その操作ボタン・ステータス表示（これらの操作はフォーム値の変更ではないため）。
 function _onAICommentSourceFieldChange(e) {
-  const id = e.target && e.target.id;
-  if (id && AI_COMMENT_SOURCE_FIELD_IDS.has(id)) clearAIComment();
+  const el = e.target;
+  if (!el || !el.closest) return;
+  if (el.closest('#ai-comment-text, #ai-comment-btn, #ai-comment-polish-btn, #ai-comment-status')) return;
+  clearAIComment();
 }
-document.addEventListener('input', _onAICommentSourceFieldChange);
-document.addEventListener('change', _onAICommentSourceFieldChange);
+const _aiCommentFormEl = document.getElementById('section-form');
+if (_aiCommentFormEl) {
+  _aiCommentFormEl.addEventListener('input', _onAICommentSourceFieldChange);
+  _aiCommentFormEl.addEventListener('change', _onAICommentSourceFieldChange);
+}
 document.getElementById('ai-comment-text')?.addEventListener('input', onAICommentManualEdit);
 
 function onPkgChange() {
