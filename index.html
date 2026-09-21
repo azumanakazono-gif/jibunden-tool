@@ -6427,8 +6427,15 @@ async function generatePPTX(mode) {
   const _ppCorrDiffH = hM.costDiff_with_rise + _ppSale20ManH;
 
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
-  const aiClosingComment = (document.getElementById('ai-comment-text')?.value || '').trim()
-    || 'じぶん電気について、お気軽にご相談ください 🌿';
+  const aiClosingCommentRaw = (document.getElementById('ai-comment-text')?.value || '').trim();
+  const aiClosingComment = aiClosingCommentRaw || 'じぶん電気について、お気軽にご相談ください 🌿';
+
+  // コスト差マイナス時の「スタッフ向け注意文」が未編集のままお客様向け実データ版PPTXに
+  // 差し込まれるのを防ぐガード。編集済みでなければ生成を止め、必ず見直しを促す
+  if (outReal && _aiCommentNegative && /^⚠️/.test(aiClosingCommentRaw)) {
+    alert('⚠️ 20年間のコスト差がマイナスの試算です。\nAIコメント欄がスタッフ向け注意文のままのため、お客様向け提案書は作成できません。\nプラン内容を見直すか、お客様向けの内容に編集してから再度お試しください。');
+    return;
+  }
 
   document.getElementById('progress').classList.add('show');
   document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=true);
