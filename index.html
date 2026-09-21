@@ -1547,6 +1547,7 @@ canvas#mini-chart { height: 220px !important; }
         <textarea id="ai-comment-text" rows="4" maxlength="200" placeholder="「AIコメント生成」を押すか、直接ご記入・編集してください（100〜150文字目安）"></textarea>
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
+          <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
           <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
         </div>
       </div>
@@ -2827,6 +2828,51 @@ async function generateAIComment() {
     statusEl.style.color = '';
     statusEl.textContent = '❌ 生成エラー: ' + (e.message || '不明なエラー');
     console.error('[AIコメント生成エラー]', e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/**
+ * AI添削・ブラッシュアップ
+ * スタッフが自主編集・追記した文章のニュアンスや数値はそのままに、
+ * より伝わりやすいプロの営業トークへAIが添削する。
+ * POST /api/polish-comment
+ * Response: { comment: string }
+ */
+async function polishAIComment() {
+  const textEl = document.getElementById('ai-comment-text');
+  const btn = document.getElementById('ai-comment-polish-btn');
+  const statusEl = document.getElementById('ai-comment-status');
+  const current = (textEl?.value || '').trim();
+  if (!current) {
+    statusEl.style.color = '#b91c1c';
+    statusEl.textContent = '❌ 添削する文章がありません。まず文章を入力・生成してください';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.style.color = '';
+  statusEl.textContent = '✨ 添削中...';
+  try {
+    const API_URL = location.hostname === 'azumanakazono-gif.github.io'
+      ? 'https://jibunden-tool.vercel.app/api/polish-comment'
+      : '/api/polish-comment';
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: current, isNegative: _aiCommentNegative }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    textEl.value = data.comment || current;
+    textEl.classList.remove('ai-comment-editing'); // 添削済みなので「自主編集中」表示は解除（マイナス枠は維持）
+    statusEl.style.color = '';
+    statusEl.textContent = '✨ 添削完了（内容をご確認・編集ください）';
+  } catch (e) {
+    statusEl.style.color = '';
+    statusEl.textContent = '❌ 添削エラー: ' + (e.message || '不明なエラー');
+    console.error('[AI添削エラー]', e);
   } finally {
     btn.disabled = false;
   }
