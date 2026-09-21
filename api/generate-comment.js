@@ -13,6 +13,13 @@ const PROPOSAL_MODE_LABEL = {
 // この自家消費率（%）以上なら「自分の屋根の電気を自宅で使い切れている」アピールを促す
 const HIGH_SELF_CONSUMPTION_THRESHOLD = 80;
 
+// 運営会社（株式会社アズマ）のビジョン。お客様向けコメントのトーンの土台として必ず意識させる
+const COMPANY_VISION = `【運営会社のビジョン（トーンの土台として必ず意識すること）】
+・運営会社は「強い田舎を作りたい」というビジョンを掲げ、電気を地域で創り地域で活かす「地消地産」を大切にしています
+・単なる経済メリットの解説だけで終わらせず、お客様ご自身の暮らしが、少しずつ地域のエネルギー自立や持続可能な未来づくりにつながっていく、という温かみのある一文を自然に盛り込むこと
+・押しつけがましいスローガンの羅列や大げさな社会貢献アピールにはせず、あくまでお客様の暮らしに寄り添う自然な言葉として触れる程度に留めること
+・「地消地産」という言葉を使う場合はそのまま使ってよいが、無理に毎回使う必要はない`;
+
 function setCORS(req, res) {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.has(origin)) {
@@ -57,11 +64,13 @@ ${NUMBER_RULE}
   const selfConsumptionRate = Math.round(Number(d.selfConsumptionRate) || 0);
   const isHighSelfConsumption = selfConsumptionRate >= HIGH_SELF_CONSUMPTION_THRESHOLD;
   const HIGH_SELF_CONSUMPTION_RULE = isHighSelfConsumption
-    ? `\n\n【自家消費率が高いお客様への追加ルール】\n・自家消費率${selfConsumptionRate}%は非常に優れた数値です。「自分の屋根で作った電気を自宅でたっぷり有効活用できている」ことを、効率の良さやクリーンな魅力として文中に自然に盛り込んでアピールすること\n・自家消費率の数値（${selfConsumptionRate}%）を使う場合は、この値をそのまま使うこと`
+    ? `\n\n【自家消費率が高いお客様への追加ルール】\n・自家消費率${selfConsumptionRate}%は非常に優れた数値です。「自分の屋根で作った電気を自宅でたっぷり有効活用できている」ことを、効率の良さやクリーンな魅力として、また下記の「地消地産」の理念を体現する分かりやすい事例として文中に自然に盛り込んでアピールすること\n・自家消費率の数値（${selfConsumptionRate}%）を使う場合は、この値をそのまま使うこと`
     : '';
 
   return `あなたは太陽光発電・蓄電池の提案営業をサポートするアシスタントです。
 以下のお客様情報をもとに、提案書の最終ページに掲載する「共感＆クロージングコメント」を1つ作成してください。
+
+${COMPANY_VISION}
 
 【お客様情報】
 ・お客様名：${d.customerName || '記載なし'}
@@ -82,7 +91,8 @@ ${NUMBER_RULE}
 ・ＡとＢを両方とも本文に書く必要はない。書く場合は1つの金額のみに絞ってもよい${HIGH_SELF_CONSUMPTION_RULE}
 
 【条件】
-・お客様の家族構成や暮らしに寄り添う共感の一言から始め、最後は導入への後押し・ご検討のお願いで締めくくる
+・お客様の家族構成や暮らしに寄り添う共感の一言から始め、上記ビジョンを踏まえた温かみのある一文を経て、最後は導入への後押し・ご検討のお願いで締めくくる
+・単なる経済メリットの解説で終わらせず、お客様の暮らしと地域の未来がつながっていく物語として仕上げること
 ${NUMBER_RULE}
 ・日本語で100〜150文字程度（厳守）
 ・絵文字は1つまで使用可（任意）
@@ -136,9 +146,9 @@ function buildFallbackComment(d, isNegative) {
   const family = d.familyComposition ? `${d.familyComposition}の皆さまの暮らしに寄り添う` : '毎日の暮らしに寄り添う';
   const selfConsumptionRate = Math.round(Number(d.selfConsumptionRate) || 0);
   const selfConsumptionNote = selfConsumptionRate >= HIGH_SELF_CONSUMPTION_THRESHOLD
-    ? `自家消費率${selfConsumptionRate}%と、自分の屋根で作った電気をしっかり自宅で使い切れているクリーンなシステムです。`
+    ? `自家消費率${selfConsumptionRate}%と、自分の屋根で作った電気をしっかり自宅で使い切れている「地消地産」のクリーンなシステムです。`
     : '';
-  return `${family}じぶん電気。${warrantyYears}年間で約${costDiffMan}万円、電力会社よりおトクになる見込みです。${selfConsumptionNote}この機会にぜひご検討ください。`;
+  return `${family}じぶん電気。${warrantyYears}年間で約${costDiffMan}万円、電力会社よりおトクになる見込みです。${selfConsumptionNote}地域でつくり、地域で活かす暮らしを、この機会にぜひご検討ください。`;
 }
 
 export default async function handler(req, res) {
