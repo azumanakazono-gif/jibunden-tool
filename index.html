@@ -3126,6 +3126,7 @@ function saveFormToData(data) {
   data.pkgExtraPv = parseFloat(document.getElementById('pkg-extra-pv').value)||0;
   data.pkgExtraPvNote = document.getElementById('pkg-extra-pv-note').value;
   data.sysName = document.getElementById('sys-name').value;
+  data.aiClosingComment = document.getElementById('ai-comment-text').value;
   HEARING_KEYS.forEach(k => { data[k] = data[k] || false; }); // preserve current values
   data.proposalMode = proposalMode;
   data.saleMode     = saleMode;
@@ -3199,6 +3200,7 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra-pv').value = data.pkgExtraPv || 0;
   document.getElementById('pkg-extra-pv-note').value = data.pkgExtraPvNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
+  document.getElementById('ai-comment-text').value = data.aiClosingComment || '';
   updateHearingUI(data);
   if (ps && PACKAGES[ps]) {
     const _pp = PACKAGES[ps];
