@@ -4032,6 +4032,9 @@ function updateRatioPanel() {
     _updateRatioKwhDisplay(effKp, prefix, annualKwh);
   }
   document.getElementById('btn-reset-ratio').style.display = isCustomRatio ? '' : 'none';
+  // 導入後プラン変更でパネルが再構築/リセットされた直後も、古い警告・点滅表示が
+  // 残らないよう、現在のDOM値ベースで必ず同期し直す
+  _syncRatioSumWarning(prefix);
   _updatePriceBreakdown(effKp);
 }
 
@@ -4429,6 +4432,28 @@ function onSliderChange(prefix, key) {
   onRatioChange(prefix);
 }
 
+// 【導入後】時間帯別使用比率の合計を実際のDOM入力値から算出し、
+// 合計100%からのズレに応じて警告表示と「夜間で自動調整」ボタンの点滅強調を同期する。
+// ratio-zonesの数値入力変更（onRatioChange）だけでなく、導入後プラン変更による
+// パネル再構築（updateRatioPanel）の後にも必ず呼び出し、古い状態が残らないようにする
+function _syncRatioSumWarning(prefix) {
+  const keys = prefix === 'dn' ? ['day','hol','living','ngt']
+             : prefix === 'oh' ? ['ohisama','peak','ngt']
+             : ['day','living','ngt'];
+  let sumPct = 0;
+  keys.forEach(k => {
+    const el = document.getElementById(`r-${prefix}-${k}`);
+    sumPct += parseFloat(el ? el.value : 0) || 0;
+  });
+  sumPct = Math.round(sumPct);
+  const sumWarn = document.getElementById('ratio-sum-warn');
+  if (sumWarn) sumWarn.style.display = Math.abs(sumPct - 100) > 1 ? '' : 'none';
+  const sumValEl = document.getElementById('ratio-sum-val');
+  if (sumValEl) sumValEl.textContent = sumPct;
+  const autoBtn = document.getElementById('btn-auto-night');
+  if (autoBtn) autoBtn.classList.toggle('flash-attention', Math.abs(sumPct - 100) > 1);
+}
+
 function onRatioChange(prefix) {
   isAfterSlidersDirty = true;
   const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
@@ -4457,17 +4482,8 @@ function onRatioChange(prefix) {
     customRatios = { day, living, ngt, label:'カスタム' };
   }
   isCustomRatio = true;
-
-  const nums  = Object.entries(customRatios).filter(([k]) => k !== 'label').map(([,v]) => v);
-  const total = nums.reduce((a,b) => a+b, 0);
-  const sumPct = Math.round(total * 100);
-  const sumWarn = document.getElementById('ratio-sum-warn');
-  if (sumWarn) sumWarn.style.display = Math.abs(sumPct - 100) > 1 ? '' : 'none';
-  const sumValEl = document.getElementById('ratio-sum-val');
-  if (sumValEl) sumValEl.textContent = sumPct;
   document.getElementById('btn-reset-ratio').style.display = '';
-  const autoBtn = document.getElementById('btn-auto-night');
-  if (autoBtn) autoBtn.classList.toggle('flash-attention', Math.abs(sumPct - 100) > 1);
+  _syncRatioSumWarning(prefix);
 
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 667;
   _updateRatioKwhDisplay(effKp, prefix, mkwh * 12);
@@ -4597,6 +4613,8 @@ function _syncAfterRatiosFromBefore() {
   _updateRatioKwhDisplay(postKp, prefix, mkwh * 12);
   _updatePriceBreakdown(postKp);
   updateRatioStyleStatus();
+  // 導入前比率からの同期でも導入後の合計%が変わるため、警告・点滅表示を同期し直す
+  _syncRatioSumWarning(prefix);
 }
 
 // ══════════════════════════════════════════
@@ -6427,8 +6445,15 @@ async function generatePPTX(mode) {
   const _ppCorrDiffH = hM.costDiff_with_rise + _ppSale20ManH;
 
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
-  const aiClosingComment = (document.getElementById('ai-comment-text')?.value || '').trim()
-    || 'じぶん電気について、お気軽にご相談ください 🌿';
+  const aiClosingCommentRaw = (document.getElementById('ai-comment-text')?.value || '').trim();
+  const aiClosingComment = aiClosingCommentRaw || 'じぶん電気について、お気軽にご相談ください 🌿';
+
+  // コスト差マイナス時の「スタッフ向け注意文」が未編集のままお客様向け実データ版PPTXに
+  // 差し込まれるのを防ぐガード。編集済みでなければ生成を止め、必ず見直しを促す
+  if (outReal && _aiCommentNegative && /^⚠️/.test(aiClosingCommentRaw)) {
+    alert('⚠️ 20年間のコスト差がマイナスの試算です。\nAIコメント欄がスタッフ向け注意文のままのため、お客様向け提案書は作成できません。\nプラン内容を見直すか、お客様向けの内容に編集してから再度お試しください。');
+    return;
+  }
 
   document.getElementById('progress').classList.add('show');
   document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=true);
