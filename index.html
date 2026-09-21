@@ -67,6 +67,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .field input:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 .field select { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 15px; background: #fff; color: var(--text); font-family: inherit; transition: border-color .15s; }
 .field select:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+.field textarea {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  font-size: 14px; background: #fff; color: var(--text); font-family: inherit;
+  line-height: 1.6; resize: vertical; transition: border-color .15s;
+}
+.field textarea:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 #price-breakdown summary,#before-price-breakdown summary { display:block; }
 #price-breakdown summary:hover { background:#c7d9f7; }
 #before-price-breakdown summary:hover { background:#e2e8f0; }
@@ -1521,6 +1527,16 @@ canvas#mini-chart { height: 220px !important; }
         </a>
       </div>
 
+      <!-- AIクロージングコメント（実データ版 最終ページ用） -->
+      <div class="field" style="margin-top:24px">
+        <label>🤖 AIクロージングコメント（実データ版 最終ページに反映）</label>
+        <textarea id="ai-comment-text" rows="4" maxlength="200" placeholder="「AIコメント生成」を押すか、直接ご記入・編集してください（100〜150文字目安）"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
+          <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
+        </div>
+      </div>
+
       <!-- アクションエリア（ページ下部） -->
       <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap">
         <button onclick="generatePPTX('real')" style="flex:1;min-width:200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.3);letter-spacing:.03em">
@@ -2720,6 +2736,50 @@ function buildCfg(data, lp, ly) {
     loanRate: data.lr || 0,
     loanCount: data.lc || 0,
   };
+}
+
+/**
+ * AIクロージングコメント生成
+ * POST /api/generate-comment
+ * Response: { comment: string }
+ */
+async function generateAIComment() {
+  const btn = document.getElementById('ai-comment-btn');
+  const statusEl = document.getElementById('ai-comment-status');
+  saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
+  const cfg = buildCfg(custData, custData.lp, custData.ly);
+  const m = calcMetrics(cfg);
+
+  btn.disabled = true;
+  statusEl.textContent = '🔍 生成中...';
+  try {
+    const API_URL = location.hostname === 'azumanakazono-gif.github.io'
+      ? 'https://jibunden-tool.vercel.app/api/generate-comment'
+      : '/api/generate-comment';
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: cfg.customerName,
+        familyComposition: cfg.familyComposition,
+        lifestyleNote: cfg.lifestyleNote,
+        monthlyElectricBill: cfg.monthlyElectricBill,
+        monthlySaving: Math.round((m.annualSaving || 0) / 12),
+        costDiffMan: m.costDiff_with_rise,
+        warrantyYears: cfg.warrantyYears,
+        proposalMode,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    document.getElementById('ai-comment-text').value = data.comment || '';
+    statusEl.textContent = '✅ 生成完了（内容をご確認・編集ください）';
+  } catch (e) {
+    statusEl.textContent = '❌ 生成エラー: ' + (e.message || '不明なエラー');
+    console.error('[AIコメント生成エラー]', e);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 function onPkgChange() {
@@ -6174,6 +6234,8 @@ async function generatePPTX(mode) {
   const _ppCorrDiffH = hM.costDiff_with_rise + _ppSale20ManH;
 
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
+  const aiClosingComment = (document.getElementById('ai-comment-text')?.value || '').trim()
+    || 'じぶん電気について、お気軽にご相談ください 🌿';
 
   document.getElementById('progress').classList.add('show');
   document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=true);
@@ -6918,13 +6980,13 @@ async function generatePPTX(mode) {
       sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText(`${cn}様へのご提案まとめ`,{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
       [{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${cfg.warrantyYears}年間のコスト差　約${fmt(_ppCorrDiff)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
-        const y=1.05+i*1.0;
+        const y=1.0+i*0.86;
         sl.addShape(presR.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
         sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
       });
-      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.42,w:9.2,h:1.0,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
+      sl.addText(aiClosingComment,{x:0.65,y:4.42,w:8.7,h:1.0,fontSize:12,color:C.white,align:"left",valign:"middle",fontFace:"Meiryo"});
     }
 
     setProgress("実データ版：ファイルを生成中...");
