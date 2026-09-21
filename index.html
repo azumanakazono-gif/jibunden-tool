@@ -79,10 +79,12 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 #dual-breakdown-grid .dual-col { border-radius:10px; padding:14px; position:relative; transition:opacity .2s ease,filter .2s ease,box-shadow .2s ease; }
 #dual-breakdown-grid .dual-col-pb { background:#f0fdf4; border:1.5px solid #bbf7d0; }
 #dual-breakdown-grid .dual-col-so { background:#eff6ff; border:1.5px solid #7dd3fc; }
-#dual-breakdown-grid .dual-col.mode-active-col { box-shadow:0 2px 10px rgba(0,0,0,.15); }
 #dual-breakdown-grid .dual-col.mode-active-col .dual-col-title::after { content:'📌 提案中'; margin-left:8px; font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:rgba(0,0,0,.08); vertical-align:middle; }
-#dual-breakdown-grid .dual-col.mode-inactive-col { opacity:.5; filter:grayscale(40%); }
 #dual-breakdown-grid .dual-col-so.pending-input { opacity:0.5; pointer-events:none; }
+/* 提案中モードに連動したハイライト（詳細内訳カラム／個別調整カード共通） */
+.mode-active-col, .mode-inactive-col { transition:opacity .2s ease,filter .2s ease,box-shadow .2s ease; }
+.mode-active-col { box-shadow:0 2px 10px rgba(0,0,0,.15); }
+.mode-inactive-col { opacity:.5; filter:grayscale(40%); }
 #dual-breakdown-grid .dual-col-so.pending-input::after { content:'⏳ 太陽光のみの設計を入力してください'; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(255,255,255,.9); padding:10px 16px; border-radius:8px; font-size:13px; font-weight:700; color:#92400e; border:1.5px solid #fcd34d; white-space:nowrap; pointer-events:auto; z-index:2; }
 .dual-col-title { font-size:13px; font-weight:800; margin-bottom:10px; padding-bottom:8px; border-bottom:2px solid; }
 .dual-breakdown-row { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; font-size:12px; border-bottom:1px solid rgba(0,0,0,.06); }
@@ -1095,7 +1097,7 @@ canvas#mini-chart { height: 220px !important; }
       </div>
       <div id="dual-input-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px;align-items:stretch">
         <!-- ── 左列：太陽光＋蓄電池 ── -->
-        <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
+        <div id="adjust-col-pb" style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#15803d;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #bbf7d0">☀️🔋 太陽光＋蓄電池</div>
           <div class="field" id="field-dc-wrap">
             <input type="hidden" id="dc" value="2310">
@@ -1145,7 +1147,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
         </div>
         <!-- ── 右列：太陽光のみ ── -->
-        <div style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px;display:flex;flex-direction:column">
+        <div id="adjust-col-so" style="background:#eff6ff;border:1.5px solid #7dd3fc;border-radius:10px;padding:14px;display:flex;flex-direction:column">
           <div style="font-size:13px;font-weight:800;color:#1d4ed8;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #7dd3fc">☀️ 太陽光のみ</div>
           <div class="field">
             <input type="hidden" id="dc-so-input" value="2310">
@@ -1862,10 +1864,12 @@ function applyProposalMode() {
     if (_pkgSelSo) { _pkgSelSo.disabled = true; _pkgSelSo.style.background = '#f1f5f9'; _pkgSelSo.style.cursor = 'not-allowed'; }
   }
 
-  // 下部「システム別の詳細・比較」：提案中の列を強調、非選択列をトーンダウン
+  // 下部「システム別の詳細・比較」＋個別調整カード：提案中の列を強調、非選択列をトーンダウン
   var _dualColPb = document.getElementById('dual-col-pb');
   var _dualColSo = document.getElementById('dual-col-so');
-  [[_dualColPb, 'pv_battery'], [_dualColSo, 'pv_only']].forEach(function(pair) {
+  var _adjustColPb = document.getElementById('adjust-col-pb');
+  var _adjustColSo = document.getElementById('adjust-col-so');
+  [[_dualColPb, 'pv_battery'], [_dualColSo, 'pv_only'], [_adjustColPb, 'pv_battery'], [_adjustColSo, 'pv_only']].forEach(function(pair) {
     var el = pair[0], m = pair[1];
     if (!el) return;
     el.classList.toggle('mode-active-col', proposalMode === m);
