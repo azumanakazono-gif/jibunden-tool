@@ -955,7 +955,7 @@ canvas#mini-chart { height: 220px !important; }
       <div id="kpi-area-so" style="margin-top:12px;display:flex;flex-direction:column;gap:10px">
         <div class="grid2" style="gap:10px">
           <div style="border-radius:12px;padding:16px 12px;border:2px solid #60a5fa;background:#e1f5fe;box-shadow:0 1px 4px rgba(0,0,0,.06)">
-            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:2px">年間自家消費メリット</div>
+            <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:2px">自家消費による電気代削減額</div>
             <div style="font-size:11px;color:var(--muted);margin-bottom:6px">買電を減らせる見込み額</div>
             <div style="display:flex;align-items:baseline;gap:2px">
               <span style="font-size:11px;color:#1e40af;font-weight:700">約</span>
@@ -5093,7 +5093,7 @@ function _renderDualBreakdown(pbData, soData) {
         hlRow('📟','現在の概算月額合計', '約 ¥' + f(soData.currentBill),'','#1e293b','#f1f5f9','#cbd5e1') +
         hlRow('💡','導入後の月額残り電気代（概算）', '約 ¥' + f(soData.remainBill),'','#dc2626','#dbeafe','#93c5fd') +
         row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
-        row('📈','年間経済メリット', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
+        row('📈','年間経済メリット（削減額＋売電収入）', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
         row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
         row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
       ) +
