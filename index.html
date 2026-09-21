@@ -1852,6 +1852,9 @@ function doUnlock() {
 }
 
 function setProposalMode(mode) {
+  // 太陽光＋蓄電池⇄太陽光のみの切替でAIコメントの前提数値が変わるため、
+  // 古いコメントが残って誤解を招かないよう自動でクリアする
+  if (mode !== proposalMode) clearAIComment();
   proposalMode = mode;
   ['pv_battery', 'pv_only', 'battery_only'].forEach(m => {
     document.getElementById('pm-btn-' + m).classList.toggle('active', m === mode);
@@ -2813,6 +2816,15 @@ async function generateAIComment() {
   } finally {
     btn.disabled = false;
   }
+}
+
+// 提案モード切替時などに、別モードの数値を前提とした古いAIコメントが
+// 残って誤解を招かないよう、テキストとステータス表示をリセットする
+function clearAIComment() {
+  const textEl = document.getElementById('ai-comment-text');
+  const statusEl = document.getElementById('ai-comment-status');
+  if (textEl) textEl.value = '';
+  if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
 }
 
 function onPkgChange() {
