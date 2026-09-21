@@ -2757,14 +2757,18 @@ async function generateAIComment() {
   const statusEl = document.getElementById('ai-comment-status');
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
   const cfg = buildCfg(custData, custData.lp, custData.ly);
-  const m = calcMetrics(cfg);
+  calc(); // 画面の表示値を最新化してから、その実測値をそのままAIへ渡す（独自の再計算はしない）
 
-  // 売電収入（20年分）を加味したコスト差。まとめスライドの「02」非表示判定と同じ計算式に揃える
-  const _acSaleP = parseFloat(document.getElementById('sale-price')?.value) || 0;
-  const _acSurplusKwh = proposalMode !== 'battery_only'
-    ? Math.max(0, cfg.annualGenerationKWh - cfg.directConsumptionKWh - cfg.batteryConsumptionKWh) : 0;
-  const _acSale20Man = Math.round(_acSurplusKwh * _acSaleP * cfg.warrantyYears / 10000);
-  const costDiffMan = m.costDiff_with_rise + _acSale20Man;
+  // 「20年間のコスト差」は、画面に実際に表示されているバナーの値をそのまま使う
+  // （ローンON時はローン活用バナー、太陽光のみモードでは太陽光のみバナーに準拠）
+  const isLoanOn = document.getElementById('le')?.checked && proposalMode !== 'pv_only';
+  const costDiffMan = isLoanOn
+    ? (window._simCostDiffLoan ?? 0)
+    : proposalMode === 'pv_only'
+      ? (window._simCostDiffSO ?? 0)
+      : (window._simCostDiffPB ?? 0);
+  // 「削減額」も画面の「月平均メリット」カードと同じ実測値を使う
+  const monthlySaving = window._simMonthlySaving ?? 0;
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2780,7 +2784,7 @@ async function generateAIComment() {
         familyComposition: cfg.familyComposition,
         lifestyleNote: cfg.lifestyleNote,
         monthlyElectricBill: cfg.monthlyElectricBill,
-        monthlySaving: Math.round((m.annualSaving || 0) / 12),
+        monthlySaving,
         costDiffMan,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
@@ -5470,6 +5474,8 @@ function calc() {
   })();
   document.getElementById('rs').textContent = fmt(_annualTotal);
   document.getElementById('rs-month').textContent = fmt(Math.round(_annualTotal / 12));
+  // 画面表示と完全一致させるため、AIコメント生成が参照する実測値をここで保持しておく
+  window._simMonthlySaving = Math.round(_annualTotal / 12);
   document.getElementById('bbv').textContent = bill20Show+'万円';
   // 積み上げ棒グラフ：残り電気代（残り購入電力量 × 平均単価 ベース）
   // m_pb = 蓄電池込みのメトリクス（pv_onlyモードでもbc込みで算出済み）
@@ -5504,6 +5510,7 @@ function calc() {
   const diffShow = m_pb.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
   document.getElementById('diff-banner-main')?.classList.toggle('is-negative', diffShow < 0);
+  window._simCostDiffPB = diffShow;
 
   // ── Solar Only バー計算 ──
   (function calcSolarOnlyBar() {
@@ -5546,6 +5553,7 @@ function calc() {
     var diffShowSo = mSo.costDiff_with_rise + sale20ManSo;
     document.getElementById('rd-so').textContent = '約' + diffShowSo + '万円';
     document.getElementById('diff-banner-so')?.classList.toggle('is-negative', diffShowSo < 0);
+    window._simCostDiffSO = diffShowSo;
     document.getElementById('diff-note-so').textContent = er > 0 ? '電気代年'+er+'%上昇想定' : '電気代現状維持';
     var barRowSo = document.getElementById('bar-row-so');
     var badgeSo = document.getElementById('badge-so');
@@ -5728,6 +5736,7 @@ function calc() {
     const loanDiffMan = Math.round((m_pb.bill20Y_rise - lp * ly * 12 - m_pb.remain20Y_rise) / 10000) + _sale20Man;
     document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
     document.getElementById('loan-diff-banner')?.classList.toggle('is-negative', loanDiffMan < 0);
+    window._simCostDiffLoan = loanDiffMan;
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const re = m_pb.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
@@ -5753,6 +5762,7 @@ function calc() {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
     document.getElementById('loan-diff-banner')?.classList.remove('is-negative');
+    window._simCostDiffLoan = null;
     const _lli=document.getElementById('legend-loan-item'); if(_lli)_lli.style.display='none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
