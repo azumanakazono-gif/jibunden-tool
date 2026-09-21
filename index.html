@@ -67,6 +67,23 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .field input:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 .field select { border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px; font-size: 15px; background: #fff; color: var(--text); font-family: inherit; transition: border-color .15s; }
 .field select:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+.field textarea {
+  border: 1.5px solid var(--border); border-radius: 8px; padding: 10px 12px;
+  font-size: 14px; background: #fff; color: var(--text); font-family: inherit;
+  line-height: 1.6; resize: vertical; transition: border-color .15s;
+}
+.field textarea:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
+/* AIコメント欄：注意が必要な状態（コスト差マイナス／自主編集中）を見落とさないための強調表示 */
+.field textarea.ai-comment-negative { border: 2px solid #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+.field textarea.ai-comment-negative:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,.25); }
+.field textarea.ai-comment-editing { border: 2px solid #f97316; background: #fff7ed; box-shadow: 0 0 0 3px rgba(249,115,22,.15); }
+.field textarea.ai-comment-editing:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,.25); }
+/* AI添削ボタン：自主編集中（✍️）になったときだけ滑らかに現れる */
+#ai-comment-polish-btn {
+  opacity: 0; transform: translateY(-4px) scale(.96); pointer-events: none;
+  transition: opacity .25s ease, transform .25s ease;
+}
+#ai-comment-polish-btn.is-visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 #price-breakdown summary,#before-price-breakdown summary { display:block; }
 #price-breakdown summary:hover { background:#c7d9f7; }
 #before-price-breakdown summary:hover { background:#e2e8f0; }
@@ -155,9 +172,18 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; padding-left: 10px; font-size: 14px; font-weight: 700; color: #fff; transition: width .4s ease; }
 .bar-fill.or { background: #374151; }
 .bar-fill.gr { background: var(--mg); }
-.diff-banner { background: var(--dg); border-radius: 10px; padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; }
+.diff-banner { background: var(--dg); border-radius: 10px; padding: 12px 16px; margin-top: 12px; display: flex; align-items: center; justify-content: space-between; border: 2px solid transparent; transition: background-color .2s, border-color .2s; }
 .diff-banner .d-label { font-size: 15px; color: var(--ac); }
 .diff-banner .d-val { font-size: 22px; font-weight: 700; color: #fff; }
+.diff-banner.is-negative { background: #7f1d1d !important; border-color: #f87171; animation: diffBannerBlink 1.4s ease-in-out infinite; }
+.diff-banner.is-negative .d-label, .diff-banner.is-negative .d-val { color: #fecaca; }
+@keyframes diffBannerBlink {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(248,113,113,.55); }
+  50% { box-shadow: 0 0 0 7px rgba(248,113,113,0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .diff-banner.is-negative { animation: none; }
+}
 
 /* ── ローンプレビュー ── */
 .loan-preview { background: var(--pg); border-radius: 10px; padding: 14px 16px; margin-top: 14px; border: 1px solid var(--border); }
@@ -1496,7 +1522,7 @@ canvas#mini-chart { height: 220px !important; }
           <span id="stacked-legend-loan-r" style="display:none;align-items:center;gap:4px"><span style="display:inline-block;width:12px;height:10px;border-radius:2px;background:#86efac"></span>残り電気代（太陽光＋蓄電池）</span>
         </div>
       </div>
-      <div class="diff-banner">
+      <div class="diff-banner" id="diff-banner-main">
         <span class="d-label">☀️🔋 太陽光＋蓄電池：20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
       </div>
@@ -1519,6 +1545,17 @@ canvas#mini-chart { height: 220px !important; }
           🛡️ 保証内容 (Warranty Details)
           <span style="font-size:10px;opacity:.8">↗</span>
         </a>
+      </div>
+
+      <!-- AIクロージングコメント（実データ版 最終ページ用） -->
+      <div class="field" style="margin-top:24px">
+        <label>🤖 AIクロージングコメント（実データ版 最終ページに反映）</label>
+        <textarea id="ai-comment-text" rows="4" maxlength="200" placeholder="「AIコメント生成」を押すか、直接ご記入・編集してください（100〜150文字目安）"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
+          <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" disabled title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
+          <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
+        </div>
       </div>
 
       <!-- アクションエリア（ページ下部） -->
@@ -1827,6 +1864,9 @@ function doUnlock() {
 }
 
 function setProposalMode(mode) {
+  // 太陽光＋蓄電池⇄太陽光のみの切替でAIコメントの前提数値が変わるため、
+  // 古いコメントが残って誤解を招かないよう自動でクリアする
+  if (mode !== proposalMode) clearAIComment();
   proposalMode = mode;
   ['pv_battery', 'pv_only', 'battery_only'].forEach(m => {
     document.getElementById('pm-btn-' + m).classList.toggle('active', m === mode);
@@ -2721,6 +2761,181 @@ function buildCfg(data, lp, ly) {
     loanCount: data.lc || 0,
   };
 }
+
+/**
+ * AIクロージングコメント生成
+ * POST /api/generate-comment
+ * Response: { comment: string }
+ */
+async function generateAIComment() {
+  const btn = document.getElementById('ai-comment-btn');
+  const statusEl = document.getElementById('ai-comment-status');
+  saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
+  const cfg = buildCfg(custData, custData.lp, custData.ly);
+  calc(); // 画面の表示値を最新化してから、その実測値をそのままAIへ渡す（独自の再計算はしない）
+
+  // 「20年間のコスト差」は、画面に実際に表示されているバナーの値をそのまま使う
+  // （ローンON時はローン活用バナー、太陽光のみモードでは太陽光のみバナーに準拠）
+  const isLoanOn = document.getElementById('le')?.checked && proposalMode !== 'pv_only';
+  const costDiffMan = isLoanOn
+    ? (window._simCostDiffLoan ?? 0)
+    : proposalMode === 'pv_only'
+      ? (window._simCostDiffSO ?? 0)
+      : (window._simCostDiffPB ?? 0);
+  // 金額は必ず区別して渡す：
+  // ・monthlyBillSaving = 「月々の電気代削減額」＝電気代の節約分のみ（画面「月々の節約額」と同じ値）
+  // ・monthlyTotalMerit = 「月平均の総合経済メリット」＝買電削減＋売電収入（画面「月平均メリット」と同じ値）
+  const monthlyBillSaving = proposalMode === 'pv_only'
+    ? (window._simMonthlyBillSavingSO ?? 0)
+    : (window._simMonthlyBillSavingPB ?? 0);
+  const monthlyTotalMerit = window._simMonthlySaving ?? 0;
+  // 自家消費率（画面の「自家消費率」カードと同じ実測値）。高いほど「自分の屋根の電気を自宅で使い切れている」アピール材料になる
+  const selfConsumptionRate = proposalMode === 'pv_only'
+    ? (window._finalSoSelfRate ?? 0)
+    : (window._finalPbSelfRate ?? 0);
+
+  btn.disabled = true;
+  statusEl.textContent = '🔍 生成中...';
+  try {
+    const API_URL = location.hostname === 'azumanakazono-gif.github.io'
+      ? 'https://jibunden-tool.vercel.app/api/generate-comment'
+      : '/api/generate-comment';
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customerName: cfg.customerName,
+        familyComposition: cfg.familyComposition,
+        lifestyleNote: cfg.lifestyleNote,
+        monthlyElectricBill: cfg.monthlyElectricBill,
+        monthlyBillSaving,
+        monthlyTotalMerit,
+        costDiffMan,
+        selfConsumptionRate,
+        warrantyYears: cfg.warrantyYears,
+        proposalMode,
+      }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    const textEl = document.getElementById('ai-comment-text');
+    textEl.value = data.comment || '';
+    _aiCommentNegative = costDiffMan < 0;
+    textEl.classList.toggle('ai-comment-negative', _aiCommentNegative);
+    textEl.classList.remove('ai-comment-editing'); // 生成直後は「自主編集中」ではない
+    _setPolishButtonVisible(false); // 生成直後はまだ自主編集していないため添削ボタンは隠す
+    if (costDiffMan < 0) {
+      statusEl.style.color = '#b91c1c';
+      statusEl.textContent = '⚠️ コスト差がマイナスです。スタッフ向け注意文をプラン見直しの参考にし、お客様向けの内容に編集してください';
+    } else {
+      statusEl.style.color = '';
+      statusEl.textContent = '✅ 生成完了（内容をご確認・編集ください）';
+    }
+  } catch (e) {
+    statusEl.style.color = '';
+    statusEl.textContent = '❌ 生成エラー: ' + (e.message || '不明なエラー');
+    console.error('[AIコメント生成エラー]', e);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/**
+ * AI添削・ブラッシュアップ
+ * スタッフが自主編集・追記した文章のニュアンスや数値はそのままに、
+ * より伝わりやすいプロの営業トークへAIが添削する。
+ * POST /api/polish-comment
+ * Response: { comment: string }
+ */
+async function polishAIComment() {
+  const textEl = document.getElementById('ai-comment-text');
+  const btn = document.getElementById('ai-comment-polish-btn');
+  const statusEl = document.getElementById('ai-comment-status');
+  const current = (textEl?.value || '').trim();
+  if (!current) {
+    statusEl.style.color = '#b91c1c';
+    statusEl.textContent = '❌ 添削する文章がありません。まず文章を入力・生成してください';
+    return;
+  }
+
+  btn.disabled = true; // 添削中は連打防止のため一時的に無効化（表示自体は維持）
+  statusEl.style.color = '';
+  statusEl.textContent = '✨ 添削中...';
+  try {
+    const API_URL = location.hostname === 'azumanakazono-gif.github.io'
+      ? 'https://jibunden-tool.vercel.app/api/polish-comment'
+      : '/api/polish-comment';
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: current, isNegative: _aiCommentNegative }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    textEl.value = data.comment || current;
+    textEl.classList.remove('ai-comment-editing'); // 添削済みなので「自主編集中」表示は解除（マイナス枠は維持）
+    _setPolishButtonVisible(false); // AIの添削結果に戻ったので、次に自主編集するまでボタンは隠す
+    statusEl.style.color = '';
+    statusEl.textContent = '✨ 添削完了（内容をご確認・編集ください）';
+  } catch (e) {
+    statusEl.style.color = '';
+    statusEl.textContent = '❌ 添削エラー: ' + (e.message || '不明なエラー');
+    console.error('[AI添削エラー]', e);
+    _setPolishButtonVisible(true); // 失敗時は自主編集中の文章のままなのでボタンを再表示
+  }
+}
+
+// 直近に生成したAIコメントのコスト差がマイナスだったか（テキストエリアの警告枠の維持に使う）
+let _aiCommentNegative = false;
+
+// 「✨ AI添削・ブラッシュアップ」ボタンの表示/無効化を切り替える。
+// デフォルトでは隠し、スタッフの自主編集中（✍️）にのみ滑らかに現れるようにする
+function _setPolishButtonVisible(visible) {
+  const btn = document.getElementById('ai-comment-polish-btn');
+  if (!btn) return;
+  btn.classList.toggle('is-visible', visible);
+  btn.disabled = !visible;
+}
+
+// 提案モード切替時などに、別モードの数値を前提とした古いAIコメントが
+// 残って誤解を招かないよう、テキストとステータス表示をリセットする
+function clearAIComment() {
+  const textEl = document.getElementById('ai-comment-text');
+  const statusEl = document.getElementById('ai-comment-status');
+  _aiCommentNegative = false;
+  if (textEl) { textEl.value = ''; textEl.classList.remove('ai-comment-negative', 'ai-comment-editing'); }
+  if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
+  _setPolishButtonVisible(false);
+}
+
+// AIコメント欄をスタッフが手動編集し始めたときの処理。
+// ・本文（編集中の内容）は消さない
+// ・ステータス表示を「✍️ コメント自主編集中」にリアルタイムで切り替え、誤操作や状態の混同を防ぐ
+// ・コスト差マイナスの警告枠は編集中も維持し、それ以外は「自主編集中」のオレンジ枠で目立たせる
+// ・このタイミングでのみ「✨ AI添削・ブラッシュアップ」ボタンを滑らかに表示する
+function onAICommentManualEdit() {
+  const statusEl = document.getElementById('ai-comment-status');
+  if (statusEl) { statusEl.textContent = '✍️ コメント自主編集中'; statusEl.style.color = '#c2410c'; }
+  const textEl = document.getElementById('ai-comment-text');
+  if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
+  _setPolishButtonVisible(true);
+}
+
+// AIコメントへ渡している数値に関係する入力項目。ここが変わったら古いコメントが
+// 実際の試算とズレてしまうため、自動的にクリアして再生成を促す
+const AI_COMMENT_SOURCE_FIELD_IDS = new Set([
+  'cn', 'fm', 'ls', 'mb', 'mkwh', 'kyuden-plan', 'post-kyuden-plan',
+  'sk', 'ag', 'bk', 'bc', 'ck', 'sub', 'wy',
+  'sk-so', 'ag-so', 'ck-so', 'sub-so', 'wy-so',
+  'er', 'sale-price', 'le', 'la2', 'lr', 'lc',
+]);
+function _onAICommentSourceFieldChange(e) {
+  const id = e.target && e.target.id;
+  if (id && AI_COMMENT_SOURCE_FIELD_IDS.has(id)) clearAIComment();
+}
+document.addEventListener('input', _onAICommentSourceFieldChange);
+document.addEventListener('change', _onAICommentSourceFieldChange);
+document.getElementById('ai-comment-text')?.addEventListener('input', onAICommentManualEdit);
 
 function onPkgChange() {
   loanAmountEdited = false;
@@ -5387,6 +5602,8 @@ function calc() {
   })();
   document.getElementById('rs').textContent = fmt(_annualTotal);
   document.getElementById('rs-month').textContent = fmt(Math.round(_annualTotal / 12));
+  // 画面表示と完全一致させるため、AIコメント生成が参照する実測値をここで保持しておく
+  window._simMonthlySaving = Math.round(_annualTotal / 12);
   document.getElementById('bbv').textContent = bill20Show+'万円';
   // 積み上げ棒グラフ：残り電気代（残り購入電力量 × 平均単価 ベース）
   // m_pb = 蓄電池込みのメトリクス（pv_onlyモードでもbc込みで算出済み）
@@ -5420,6 +5637,8 @@ function calc() {
   // コスト差：電力会社20年総額 - (初期費用 + 残り電気代 - 売電収入)
   const diffShow = m_pb.costDiff_with_rise + _sale20Man;
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
+  document.getElementById('diff-banner-main')?.classList.toggle('is-negative', diffShow < 0);
+  window._simCostDiffPB = diffShow;
 
   // ── Solar Only バー計算 ──
   (function calcSolarOnlyBar() {
@@ -5461,6 +5680,8 @@ function calc() {
     }
     var diffShowSo = mSo.costDiff_with_rise + sale20ManSo;
     document.getElementById('rd-so').textContent = '約' + diffShowSo + '万円';
+    document.getElementById('diff-banner-so')?.classList.toggle('is-negative', diffShowSo < 0);
+    window._simCostDiffSO = diffShowSo;
     document.getElementById('diff-note-so').textContent = er > 0 ? '電気代年'+er+'%上昇想定' : '電気代現状維持';
     var barRowSo = document.getElementById('bar-row-so');
     var badgeSo = document.getElementById('badge-so');
@@ -5597,6 +5818,9 @@ function calc() {
       selfRate: selfRateSo2, selfRateRaw: selfRateRawSo2, surplusRate: surplusRateSo2
     };
     _renderDualBreakdown(pbData, soData);
+    // AIコメント生成が参照する「月々の電気代削減額（売電収入を含まない）」を画面表示と同じ値で保持
+    window._simMonthlyBillSavingPB = pbData.monthlySaving;
+    window._simMonthlyBillSavingSO = soData.monthlySaving;
     _finalPbSelfRate = pbData.selfRate; _finalPbSurplusRate = pbData.surplusRate;
     _finalSoSelfRate = soData.selfRate; _finalSoSurplusRate = soData.surplusRate;
     window._finalPbSelfRate = _finalPbSelfRate; window._finalPbSurplusRate = _finalPbSurplusRate;
@@ -5642,6 +5866,8 @@ function calc() {
     document.getElementById('rk-self-label').textContent = '自家消費単価（ローン総額ベース）';
     const loanDiffMan = Math.round((m_pb.bill20Y_rise - lp * ly * 12 - m_pb.remain20Y_rise) / 10000) + _sale20Man;
     document.getElementById('rd-loan').textContent = '約' + loanDiffMan + '万円';
+    document.getElementById('loan-diff-banner')?.classList.toggle('is-negative', loanDiffMan < 0);
+    window._simCostDiffLoan = loanDiffMan;
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
     const re = m_pb.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
@@ -5666,6 +5892,8 @@ function calc() {
   } else {
     document.getElementById('loan-preview-box').style.display='none';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = 'none');
+    document.getElementById('loan-diff-banner')?.classList.remove('is-negative');
+    window._simCostDiffLoan = null;
     const _lli=document.getElementById('legend-loan-item'); if(_lli)_lli.style.display='none';
     document.getElementById('stacked-legend-loan').style.display = 'none';
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
@@ -6151,6 +6379,11 @@ function addBrand(sl, pres) {
 
 function setProgress(msg) { document.getElementById('progress-msg').textContent = msg; }
 
+// hide:true の項目を除外し、残りを 01/02... と連番に振り直す（まとめスライド用）
+function numberedSummaryItems(items) {
+  return items.filter(it => !it.hide).map((it, i) => ({ ...it, num: String(i + 1).padStart(2, '0') }));
+}
+
 async function generatePPTX(mode) {
   const outModel = mode === 'model';
   const outReal  = mode === 'real';
@@ -6174,6 +6407,8 @@ async function generatePPTX(mode) {
   const _ppCorrDiffH = hM.costDiff_with_rise + _ppSale20ManH;
 
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
+  const aiClosingComment = (document.getElementById('ai-comment-text')?.value || '').trim()
+    || 'じぶん電気について、お気軽にご相談ください 🌿';
 
   document.getElementById('progress').classList.add('show');
   document.querySelectorAll('.gen-btn').forEach(b=>b.disabled=true);
@@ -6422,19 +6657,19 @@ async function generatePPTX(mode) {
       sl.addShape(presM.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
       sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText("じぶん電気 モデルケースまとめ",{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-      [
+      numberedSummaryItems([
         {num:"01",icon:"💡",text:`電力会社の${hCfg.currentUnitPrice}円/kWhを、じぶん電気なら約${hM.costPerKWh}円/kWhに`},
-        {num:"02",icon:"💰",text:(()=>{const diff=_ppCorrDiffH;return diff>=10?`${hCfg.warrantyYears}年間で約${fmt(diff)}万円のコスト差が見込めます（モデルケース試算）`:diff>=-10?`${hCfg.warrantyYears}年間のコスト差はほぼ同水準になる場合があります（条件次第）`:`条件によっては電力会社と大きな差が出ない場合があります（ご確認ください）`;})()},
+        {num:"02",icon:"💰",hide:_ppCorrDiffH<0,text:_ppCorrDiffH>=10?`${hCfg.warrantyYears}年間で約${fmt(_ppCorrDiffH)}万円のコスト差が見込めます（モデルケース試算）`:`${hCfg.warrantyYears}年間のコスト差はほぼ同水準になる場合があります（条件次第）`},
         {num:"03",icon:"🔒",text:`全機器 ${hCfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},
         {num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"},
-      ].forEach((item,i)=>{
+      ]).forEach((item,i)=>{
         const y=1.05+i*1.0;
         sl.addShape(presM.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
         sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
       });
       sl.addShape(presM.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addText("あなたのご家庭もシミュレーションしてみませんか？",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
     }
     setProgress("モデルケース版：ファイルを生成中...");
     await new Promise(r=>setTimeout(r,30));
@@ -6917,14 +7152,14 @@ async function generatePPTX(mode) {
       sl.addShape(presR.ShapeType.rect,{x:0.5,y:0.18,w:2.0,h:0.48,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
       sl.addText("じぶん電気",{x:0.5,y:0.18,w:2.0,h:0.48,fontSize:15,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       sl.addText(`${cn}様へのご提案まとめ`,{x:2.6,y:0.18,w:6.5,h:0.48,fontSize:18,bold:true,color:C.white,fontFace:"Meiryo",valign:"middle",margin:0});
-      [{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",text:`${cfg.warrantyYears}年間のコスト差　約${fmt(_ppCorrDiff)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}].forEach((item,i)=>{
-        const y=1.05+i*1.0;
+      numberedSummaryItems([{num:"01",icon:"💡",text:`電力会社の${cfg.currentUnitPrice}円/kWhを、じぶん電気なら約${m.costPerKWh}円/kWhに`},{num:"02",icon:"💰",hide:_ppCorrDiff<0,text:`${cfg.warrantyYears}年間のコスト差　約${fmt(_ppCorrDiff)}万円（電力会社より安い）`},{num:"03",icon:"🔒",text:`全機器 ${cfg.warrantyYears}年間保証で、ずっと安心して使い続けられます`},{num:"04",icon:"🏠",text:"停電時もじぶん電気で安心。大切なご家族を守る備えに"}]).forEach((item,i)=>{
+        const y=1.0+i*0.86;
         sl.addShape(presR.ShapeType.rect,{x:0.4,y,w:0.6,h:0.7,fill:{color:C.lightGreen},line:{color:C.lightGreen}});
         sl.addText(item.num,{x:0.4,y,w:0.6,h:0.7,fontSize:14,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
         sl.addText(`${item.icon}　${item.text}`,{x:1.2,y:y+0.05,w:8.3,h:0.6,fontSize:14,color:C.white,valign:"middle",fontFace:"Meiryo"});
       });
-      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.97,w:9.2,h:0.45,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
-      sl.addText("じぶん電気について、お気軽にご相談ください 🌿",{x:0.4,y:4.97,w:9.2,h:0.45,fontSize:13,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
+      sl.addShape(presR.ShapeType.rect,{x:0.4,y:4.42,w:9.2,h:1.0,fill:{color:C.lightGreen,transparency:25},line:{color:C.lightGreen}});
+      sl.addText(aiClosingComment,{x:0.65,y:4.42,w:8.7,h:1.0,fontSize:12,color:C.white,align:"left",valign:"middle",fontFace:"Meiryo"});
     }
 
     setProgress("実データ版：ファイルを生成中...");
