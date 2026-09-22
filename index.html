@@ -51,6 +51,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .gen-btn { background: var(--lg); color: var(--dg); border: none; border-radius: 8px; padding: 12px 28px; font-size: 15px; font-weight: 700; cursor: pointer; transition: all .2s; font-family: inherit; display: flex; align-items: center; gap: 8px; }
 .gen-btn:hover { background: var(--ac); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,.2); }
 .gen-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+#real-pptx-btn:disabled { opacity: .5; cursor: not-allowed; box-shadow: none; }
 
 .form-body { padding: 24px 32px; }
 .section-card { background: var(--card); border-radius: 12px; padding: 20px 24px; margin-bottom: 16px; border: 1px solid var(--border); }
@@ -1589,7 +1590,7 @@ canvas#mini-chart { height: 220px !important; }
 
       <!-- アクションエリア（ページ下部） -->
       <div style="display:flex;gap:12px;margin-top:28px;flex-wrap:wrap">
-        <button onclick="generatePPTX('real')" style="flex:1;min-width:200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.3);letter-spacing:.03em">
+        <button id="real-pptx-btn" onclick="generatePPTX('real')" style="flex:1;min-width:200px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;background:#1d4ed8;color:#fff;font-size:15px;font-weight:700;border:none;border-radius:10px;cursor:pointer;font-family:inherit;box-shadow:0 4px 14px rgba(29,78,216,.3);letter-spacing:.03em">
           👤 実データ版PPTXを出力
         </button>
       </div>
@@ -2867,6 +2868,7 @@ async function generateAIComment() {
     console.error('[AIコメント生成エラー]', e);
   } finally {
     btn.disabled = false;
+    updateRealPptxBtnState();
   }
 }
 
@@ -2885,6 +2887,7 @@ async function polishAIComment() {
   if (!current) {
     statusEl.style.color = '#b91c1c';
     statusEl.textContent = '❌ 添削する文章がありません。まず文章を入力・生成してください';
+    updateRealPptxBtnState();
     return;
   }
 
@@ -2913,6 +2916,8 @@ async function polishAIComment() {
     statusEl.textContent = '❌ 添削エラー: ' + (e.message || '不明なエラー');
     console.error('[AI添削エラー]', e);
     _setPolishButtonVisible(true); // 失敗時は自主編集中の文章のままなのでボタンを再表示
+  } finally {
+    updateRealPptxBtnState();
   }
 }
 
@@ -2938,6 +2943,7 @@ function clearAIComment() {
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
   _setPolishButtonVisible(false);
   autoResizeAIComment();
+  updateRealPptxBtnState();
 }
 
 // AIクロージングコメント欄：入力内容の高さに応じてテキストエリアを自動リサイズし、
@@ -2952,6 +2958,22 @@ function autoResizeAIComment() {
 }
 window.addEventListener('resize', autoResizeAIComment);
 
+// クロージングコメント欄が「未入力（プレースホルダー表示のまま）」または
+// 「警告・エラー表示中」（文字数超過／スタッフ向け注意文未編集／生成・添削エラー）の場合、
+// お客様向け実データ版PPTXの出力ボタンを非活性にし、誤出力を未然に防ぐ
+function updateRealPptxBtnState() {
+  const btn = document.getElementById('real-pptx-btn');
+  const textEl = document.getElementById('ai-comment-text');
+  const statusEl = document.getElementById('ai-comment-status');
+  if (!btn || !textEl) return;
+  const isEmpty = !textEl.value.trim();
+  const maxLen = textEl.maxLength > 0 ? textEl.maxLength : 200;
+  const isOverLimit = textEl.value.length > maxLen;
+  const statusText = statusEl?.textContent || '';
+  const isWarningOrError = /^(⚠️|❌)/.test(statusText);
+  btn.disabled = isEmpty || isOverLimit || isWarningOrError;
+}
+
 // AIコメント欄をスタッフが手動編集し始めたときの処理。
 // ・本文（編集中の内容）は消さない
 // ・ステータス表示を「✍️ コメント自主編集中」にリアルタイムで切り替え、誤操作や状態の混同を防ぐ
@@ -2964,6 +2986,7 @@ function onAICommentManualEdit() {
   if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
   _setPolishButtonVisible(true);
   autoResizeAIComment();
+  updateRealPptxBtnState();
 }
 
 // フォーム内のあらゆる数値・パッケージ・各種設定（お客様情報／システム設計／太陽光のみ設計／
@@ -3241,6 +3264,7 @@ function loadDataToForm(data) {
   document.getElementById('sys-name').value = data.sysName || '';
   document.getElementById('ai-comment-text').value = data.aiClosingComment || '';
   autoResizeAIComment();
+  updateRealPptxBtnState();
   updateHearingUI(data);
   if (ps && PACKAGES[ps]) {
     const _pp = PACKAGES[ps];
