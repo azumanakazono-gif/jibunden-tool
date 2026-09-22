@@ -2194,6 +2194,14 @@ function updateReestimateAlertBanner() {
   banner.style.display = isBlinking ? '' : 'none';
 }
 
+// プラン関連の数値（導入前/導入後プラン選択・時間帯別使用比率）が編集された瞬間に、
+// 【再推定】ボタンの点滅とバナー表示を即座にアクティブ化する
+function activateReestimateAlert() {
+  const btnEl = document.getElementById('btn-reestimate');
+  if (btnEl) btnEl.classList.add('blink-effect');
+  updateReestimateAlertBanner();
+}
+
 function reEstimateJyuryoKwh() {
   mkwhManualEdited = false;
   const btnEl = document.getElementById('btn-reestimate');
@@ -3626,6 +3634,7 @@ function onPostKyudenPlanChange() {
   updateRatioPanel();
   updateRatioStyleStatus();
   renderPostPlanBreakdown();
+  activateReestimateAlert();
   calc();
 }
 
@@ -4666,6 +4675,7 @@ function onRatioChange(prefix) {
   isCustomRatio = true;
   document.getElementById('btn-reset-ratio').style.display = '';
   _syncRatioSumWarning(prefix);
+  activateReestimateAlert();
 
   const mkwh = parseFloat(document.getElementById('mkwh').value) || 667;
   _updateRatioKwhDisplay(effKp, prefix, mkwh * 12);
@@ -4956,6 +4966,7 @@ function onBeforeRatioChange(prefix) {
     beforeCustomRatios = { day, living, ngt, label:'カスタム' };
   }
   isBeforeCustomRatio = true;
+  activateReestimateAlert();
 
   const nums   = Object.entries(beforeCustomRatios).filter(([k]) => k !== 'label').map(([,val]) => val);
   const total  = nums.reduce((a, b) => a + b, 0);
