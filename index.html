@@ -596,7 +596,9 @@ canvas#mini-chart { height: 220px !important; }
             <option value="4人家族（夫婦＋子ども2人）" selected>4人家族（夫婦＋子ども2人）</option>
             <option value="5人以上の大家族">5人以上の大家族</option>
             <option value="2世帯住宅（親世代同居）">2世帯住宅（親世代同居）</option>
+            <option value="custom">その他（任意入力）</option>
           </select>
+          <input type="text" id="fm-custom" oninput="calc()" placeholder="家族構成を入力" style="display:none;margin-top:6px">
         </div>
       </div>
       <div class="field"><label>生活スタイル・備考</label>
@@ -609,7 +611,7 @@ canvas#mini-chart { height: 220px !important; }
           <option value="living_time">リビングタイム（夕〜夜）に多用</option>
           <option value="custom">その他（任意入力）</option>
         </select>
-        <input type="text" id="ls" value="日中は共働きで外出多め・夜間使用が中心" oninput="calc()" placeholder="生活スタイルの詳細（任意）">
+        <input type="text" id="ls" value="日中は共働きで外出多め・夜間使用が中心" oninput="calc()" placeholder="生活スタイルの詳細（任意）" style="display:none">
       </div>
     </div>
 
@@ -3235,7 +3237,9 @@ function updatePkgSummaryPv() {
 
 function saveFormToData(data) {
   data.cn = document.getElementById('cn').value;
-  data.fm = document.getElementById('fm').value;
+  data.fmSelect = document.getElementById('fm').value;
+  data.fmCustom = document.getElementById('fm-custom').value;
+  data.fm = data.fmSelect === 'custom' ? (data.fmCustom || 'その他') : data.fmSelect;
   data.lsPreset = document.getElementById('ls-preset').value;
   data.ls = document.getElementById('ls').value;
   TAB_FIELDS.forEach(id => { data[id] = parseFloat(document.getElementById(id).value)||0; });
@@ -3308,9 +3312,12 @@ function loadDataToForm(data) {
   bcManualEdited = false;
   _updateBcManualUI();
   document.getElementById('cn').value = data.cn || '';
-  document.getElementById('fm').value = data.fm || '4人家族（夫婦＋子ども2人）';
+  document.getElementById('fm').value = data.fmSelect || data.fm || '4人家族（夫婦＋子ども2人）';
+  document.getElementById('fm-custom').value = data.fmCustom || '';
+  document.getElementById('fm-custom').style.display = document.getElementById('fm').value === 'custom' ? '' : 'none';
   document.getElementById('ls-preset').value = data.lsPreset || 'away';
   document.getElementById('ls').value = data.ls || '';
+  document.getElementById('ls').style.display = document.getElementById('ls-preset').value === 'custom' ? '' : 'none';
   TAB_FIELDS.forEach(id => { const el=document.getElementById(id); if(el && data[id]!==undefined) el.value=data[id]; });
   document.getElementById('le').checked = data.le || false;
   document.getElementById('kyuden-plan').value = data.kyudenPlan || '';
@@ -3896,7 +3903,11 @@ function applyDaytimeRate() {
   calc();
 }
 
-function onFamilyChange() { bcManualEdited = false; dcManualEdited = false; _updateBcManualUI(); applyDaytimeRate(); calc(); }
+function onFamilyChange() {
+  bcManualEdited = false; dcManualEdited = false; _updateBcManualUI();
+  document.getElementById('fm-custom').style.display = document.getElementById('fm').value === 'custom' ? '' : 'none';
+  applyDaytimeRate(); calc();
+}
 function onLifestyleChange() {
   bcManualEdited = false;
   dcManualEdited = false;
@@ -3904,6 +3915,7 @@ function onLifestyleChange() {
   const preset = document.getElementById('ls-preset').value;
   const lsInput = document.getElementById('ls');
   const kp = document.getElementById('kyuden-plan').value;
+  lsInput.style.display = preset === 'custom' ? '' : 'none';
   if (preset !== 'custom') {
     if (kp === 'kyushu_ohisama' && preset === 'living_time') {
       lsInput.value = '昼間の安さを最大限に活かすため、エコキュートの沸き上げ等を昼間に移す「おひさまシフト」を想定した、家計に優しい配分設定です。';
@@ -6320,7 +6332,10 @@ function clearForm() {
   if(!confirm('フォームをリセットしますか？')) return;
   ['cn','ls'].forEach(id=>{ const d={'cn':'○○様○○システム','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
   document.getElementById('fm').value='4人家族（夫婦＋子ども2人）';
+  document.getElementById('fm-custom').value='';
+  document.getElementById('fm-custom').style.display='none';
   document.getElementById('ls-preset').value='away';
+  document.getElementById('ls').style.display='none';
   document.getElementById('kyuden-plan').value='';
   showAvgRateSection(false);
   document.getElementById('daytime-rate-disp').textContent='';
