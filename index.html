@@ -2862,6 +2862,13 @@ async function generateAIComment() {
   const selfConsumptionRate = proposalMode === 'pv_only'
     ? (window._finalSoSelfRate ?? 0)
     : (window._finalPbSelfRate ?? 0);
+  // プラン見直し内容をAIコメントに反映するため、選択中のプラン名（表示ラベル）と、
+  // スタッフが実際に選び直したか（≠初期値のまま）を渡す
+  const kpEl = document.getElementById('kyuden-plan');
+  const postKpEl = document.getElementById('post-kyuden-plan');
+  const beforePlanLabel = kpEl?.selectedIndex > 0 ? kpEl.options[kpEl.selectedIndex].text : '';
+  const postPlanLabel = postKpEl?.selectedIndex > 0 ? postKpEl.options[postKpEl.selectedIndex].text : '';
+  const planChanged = (_prePlanUserChanged || _postPlanUserChanged || isCustomRatio || isBeforeCustomRatio) && !!postPlanLabel;
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2883,6 +2890,9 @@ async function generateAIComment() {
         selfConsumptionRate,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
+        beforePlanLabel,
+        postPlanLabel,
+        planChanged,
       }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -3557,6 +3567,7 @@ function showSection(s) {
 // ── 実効平均単価プランは avg: プレフィックスで判別 ──
 // ══════════════════════════════════════════
 function onKyudenPlanChange() {
+  _prePlanUserChanged = true;
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const _kpNew = document.getElementById('kyuden-plan').value;
   if (_kpNew === 'kyushu_juuryo_b') document.getElementById('juuryo-amp').value = '60';
@@ -3586,6 +3597,7 @@ function onKyudenPlanChange() {
 }
 
 function onPostKyudenPlanChange() {
+  _postPlanUserChanged = true;
   _ratioPanelPlan     = null;
   isCustomRatio       = false;
   customRatios        = null;
@@ -3997,6 +4009,11 @@ let isBeforeCustomRatio = false;
 let beforeCustomRatios  = null;
 let _beforeRatioPanelPlan = null; // 導入前パネル用
 let isAfterSlidersDirty = false; // 導入後スライダーが手動操作されたか
+// AIクロージングコメントに「プラン見直し」を反映させるため、
+// スタッフが導入前／導入後プランをこのセッション中に実際に変更操作したかを記録する
+// （データ読込時の.value直接代入ではonchangeが発火しないため、ここは常にユーザー操作のみを捉える）
+let _prePlanUserChanged = false;
+let _postPlanUserChanged = false;
 
 function calcDenkiNightBaseRate(ratios) {
   const t  = KYUSHU_DENKA_NIGHT.tariff;
