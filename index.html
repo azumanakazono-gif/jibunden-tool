@@ -72,6 +72,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
   font-size: 14px; background: #fff; color: var(--text); font-family: inherit;
   line-height: 1.6; resize: vertical; transition: border-color .15s;
 }
+/* AIクロージングコメント欄：内容の高さに応じてJSで自動リサイズするため、手動リサイズ・スクロールバーは無効化 */
+#ai-comment-text { resize: none; overflow: hidden; }
 .field textarea:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 /* AIコメント欄：注意が必要な状態（コスト差マイナス／自主編集中）を見落とさないための強調表示 */
 .field textarea.ai-comment-negative { border: 2px solid #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
@@ -362,13 +364,34 @@ canvas#mini-chart { height: 220px !important; }
   animation: selfRateOverPulse 1s ease-in-out infinite;
 }
 @media (max-width: 768px) {
+  /* ── 提案モードカード：スマホでは縦幅を最小化 ── */
+  .proposal-mode-card { padding: 4px 12px 6px; }
+  .proposal-mode-card .section-title { font-size: 11px; margin-bottom: 2px; padding-bottom: 2px; }
+  .proposal-mode-bar { margin-bottom: 4px; }
+  .pm-btn { padding: 5px 4px; font-size: 11px; line-height: 1.25; }
+  #proposal-mode-desc { padding: 3px 8px; font-size: 10.5px; }
+  #wip-unlock-area { margin-top: 0; }
+  #wip-unlock-area > button { font-size: 10px; }
+
+  /* ── 太陽光の活用割合カード：スマホでは縦幅を最小化 ── */
   #solar-util-card {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
   #solar-util-card .section-title {
-    font-size: 11px;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
+    font-size: 10.5px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    gap: 4px;
+  }
+  .solar-note { font-size: 9.5px; margin: -2px 0 4px; }
+  #solar-util-card #self-rate-card,
+  #solar-util-card #surplus-rate-card {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+  #self-rate-val,
+  #surplus-rate-val {
+    font-size: 20px !important;
   }
 }
 </style>
@@ -554,7 +577,7 @@ canvas#mini-chart { height: 220px !important; }
 
     <div class="section-card" id="solar-util-card">
       <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">☀️ 太陽光の活用割合<span id="mode-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池を提案中</span></div>
-      <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。上部のハイライト表示は選択中モードの数値ですが、下部の「詳細内訳」比較エリアは太陽光＋蓄電池／太陽光のみの両方を常時表示・比較できます。</div>
+      <div class="solar-note" style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。上部のハイライト表示は選択中モードの数値ですが、下部の「詳細内訳」比較エリアは太陽光＋蓄電池／太陽光のみの両方を常時表示・比較できます。</div>
       <!-- 自家消費率 / 余剰率 横並びコンパクト表示 -->
       <div style="display:flex;gap:8px">
         <div id="self-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid var(--dg);background:var(--mg);box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
@@ -2826,6 +2849,7 @@ async function generateAIComment() {
     const data = await res.json();
     const textEl = document.getElementById('ai-comment-text');
     textEl.value = data.comment || '';
+    autoResizeAIComment();
     _aiCommentNegative = costDiffMan < 0;
     textEl.classList.toggle('ai-comment-negative', _aiCommentNegative);
     textEl.classList.remove('ai-comment-editing'); // 生成直後は「自主編集中」ではない
@@ -2879,6 +2903,7 @@ async function polishAIComment() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     textEl.value = data.comment || current;
+    autoResizeAIComment();
     textEl.classList.remove('ai-comment-editing'); // 添削済みなので「自主編集中」表示は解除（マイナス枠は維持）
     _setPolishButtonVisible(false); // AIの添削結果に戻ったので、次に自主編集するまでボタンは隠す
     statusEl.style.color = '';
@@ -2912,7 +2937,20 @@ function clearAIComment() {
   if (textEl) { textEl.value = ''; textEl.classList.remove('ai-comment-negative', 'ai-comment-editing'); }
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
   _setPolishButtonVisible(false);
+  autoResizeAIComment();
 }
+
+// AIクロージングコメント欄：入力内容の高さに応じてテキストエリアを自動リサイズし、
+// スクロールバーなしで全文が常に見える状態を保つ
+function autoResizeAIComment() {
+  const el = document.getElementById('ai-comment-text');
+  if (!el) return;
+  el.style.height = 'auto';
+  const cs = getComputedStyle(el);
+  const borderY = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  el.style.height = (el.scrollHeight + borderY) + 'px';
+}
+window.addEventListener('resize', autoResizeAIComment);
 
 // AIコメント欄をスタッフが手動編集し始めたときの処理。
 // ・本文（編集中の内容）は消さない
@@ -2925,6 +2963,7 @@ function onAICommentManualEdit() {
   const textEl = document.getElementById('ai-comment-text');
   if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
   _setPolishButtonVisible(true);
+  autoResizeAIComment();
 }
 
 // フォーム内のあらゆる数値・パッケージ・各種設定（お客様情報／システム設計／太陽光のみ設計／
@@ -3201,6 +3240,7 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra-pv-note').value = data.pkgExtraPvNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
   document.getElementById('ai-comment-text').value = data.aiClosingComment || '';
+  autoResizeAIComment();
   updateHearingUI(data);
   if (ps && PACKAGES[ps]) {
     const _pp = PACKAGES[ps];
