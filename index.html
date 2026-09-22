@@ -187,13 +187,27 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 @media (prefers-reduced-motion: reduce) {
   .diff-banner.is-negative { animation: none; }
 }
-.cost-advice-popup { margin-top:8px; padding:12px 14px; background:#fef2f2; border:2px solid #fca5a5; border-radius:10px; font-size:12px; color:#7f1d1d; animation: costAdviceIn .25s ease; }
+.cost-advice-popup {
+  position: absolute; top: 100%; right: 14px; margin-top: 10px;
+  width: 300px; max-width: calc(100vw - 32px);
+  padding: 12px 14px; background: #fff; border: 2px solid #f87171; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(127,29,29,.28); font-size: 12px; color: #7f1d1d;
+  z-index: 1002; animation: costAdviceIn .25s ease;
+}
+.cost-advice-popup::before {
+  content: ''; position: absolute; top: -8px; right: 26px; width: 14px; height: 14px;
+  background: #fff; border-left: 2px solid #f87171; border-top: 2px solid #f87171;
+  transform: rotate(45deg); border-radius: 2px 0 0 0;
+}
 .cost-advice-head { font-weight:700; font-size:13px; margin-bottom:6px; }
 .cost-advice-section { margin-top:6px; }
 .cost-advice-label { font-weight:700; margin-bottom:2px; }
 .cost-advice-popup ul { margin:0; padding-left:18px; }
 .cost-advice-popup li { margin-bottom:2px; }
 @keyframes costAdviceIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+@media (max-width: 480px) {
+  .cost-advice-popup { right: 8px; width: calc(100vw - 32px); }
+}
 .proposal-mode-card.is-negative { border-color: #f87171 !important; background: #fef2f2; animation: diffBannerBlink 1.4s ease-in-out infinite; }
 .pm-btn.is-negative:not(.active) { background: #fee2e2; color: #b91c1c; }
 .pm-btn.active.is-negative { background: #7f1d1d !important; color: #fecaca; animation: diffBannerBlink 1.4s ease-in-out infinite; }
@@ -498,6 +512,17 @@ canvas#mini-chart { height: 220px !important; }
 
     <!-- ── 提案モード選択 ── -->
     <div class="section-card proposal-mode-card">
+      <div id="cost-advice-popup" class="cost-advice-popup" style="display:none">
+        <div class="cost-advice-head">💡 AI分析：コスト差改善アドバイス</div>
+        <div class="cost-advice-section">
+          <div class="cost-advice-label">① 入力値の編集ポイント</div>
+          <ul id="cost-advice-edit"></ul>
+        </div>
+        <div class="cost-advice-section">
+          <div class="cost-advice-label">② システム構成・プラン見直し例</div>
+          <ul id="cost-advice-plan"></ul>
+        </div>
+      </div>
       <div class="section-title">🏗️ 提案モード</div>
       <div class="proposal-mode-bar">
         <button class="pm-btn active" id="pm-btn-pv_battery" onclick="setProposalMode('pv_battery')">☀️ 太陽光<br>＋蓄電池</button>
@@ -1562,17 +1587,6 @@ canvas#mini-chart { height: 220px !important; }
       <div class="diff-banner" id="diff-banner-main">
         <span class="d-label">☀️🔋 太陽光＋蓄電池：20年間のコスト差<br><span id="diff-note" style="font-size:10px;opacity:.7"></span></span>
         <span class="d-val" id="rd">-</span>
-      </div>
-      <div id="cost-advice-popup" class="cost-advice-popup" style="display:none">
-        <div class="cost-advice-head">💡 AI分析：コスト差改善アドバイス</div>
-        <div class="cost-advice-section">
-          <div class="cost-advice-label">① 入力値の編集ポイント</div>
-          <ul id="cost-advice-edit"></ul>
-        </div>
-        <div class="cost-advice-section">
-          <div class="cost-advice-label">② システム構成・プラン見直し例</div>
-          <ul id="cost-advice-plan"></ul>
-        </div>
       </div>
       <div class="diff-banner" id="diff-banner-so" style="background:#0369a1;margin-top:8px">
         <span class="d-label">☀️ 太陽光のみ：20年間のコスト差<br><span id="diff-note-so" style="font-size:10px;opacity:.7"></span></span>
