@@ -72,6 +72,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
   font-size: 14px; background: #fff; color: var(--text); font-family: inherit;
   line-height: 1.6; resize: vertical; transition: border-color .15s;
 }
+/* AIクロージングコメント欄：内容の高さに応じてJSで自動リサイズするため、手動リサイズ・スクロールバーは無効化 */
+#ai-comment-text { resize: none; overflow: hidden; }
 .field textarea:focus { outline: none; border-color: var(--lg); box-shadow: 0 0 0 3px rgba(82,183,136,.15); }
 /* AIコメント欄：注意が必要な状態（コスト差マイナス／自主編集中）を見落とさないための強調表示 */
 .field textarea.ai-comment-negative { border: 2px solid #dc2626; background: #fef2f2; box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
@@ -2847,6 +2849,7 @@ async function generateAIComment() {
     const data = await res.json();
     const textEl = document.getElementById('ai-comment-text');
     textEl.value = data.comment || '';
+    autoResizeAIComment();
     _aiCommentNegative = costDiffMan < 0;
     textEl.classList.toggle('ai-comment-negative', _aiCommentNegative);
     textEl.classList.remove('ai-comment-editing'); // 生成直後は「自主編集中」ではない
@@ -2900,6 +2903,7 @@ async function polishAIComment() {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     textEl.value = data.comment || current;
+    autoResizeAIComment();
     textEl.classList.remove('ai-comment-editing'); // 添削済みなので「自主編集中」表示は解除（マイナス枠は維持）
     _setPolishButtonVisible(false); // AIの添削結果に戻ったので、次に自主編集するまでボタンは隠す
     statusEl.style.color = '';
@@ -2933,7 +2937,20 @@ function clearAIComment() {
   if (textEl) { textEl.value = ''; textEl.classList.remove('ai-comment-negative', 'ai-comment-editing'); }
   if (statusEl) { statusEl.textContent = ''; statusEl.style.color = ''; }
   _setPolishButtonVisible(false);
+  autoResizeAIComment();
 }
+
+// AIクロージングコメント欄：入力内容の高さに応じてテキストエリアを自動リサイズし、
+// スクロールバーなしで全文が常に見える状態を保つ
+function autoResizeAIComment() {
+  const el = document.getElementById('ai-comment-text');
+  if (!el) return;
+  el.style.height = 'auto';
+  const cs = getComputedStyle(el);
+  const borderY = parseFloat(cs.borderTopWidth) + parseFloat(cs.borderBottomWidth);
+  el.style.height = (el.scrollHeight + borderY) + 'px';
+}
+window.addEventListener('resize', autoResizeAIComment);
 
 // AIコメント欄をスタッフが手動編集し始めたときの処理。
 // ・本文（編集中の内容）は消さない
@@ -2946,6 +2963,7 @@ function onAICommentManualEdit() {
   const textEl = document.getElementById('ai-comment-text');
   if (textEl && !_aiCommentNegative) textEl.classList.add('ai-comment-editing');
   _setPolishButtonVisible(true);
+  autoResizeAIComment();
 }
 
 // フォーム内のあらゆる数値・パッケージ・各種設定（お客様情報／システム設計／太陽光のみ設計／
@@ -3222,6 +3240,7 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra-pv-note').value = data.pkgExtraPvNote || '';
   document.getElementById('sys-name').value = data.sysName || '';
   document.getElementById('ai-comment-text').value = data.aiClosingComment || '';
+  autoResizeAIComment();
   updateHearingUI(data);
   if (ps && PACKAGES[ps]) {
     const _pp = PACKAGES[ps];
