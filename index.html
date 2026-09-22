@@ -261,6 +261,11 @@ canvas#mini-chart { height: 220px !important; }
 .blink-effect {
   animation: blink-pulse 0.8s ease-in-out infinite;
 }
+.reestimate-alert-banner {
+  margin-bottom: 10px; padding: 8px 12px; border-radius: 8px;
+  background: #ea580c; color: #fff; font-size: 11px; font-weight: 700;
+  cursor: pointer; animation: reest-pulse 1s ease-in-out infinite;
+}
 @keyframes savings-pop {
   0%   { transform: scale(0.95); opacity: 0.7; }
   60%  { transform: scale(1.04); opacity: 1; }
@@ -799,6 +804,9 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div id="post-plan-breakdown" style="flex:1;min-width:280px;display:block;padding:12px 14px;background:#eff6ff;border-radius:8px;border:1px solid #93c5fd">
           <div style="font-size:12px;font-weight:700;color:#1e40af;margin-bottom:10px">☀️ 【導入後】導入後の電気料金プラン</div>
+          <div id="reestimate-alert-banner" class="reestimate-alert-banner" style="display:none" onclick="reEstimateJyuryoKwh()">
+            📊 電気代から自動推定の【再推定】ボタンをクリックしてください
+          </div>
           <!-- 導入後プラン選択（最初の要素） -->
           <div style="margin-bottom:8px">
             <div style="font-size:11px;font-weight:700;color:#1e40af;margin-bottom:3px">導入後プラン <span style="font-weight:400">（太陽光切り替え後）</span></div>
@@ -2176,12 +2184,23 @@ function autoEstimateKwhFromBill(force) {
 // 後方互換エイリアス（juuryo-amp/kva onchange から呼ばれる）
 function autoEstimateJyuryoKwh(force) { autoEstimateKwhFromBill(force); }
 
+// 【再推定】ボタンが点滅中（reest-alert／blink-effectいずれか）の間、
+// 【導入後】プランカードのタイトル横に注意喚起バナーを連動表示する
+function updateReestimateAlertBanner() {
+  const banner = document.getElementById('reestimate-alert-banner');
+  const btnEl = document.getElementById('btn-reestimate');
+  if (!banner) return;
+  const isBlinking = !!btnEl && (btnEl.classList.contains('reest-alert') || btnEl.classList.contains('blink-effect'));
+  banner.style.display = isBlinking ? '' : 'none';
+}
+
 function reEstimateJyuryoKwh() {
   mkwhManualEdited = false;
   const btnEl = document.getElementById('btn-reestimate');
   if (btnEl) { btnEl.classList.remove('reest-alert'); btnEl.classList.remove('blink-effect'); }
   const warnEl = document.getElementById('mb-changed-warn');
   if (warnEl) warnEl.style.display = 'none';
+  updateReestimateAlertBanner();
   autoEstimateKwhFromBill(true);
 }
 function onMbInput() {
@@ -2193,6 +2212,7 @@ function onMbInput() {
     if (btnEl) btnEl.classList.add('reest-alert');
     const warnEl = document.getElementById('mb-changed-warn');
     if (warnEl) warnEl.style.display = '';
+    updateReestimateAlertBanner();
   }
   calc();
 }
@@ -2862,6 +2882,13 @@ async function generateAIComment() {
   const selfConsumptionRate = proposalMode === 'pv_only'
     ? (window._finalSoSelfRate ?? 0)
     : (window._finalPbSelfRate ?? 0);
+  // プラン見直し内容をAIコメントに反映するため、選択中のプラン名（表示ラベル）と、
+  // スタッフが実際に選び直したか（≠初期値のまま）を渡す
+  const kpEl = document.getElementById('kyuden-plan');
+  const postKpEl = document.getElementById('post-kyuden-plan');
+  const beforePlanLabel = kpEl?.selectedIndex > 0 ? kpEl.options[kpEl.selectedIndex].text : '';
+  const postPlanLabel = postKpEl?.selectedIndex > 0 ? postKpEl.options[postKpEl.selectedIndex].text : '';
+  const planChanged = (_prePlanUserChanged || _postPlanUserChanged || isCustomRatio || isBeforeCustomRatio) && !!postPlanLabel;
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2883,6 +2910,9 @@ async function generateAIComment() {
         selfConsumptionRate,
         warrantyYears: cfg.warrantyYears,
         proposalMode,
+        beforePlanLabel,
+        postPlanLabel,
+        planChanged,
       }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -3557,6 +3587,7 @@ function showSection(s) {
 // ── 実効平均単価プランは avg: プレフィックスで判別 ──
 // ══════════════════════════════════════════
 function onKyudenPlanChange() {
+  _prePlanUserChanged = true;
   const data = activeTab === 'hypothesis' ? hypData : custData;
   const _kpNew = document.getElementById('kyuden-plan').value;
   if (_kpNew === 'kyushu_juuryo_b') document.getElementById('juuryo-amp').value = '60';
@@ -3583,9 +3614,11 @@ function onKyudenPlanChange() {
   if (monthlyDetailOpen) _updateMonthlyTouLabels();
   const _reestBtn = document.getElementById('btn-reestimate');
   if (_reestBtn) _reestBtn.classList.add('blink-effect');
+  updateReestimateAlertBanner();
 }
 
 function onPostKyudenPlanChange() {
+  _postPlanUserChanged = true;
   _ratioPanelPlan     = null;
   isCustomRatio       = false;
   customRatios        = null;
@@ -3997,6 +4030,11 @@ let isBeforeCustomRatio = false;
 let beforeCustomRatios  = null;
 let _beforeRatioPanelPlan = null; // 導入前パネル用
 let isAfterSlidersDirty = false; // 導入後スライダーが手動操作されたか
+// AIクロージングコメントに「プラン見直し」を反映させるため、
+// スタッフが導入前／導入後プランをこのセッション中に実際に変更操作したかを記録する
+// （データ読込時の.value直接代入ではonchangeが発火しないため、ここは常にユーザー操作のみを捉える）
+let _prePlanUserChanged = false;
+let _postPlanUserChanged = false;
 
 function calcDenkiNightBaseRate(ratios) {
   const t  = KYUSHU_DENKA_NIGHT.tariff;
