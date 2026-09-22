@@ -187,26 +187,31 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 @media (prefers-reduced-motion: reduce) {
   .diff-banner.is-negative { animation: none; }
 }
+/* カード右上の角から浮き出す吹き出し。上方向にはみ出すと親.mainのoverflow:autoで
+   スクロール位置によりクリップされるため、Y方向は常に0以上（右方向のみ張り出す）に限定 */
 .cost-advice-popup {
-  position: absolute; top: 100%; right: 14px; margin-top: 10px;
-  width: 300px; max-width: calc(100vw - 32px);
+  position: absolute; top: 0; right: 0; transform: translate(18px, 0);
+  width: 300px; max-width: calc(100vw - 48px);
   padding: 12px 14px; background: #fff; border: 2px solid #f87171; border-radius: 12px;
   box-shadow: 0 8px 24px rgba(127,29,29,.28); font-size: 12px; color: #7f1d1d;
-  z-index: 1002; animation: costAdviceIn .25s ease;
+  z-index: 1002; animation: costAdviceIn .2s ease;
 }
 .cost-advice-popup::before {
-  content: ''; position: absolute; top: -8px; right: 26px; width: 14px; height: 14px;
-  background: #fff; border-left: 2px solid #f87171; border-top: 2px solid #f87171;
-  transform: rotate(45deg); border-radius: 2px 0 0 0;
+  content: ''; position: absolute; top: 16px; left: -7px; width: 14px; height: 14px;
+  background: #fff; border-left: 2px solid #f87171; border-bottom: 2px solid #f87171;
+  transform: rotate(45deg); border-radius: 0 0 0 2px;
 }
 .cost-advice-head { font-weight:700; font-size:13px; margin-bottom:6px; }
 .cost-advice-section { margin-top:6px; }
 .cost-advice-label { font-weight:700; margin-bottom:2px; }
 .cost-advice-popup ul { margin:0; padding-left:18px; }
 .cost-advice-popup li { margin-bottom:2px; }
-@keyframes costAdviceIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
-@media (max-width: 480px) {
-  .cost-advice-popup { right: 8px; width: calc(100vw - 32px); }
+@keyframes costAdviceIn { from{opacity:0; transform:translate(18px,-4px);} to{opacity:1; transform:translate(18px,0);} }
+@media (max-width: 900px) {
+  /* 横に張り出す余白が無い画面幅では、カード直下に全幅で表示する形に切り替える */
+  .cost-advice-popup { top: 100%; right: 0; transform: none; margin-top: 8px; width: 100%; max-width: none; }
+  .cost-advice-popup::before { top: -7px; left: auto; right: 24px; border-left: none; border-bottom: none; border-top: 2px solid #f87171; border-right: 2px solid #f87171; border-radius: 2px 0 0 0; }
+  @keyframes costAdviceIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
 }
 .proposal-mode-card.is-negative { border-color: #f87171 !important; background: #fef2f2; animation: diffBannerBlink 1.4s ease-in-out infinite; }
 .pm-btn.is-negative:not(.active) { background: #fee2e2; color: #b91c1c; }
@@ -2959,7 +2964,8 @@ async function polishAIComment() {
 function updateCostAdvicePopup(diffShow, ctx) {
   const popup = document.getElementById('cost-advice-popup');
   if (!popup) return;
-  if (diffShow >= 0) { popup.style.display = 'none'; return; }
+  // 「太陽光＋蓄電池」の20年コスト差専用のアドバイスのため、太陽光のみモード表示中は対象外
+  if (proposalMode === 'pv_only' || diffShow >= 0) { popup.style.display = 'none'; return; }
 
   const { sk, bk, bc, ck, sub, er, ag, dc, sale20Man } = ctx;
   const yenPerKw = sk > 0 ? Math.round(ck / sk) : 0;
