@@ -187,6 +187,32 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 @media (prefers-reduced-motion: reduce) {
   .diff-banner.is-negative { animation: none; }
 }
+/* カード右上の角から浮き出す吹き出し。上方向にはみ出すと親.mainのoverflow:autoで
+   スクロール位置によりクリップされるため、Y方向は常に0以上（右方向のみ張り出す）に限定 */
+.cost-advice-popup {
+  position: absolute; top: 0; right: 0; transform: translate(18px, 0);
+  width: 300px; max-width: calc(100vw - 48px);
+  padding: 12px 14px; background: #fff; border: 2px solid #f87171; border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(127,29,29,.28); font-size: 12px; color: #7f1d1d;
+  z-index: 1002; animation: costAdviceIn .2s ease;
+}
+.cost-advice-popup::before {
+  content: ''; position: absolute; top: 16px; left: -7px; width: 14px; height: 14px;
+  background: #fff; border-left: 2px solid #f87171; border-bottom: 2px solid #f87171;
+  transform: rotate(45deg); border-radius: 0 0 0 2px;
+}
+.cost-advice-head { font-weight:700; font-size:13px; margin-bottom:6px; }
+.cost-advice-section { margin-top:6px; }
+.cost-advice-label { font-weight:700; margin-bottom:2px; }
+.cost-advice-popup ul { margin:0; padding-left:18px; }
+.cost-advice-popup li { margin-bottom:2px; }
+@keyframes costAdviceIn { from{opacity:0; transform:translate(18px,-4px);} to{opacity:1; transform:translate(18px,0);} }
+@media (max-width: 900px) {
+  /* 横に張り出す余白が無い画面幅では、カード直下に全幅で表示する形に切り替える */
+  .cost-advice-popup { top: 100%; right: 0; transform: none; margin-top: 8px; width: 100%; max-width: none; }
+  .cost-advice-popup::before { top: -7px; left: auto; right: 24px; border-left: none; border-bottom: none; border-top: 2px solid #f87171; border-right: 2px solid #f87171; border-radius: 2px 0 0 0; }
+  @keyframes costAdviceIn { from{opacity:0; transform:translateY(-4px);} to{opacity:1; transform:translateY(0);} }
+}
 .proposal-mode-card.is-negative { border-color: #f87171 !important; background: #fef2f2; animation: diffBannerBlink 1.4s ease-in-out infinite; }
 .pm-btn.is-negative:not(.active) { background: #fee2e2; color: #b91c1c; }
 .pm-btn.active.is-negative { background: #7f1d1d !important; color: #fecaca; animation: diffBannerBlink 1.4s ease-in-out infinite; }
@@ -491,6 +517,17 @@ canvas#mini-chart { height: 220px !important; }
 
     <!-- ── 提案モード選択 ── -->
     <div class="section-card proposal-mode-card">
+      <div id="cost-advice-popup" class="cost-advice-popup" style="display:none">
+        <div class="cost-advice-head">💡 AI分析：コスト差改善アドバイス</div>
+        <div class="cost-advice-section">
+          <div class="cost-advice-label">① 入力値の編集ポイント</div>
+          <ul id="cost-advice-edit"></ul>
+        </div>
+        <div class="cost-advice-section">
+          <div class="cost-advice-label">② システム構成・プラン見直し例</div>
+          <ul id="cost-advice-plan"></ul>
+        </div>
+      </div>
       <div class="section-title">🏗️ 提案モード</div>
       <div class="proposal-mode-bar">
         <button class="pm-btn active" id="pm-btn-pv_battery" onclick="setProposalMode('pv_battery')">☀️ 太陽光<br>＋蓄電池</button>
@@ -2919,6 +2956,37 @@ async function polishAIComment() {
   } finally {
     updateRealPptxBtnState();
   }
+}
+
+// ☀️🔋太陽光＋蓄電池：20年コスト差がマイナスの間だけ表示する動的アドバイスポップアップ。
+// 現在の入力値からヒューリスティックで①編集ポイント／②プラン見直し例を都度生成し、
+// プラスに改善された時点で自動的に非表示へ戻す。
+function updateCostAdvicePopup(diffShow, ctx) {
+  const popup = document.getElementById('cost-advice-popup');
+  if (!popup) return;
+  // 「太陽光＋蓄電池」の20年コスト差専用のアドバイスのため、太陽光のみモード表示中は対象外
+  if (proposalMode === 'pv_only' || diffShow >= 0) { popup.style.display = 'none'; return; }
+
+  const { sk, bk, bc, ck, sub, er, ag, dc, sale20Man } = ctx;
+  const yenPerKw = sk > 0 ? Math.round(ck / sk) : 0;
+
+  const edits = [];
+  if (yenPerKw > 33) edits.push(`工事費用（現在 約${fmt(yenPerKw)}万円/kW）が目安（25〜30万円/kW程度）より高くなっていないかご確認ください`);
+  if (bk > 0 && sk > 0 && (bk / sk) > 3) edits.push(`太陽光容量（${sk}kW）に対して蓄電池容量（${bk}kWh）が大きめです。実使用量に見合っているかご確認ください`);
+  if (sub === 0) edits.push('補助金が未入力です。対象となる補助金の適用漏れがないかご確認ください');
+  if (er === 0) edits.push('電気代上昇率が0%のままです。実勢に近い上昇率（例：年1〜3%）を入力すると経済メリットがより正確に反映されます');
+  if (sale20Man === 0 && ag > dc) edits.push('売電単価が未設定です。余剰電力の売電収入を入力するとコスト差が改善する場合があります');
+  if (!edits.length) edits.push('工事費用・蓄電池容量・上昇率など、各入力値が実態と合っているか改めてご確認ください');
+
+  const needMan = Math.abs(diffShow);
+  const plans = [];
+  if (bk > 0) plans.push('蓄電池容量を1ランク下げる、または「太陽光のみプラン」への変更をご検討ください');
+  plans.push('分割払い（ローン）を活用し、初期費用の負担感を平準化するプランもご提案いただけます');
+  plans.push(`目安として、あと約${fmt(needMan)}万円の初期費用削減・値引き・補助金が確保できればコスト差はプラスに転じます`);
+
+  document.getElementById('cost-advice-edit').innerHTML = edits.map(t => `<li>${t}</li>`).join('');
+  document.getElementById('cost-advice-plan').innerHTML = plans.map(t => `<li>${t}</li>`).join('');
+  popup.style.display = '';
 }
 
 // 直近に生成したAIコメントのコスト差がマイナスだったか（テキストエリアの警告枠の維持に使う）
@@ -5734,6 +5802,7 @@ function calc() {
   document.getElementById('rd').textContent = '約'+diffShow+'万円';
   document.getElementById('diff-banner-main')?.classList.toggle('is-negative', diffShow < 0);
   window._simCostDiffPB = diffShow;
+  updateCostAdvicePopup(diffShow, { sk, bk, bc, ck: v('ck'), sub: subsidyAmount, er, ag, dc, sale20Man: _sale20Man });
 
   // ── Solar Only バー計算 ──
   (function calcSolarOnlyBar() {
