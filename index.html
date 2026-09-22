@@ -362,13 +362,34 @@ canvas#mini-chart { height: 220px !important; }
   animation: selfRateOverPulse 1s ease-in-out infinite;
 }
 @media (max-width: 768px) {
+  /* ── 提案モードカード：スマホでは縦幅を最小化 ── */
+  .proposal-mode-card { padding: 4px 12px 6px; }
+  .proposal-mode-card .section-title { font-size: 11px; margin-bottom: 2px; padding-bottom: 2px; }
+  .proposal-mode-bar { margin-bottom: 4px; }
+  .pm-btn { padding: 5px 4px; font-size: 11px; line-height: 1.25; }
+  #proposal-mode-desc { padding: 3px 8px; font-size: 10.5px; }
+  #wip-unlock-area { margin-top: 0; }
+  #wip-unlock-area > button { font-size: 10px; }
+
+  /* ── 太陽光の活用割合カード：スマホでは縦幅を最小化 ── */
   #solar-util-card {
-    padding: 8px 12px;
+    padding: 6px 10px;
   }
   #solar-util-card .section-title {
-    font-size: 11px;
-    margin-bottom: 6px;
-    padding-bottom: 4px;
+    font-size: 10.5px;
+    margin-bottom: 4px;
+    padding-bottom: 3px;
+    gap: 4px;
+  }
+  .solar-note { font-size: 9.5px; margin: -2px 0 4px; }
+  #solar-util-card #self-rate-card,
+  #solar-util-card #surplus-rate-card {
+    padding: 6px 8px !important;
+    gap: 6px !important;
+  }
+  #self-rate-val,
+  #surplus-rate-val {
+    font-size: 20px !important;
   }
 }
 </style>
@@ -554,7 +575,7 @@ canvas#mini-chart { height: 220px !important; }
 
     <div class="section-card" id="solar-util-card">
       <div class="section-title" style="display:flex;align-items:center;flex-wrap:wrap;gap:6px">☀️ 太陽光の活用割合<span id="mode-badge" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:#dcfce7;color:#166534;white-space:nowrap">☀️🔋 太陽光＋蓄電池を提案中</span></div>
-      <div style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。上部のハイライト表示は選択中モードの数値ですが、下部の「詳細内訳」比較エリアは太陽光＋蓄電池／太陽光のみの両方を常時表示・比較できます。</div>
+      <div class="solar-note" style="font-size:11px;color:var(--muted);margin:-4px 0 10px">※値の変更は各モード内で行ってください。上部のハイライト表示は選択中モードの数値ですが、下部の「詳細内訳」比較エリアは太陽光＋蓄電池／太陽光のみの両方を常時表示・比較できます。</div>
       <!-- 自家消費率 / 余剰率 横並びコンパクト表示 -->
       <div style="display:flex;gap:8px">
         <div id="self-rate-card" style="flex:1;border-radius:10px;padding:8px 12px;border:2px solid var(--dg);background:var(--mg);box-shadow:0 2px 8px rgba(0,0,0,.10);display:flex;align-items:center;gap:10px">
