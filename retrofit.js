@@ -159,7 +159,7 @@
       saveCustomer();toast('後付け専用の提案書を生成しました');
     } catch(e) {toast(e.message,'error');} finally {button.disabled=false;}
   }
-  panel.addEventListener('input',()=>{render();autoSaveToCurrent();});
+  panel.addEventListener('input',()=>{render();autoSaveImmediate();});
   doc.getElementById('rt-pptx').addEventListener('click',pptx);
   doc.getElementById('rt-save').addEventListener('click',()=>exportFormData());
   root.Retrofit={read,restore,render,pptx,calculate,toggle(active){doc.body.classList.toggle('retrofit-mode',active);}};
