@@ -1,14 +1,16 @@
 const {test}=require('node:test');
 const assert=require('node:assert/strict');
-const {calculate,defaults}=require('../retrofit.js');
+const testModule={exports:{}};
+new Function('module',require('node:fs').readFileSync(require('node:path').join(__dirname,'../retrofit.js'),'utf8'))(testModule);
+const {calculate,defaults}=testModule.exports;
 const sample={...defaults,generation:6000,exportKwh:4000,importKwh:4800,bill:160000,buyRate:30,sellRate:8,capacity:10,reserve:0,efficiency:90,matching:100,nightShare:100,days:365,cost:100,years:15,degradation:0};
 test('売電機会損失と往復損失を控除、既存の直接自家消費は加算しない',()=>{
  const r=calculate(sample);assert.deepEqual(r.errors,[]);
- assert.equal(r.first.charge,3650);assert.equal(r.first.discharge,3285);
- assert.equal(r.first.saving,98550);assert.equal(r.first.lostSales,29200);
- assert.equal(r.first.net,69350);assert.equal(r.cumulative,40250);
- assert.equal(r.direct,2000);assert.equal(r.first.importAfter,1515);assert.equal(r.first.exportAfter,350);
- assert.equal(r.payback,1000000/69350);
+ assert.equal(r.first.charge,4000);assert.equal(r.first.discharge,3600);
+ assert.equal(r.first.saving,108000);assert.equal(r.first.lostSales,32000);
+ assert.equal(r.first.net,76000);assert.equal(r.cumulative,140000);
+ assert.equal(r.direct,2000);assert.equal(r.first.importAfter,1200);assert.equal(r.first.exportAfter,0);
+ assert.equal(r.payback,1000000/76000);
 });
 test('FIT終了前後で売電機会損失を変更する',()=>{
  const r=calculate({...sample,fitYears:2,fitRate:48});

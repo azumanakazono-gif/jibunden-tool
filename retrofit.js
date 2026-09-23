@@ -10,7 +10,7 @@
     ['sellRate','卒FIT後の売電単価','円/kWh',0,null,''],
     ['fitYears','FIT残存年数（卒FIT済みは0）','年',0,20,0],
     ['fitRate','FIT期間中の売電単価','円/kWh',0,null,0],
-    ['capacity','蓄電池の実効容量（公称容量ではありません）','kWh',0,null,''],
+    ['capacity','蓄電池の実効容量（放電側・公称容量ではありません）','kWh',0,null,''],
     ['reserve','停電用に確保する容量割合','%',0,100,20],
     ['efficiency','充放電の往復効率（仮定）','%',1,100,90],
     ['matching','余剰電力のうち充電できる割合（仮定）','%',0,100,70],
@@ -49,9 +49,9 @@
     for (let year = 1; year <= d.years; year++) {
       const sellRate = year <= d.fitYears ? d.fitRate : d.sellRate;
       const usable = d.capacity * (1 - d.reserve / 100) * Math.pow(1 - d.degradation / 100, year - 1);
-      // AC側の充電電力量を基準に往復損失を1回だけ計上。
+      // 実効容量は放電側。充電必要量に往復損失を1回だけ計上。
       const discharge = Math.min(d.exportKwh * d.matching / 100 * efficiency,
-        usable * d.days * efficiency, d.importKwh * d.nightShare / 100, d.bill / d.buyRate);
+        usable * d.days, d.importKwh * d.nightShare / 100, d.bill / d.buyRate);
       const charge = discharge / efficiency;
       const saving = discharge * d.buyRate, lostSales = charge * sellRate;
       const replacement = year === d.replacementYear ? d.replacementCost * 10000 : 0;
@@ -86,7 +86,7 @@
   panel.id = 'retrofit-panel'; panel.className = 'section-card';
   const input = f => `<div class="field"><label for="rt-${f[0]}">${f[1]}（${f[2]}）</label><input id="rt-${f[0]}" type="number" min="${f[3]}" ${f[4]===null?'':`max="${f[4]}"`} step="${['fitYears','years','days','replacementYear'].includes(f[0])?'1':'any'}" value="${f[5]}" placeholder="実績・見積値を入力"></div>`;
   const group = (title,start,end) => `<h3>${title}</h3><div class="rt-grid">${fields.slice(start,end).map(input).join('')}</div>`;
-  panel.innerHTML = `<div class="section-title">🔋 卒FIT・蓄電池後付けの追加効果</div><p style="font-size:13px;line-height:1.8">比較基準は「既設太陽光をそのまま使う場合」です。直近12か月の実績と、追加する蓄電池の条件を入力してください。</p><small>ロック解除中の検証用機能です。初期表示される割合・年数は試算上の仮定で、メーカー保証値ではありません。</small>${group('1. 既設太陽光と現在の買電・売電',0,8)}<small>買電量は太陽光導入済みの現在の実績を入力。買電単価には放電で回避できる従量料金・燃料費調整・再エネ賦課金を含め、基本料金を含めないでください。FIT残存年数は整数年の概算です。卒FIT後の単価は契約先の条件を確認して入力してください。</small>${group('2. 蓄電池の運転条件',8,14)}<small>実効容量はメーカー資料で確認した利用可能エネルギーを入力。ここでは充電側の容量として扱い、往復効率を1回適用します。放電側保証値を使う場合は計算基準を確認してください。停電用確保分を日常の節約計算から除外します。</small>${group('3. 追加費用と試算期間',14,21)}<small>既設太陽光の購入費用を加算しないでください。PCS交換が必要な場合は追加費用に含めてください。将来交換費を計上しても容量の回復は見込まない保守的な試算です。</small><h3>4. 導入前後の比較</h3><div id="rt-result" aria-live="polite"></div><div class="rt-actions"><button type="button" class="gen-btn" id="rt-pptx">後付け専用の提案書を出力</button><button type="button" class="gen-btn" id="rt-save">入力データを保存</button></div><details><summary>設置前に確認する項目</summary><ul style="padding:14px 20px;font-size:13px;line-height:1.9"><li>既設PV・PCSの型式、設置年、保証、蓄電池との接続可否</li><li>単機能型／ハイブリッド型、PCS交換範囲、既設保証への影響</li><li>全負荷／特定負荷、100V／200V、停電時の出力・使用可能機器</li><li>設置場所、配線経路、基礎、追加工事、系統連系手続き</li><li>FIT終了時期、売電契約、補助金条件、容量保証・交換費</li></ul></details><small>${notes}</small>`;
+  panel.innerHTML = `<div class="section-title">🔋 卒FIT・蓄電池後付けの追加効果</div><p style="font-size:13px;line-height:1.8">比較基準は「既設太陽光をそのまま使う場合」です。直近12か月の実績と、追加する蓄電池の条件を入力してください。</p><small>ロック解除中の検証用機能です。初期表示される割合・年数は試算上の仮定で、メーカー保証値ではありません。</small>${group('1. 既設太陽光と現在の買電・売電',0,8)}<small>買電量は太陽光導入済みの現在の実績を入力。買電単価には放電で回避できる従量料金・燃料費調整・再エネ賦課金を含め、基本料金を含めないでください。FIT残存年数は整数年の概算です。卒FIT後の単価は契約先の条件を確認して入力してください。</small>${group('2. 蓄電池の運転条件',8,14)}<small>実効容量はメーカー資料で確認した放電側の利用可能エネルギーを入力。充電に必要な電力量へ往復損失を1回反映します。停電用確保分を日常の節約計算から除外します。</small>${group('3. 追加費用と試算期間',14,21)}<small>既設太陽光の購入費用を加算しないでください。PCS交換が必要な場合は追加費用に含めてください。将来交換費を計上しても容量の回復は見込まない保守的な試算です。</small><h3>4. 導入前後の比較</h3><div id="rt-result" aria-live="polite"></div><div class="rt-actions"><button type="button" class="gen-btn" id="rt-pptx">後付け専用の提案書を出力</button><button type="button" class="gen-btn" id="rt-save">入力データを保存</button></div><details><summary>設置前に確認する項目</summary><ul style="padding:14px 20px;font-size:13px;line-height:1.9"><li>既設PV・PCSの型式、設置年、保証、蓄電池との接続可否</li><li>単機能型／ハイブリッド型、PCS交換範囲、既設保証への影響</li><li>全負荷／特定負荷、100V／200V、停電時の出力・使用可能機器</li><li>設置場所、配線経路、基礎、追加工事、系統連系手続き</li><li>FIT終了時期、売電契約、補助金条件、容量保証・交換費</li></ul></details><small>${notes}</small>`;
   customer.after(panel);
   function read() { return Object.fromEntries(fields.map(f => [f[0],doc.getElementById('rt-'+f[0]).value])); }
   function restore(data) { fields.forEach(f=>{doc.getElementById('rt-'+f[0]).value = data?.[f[0]] ?? defaults[f[0]];}); }

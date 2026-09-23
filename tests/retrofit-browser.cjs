@@ -23,7 +23,7 @@ const fs=require('fs'); const assert=require('node:assert/strict');
  const d={generation:6000,exportKwh:4000,importKwh:4800,bill:160000,buyRate:30,sellRate:8,capacity:10,reserve:0,efficiency:90,matching:100,nightShare:100,days:365,cost:100,years:15,degradation:0};
  for(const [k,v] of Object.entries(d))await page.locator('#rt-'+k).fill(String(v));
  await page.locator('#cn').fill('後付け検証');
- assert((await page.locator('#rt-result').innerText()).includes('69,350'));
+ assert((await page.locator('#rt-result').innerText()).includes('76,000'));
  await page.waitForTimeout(400);
  const stored=await page.evaluate(()=>JSON.parse(localStorage.getItem('jibunden_current')));
  assert.equal(stored.batteryRetrofit.sellRate,'8');
