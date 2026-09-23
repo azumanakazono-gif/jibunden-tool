@@ -1,0 +1,40 @@
+name: 電気料金単価 自動更新
+
+on:
+  schedule:
+    # 毎週月曜 6:00 JST（= 日曜 21:00 UTC）
+    - cron: '0 21 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-electricity-rates
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: 九電・新電力の最新単価を取得して反映
+        run: node scripts/update-electricity-rates.mjs
+
+      - name: 変更があればコミット
+        run: |
+          if git diff --quiet -- index.html data/electricity-rates.json; then
+            echo "単価に変更はありません"
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add index.html data/electricity-rates.json
+          git commit -m "電気料金単価を自動更新 ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
+          git push

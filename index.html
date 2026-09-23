@@ -2077,9 +2077,13 @@ function effectiveBatteryKwh(nominalKwh) {
 }
 
 // ── 電気単価 調整額（再エネ賦課金 + 燃料費調整額）──
-const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2025年度）円/kWh
-const FUEL_ADJUST  = 1.39; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
+const SAIENE_LEVY  = 4.18; // 再エネ賦課金（2026年度）円/kWh
+const FUEL_ADJUST  = 1.86; // 燃料費調整額（円/kWh）※変更はここ1箇所のみ
 const ADJUSTMENT_UNIT_PRICE = SAIENE_LEVY + FUEL_ADJUST;
+// ── 新電力 標準家庭プラン 実質単価（円/kWh・賦課金/燃調込）キー＝プラン選択値 ──
+// ※上記の単価定数と合わせて scripts/update-electricity-rates.mjs が毎週自動更新
+const SHIN_DENRYOKU_UP = { '29': 29.47, '30': 30.47, '32': 32.47 };
+function numericPlanUp(kp) { return SHIN_DENRYOKU_UP[kp] ?? parseFloat(kp); }
 const JUURYO_B_KOZA_DISCOUNT = 55; // 従量電灯B 口座振替割引（一律・円）
 
 // ── 導入前 固定購入単価（13,317円 ÷ 400kWh の逆算値で固定）──
@@ -2170,7 +2174,7 @@ function autoEstimateKwhFromBill(force) {
     est = estimateJyuryoKwhFromBill(mb, kp, basic);
   } else {
     const isTOU = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
-    const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (parseFloat(kp) || 30);
+    const planUp = isTOU ? (calcBeforeEffectiveUnitPrice(kp) || 30) : (numericPlanUp(kp) || 30);
     est = Math.max(1, Math.min(3000, Math.round(mb / planUp)));
   }
   if (est <= 0) return;
@@ -2240,7 +2244,7 @@ function onMkwhInput() {
       }
     } else {
       const isTOUkp = kp === 'kyushu_denka_night' || kp === 'kyushu_kiji' || kp === 'kyushu_ohisama';
-      const planUp = isTOUkp ? (calcBeforeEffectiveUnitPrice(kp) || 0) : (parseFloat(kp) || 0);
+      const planUp = isTOUkp ? (calcBeforeEffectiveUnitPrice(kp) || 0) : (numericPlanUp(kp) || 0);
       if (planUp > 0) document.getElementById('mb').value = Math.round(kwh * planUp);
     }
   }
@@ -3649,7 +3653,7 @@ function renderPostPlanBreakdown() {
   const remainKwh = Math.max(0, annualKwh - selfKwh);
   const post_up = postKp === 'kyushu_ohisama' || postKp === 'kyushu_denka_night' || postKp === 'kyushu_kiji'
     ? (calcEffectiveUnitPrice(postKp) || 25)
-    : (parseFloat(postKp) > 0 ? parseFloat(postKp) : 30);
+    : (numericPlanUp(postKp) > 0 ? numericPlanUp(postKp) : 30);
   _updatePostPlanBreakdown(postKp, post_up, remainKwh);
 }
 
@@ -4318,7 +4322,7 @@ function _numericPlanLabel(kp) {
 
 function _calcBeforeGrand(kp, mkwh) {
   if (!mkwh || mkwh <= 0) return 0;
-  const numUp = parseFloat(kp);
+  const numUp = numericPlanUp(kp);
   if (numUp > 0) return Math.round(mkwh * numUp);
   if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') {
     return _juuryoGrandTotal(kp, mkwh);
@@ -4333,7 +4337,7 @@ function _calcBeforeGrand(kp, mkwh) {
 function _updateBeforePriceBreakdown(kp) {
   const bodyEl = document.getElementById('before-price-breakdown-body');
   if (!bodyEl) return;
-  if (parseFloat(kp) > 0) { bodyEl.innerHTML = ''; return; }
+  if (numericPlanUp(kp) > 0) { bodyEl.innerHTML = ''; return; }
   const ratios  = getBeforeEffectiveRatios(kp);
   if (!ratios) { bodyEl.innerHTML = ''; return; }
   const isDenka = kp === 'kyushu_denka_night';
@@ -4403,7 +4407,7 @@ function _updateBeforePlanBreakdown(kp) {
   const fxContainer = (inner) =>
     `<div style="border:1px solid ${GRY};border-radius:4px;overflow:hidden;margin-bottom:6px">${inner}</div>`;
   const annualKwh = mkwh * 12;
-  const _up_n = parseFloat(kp);
+  const _up_n = numericPlanUp(kp);
   if (_up_n > 0) {
     const saieneAmt = Math.round(mkwh * SAIENE_LEVY);
     const fuelAmt   = FUEL_ADJUST > 0 ? Math.round(mkwh * FUEL_ADJUST) : 0;
@@ -5041,7 +5045,7 @@ function updatePriceStatus(data) {
     const mkwh = parseFloat(document.getElementById('mkwh').value) || 0;
     status = mkwh > 0 ? 'juuryo-ok' : 'juuryo-required';
   }
-  else { const up = parseFloat(kp)||0; status = up > 0 ? 'manual-ok' : 'manual-required'; }
+  else { const up = numericPlanUp(kp)||0; status = up > 0 ? 'manual-ok' : 'manual-required'; }
   const S = {
     'plan-required':  { bg:'#fef2f2', bd:'#fca5a5', co:'#991b1b',
       html:'🔴 電気料金プランを選択してください<br><span style="font-size:10px;font-weight:400">料金プランを選択すると、単価の自動反映・段階料金計算・手動入力案内が表示されます。</span>' },
@@ -5146,8 +5150,8 @@ function onHearingChange(data) {
       noteEl.textContent = '（概算）';
       let unitPrice = 30;
       let priceLabel = '';
-      if (kp && !kp.startsWith('avg:') && parseFloat(kp) > 0) {
-        unitPrice  = parseFloat(kp);
+      if (kp && !kp.startsWith('avg:') && numericPlanUp(kp) > 0) {
+        unitPrice  = numericPlanUp(kp);
         priceLabel = `💡 概算実質単価（目安）：${unitPrice}円/kWh を使用`;
       } else {
         priceLabel = `💡 概算実質単価（目安）：${unitPrice}円/kWh（デフォルト）を使用`;
