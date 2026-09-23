@@ -2900,7 +2900,10 @@ async function generateAIComment() {
   const postKpEl = document.getElementById('post-kyuden-plan');
   const beforePlanLabel = kpEl?.selectedIndex > 0 ? kpEl.options[kpEl.selectedIndex].text : '';
   const postPlanLabel = postKpEl?.selectedIndex > 0 ? postKpEl.options[postKpEl.selectedIndex].text : '';
-  const planChanged = (_prePlanUserChanged || _postPlanUserChanged || isCustomRatio || isBeforeCustomRatio) && !!postPlanLabel;
+  // 導入前後でプラン自体が異なる場合のみ「料金プランの見直し」に言及させる。
+  // プランが同じで時間帯別比率（自家消費の組み立て）のみを調整した場合は usageTuned として別表現にする
+  const planSwitched = !!(kpEl?.value && postKpEl?.value && kpEl.value !== postKpEl.value);
+  const usageTuned = !planSwitched && (isCustomRatio || isBeforeCustomRatio || isAfterSlidersDirty || _prePlanUserChanged || _postPlanUserChanged);
 
   btn.disabled = true;
   statusEl.textContent = '🔍 生成中...';
@@ -2924,7 +2927,8 @@ async function generateAIComment() {
         proposalMode,
         beforePlanLabel,
         postPlanLabel,
-        planChanged,
+        planSwitched,
+        usageTuned,
       }),
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
