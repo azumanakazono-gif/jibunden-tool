@@ -1,0 +1,36 @@
+name: Battery retrofit checks
+on:
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'retrofit.js'
+      - 'tests/**'
+      - '.github/workflows/test-retrofit.yml'
+permissions:
+  contents: read
+jobs:
+  retrofit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Calculation tests
+        run: node --test tests/retrofit.test.cjs
+      - name: Install browser test tools
+        run: |
+          npm install --prefix /tmp/retrofit-check playwright@1.58.2 chart.js@4.4.1 pptxgenjs@3.12.0
+          /tmp/retrofit-check/node_modules/.bin/playwright install --with-deps chromium
+      - name: Browser integration tests
+        env:
+          NODE_PATH: /tmp/retrofit-check/node_modules
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/retrofit-http.log 2>&1 &
+          node tests/retrofit-browser.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: retrofit-review
+          path: test-results/

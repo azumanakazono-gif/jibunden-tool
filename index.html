@@ -1668,6 +1668,7 @@ canvas#mini-chart { height: 220px !important; }
 <!-- ── トースト ── -->
 <div class="toast" id="toast"></div>
 
+<script src="./retrofit.js"></script>
 <script>
 // Chart.js グローバルアニメーション完全無効化
 Chart.defaults.animation = false;
@@ -1698,7 +1699,7 @@ const PROPOSAL_MODE_CONFIG = {
     ckSub: '太陽光 工事込み',
   },
   battery_only: {
-    desc: '既設の太陽光設備に蓄電池を後付けする提案です。太陽光フィールドは非表示になります。',
+    desc: '既設太陽光を継続利用する場合と蓄電池を追加する場合を比較します。卒FIT後の売電減少・充放電損失・追加費用を反映します。',
     sysTitle: '🔋 システム設計（蓄電池のみ）',
     ckLabel: '税込総工事費用（万円）',
     ckSub: '蓄電池 工事込み',
@@ -1941,6 +1942,10 @@ function doUnlock() {
 }
 
 function setProposalMode(mode) {
+  if (mode === 'battery_only' && !isEditUnlocked()) {
+    onWipModeClick(mode);
+    return;
+  }
   // 太陽光＋蓄電池⇄太陽光のみの切替でAIコメントの前提数値が変わるため、
   // 古いコメントが残って誤解を招かないよう自動でクリアする
   if (mode !== proposalMode) clearAIComment();
@@ -1953,6 +1958,12 @@ function setProposalMode(mode) {
 }
 
 function applyProposalMode() {
+  Retrofit.toggle(proposalMode === 'battery_only');
+  if (proposalMode === 'battery_only') {
+    document.getElementById('proposal-mode-desc').textContent = PROPOSAL_MODE_CONFIG.battery_only.desc;
+    Retrofit.render();
+    return;
+  }
   const cfg = PROPOSAL_MODE_CONFIG[proposalMode] || PROPOSAL_MODE_CONFIG.pv_battery;
   const hasSolar   = proposalMode !== 'battery_only';
   const hasBattery = proposalMode !== 'pv_only';
@@ -2869,6 +2880,7 @@ function buildCfg(data, lp, ly) {
  * Response: { comment: string }
  */
 async function generateAIComment() {
+  if (proposalMode === 'battery_only') return; // 新設向けAI前提を混在させない
   const btn = document.getElementById('ai-comment-btn');
   const statusEl = document.getElementById('ai-comment-status');
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
@@ -3282,6 +3294,7 @@ function updatePkgSummaryPv() {
 }
 
 function saveFormToData(data) {
+  data.batteryRetrofit = Retrofit.read();
   data.cn = document.getElementById('cn').value;
   data.fmSelect = document.getElementById('fm').value;
   data.fmCustom = document.getElementById('fm-custom').value;
@@ -3341,6 +3354,7 @@ function autoSaveToCurrent() {
   if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
   _autoSaveTimer = setTimeout(() => {
     try {
+      if (activeTab === 'hypothesis') { saveFormToData(hypData); return; }
       saveFormToData(custData);
       localStorage.setItem('jibunden_current', JSON.stringify(custData));
     } catch(e) {}
@@ -3349,12 +3363,14 @@ function autoSaveToCurrent() {
 function autoSaveImmediate() {
   if (_autoSaveTimer) clearTimeout(_autoSaveTimer);
   try {
+    if (activeTab === 'hypothesis') { saveFormToData(hypData); return; }
     saveFormToData(custData);
     localStorage.setItem('jibunden_current', JSON.stringify(custData));
   } catch(e) {}
 }
 
 function loadDataToForm(data) {
+  Retrofit.restore(data.batteryRetrofit);
   bcManualEdited = false;
   _updateBcManualUI();
   document.getElementById('cn').value = data.cn || '';
@@ -5641,6 +5657,7 @@ function calcMetrics(c) {
 }
 
 function calc() {
+  if (proposalMode === 'battery_only') { Retrofit.render(); return; }
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
   let bc=v('bc'); const bk=v('bk'), er=v('er');
   // 太陽光＋蓄電池側：自動算出中は「このシステムの年間発電量（ag）」から都度再計算
@@ -6387,6 +6404,7 @@ function renderMiniChart() {
 
 function clearForm() {
   if(!confirm('フォームをリセットしますか？')) return;
+  Retrofit.restore();
   ['cn','ls'].forEach(id=>{ const d={'cn':'○○様○○システム','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
   document.getElementById('fm').value='4人家族（夫婦＋子ども2人）';
   document.getElementById('fm-custom').value='';
@@ -6493,7 +6511,9 @@ function saveCustomer() {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
         const existing = h[existingIndex];
         
-        const isSameContent = 
+        const isSameContent =
+            (existing.proposalMode || 'pv_battery') === (base.proposalMode || 'pv_battery') &&
+            JSON.stringify(existing.batteryRetrofit || null) === JSON.stringify(base.batteryRetrofit || null) &&
             norm(existing.mb) === norm(data.mb) && 
             norm(existing.mkwh) === norm(data.mkwh) && 
             norm(existing.pkgSelect) === norm(data.pkgSelect) &&
@@ -6537,7 +6557,7 @@ function saveCustomer() {
         annualGen: data.ag,
         subsidy: data.sub,
         warranty: data.wy,
-        monthlyElectricBill: parseFloat(data.mb) || 0,
+        monthlyElectricBill: base.proposalMode === 'battery_only' ? (Number(base.batteryRetrofit?.bill) || 0) / 12 : parseFloat(data.mb) || 0,
         familyComposition: data.fm,
         lifeStyle: data.ls,
         systemDesignSolarOnly: base.systemDesignSolarOnly || null,
@@ -6651,6 +6671,7 @@ function numberedSummaryItems(items) {
 }
 
 async function generatePPTX(mode) {
+  if (proposalMode === 'battery_only') { await Retrofit.pptx(); return; }
   const outModel = mode === 'model';
   const outReal  = mode === 'real';
   saveFormToData(activeTab === 'hypothesis' ? hypData : custData);
@@ -7537,7 +7558,8 @@ window.addEventListener('DOMContentLoaded', () => {
 <script>
 // ── データエクスポート・インポート ──
 function getFormData() {
-  saveFormToData(custData);
+  const currentData = activeTab === 'hypothesis' ? hypData : custData;
+  saveFormToData(currentData);
   const monthly = [];
   for (let i = 0; i < 12; i++) {
     monthly.push({
@@ -7548,16 +7570,16 @@ function getFormData() {
       tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
     });
   }
-  const result = { ...custData, monthly, timestamp: new Date().toISOString() };
+  const result = { ...currentData, monthly, timestamp: new Date().toISOString() };
   result.paymentOptions = {
     selectedPlan:  selectedPlan,
-    interestRate:  custData.lr,
-    loanCount:     custData.lc,
-    downPayment:   custData.dp,
-    loanAmount:    custData.la2,
-    loanMethod:    custData.loanMethod,
-    loanInputMode: custData.loanInputMode,
-    lpManual:      custData.lpManual,
+    interestRate:  currentData.lr,
+    loanCount:     currentData.lc,
+    downPayment:   currentData.dp,
+    loanAmount:    currentData.la2,
+    loanMethod:    currentData.loanMethod,
+    loanInputMode: currentData.loanInputMode,
+    lpManual:      currentData.lpManual,
   };
   return result;
 }
@@ -7717,3 +7739,4 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 </script>
 </body>
 </html>
+
