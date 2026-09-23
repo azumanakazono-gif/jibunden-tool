@@ -1,0 +1,101 @@
+{
+  "description": "九州電力・新電力の単価マスタ。scripts/update-electricity-rates.mjs が毎週月曜6時(JST)に自動更新し、index.html の単価定数へ反映する。",
+  "lastChangedAt": "2026-09-23",
+  "settings": {
+    "applyGovernmentDiscount": false,
+    "updateOhisama": false
+  },
+  "sources": {
+    "juuryoB": "https://customer.kyuden.co.jp/ja/electricity/home-plan/jyuryo-b.html",
+    "kiji": "https://customer.kyuden.co.jp/ja/electricity/home-plan/kijibetsu.html",
+    "ohisama": "https://customer.kyuden.co.jp/ja/electricity/home-plan/ohisama.html",
+    "denkaNight": "https://customer.kyuden.co.jp/ja/electricity/home-plan/denka-de-night.html",
+    "fuel": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202609.html"
+  },
+  "kyushu": {
+    "saieneLevy": 4.18,
+    "saieneFiscalYear": 2026,
+    "fuel": {
+      "month": "202609",
+      "url": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202609.html",
+      "juuryo": {
+        "adjust": 1.86,
+        "net": -2.64
+      },
+      "denka": {
+        "adjust": 1.86,
+        "net": -2.64
+      }
+    },
+    "fuelAdjust": 1.86,
+    "juuryoB": {
+      "basicB": {
+        "10": 316.24,
+        "15": 474.36,
+        "20": 632.48,
+        "30": 948.72,
+        "40": 1264.96,
+        "50": 1581.2,
+        "60": 1897.44
+      },
+      "steps": [
+        18.37,
+        23.97,
+        26.97
+      ]
+    },
+    "kiji": {
+      "daytimeSummer": 33.57,
+      "daytimeOther": 27.71,
+      "living": 26.03,
+      "night": 14.59
+    },
+    "ohisama": {
+      "basic": 1888.8,
+      "raw": {
+        "ohisamaSummerWinter": 13.47,
+        "ohisamaSpringFall": 12.37,
+        "shiftSummerWinter": 35.02,
+        "shiftSpringFall": 31.84,
+        "danran": 18.37
+      },
+      "tariff": {
+        "ohisama": 16.44,
+        "peak": 37.8,
+        "ngt": 27
+      },
+      "official": {
+        "ohisama": 12.92,
+        "peak": 33.43,
+        "ngt": 18.37
+      }
+    },
+    "denkaNight": {
+      "weekdaySummerWinter": 27.63,
+      "weekdaySpringFall": 24.74,
+      "weekendSummerWinter": 22.01,
+      "weekendSpringFall": 18.61,
+      "night": 14.59
+    }
+  },
+  "shinDenryoku": {
+    "note": "basePrice は燃料費調整額・再エネ賦課金を除いた実質単価（手動管理）。unitPrice = basePrice + 再エネ賦課金 + 燃料費調整単価 を自動計算。plans のキーは index.html のプラン選択値。",
+    "plans": {
+      "29": {
+        "label": "ガス・電気セット割引プラン",
+        "basePrice": 23.43,
+        "unitPrice": 29.47
+      },
+      "30": {
+        "label": "スタンダードプラン",
+        "basePrice": 24.43,
+        "unitPrice": 30.47
+      },
+      "32": {
+        "label": "全国新電力 標準プラン",
+        "basePrice": 26.43,
+        "unitPrice": 32.47
+      }
+    }
+  }
+}
