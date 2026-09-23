@@ -6607,6 +6607,29 @@ function renderHistoryFull() {
 }
 
 // ══════════════════════════════════════════
+// 料金プランの正式名称（PPTX出力用）。選択値のコードではなく正式プラン名を返す
+const OFFICIAL_PLAN_NAMES = {
+  kyushu_juuryo_b:    { company:'九州電力', name:'従量電灯B' },
+  kyushu_juuryo_c:    { company:'九州電力', name:'従量電灯C' },
+  kyushu_kiji:        { company:'九州電力', name:'季時別電灯' },
+  kyushu_ohisama:     { company:'九州電力', name:'おひさま昼トクプラン' },
+  kyushu_denka_night: { company:'九州電力', name:'電化でナイト・セレクト' },
+  '32': { name:'全国新電力 標準プラン' },
+  '30': { name:'スタンダードプラン' },
+  '29': { name:'ガス・電気セット割引プラン' },
+  'avg:smart_gas': { name:'時間帯別・季節別プラン（請求書から平均単価算出）' },
+  'avg:denka':     { name:'オール電化・エコキュート（請求書から平均単価算出）' },
+  'avg:other':     { name:'その他プラン（請求書から平均単価算出）' },
+};
+function getOfficialPlanName(code, utilityCompany) {
+  if (!code) return '未選択';
+  const uc = (utilityCompany || '').trim();
+  const m = OFFICIAL_PLAN_NAMES[code];
+  if (!m) return uc ? `${uc}「${code}」` : code;
+  const company = m.company ? (uc && uc.includes(m.company.replace('電力','')) ? uc : m.company) : uc;
+  return company ? `${company}「${m.name}」` : `「${m.name}」`;
+}
+
 // PPTX生成
 // ══════════════════════════════════════════
 const C = {
@@ -6963,17 +6986,14 @@ async function generatePPTX(mode) {
       sl.addText("実データ",{x:8.2,y:0.17,w:1.55,h:0.56,fontSize:11,bold:true,color:C.white,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
       addBrand(sl,presR);
       const companyName = custData.utilityCompany ? custData.utilityCompany : '電力会社';
-      const planLabel = (custData.utilityCompany ? custData.utilityCompany + '　' : '') +
-        (custData.kyudenPlan
-          ? (custData.kyudenPlan.startsWith('avg:') ? '請求書から平均単価算出' : `固定単価プラン（${custData.kyudenPlan}円/kWh目安）`)
-          : '手動入力');
+      const planLabel = `現在：${getOfficialPlanName(custData.kyudenPlan, custData.utilityCompany)}\n導入後：${getOfficialPlanName(custData.postKyudenPlan, custData.utilityCompany)}`;
       const hItems=[
         {label:"ご提案名",       value:cn + '様'},
         {label:"家族構成",       value:cfg.familyComposition},
         {label:"月間電気代",     value:`¥${fmt(cfg.monthlyElectricBill)}`},
         {label:"現在の平均単価",  value:`${cfg.currentUnitPrice} 円/kWh`},
         {label:"年間消費量",     value:`${fmt(cfg.annualConsumptionKWh)} kWh`},
-        {label:"料金プラン",     value:planLabel},
+        {label:"料金プラン",     value:planLabel, fontSize:11},
       ];
       hItems.forEach((item,i)=>{
         const col=i%2, row=Math.floor(i/2);
@@ -6981,7 +7001,7 @@ async function generatePPTX(mode) {
         sl.addShape(presR.ShapeType.rect,{x,y,w:4.4,h:0.9,fill:{color:C.white},line:{color:C.lightGray},shadow:{type:"outer",blur:6,offset:2,angle:135,color:"000000",opacity:0.08}});
         sl.addShape(presR.ShapeType.rect,{x,y,w:4.4,h:0.3,fill:{color:C.paleGreen},line:{color:C.lightGreen}});
         sl.addText(item.label,{x,y,w:4.4,h:0.3,fontSize:10,bold:true,color:C.midGreen,align:"center",valign:"middle",fontFace:"Meiryo",margin:0});
-        sl.addText(item.value,{x,y:y+0.3,w:4.4,h:0.6,fontSize:14,bold:true,color:C.charcoal,align:"center",valign:"middle",fontFace:"Meiryo"});
+        sl.addText(item.value,{x,y:y+0.3,w:4.4,h:0.6,fontSize:item.fontSize||14,bold:true,color:C.charcoal,align:"center",valign:"middle",fontFace:"Meiryo"});
       });
       // 生活スタイル（横幅全体）
       const lsY=1.05+3*1.0;
