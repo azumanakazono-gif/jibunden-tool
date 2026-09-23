@@ -22,7 +22,8 @@
     ['degradation','年間の実効容量低下率（仮定）','%',0,20,2],
     ['maintenance','追加の年間維持費','円/年',0,null,0],
     ['replacementYear','交換費を計上する年（計上なしは0）','年',0,30,0],
-    ['replacementCost','上記年の追加交換費','万円',0,null,0]
+    ['replacementCost','上記年の追加交換費','万円',0,null,0],
+    ['fixedBill','年間買電料金のうち基本料金等（削減対象外）','円/年',0,null,'']
   ];
   const defaults = Object.fromEntries(fields.map(f => [f[0], f[5]]));
   const notes = '年次の概算です。発電・需要の時間差、天候、充放電出力制限は割合で簡略化しています。最終設計では30分値等で確認してください。買電・売電単価、既設PV発電量は一定と仮定し、夜間の系統充電・料金プラン変更・金利・税効果は含みません。基本料金は削減しません。既設PVの導入費・既存の直接自家消費効果は追加投資効果に含めません。';
@@ -38,6 +39,7 @@
     if (d.generation <= 0) errors.push('既設PVの年間発電量を入力してください。');
     if (d.capacity <= 0) errors.push('蓄電池の実効容量は0より大きい値にしてください。');
     if (d.buyRate <= 0) errors.push('買電従量単価は0より大きい値にしてください。');
+    if (d.fixedBill > d.bill) errors.push('基本料金等は年間買電料金以下にしてください。');
     if (d.subsidy > d.cost) errors.push('補助金が総工事費を超えています。');
     if (d.fitYears > 0 && d.fitRate <= 0) errors.push('FIT期間中の売電単価を入力してください。');
     if (d.replacementCost > 0 && (d.replacementYear < 1 || d.replacementYear > d.years)) errors.push('交換費を計上する年を試算期間内で指定してください。');
@@ -51,9 +53,9 @@
       const usable = d.capacity * (1 - d.reserve / 100) * Math.pow(1 - d.degradation / 100, year - 1);
       // 実効容量は放電側。充電必要量に往復損失を1回だけ計上。
       const discharge = Math.min(d.exportKwh * d.matching / 100 * efficiency,
-        usable * d.days, d.importKwh * d.nightShare / 100, d.bill / d.buyRate);
+        usable * d.days, d.importKwh * d.nightShare / 100, (d.bill - d.fixedBill) / d.buyRate);
       const charge = discharge / efficiency;
-      const saving = discharge * d.buyRate, lostSales = charge * sellRate;
+      const saving = Math.min(d.bill - d.fixedBill, discharge * d.buyRate), lostSales = charge * sellRate;
       const replacement = year === d.replacementYear ? d.replacementCost * 10000 : 0;
       const net = saving - lostSales - d.maintenance - replacement;
       const prev = cumulative;
@@ -85,7 +87,7 @@
   const panel = doc.createElement('section');
   panel.id = 'retrofit-panel'; panel.className = 'section-card';
   const input = f => `<div class="field"><label for="rt-${f[0]}">${f[1]}（${f[2]}）</label><input id="rt-${f[0]}" type="number" min="${f[3]}" ${f[4]===null?'':`max="${f[4]}"`} step="${['fitYears','years','days','replacementYear'].includes(f[0])?'1':'any'}" value="${f[5]}" placeholder="実績・見積値を入力"></div>`;
-  const group = (title,start,end) => `<h3>${title}</h3><div class="rt-grid">${fields.slice(start,end).map(input).join('')}</div>`;
+  const group = (title,start,end) => `<h3>${title}</h3><div class="rt-grid">${fields.slice(start,end).map(input).join('')}${start===0?input(fields[21]):''}</div>`;
   panel.innerHTML = `<div class="section-title">🔋 卒FIT・蓄電池後付けの追加効果</div><p style="font-size:13px;line-height:1.8">比較基準は「既設太陽光をそのまま使う場合」です。直近12か月の実績と、追加する蓄電池の条件を入力してください。</p><small>ロック解除中の検証用機能です。初期表示される割合・年数は試算上の仮定で、メーカー保証値ではありません。</small>${group('1. 既設太陽光と現在の買電・売電',0,8)}<small>買電量は太陽光導入済みの現在の実績を入力。買電単価には放電で回避できる従量料金・燃料費調整・再エネ賦課金を含め、基本料金を含めないでください。FIT残存年数は整数年の概算です。卒FIT後の単価は契約先の条件を確認して入力してください。</small>${group('2. 蓄電池の運転条件',8,14)}<small>実効容量はメーカー資料で確認した放電側の利用可能エネルギーを入力。充電に必要な電力量へ往復損失を1回反映します。停電用確保分を日常の節約計算から除外します。</small>${group('3. 追加費用と試算期間',14,21)}<small>既設太陽光の購入費用を加算しないでください。PCS交換が必要な場合は追加費用に含めてください。将来交換費を計上しても容量の回復は見込まない保守的な試算です。</small><h3>4. 導入前後の比較</h3><div id="rt-result" aria-live="polite"></div><div class="rt-actions"><button type="button" class="gen-btn" id="rt-pptx">後付け専用の提案書を出力</button><button type="button" class="gen-btn" id="rt-save">入力データを保存</button></div><details><summary>設置前に確認する項目</summary><ul style="padding:14px 20px;font-size:13px;line-height:1.9"><li>既設PV・PCSの型式、設置年、保証、蓄電池との接続可否</li><li>単機能型／ハイブリッド型、PCS交換範囲、既設保証への影響</li><li>全負荷／特定負荷、100V／200V、停電時の出力・使用可能機器</li><li>設置場所、配線経路、基礎、追加工事、系統連系手続き</li><li>FIT終了時期、売電契約、補助金条件、容量保証・交換費</li></ul></details><small>${notes}</small>`;
   customer.after(panel);
   function read() { return Object.fromEntries(fields.map(f => [f[0],doc.getElementById('rt-'+f[0]).value])); }
@@ -125,7 +127,7 @@
       slide('蓄電池後付けのご提案',[
         name.slice(0,80),
         `既設PV 年間発電 ${number(d.generation)} kWh ／ 売電 ${number(d.exportKwh)} kWh`,
-        `現在の年間買電 ${number(d.importKwh)} kWh ／ 買電料金 ${money(d.bill)} 円`,
+        `年間買電 ${number(d.importKwh)} kWh ／ 料金 ${money(d.bill)} 円（うち基本料金等 ${money(d.fixedBill)} 円）`,
         `買電従量単価 ${number(d.buyRate)} 円/kWh ／ 卒FIT後売電 ${number(d.sellRate)} 円/kWh`,
         `FIT残存 ${d.fitYears} 年 ／ FIT単価 ${number(d.fitRate)} 円/kWh`,
         `実効容量 ${number(d.capacity)} kWh ／ 停電用確保 ${d.reserve}%`,
