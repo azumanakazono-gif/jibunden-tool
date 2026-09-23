@@ -80,7 +80,7 @@
     sibling = sibling.nextElementSibling;
   }
   const style = doc.createElement('style');
-  style.textContent = `body.retrofit-mode .retrofit-legacy{display:none!important}#retrofit-panel{display:none}body.retrofit-mode #retrofit-panel{display:block}#retrofit-panel .rt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#retrofit-panel h3{font-size:16px;color:var(--dg);margin:22px 0 12px}#retrofit-panel small{color:var(--muted);display:block;line-height:1.6}#retrofit-panel .rt-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}#retrofit-panel .rt-kpi{padding:15px;border:1px solid var(--border);border-radius:10px;background:var(--pg)}#retrofit-panel .rt-kpi strong{display:block;font-size:20px;margin-top:7px;color:var(--dg)}#retrofit-panel table{border-collapse:collapse;width:100%;font-size:12px}#retrofit-panel th,#retrofit-panel td{padding:9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}#retrofit-panel th:first-child,#retrofit-panel td:first-child{text-align:left}#retrofit-panel .rt-error{color:#b91c1c;background:#fef2f2;padding:12px;border-radius:8px;font-size:12px;line-height:1.7}#retrofit-panel .rt-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}@media(max-width:650px){#retrofit-panel .rt-grid,#retrofit-panel .rt-kpis{grid-template-columns:1fr}#retrofit-panel .rt-kpi strong{font-size:18px}}`;
+  style.textContent = `body.retrofit-mode .retrofit-legacy,body.retrofit-mode [onclick="generatePPTX('model')"]{display:none!important}#retrofit-panel{display:none}body.retrofit-mode #retrofit-panel{display:block}#retrofit-panel .rt-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}#retrofit-panel h3{font-size:16px;color:var(--dg);margin:22px 0 12px}#retrofit-panel small{color:var(--muted);display:block;line-height:1.6}#retrofit-panel .rt-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:14px 0}#retrofit-panel .rt-kpi{padding:15px;border:1px solid var(--border);border-radius:10px;background:var(--pg)}#retrofit-panel .rt-kpi strong{display:block;font-size:20px;margin-top:7px;color:var(--dg)}#retrofit-panel table{border-collapse:collapse;width:100%;font-size:12px}#retrofit-panel th,#retrofit-panel td{padding:9px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap}#retrofit-panel th:first-child,#retrofit-panel td:first-child{text-align:left}#retrofit-panel .rt-error{color:#b91c1c;background:#fef2f2;padding:12px;border-radius:8px;font-size:12px;line-height:1.7}#retrofit-panel .rt-actions{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0}@media(max-width:650px){#retrofit-panel .rt-grid,#retrofit-panel .rt-kpis{grid-template-columns:1fr}#retrofit-panel .rt-kpi strong{font-size:18px}}`;
   doc.head.appendChild(style);
   const panel = doc.createElement('section');
   panel.id = 'retrofit-panel'; panel.className = 'section-card';
@@ -111,8 +111,9 @@
     const r=render(); if(r.errors.length)return;
     const button=doc.getElementById('rt-pptx'); button.disabled=true;
     try {
-      if (typeof root.pptxgen !== 'function') throw new Error('提案書生成ライブラリを読み込めません。通信を確認してください。');
-      const p=new root.pptxgen();p.layout='LAYOUT_WIDE';p.author='株式会社アズマ';p.subject='既設太陽光への蓄電池後付け・年次概算';p.title='卒FIT 蓄電池後付け提案';p.lang='ja-JP';
+      const Pptx = root.PptxGenJS || root.pptxgen;
+      if (typeof Pptx !== 'function') throw new Error('提案書生成ライブラリを読み込めません。通信を確認してください。');
+      const p=new Pptx();p.layout='LAYOUT_WIDE';p.author='株式会社アズマ';p.subject='既設太陽光への蓄電池後付け・年次概算';p.title='卒FIT 蓄電池後付け提案';p.lang='ja-JP';
       function slide(title, lines) {
         const s=p.addSlide();s.background={color:'FFFAF1'};
         s.addText(title,{x:.6,y:.4,w:12.1,h:.6,fontSize:24,bold:true,color:'166534',fontFace:'Meiryo'});

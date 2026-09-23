@@ -1,9 +1,11 @@
 const {chromium}=require('playwright');
 const fs=require('fs'); const assert=require('node:assert/strict');
+let activePage;
 (async()=>{
  fs.mkdirSync('test-results',{recursive:true});
  const browser=await chromium.launch({headless:true});
  const page=await browser.newPage({viewport:{width:1440,height:1000},acceptDownloads:true});
+ activePage=page;
  const errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('dialog',d=>d.accept());
  await page.route('https://**/*',async route=>{
   const u=route.request().url();
@@ -53,4 +55,4 @@ const fs=require('fs'); const assert=require('node:assert/strict');
  console.log('errors',errors);assert.deepEqual(errors,[]);
  console.log('PASS: lock, mode switch, calculation, persistence, JSON/PPTX, history, mobile');
  await browser.close();
-})().catch(e=>{console.error(e);process.exit(1)});
+})().catch(async e=>{console.error(e);if(activePage){console.error('UI message:',await activePage.locator('#toast').textContent());await activePage.screenshot({path:'test-results/failure.png',fullPage:true});}process.exit(1)});
