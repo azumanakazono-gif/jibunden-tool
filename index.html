@@ -3922,6 +3922,15 @@ function _computeDcForAg(agVal) {
   const annualConsumption = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
   return Math.round(Math.min(agVal * basis.capFactor, annualConsumption * basis.ratio));
 }
+// 太陽光＋蓄電池：蓄電池放電消費量（bc）＝ min(直接消費後の余剰発電, 昼間帯以外の需要 × 80%)
+// 昼間帯比率は朝夕（平日朝夕・シフトタイム等）の部分発電を含む _daytimeDemandBasis と共通
+function _computeBcForAg(agVal, dcVal) {
+  const basis = _daytimeDemandBasis();
+  if (!basis) return null;
+  const annualConsumption = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
+  const bcMax = Math.max(0, agVal * basis.capFactor - dcVal);
+  return Math.round(Math.min(bcMax, annualConsumption * Math.max(0, 1 - basis.ratio) * 0.80));
+}
 // ── 太陽光のみ専用：昼間直接消費量（蓄電池の充放電は一切考慮しない）──
 // 導入後の「時間帯別使用比率」の昼間帯（発電時間帯）割合を基準に、
 // 日中のリアルタイム発電と日中使用量の重なり＝min(年間使用量×昼間帯比率, 年間発電量) で完結させる
@@ -4163,6 +4172,10 @@ function _applyRatioDcBefore(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
+  if (!bcManualEdited) {
+    const _bc = _computeBcForAg(ag, parseFloat(document.getElementById('dc').value) || 0);
+    if (_bc !== null) document.getElementById('bc').value = _bc;
+  }
   _applyDcSo();
 }
 
@@ -4593,6 +4606,10 @@ function _applyRatioDc(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(annualConsumption * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
+  if (!bcManualEdited) {
+    const _bc = _computeBcForAg(ag, parseFloat(document.getElementById('dc').value) || 0);
+    if (_bc !== null) document.getElementById('bc').value = _bc;
+  }
   _applyDcSo();
 }
 
@@ -5526,7 +5543,8 @@ function _updateMeritBreakdown(dc, bc, up, totalMonthSaving) {
   document.getElementById('merit-dc-kwh').textContent = `${fmt(Math.round(dc / 12))} kWh`;
   document.getElementById('merit-bc-kwh').textContent = `${fmt(Math.round(bc / 12))} kWh`;
   if ((dc > 0 || bc > 0) && totalMonthSaving > 0) {
-    const solarBenefit   = Math.min(Math.round(dc / 12 * up), totalMonthSaving);
+    // 総削減額が kWh×単価 の合計を下回る場合（プラン変更等）は dc:bc 比で按分し、蓄電池分が0円にならないようにする
+    const solarBenefit   = Math.min(Math.round(dc / 12 * up), Math.round(totalMonthSaving * dc / (dc + bc)));
     const batteryBenefit = totalMonthSaving - solarBenefit;
     document.getElementById('merit-dc-yen').textContent = `約 ${fmt(solarBenefit)}`;
     document.getElementById('merit-bc-yen').textContent = `約 ${fmt(batteryBenefit)}`;
@@ -5675,13 +5693,19 @@ function calcMetrics(c) {
 
 function calc() {
   const mb=v('mb'),mkwh=v('mkwh'),ag=v('ag'),sk=v('sk'),wy=v('wy');
-  let bc=v('bc'); const bk=v('bk'), er=v('er');
+  const bk=v('bk'), er=v('er');
   // 太陽光＋蓄電池側：自動算出中は「このシステムの年間発電量（ag）」から都度再計算
   if (!dcManualEdited) {
     const _dcCalc = _computeDcForAg(ag);
     if (_dcCalc !== null) document.getElementById('dc').value = _dcCalc;
   }
   const dc = v('dc');
+  // 蓄電池放電消費量（bc）も自動算出中は ag・dc から都度再計算（太陽光のみ側 dc-so とは独立）
+  if (!bcManualEdited && bk > 0) {
+    const _bcCalc = _computeBcForAg(ag, dc);
+    if (_bcCalc !== null) document.getElementById('bc').value = _bcCalc;
+  }
+  let bc = v('bc');
   // 太陽光のみ側：モードに関わらず「導入後の昼間帯比率 × ag-so」の直接消費のみで個別算出（蓄電池値 dc/bc は流用しない）
   _applyDcSo();
   document.getElementById('pkg-area-so').style.display = '';
