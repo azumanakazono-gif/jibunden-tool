@@ -5717,7 +5717,7 @@ function calc() {
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
-  if (_bkEffDispEl) _bkEffDispEl.textContent = bk > 0 ? `実効 ${_bkEffVal} kWh` : '';
+  if (_bkEffDispEl) _bkEffDispEl.textContent = bk > 0 ? `実効 ${_bkEffVal.toFixed(2)} kWh` : '';
   if (bk > 0 && bc > _bkEffVal * 365) {
     if (!bcManualEdited) {
       bc = Math.round(_bkEffVal * 365);
