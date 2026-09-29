@@ -3358,6 +3358,7 @@ function autoSaveImmediate() {
 
 function loadDataToForm(data) {
   bcManualEdited = false;
+  dcSoManualEdited = !!data.dcSoManualEdited;
   _updateBcManualUI();
   document.getElementById('cn').value = data.cn || '';
   document.getElementById('fm').value = data.fmSelect || data.fm || '4人家族（夫婦＋子ども2人）';
@@ -3414,13 +3415,14 @@ function loadDataToForm(data) {
   updatePkgSummary();
   // Solar Only カード復元
   const so = data.systemDesignSolarOnly || {};
-  document.getElementById('sk-so').value  = so.sk  || 7.02;
-  document.getElementById('ck-so').value  = so.ck  || 120;
-  document.getElementById('ag-so').value  = so.ag  || 7722;
-  document.getElementById('sub-so').value = so.sub != null ? so.sub : 0;
+  // 手動入力の 0 や空（手動）選択も保持するため、未保存（null/undefined）時のみ既定値を使う
+  document.getElementById('sk-so').value  = so.sk  ?? 7.02;
+  document.getElementById('ck-so').value  = so.ck  ?? 120;
+  document.getElementById('ag-so').value  = so.ag  ?? 7722;
+  document.getElementById('sub-so').value = so.sub ?? 0;
   document.getElementById('wy-so').value  = so.wy  || 20;
-  document.getElementById('dc-so').value  = so.dc  || 2310;
-  const soKey = so.pkgSelectSo || 'pv7';
+  document.getElementById('dc-so').value  = so.dc  ?? 2310;
+  const soKey = so.pkgSelectSo ?? 'pv7';
   document.getElementById('pkg-select-so').value = soKey;
   document.getElementById('pkg-extra-so').value = so.pkgExtraSo || 0;
   document.getElementById('pkg-extra-so-note').value = so.pkgExtraSoNote || '';
@@ -3468,6 +3470,18 @@ function loadDataToForm(data) {
       if (extraFieldEl)     extraFieldEl.style.display     = '';
       if (extraNoteFieldEl) extraNoteFieldEl.style.display = '';
     }
+    updatePkgSummaryPv();
+  } else if ((data.proposalMode || 'pv_battery') === 'pv_only' && data.pkgSelectPv === '') {
+    // pv_only 手動入力：pv_battery 側パッケージ値で上書きされた sk/ag/ck を保存値で復元
+    document.getElementById('pkg-select-pv').value = '';
+    if (data.sk != null) document.getElementById('sk').value = data.sk;
+    if (data.ag != null) document.getElementById('ag').value = data.ag;
+    if (data.ck != null) document.getElementById('ck').value = data.ck;
+    document.getElementById('pkg-manual-area').style.display = '';
+    const extraFieldEl     = document.getElementById('pkg-extra-pv-field');
+    const extraNoteFieldEl = document.getElementById('pkg-extra-pv-note-field');
+    if (extraFieldEl)     extraFieldEl.style.display     = 'none';
+    if (extraNoteFieldEl) extraNoteFieldEl.style.display = 'none';
     updatePkgSummaryPv();
   }
   _updateMonthlyDetailVisibility(!!data.hasBill);
