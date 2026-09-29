@@ -3922,6 +3922,41 @@ function _computeDcForAg(agVal) {
   const annualConsumption = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
   return Math.round(Math.min(agVal * basis.capFactor, annualConsumption * basis.ratio));
 }
+// ── 太陽光のみ専用：昼間直接消費量（蓄電池の充放電は一切考慮しない）──
+// 導入後の「時間帯別使用比率」の昼間帯（発電時間帯）割合を基準に、
+// 日中のリアルタイム発電と日中使用量の重なり＝min(年間使用量×昼間帯比率, 年間発電量) で完結させる
+function _pvOnlyDaytimeRatio() {
+  const isTOU  = k => k === 'kyushu_denka_night' || k === 'kyushu_kiji' || k === 'kyushu_ohisama';
+  const kp     = document.getElementById('kyuden-plan').value;
+  const postKp = (document.getElementById('post-kyuden-plan') || {}).value || '';
+  // 導入後TOUプランの比率を優先。導入後が非TOUの場合のみ導入前TOU比率で代替
+  const effKp  = isTOU(postKp) ? postKp : (isTOU(kp) ? kp : '');
+  if (effKp) {
+    const ratios = isTOU(postKp) ? getEffectiveRatios(effKp) : getBeforeEffectiveRatios(effKp);
+    if (!ratios) return null;
+    // 昼間帯（発電時間帯）のみ：平日デイタイム＋休日(8-22時)のうち日照時間分（≒50%）／昼間／おひさまタイム
+    if (effKp === 'kyushu_denka_night') return { ratio: (ratios.day || 0) + (ratios.hol || 0) * 0.5, capFactor: 1.0 };
+    if (effKp === 'kyushu_ohisama')     return { ratio: (ratios.ohisama || 0), capFactor: 1.0 };
+    return { ratio: (ratios.day || 0), capFactor: 1.0 };
+  }
+  // 非TOU：ライフスタイル昼間使用率（天候・季節による発電と需要のズレを上限係数で考慮）
+  const rate = getDaytimeRate();
+  if (rate === null) return null;
+  return { ratio: rate, capFactor: 0.65 };
+}
+function _computeDcSoForAg(agSoVal) {
+  if (!(agSoVal > 0)) return null;
+  const basis = _pvOnlyDaytimeRatio();
+  if (!basis) return null;
+  const annualConsumption = (parseFloat(document.getElementById('mkwh').value) || 0) * 12;
+  return Math.round(Math.min(agSoVal * basis.capFactor, annualConsumption * basis.ratio));
+}
+function _applyDcSo() {
+  if (dcSoManualEdited) return;
+  const agSo = parseFloat(document.getElementById('ag-so').value) || 0;
+  const val  = _computeDcSoForAg(agSo);
+  if (val !== null) document.getElementById('dc-so').value = val;
+}
 
 function applyDaytimeRate() {
   const kp     = document.getElementById('kyuden-plan').value;
@@ -3949,7 +3984,7 @@ function applyDaytimeRate() {
     document.getElementById('bc').value = bc;
   }
   var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
-  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(agSo * 0.65, annualConsumption * rate));
+  _applyDcSo();
   calc();
 }
 
@@ -4128,8 +4163,7 @@ function _applyRatioDcBefore(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
-  var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
-  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(mkwh * 12 * daytimeDemandRatio, agSo));
+  _applyDcSo();
 }
 
 function updateRatioPanelVisibility() {
@@ -4559,8 +4593,7 @@ function _applyRatioDc(kp) {
   const ag   = parseFloat(document.getElementById('ag').value) || 0;
   const dc   = Math.round(Math.min(annualConsumption * daytimeDemandRatio, ag));
   if (!dcManualEdited) document.getElementById('dc').value = dc;
-  var agSo = parseFloat(document.getElementById('ag-so').value) || 0;
-  if (agSo > 0) document.getElementById('dc-so').value = Math.round(Math.min(annualConsumption * daytimeDemandRatio, agSo));
+  _applyDcSo();
 }
 
 function updateRatioStyleStatus() {
@@ -5649,13 +5682,8 @@ function calc() {
     if (_dcCalc !== null) document.getElementById('dc').value = _dcCalc;
   }
   const dc = v('dc');
-  // 太陽光のみ側：太陽光のみモードがアクティブな場合は dc-so を独立入力として保持する。
-  // それ以外は「太陽光のみの年間発電量（ag-so）」から個別に算出する（算出不能時のみ dc を暫定値として流用）
-  if (proposalMode !== 'pv_only' && !dcSoManualEdited) {
-    const agSo = parseFloat(document.getElementById('ag-so').value) || 0;
-    const _dcSoCalc = agSo > 0 ? _computeDcForAg(agSo) : null;
-    document.getElementById('dc-so').value = _dcSoCalc !== null ? _dcSoCalc : dc;
-  }
+  // 太陽光のみ側：モードに関わらず「導入後の昼間帯比率 × ag-so」の直接消費のみで個別算出（蓄電池値 dc/bc は流用しない）
+  _applyDcSo();
   document.getElementById('pkg-area-so').style.display = '';
   document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${sk} kW)` : '';
   var _skSoTitle = parseFloat(document.getElementById('sk-so').value) || 0;
