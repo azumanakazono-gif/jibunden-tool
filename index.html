@@ -6548,11 +6548,11 @@ function saveCustomer() {
         ls: base.ls || ''
     };
 
-    if (!data.cn) return;
+    // ご提案名が未入力でも履歴に残す（名称未設定として保存）
+    if (!String(data.cn).trim()) data.cn = '名称未設定';
 
     const cleanName = str => (str || "").replace(/（内容変更版）.*$/, "").replace(/[\s　]+/g, "").trim();
     const currentBaseName = cleanName(data.cn);
-    if (currentBaseName === "") return;
 
     const h = getHistory();
     const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
@@ -6571,12 +6571,8 @@ function saveCustomer() {
             (norm(existing.sub) === norm(data.sub) || norm(existing.subsidy) === norm(data.sub)) &&
             (norm(existing.wy) === norm(data.wy) || norm(existing.warranty) === norm(data.wy));
 
-        if (isSameContent) {
-            console.log("内容が完全に一致するため、処理をスキップします。");
-            return; 
-        }
-
-        const isOverwrite = confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
+        // 内容が同一なら確認なしで上書き（保存日時を更新し、履歴の先頭へ移動）
+        const isOverwrite = isSameContent || confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
         
         if (isOverwrite) {
             h.splice(existingIndex, 1);
@@ -6615,13 +6611,19 @@ function saveCustomer() {
     h.unshift(entry);
     if (h.length > 30) h.pop();
     
-    localStorage.setItem('jibunden_history', JSON.stringify(h));
-    
-    if (typeof renderSidebarHistory === 'function') {
-        renderSidebarHistory();
-    } else if (typeof refreshHistoryDOM === 'function') {
-        refreshHistoryDOM();
+    try {
+        localStorage.setItem('jibunden_history', JSON.stringify(h));
+    } catch (e) {
+        console.error("履歴保存エラー:", e);
+        toast('履歴の保存に失敗しました（保存容量を確認してください）', 'error');
+        return;
     }
+    autoSaveImmediate(); // 現在の入力内容（jibunden_current）も即時保存
+
+    // 左サイドバー「最近の履歴」と履歴一覧を即時再描画
+    renderSidebarHistory();
+    renderHistoryFull();
+    toast(`「${entry.customerName}」を保存しました`);
 }
 
 function loadCustomer(id) {
