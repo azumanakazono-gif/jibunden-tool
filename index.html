@@ -1139,7 +1139,7 @@ canvas#mini-chart { height: 220px !important; }
             <span class="sale-edited-badge" id="sale-edited-badge">手動変更</span>
             <button id="sale-reset-btn" onclick="resetSalePrice()" style="display:none;margin-left:6px;padding:2px 8px;border-radius:10px;font-size:10px;font-weight:700;border:1px solid #fed7aa;background:#fff7ed;color:#c2410c;cursor:pointer;font-family:inherit">自動値に戻す</button>
           </label>
-          <input type="number" id="sale-price" value="24" min="1" max="50" step="0.5"
+          <input type="number" id="sale-price" value="24" min="0" max="50" step="0.5"
             style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:15px;background:#fff;font-family:inherit;max-width:160px;margin-top:4px"
             oninput="onSalePriceInput()">
           <div id="sale-price-note" style="font-size:11px;color:var(--muted);margin-top:3px"></div>
@@ -1819,7 +1819,7 @@ function onSaleModeChange(mode) {
     noteEl.textContent = '非FIT（卒FIT含む）の買取目安単価（電力会社によって異なります）';
     _updateFitSteppedNote();
   } else {
-    document.getElementById('sale-price').value = '';
+    document.getElementById('sale-price').value = 0;
     document.getElementById('sale-auto-badge').style.display  = 'none';
     document.getElementById('sale-edited-badge').style.display = 'none';
     document.getElementById('sale-reset-btn').style.display   = 'none';
@@ -3312,7 +3312,9 @@ function saveFormToData(data) {
   data.saleMode     = saleMode;
   data.fitPeriodId  = fitPeriodId;
   data.fitCapacity  = fitCapacity;
-  data.salePrice    = parseFloat(document.getElementById('sale-price').value) || fitAutoPrice() || 24;
+  // 手動入力モードの 0円 はそのまま保存（FIT単価・24円へのフォールバックで上書きしない）
+  const _salePSave  = parseFloat(document.getElementById('sale-price').value);
+  data.salePrice    = saleMode === 'manual' ? (_salePSave || 0) : (_salePSave || fitAutoPrice() || 24);
   data.salePriceEdited = salePriceEdited;
   data.bcManualEdited = bcManualEdited;
   data.dcManualEdited = dcManualEdited;
