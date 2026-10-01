@@ -3431,6 +3431,7 @@ function saveFormToData(data) {
   data.pkgExtraPvNote = document.getElementById('pkg-extra-pv-note').value;
   data.sysName = document.getElementById('sys-name').value;
   data.aiClosingComment = document.getElementById('ai-comment-text').value;
+  if (document.getElementById('m-bill-0')) data.monthly = _readMonthlyGrid();
   HEARING_KEYS.forEach(k => { data[k] = data[k] || false; }); // preserve current values
   data.proposalMode = proposalMode;
   data.saleMode     = saleMode;
@@ -3619,6 +3620,11 @@ function loadDataToForm(data) {
     document.getElementById('dc').value = data.dc;
   }
   dcSoManualEdited = !!data.dcSoManualEdited;
+  // setProposalMode 等で clearAIComment が走るため、最後に AIコメントを再セット
+  const _aiEl = document.getElementById('ai-comment-text');
+  _aiEl.value = data.aiClosingComment || '';
+  autoResizeAIComment();
+  updateRealPptxBtnState();
 }
 
 function switchTab(tab) {
@@ -6624,8 +6630,30 @@ function clearForm() {
 function getHistory() { try{ return JSON.parse(localStorage.getItem('jibunden_history')||'[]'); } catch(e){ return []; } }
 function saveHistory(h) { localStorage.setItem('jibunden_history', JSON.stringify(h)); }
 
+function _readMonthlyGrid() {
+  const monthly = [];
+  for (let i = 0; i < 12; i++) {
+    monthly.push({
+      bill: document.getElementById(`m-bill-${i}`)?.value || '',
+      kwh:  document.getElementById(`m-kwh-${i}`)?.value  || '',
+      tou0: document.getElementById(`m-tou0-${i}`)?.value || '',
+      tou1: document.getElementById(`m-tou1-${i}`)?.value || '',
+      tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
+    });
+  }
+  return monthly;
+}
+
 function _applyMonthlyData(monthly) {
-  if (!monthly || !monthly.length) return;
+  const hasData = Array.isArray(monthly) && monthly.some(m => m && (m.bill || m.kwh || m.tou0 || m.tou1 || m.tou2));
+  if (!hasData) {
+    // 別データ読込時に前の月別値が残らないようクリア（グリッド構築済みの場合のみ）
+    if (document.getElementById('m-bill-0')) {
+      document.querySelectorAll('#monthly-grid input').forEach(el => { el.value = ''; });
+      onMonthlyInput();
+    }
+    return;
+  }
   if (!monthlyDetailOpen) toggleMonthlyDetail();
   setTimeout(() => {
     monthly.forEach((m, i) => {
@@ -7690,6 +7718,7 @@ window.addEventListener('DOMContentLoaded', () => {
     } catch(e) {}
     setLoanMethod('zansai');
     loadDataToForm(custData); // 初期表示 or 復元データ
+    _applyMonthlyData(custData.monthly); // 12ヶ月詳細入力の復元
     loadPackagesFromSheet();      // システムパッケージ表をスプレッドシートから取得（失敗時は組込み値）
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
@@ -7733,16 +7762,7 @@ window.addEventListener('DOMContentLoaded', () => {
 // ── データエクスポート・インポート ──
 function getFormData() {
   saveFormToData(custData);
-  const monthly = [];
-  for (let i = 0; i < 12; i++) {
-    monthly.push({
-      bill: document.getElementById(`m-bill-${i}`)?.value || '',
-      kwh:  document.getElementById(`m-kwh-${i}`)?.value  || '',
-      tou0: document.getElementById(`m-tou0-${i}`)?.value || '',
-      tou1: document.getElementById(`m-tou1-${i}`)?.value || '',
-      tou2: document.getElementById(`m-tou2-${i}`)?.value || '',
-    });
-  }
+  const monthly = custData.monthly || _readMonthlyGrid();
   const result = { ...custData, monthly, timestamp: new Date().toISOString() };
   result.paymentOptions = {
     selectedPlan:  selectedPlan,
