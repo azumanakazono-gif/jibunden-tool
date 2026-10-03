@@ -261,6 +261,20 @@ canvas#mini-chart { height: 220px !important; }
 .blink-effect {
   animation: blink-pulse 0.8s ease-in-out infinite;
 }
+/* 再推定待ちの間、💾データ保存ボタンも連動して強調 */
+@keyframes save-attention-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(234,88,12,0.7); background:#fff; }
+  50%      { box-shadow: 0 0 0 6px rgba(234,88,12,0); background:#ffedd5; }
+}
+.save-attention {
+  animation: save-attention-pulse 1s ease-in-out infinite;
+  border-color: #ea580c !important; color: #c2410c !important;
+}
+.save-reest-hint {
+  padding: 6px 10px; border-radius: 8px; background: #ea580c; color: #fff;
+  font-size: 11px; font-weight: 700; cursor: pointer;
+  animation: reest-pulse 1s ease-in-out infinite;
+}
 .reestimate-alert-banner {
   margin-bottom: 10px; padding: 8px 12px; border-radius: 8px;
   background: #ea580c; color: #fff; font-size: 11px; font-weight: 700;
@@ -1632,6 +1646,7 @@ canvas#mini-chart { height: 220px !important; }
           <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
           <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" disabled title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
           <button type="button" onclick="saveFromAIComment()" id="ai-comment-save-btn" title="現在の入力内容とAIクロージングコメントを履歴・スプレッドシートへ保存します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">💾 データ保存</button>
+          <span id="save-reest-hint" class="save-reest-hint" style="display:none" onclick="reEstimateJyuryoKwh()" title="クリックで再推定を実行します">📊 電気代から自動推定の【再推定】ボタンをクリックしてください</span>
           <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
           <span id="ai-save-status" style="font-size:12px;font-weight:700"></span>
         </div>
@@ -2198,6 +2213,11 @@ function updateReestimateAlertBanner() {
   if (!banner) return;
   const isBlinking = !!btnEl && (btnEl.classList.contains('reest-alert') || btnEl.classList.contains('blink-effect'));
   banner.style.display = isBlinking ? '' : 'none';
+  // 💾データ保存ボタンと、その右の誘導メッセージも連動
+  const saveBtn = document.getElementById('ai-comment-save-btn');
+  if (saveBtn) saveBtn.classList.toggle('save-attention', isBlinking);
+  const hint = document.getElementById('save-reest-hint');
+  if (hint) hint.style.display = isBlinking ? '' : 'none';
 }
 
 // プラン関連の数値（導入前/導入後プラン選択・時間帯別使用比率）が編集された瞬間に、
