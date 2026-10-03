@@ -1666,6 +1666,10 @@ canvas#mini-chart { height: 220px !important; }
   <div class="form-body" id="section-history" style="display:none">
     <div class="section-card">
       <div class="section-title">📋 お客様履歴</div>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+        <button type="button" id="cloud-reload-btn" onclick="fetchCloudHistory(true)" style="background:#fff;color:var(--mg);border:1.5px solid var(--mg);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔄 クラウドから再読込</button>
+        <span id="cloud-history-status" style="font-size:12px;color:var(--muted)"></span>
+      </div>
       <div id="history-full"></div>
     </div>
   </div>
@@ -6750,11 +6754,21 @@ function getMergedHistory() {
   return [...map.values()].sort((a, b) => (Number(b.updatedAt) || Number(b.id)) - (Number(a.updatedAt) || Number(a.id)));
 }
 
+// お客様履歴画面のクラウド取得状況表示
+function _setCloudStatus(msg, color) {
+  const el = document.getElementById('cloud-history-status');
+  if (el) { el.textContent = msg; el.style.color = color || 'var(--muted)'; }
+}
+
 function fetchCloudHistory(force) {
-  if (!GAS_SHEET_ENDPOINT) return Promise.resolve();
+  if (!GAS_SHEET_ENDPOINT) { _setCloudStatus('☁ クラウド連携は未設定です'); return Promise.resolve(); }
   if (_cloudFetching) return _cloudFetching;
   if (!force && Date.now() - _cloudFetchedAt < 30000) return Promise.resolve();
-  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    _setCloudStatus('☁ オフラインのため、前回取得したクラウド履歴を表示中', '#d97706');
+    return Promise.resolve();
+  }
+  _setCloudStatus('☁ クラウドから取得中…');
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   const _getUrl = GAS_SHEET_TOKEN ? `${GAS_SHEET_ENDPOINT}?token=${encodeURIComponent(GAS_SHEET_TOKEN)}` : GAS_SHEET_ENDPOINT;
@@ -6768,8 +6782,16 @@ function fetchCloudHistory(force) {
       try { localStorage.setItem('jibunden_cloud_cache', JSON.stringify(_cloudHistory)); } catch (e) { /* 容量超過時はメモリのみ */ }
       renderSidebarHistory();
       if (document.getElementById('section-history')?.style.display !== 'none') renderHistoryFull();
+      _setCloudStatus(`☁ クラウドから ${_cloudHistory.length} 件取得（${new Date().toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo' })}）`, 'var(--mg)');
     })
-    .catch(err => console.warn('[クラウド履歴] 取得失敗（ローカル履歴のみ表示）:', err))
+    .catch(err => {
+      console.warn('[クラウド履歴] 取得失敗（ローカル履歴のみ表示）:', err);
+      const msg = String(err && err.message || err);
+      _setCloudStatus(/doGet/.test(msg)
+        ? '⚠ クラウド履歴を取得できません（GASに一覧取得 doGet が未デプロイ）'
+        : /unauthorized/.test(msg) ? '⚠ クラウド履歴を取得できません（合言葉が一致しません）'
+        : '⚠ クラウド履歴を取得できません（通信エラー）。この端末の履歴のみ表示中', '#dc2626');
+    })
     .finally(() => { clearTimeout(timer); _cloudFetching = null; });
   return _cloudFetching;
 }
