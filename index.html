@@ -6722,10 +6722,11 @@ function fetchCloudHistory(force) {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
   _cloudFetching = fetch(GAS_SHEET_ENDPOINT, { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctrl.signal })
-    .then(res => res.json())
+    .then(res => res.json().catch(() => { throw new Error('JSON以外の応答（GASに doGet が未デプロイの可能性）'); }))
     .then(json => {
-      if (!json || !json.ok || !Array.isArray(json.rows)) throw new Error(json && json.error || 'invalid response');
-      _cloudHistory = json.rows.map(_cloudRowToEntry).filter(Boolean);
+      const rows = Array.isArray(json) ? json : (json && (json.rows || json.data));
+      if (!Array.isArray(rows)) throw new Error(json && (json.error || json.message) || 'invalid response');
+      _cloudHistory = rows.map(_cloudRowToEntry).filter(Boolean);
       _cloudFetchedAt = Date.now();
       try { localStorage.setItem('jibunden_cloud_cache', JSON.stringify(_cloudHistory)); } catch (e) { /* 容量超過時はメモリのみ */ }
       renderSidebarHistory();
@@ -6811,8 +6812,13 @@ function syncCustomerToSheet(entry) {
       redirect: 'follow',
       keepalive: true
     })
-      .then(res => res.ok ? res.json().catch(() => ({ ok: true })) : { ok: false })
-      .then(json => !!(json && json.ok))
+      .then(res => res.ok ? res.json().catch(() => ({ ok: true })) : { ok: false, error: 'HTTP ' + res.status })
+      .then(json => {
+        // GAS側の応答形式差を吸収（{ok:true} / {status:'success'} のどちらも成功扱い）
+        const ok = !!json && (json.ok === true || String(json.status || '').toLowerCase() === 'success');
+        if (!ok) console.warn('[Sheet同期] GASがエラーを返しました:', json);
+        return ok;
+      })
       .catch(err => { console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err); return false; });
   } catch (e) {
     console.warn('[Sheet同期] 送信準備エラー:', e);
