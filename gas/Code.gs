@@ -17,11 +17,9 @@ function doPost(e) {
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = (SHEET_NAME && ss.getSheetByName(SHEET_NAME)) || ss.getSheets()[0];
 
-    // ヘッダー未整備なら補完（J列 aiClosingComment 追加含む）
-    const header = sheet.getRange(1, 1, 1, COLUMNS.length).getValues()[0];
-    if (COLUMNS.some((c, i) => header[i] !== c)) {
-      sheet.getRange(1, 1, 1, COLUMNS.length).setValues([COLUMNS]);
-    }
+    // J1 が空ならヘッダーを追加（既存の A〜I ヘッダーは触らない）
+    const j1 = sheet.getRange(1, 10);
+    if (!j1.getValue()) j1.setValue('aiClosingComment');
 
     const row = COLUMNS.map(k => {
       const v = data[k];
