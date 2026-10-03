@@ -275,6 +275,18 @@ canvas#mini-chart { height: 220px !important; }
   font-size: 11px; font-weight: 700; cursor: pointer;
   animation: reest-pulse 1s ease-in-out infinite;
 }
+/* お客様履歴 検索バー */
+.history-search { position: relative; margin-bottom: 10px; }
+.history-search input {
+  width: 100%; box-sizing: border-box; padding: 10px 36px 10px 36px;
+  border: 1.5px solid var(--border); border-radius: 10px; font-size: 14px;
+  font-family: inherit; background: #fff; outline: none; transition: border-color .15s, box-shadow .15s;
+}
+.history-search input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; }
+.history-search input:focus { border-color: var(--mg); box-shadow: 0 0 0 3px rgba(45,106,79,.15); }
+.history-search .hs-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; color: var(--muted); pointer-events: none; }
+.history-search .hs-clear { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); border: none; background: #e5e7eb; color: #4b5563; width: 22px; height: 22px; border-radius: 50%; font-size: 13px; line-height: 22px; cursor: pointer; padding: 0; display: none; }
+.history-search-count { font-size: 11px; color: var(--muted); margin: -4px 0 6px 2px; }
 .reestimate-alert-banner {
   margin-bottom: 10px; padding: 8px 12px; border-radius: 8px;
   background: #ea580c; color: #fff; font-size: 11px; font-weight: 700;
@@ -1670,6 +1682,12 @@ canvas#mini-chart { height: 220px !important; }
         <button type="button" id="cloud-reload-btn" onclick="fetchCloudHistory(true)" style="background:#fff;color:var(--mg);border:1.5px solid var(--mg);border-radius:6px;padding:6px 12px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit">🔄 クラウドから再読込</button>
         <span id="cloud-history-status" style="font-size:12px;color:var(--muted)"></span>
       </div>
+      <div class="history-search">
+        <span class="hs-icon">🔍</span>
+        <input type="search" id="history-search" placeholder="顧客名・提案名・作成者・日付で検索" autocomplete="off" oninput="onHistorySearchInput()">
+        <button type="button" class="hs-clear" id="history-search-clear" onclick="clearHistorySearch()" title="検索をクリア">×</button>
+      </div>
+      <div id="history-search-count" class="history-search-count"></div>
       <div id="history-full"></div>
     </div>
   </div>
@@ -6736,6 +6754,7 @@ function _cloudRowToEntry(r) {
     monthlyElectricBill: d.monthlyElectricBill || _toNum(r.monthly_bill),
     aiClosingComment: d.aiClosingComment ?? r.aiClosingComment ?? '',
     updatedAt: Math.max(Number(d.updatedAt) || 0, ts),
+    author: d.author || r.author || '',
     _cloud: true
   };
 }
@@ -6841,7 +6860,7 @@ function _applyMonthlyData(monthly) {
 
 // ── Googleスプレッドシート連携（GAS Upsert） ──
 // GASウェブアプリのデプロイURLを設定（未設定の場合は送信スキップ）
-const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbzMtyCUjKq5Tp44nfViCDYOUevtak6bZ1xPpwaD3OnaK8-gs1F95cY1aMOTSkx5vfm4uA/exec';
+const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbyQl_T6aks88AQ0O75bQHD7x5nH5d9ZLtHfPpl_VcGJR6Bx4wEq_OWUk5uN-_6EeAOX5Q/exec';
 // GASのスクリプトプロパティ API_TOKEN と同じ値（未設定なら空のまま）
 const GAS_SHEET_TOKEN = window.JIBUNDEN_GAS_TOKEN || '';
 
@@ -6954,6 +6973,7 @@ function saveCustomer() {
     const entry = {
         ...base,
         id: overwriteId || Date.now(),
+        author: (() => { try { return localStorage.getItem('jibunden_author') || base.author || ''; } catch (e) { return base.author || ''; } })(),
         updatedAt: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
@@ -7077,15 +7097,45 @@ function renderSidebarHistory() {
   `).join('');
 }
 
+// 検索用の正規化（全角/半角・大文字小文字・空白の差を吸収）
+function _normSearch(v) {
+  return String(v ?? '').normalize('NFKC').toLowerCase().replace(/[\s　]+/g, '');
+}
+function onHistorySearchInput() {
+  const q = document.getElementById('history-search')?.value || '';
+  const clr = document.getElementById('history-search-clear');
+  if (clr) clr.style.display = q ? 'block' : 'none';
+  renderHistoryFull();
+}
+function clearHistorySearch() {
+  const inp = document.getElementById('history-search');
+  if (inp) { inp.value = ''; inp.focus(); }
+  onHistorySearchInput();
+}
+
 function renderHistoryFull() {
-  const h = getMergedHistory();
+  const all = getMergedHistory();
   const el = document.getElementById('history-full');
+  const cntEl = document.getElementById('history-search-count');
+  // 空白区切りの複数キーワードは AND 検索（ローカル＋クラウド両方が対象）
+  const terms = (document.getElementById('history-search')?.value || '').split(/[\s　]+/).map(_normSearch).filter(Boolean);
+  const h = terms.length
+    ? all.filter(e => {
+        const hay = _normSearch([e.customerName, e.cn, e.author, e.date, e.familyComposition].join(' '));
+        return terms.every(t => hay.includes(t));
+      })
+    : all;
+  if (cntEl) cntEl.textContent = terms.length ? `${h.length} / ${all.length} 件` : '';
+  if (terms.length && all.length && !h.length) {
+    el.innerHTML = '<div style="text-align:center;padding:24px;color:var(--muted)">該当する履歴がありません</div>';
+    return;
+  }
   if(!h.length){el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)">まだ履歴がありません<br>お客様情報を入力してPPTXを生成すると保存されます</div>';return;}
   el.innerHTML = h.map(e=>`
     <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
       <div style="flex:1">
         <div style="font-weight:700;font-size:15px">${e._cloud ? '<span title="クラウド（他端末）の案件" style="font-size:12px;color:var(--muted)">☁ </span>' : ''}${_escHtml(e.customerName)}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">${_escHtml(e.date)}　|　月間 ¥${fmt(e.monthlyElectricBill||0)}　|　${_escHtml(e.familyComposition||'')}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${_escHtml(e.date)}　|　月間 ¥${fmt(e.monthlyElectricBill||0)}　|　${_escHtml(e.familyComposition||'')}${e.author ? '　|　作成：' + _escHtml(e.author) : ''}</div>
       </div>
       <button onclick="loadCustomer(${e.id})" style="background:var(--mg);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit">読み込む</button>
       <button onclick="deleteHistory(${e.id},event)" style="background:none;border:1px solid #e5e7eb;border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit">削除</button>
