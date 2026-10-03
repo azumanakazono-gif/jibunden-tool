@@ -1631,7 +1631,9 @@ canvas#mini-chart { height: 220px !important; }
         <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
           <button type="button" onclick="generateAIComment()" id="ai-comment-btn" style="padding:9px 18px;background:var(--mg);color:#fff;font-size:13px;font-weight:700;border:none;border-radius:8px;cursor:pointer;font-family:inherit">✨ AIコメント生成</button>
           <button type="button" onclick="polishAIComment()" id="ai-comment-polish-btn" disabled title="今の文章のニュアンスを保ったまま、より伝わりやすいプロの営業トークへAIが添削します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">✨ AI添削・ブラッシュアップ</button>
+          <button type="button" onclick="saveFromAIComment()" id="ai-comment-save-btn" title="現在の入力内容とAIクロージングコメントを履歴・スプレッドシートへ保存します" style="padding:9px 18px;background:#fff;color:var(--mg);font-size:13px;font-weight:700;border:1.5px solid var(--mg);border-radius:8px;cursor:pointer;font-family:inherit">💾 データ保存</button>
           <span id="ai-comment-status" style="font-size:12px;color:var(--muted)"></span>
+          <span id="ai-save-status" style="font-size:12px;font-weight:700"></span>
         </div>
       </div>
 
@@ -6782,11 +6784,11 @@ function _applyMonthlyData(monthly) {
 const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbzMtyCUjKq5Tp44nfViCDYOUevtak6bZ1xPpwaD3OnaK8-gs1F95cY1aMOTSkx5vfm4uA/exec';
 
 function syncCustomerToSheet(entry) {
-  if (!GAS_SHEET_ENDPOINT || !entry) return;
+  if (!GAS_SHEET_ENDPOINT || !entry) return Promise.resolve(false);
   try {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
       console.warn('[Sheet同期] オフラインのため送信をスキップ');
-      return;
+      return Promise.resolve(false);
     }
     const cn = String(entry.cn || entry.customerName || '');
     const payload = {
@@ -6802,15 +6804,19 @@ function syncCustomerToSheet(entry) {
       aiClosingComment: String(entry.aiClosingComment || '')
     };
     // text/plain でプリフライト（OPTIONS）を回避し、GASの302リダイレクトにも追従
-    fetch(GAS_SHEET_ENDPOINT, {
+    return fetch(GAS_SHEET_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify(payload),
       redirect: 'follow',
       keepalive: true
-    }).catch(err => console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err));
+    })
+      .then(res => res.ok ? res.json().catch(() => ({ ok: true })) : { ok: false })
+      .then(json => !!(json && json.ok))
+      .catch(err => { console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err); return false; });
   } catch (e) {
     console.warn('[Sheet同期] 送信準備エラー:', e);
+    return Promise.resolve(false);
   }
 }
 
@@ -6820,7 +6826,7 @@ function saveCustomer() {
         base = getFormData() || {};
     } catch (e) {
         console.error("データ取得エラー:", e);
-        return;
+        return null;
     }
 
     // パッケージの初期値（120万円等）よりも、ユーザーが画面に手動で打ち込んだ最新の入力値（280万円等）を絶対の最優先で取得するロジック
@@ -6931,15 +6937,37 @@ function saveCustomer() {
     } catch (e) {
         console.error("履歴保存エラー:", e);
         toast('履歴の保存に失敗しました（保存容量を確認してください）', 'error');
-        return;
+        return null;
     }
     autoSaveImmediate(); // 現在の入力内容（jibunden_current）も即時保存
-    syncCustomerToSheet(entry); // スプレッドシートへ非同期Upsert（失敗しても操作は継続）
+    // スプレッドシートへ非同期Upsert（失敗しても操作は継続）
+    Object.defineProperty(entry, '_sheetSync', { value: syncCustomerToSheet(entry), enumerable: false });
 
     // 左サイドバー「最近の履歴」と履歴一覧を即時再描画
     renderSidebarHistory();
     renderHistoryFull();
     toast(`「${entry.customerName}」を保存しました`);
+    return entry;
+}
+
+// AIクロージングコメント欄の「💾 データ保存」ボタン：履歴保存＋スプレッドシートへ即時Upsert
+let _aiSaveStatusTimer = null;
+function saveFromAIComment() {
+  const btn = document.getElementById('ai-comment-save-btn');
+  const st  = document.getElementById('ai-save-status');
+  const show = (msg, color) => {
+    if (!st) return;
+    clearTimeout(_aiSaveStatusTimer);
+    st.textContent = msg; st.style.color = color || 'var(--mg)';
+    _aiSaveStatusTimer = setTimeout(() => { st.textContent = ''; }, 6000);
+  };
+  if (btn) btn.disabled = true;
+  const entry = saveCustomer(); // localStorage保存＋syncCustomerToSheet（内部で実行）
+  if (!entry) { if (btn) btn.disabled = false; show('保存に失敗しました', '#dc2626'); return; }
+  show('💾 保存しました！（クラウド同期中…）');
+  (entry._sheetSync || Promise.resolve(false)).then(ok => {
+    show(ok ? '✅ 保存しました！（クラウドにも同期済み）' : '💾 保存しました！（端末内のみ・クラウド同期は未完了）', ok ? 'var(--mg)' : '#d97706');
+  }).finally(() => { if (btn) btn.disabled = false; });
 }
 
 function loadCustomer(id) {
