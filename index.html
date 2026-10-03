@@ -6735,7 +6735,8 @@ function syncCustomerToSheet(entry) {
       category: (typeof proposalMode !== 'undefined' ? proposalMode : '') || '',
       monthly_bill: parseFloat(entry.mb) || 0,
       monthly_usage: parseFloat(entry.mkwh) || 0,
-      json_data: JSON.stringify(entry)
+      json_data: JSON.stringify(entry),
+      aiClosingComment: String(entry.aiClosingComment || '')
     };
     // text/plain でプリフライト（OPTIONS）を回避し、GASの302リダイレクトにも追従
     fetch(GAS_SHEET_ENDPOINT, {
@@ -6853,7 +6854,9 @@ function saveCustomer() {
         afterRatioDay:    document.getElementById('r-dn-day')?.value    ?? base.afterRatioDay    ?? null,
         afterRatioHol:    document.getElementById('r-dn-hol')?.value    ?? base.afterRatioHol    ?? null,
         afterRatioLiving: document.getElementById('r-dn-living')?.value ?? base.afterRatioLiving ?? null,
-        afterRatioNgt:    document.getElementById('r-dn-ngt')?.value    ?? base.afterRatioNgt    ?? null
+        afterRatioNgt:    document.getElementById('r-dn-ngt')?.value    ?? base.afterRatioNgt    ?? null,
+        // AIクロージングコメント（画面の最新値を優先）
+        aiClosingComment: document.getElementById('ai-comment-text')?.value ?? base.aiClosingComment ?? ''
     };
 
     h.unshift(entry);
