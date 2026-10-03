@@ -6716,7 +6716,7 @@ function _applyMonthlyData(monthly) {
 
 // ── Googleスプレッドシート連携（GAS Upsert） ──
 // GASウェブアプリのデプロイURLを設定（未設定の場合は送信スキップ）
-const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || '';
+const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbzMtyCUjKq5Tp44nfViCDYOUevtak6bZ1xPpwaD3OnaK8-gs1F95cY1aMOTSkx5vfm4uA/exec';
 
 function syncCustomerToSheet(entry) {
   if (!GAS_SHEET_ENDPOINT || !entry) return;
