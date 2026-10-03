@@ -45,6 +45,31 @@ function doPost(e) {
   }
 }
 
+// 全行を JSON で返す（ツールのクラウド履歴一覧用）
+function doGet(e) {
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = (SHEET_NAME && ss.getSheetByName(SHEET_NAME)) || ss.getSheets()[0];
+    const lastRow = sheet.getLastRow();
+    if (lastRow < 2) return _json({ ok: true, rows: [] });
+
+    const values = sheet.getRange(2, 1, lastRow - 1, COLUMNS.length).getValues();
+    const rows = values
+      .filter(r => r[0] !== '' && r[0] != null)
+      .map(r => {
+        const o = {};
+        COLUMNS.forEach((k, i) => {
+          const v = r[i];
+          o[k] = v instanceof Date ? v.toISOString() : v;
+        });
+        return o;
+      });
+    return _json({ ok: true, rows: rows });
+  } catch (err) {
+    return _json({ ok: false, error: String(err) });
+  }
+}
+
 function _json(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj))
     .setMimeType(ContentService.MimeType.JSON);

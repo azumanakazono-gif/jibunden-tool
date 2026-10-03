@@ -3781,7 +3781,7 @@ function showSection(s) {
   document.getElementById('section-form').style.display = s==='form' ? '' : 'none';
   document.getElementById('section-history').style.display = s==='history' ? '' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===({'form':0,'history':1}[s])));
-  if (s==='history') renderHistoryFull();
+  if (s==='history') { renderHistoryFull(); fetchCloudHistory(true); }
 }
 
 // ══════════════════════════════════════════
@@ -6671,6 +6671,69 @@ function clearForm() {
 function getHistory() { try{ return JSON.parse(localStorage.getItem('jibunden_history')||'[]'); } catch(e){ return []; } }
 function saveHistory(h) { localStorage.setItem('jibunden_history', JSON.stringify(h)); }
 
+// ── クラウド履歴（スプレッドシート）読込 ──
+let _cloudHistory = (() => { try { return JSON.parse(localStorage.getItem('jibunden_cloud_cache') || '[]'); } catch (e) { return []; } })();
+let _cloudFetchedAt = 0;
+let _cloudFetching = null;
+function _escHtml(v) { return String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function _getHiddenIds() { try { return JSON.parse(localStorage.getItem('jibunden_hidden_ids') || '[]'); } catch (e) { return []; } }
+
+function _cloudRowToEntry(r) {
+  let d = {};
+  try { d = JSON.parse(r.json_data || '{}') || {}; } catch (e) { d = {}; }
+  const id = Number(r.id) || Number(d.id);
+  if (!id) return null;
+  const ts = Date.parse(r.updated_at) || 0;
+  const name = d.customerName || d.cn || r.proposal_name || '名称未設定';
+  return {
+    ...d,
+    id,
+    cn: d.cn || r.proposal_name || name,
+    customerName: name,
+    date: d.date || (ts ? new Date(ts).toLocaleString('ja-JP') : ''),
+    monthlyElectricBill: d.monthlyElectricBill || Number(r.monthly_bill) || 0,
+    aiClosingComment: d.aiClosingComment ?? r.aiClosingComment ?? '',
+    updatedAt: Math.max(Number(d.updatedAt) || 0, ts),
+    _cloud: true
+  };
+}
+
+// ローカル履歴＋クラウド履歴を id で統合（新しい方を採用）し、更新日時の降順で返す
+function getMergedHistory() {
+  const hidden = new Set(_getHiddenIds().map(Number));
+  const map = new Map();
+  _cloudHistory.forEach(c => { if (c && !hidden.has(Number(c.id))) map.set(Number(c.id), c); });
+  getHistory().forEach(l => {
+    const id = Number(l.id);
+    const c = map.get(id);
+    const lt = Number(l.updatedAt) || id;
+    if (!c || lt >= (Number(c.updatedAt) || 0)) map.set(id, { ...l, _cloud: false, _synced: !!c });
+  });
+  return [...map.values()].sort((a, b) => (Number(b.updatedAt) || Number(b.id)) - (Number(a.updatedAt) || Number(a.id)));
+}
+
+function fetchCloudHistory(force) {
+  if (!GAS_SHEET_ENDPOINT) return Promise.resolve();
+  if (_cloudFetching) return _cloudFetching;
+  if (!force && Date.now() - _cloudFetchedAt < 30000) return Promise.resolve();
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) return Promise.resolve();
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15000);
+  _cloudFetching = fetch(GAS_SHEET_ENDPOINT, { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctrl.signal })
+    .then(res => res.json())
+    .then(json => {
+      if (!json || !json.ok || !Array.isArray(json.rows)) throw new Error(json && json.error || 'invalid response');
+      _cloudHistory = json.rows.map(_cloudRowToEntry).filter(Boolean);
+      _cloudFetchedAt = Date.now();
+      try { localStorage.setItem('jibunden_cloud_cache', JSON.stringify(_cloudHistory)); } catch (e) { /* 容量超過時はメモリのみ */ }
+      renderSidebarHistory();
+      if (document.getElementById('section-history')?.style.display !== 'none') renderHistoryFull();
+    })
+    .catch(err => console.warn('[クラウド履歴] 取得失敗（ローカル履歴のみ表示）:', err))
+    .finally(() => { clearTimeout(timer); _cloudFetching = null; });
+  return _cloudFetching;
+}
+
 function _readMonthlyGrid() {
   const monthly = [];
   for (let i = 0; i < 12; i++) {
@@ -6817,6 +6880,7 @@ function saveCustomer() {
     const entry = {
         ...base,
         id: overwriteId || Date.now(),
+        updatedAt: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
         cn: data.cn,
@@ -6879,7 +6943,7 @@ function saveCustomer() {
 }
 
 function loadCustomer(id) {
-  const entry = getHistory().find(e=>e.id===id);
+  const entry = getMergedHistory().find(e=>Number(e.id)===Number(id));
   if(!entry) return;
   loanAmountEdited = false;
   if (activeTab !== 'customer') switchTab('customer');
@@ -6892,35 +6956,40 @@ function loadCustomer(id) {
 function deleteHistory(id, e) {
   e.stopPropagation();
   if(!confirm('この履歴を削除しますか？')) return;
-  const h = getHistory().filter(e=>e.id!==id);
+  const h = getHistory().filter(e=>Number(e.id)!==Number(id));
   saveHistory(h);
+  // クラウド側の行は残るため、この端末の一覧から非表示にする
+  try {
+    const hid = _getHiddenIds();
+    if (!hid.map(Number).includes(Number(id))) { hid.push(Number(id)); localStorage.setItem('jibunden_hidden_ids', JSON.stringify(hid)); }
+  } catch (err) { /* noop */ }
   renderSidebarHistory();
   renderHistoryFull();
 }
 
 function renderSidebarHistory() {
-  const h = getHistory().slice(0,5);
+  const h = getMergedHistory().slice(0,5);
   const el = document.getElementById('sidebar-history');
   if(!h.length){el.innerHTML='<div class="history-empty">履歴なし</div>';return;}
   el.innerHTML = h.map(e=>`
     <div class="history-item" onclick="loadCustomer(${e.id})">
       <button class="del-btn" onclick="deleteHistory(${e.id},event)">×</button>
-      <div class="h-name">${e.customerName}</div>
-      <div class="h-date">${e.date}</div>
+      <div class="h-name">${e._cloud ? '☁ ' : ''}${_escHtml(e.customerName)}</div>
+      <div class="h-date">${_escHtml(e.date)}</div>
       <div class="h-bill">月間 ¥${fmt(e.monthlyElectricBill||0)}</div>
     </div>
   `).join('');
 }
 
 function renderHistoryFull() {
-  const h = getHistory();
+  const h = getMergedHistory();
   const el = document.getElementById('history-full');
   if(!h.length){el.innerHTML='<div style="text-align:center;padding:32px;color:var(--muted)">まだ履歴がありません<br>お客様情報を入力してPPTXを生成すると保存されます</div>';return;}
   el.innerHTML = h.map(e=>`
     <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
       <div style="flex:1">
-        <div style="font-weight:700;font-size:15px">${e.customerName}</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:2px">${e.date}　|　月間 ¥${fmt(e.monthlyElectricBill||0)}　|　${e.familyComposition||''}</div>
+        <div style="font-weight:700;font-size:15px">${e._cloud ? '<span title="クラウド（他端末）の案件" style="font-size:12px;color:var(--muted)">☁ </span>' : ''}${_escHtml(e.customerName)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:2px">${_escHtml(e.date)}　|　月間 ¥${fmt(e.monthlyElectricBill||0)}　|　${_escHtml(e.familyComposition||'')}</div>
       </div>
       <button onclick="loadCustomer(${e.id})" style="background:var(--mg);color:#fff;border:none;border-radius:6px;padding:7px 14px;font-size:12px;cursor:pointer;font-family:inherit">読み込む</button>
       <button onclick="deleteHistory(${e.id},event)" style="background:none;border:1px solid #e5e7eb;border-radius:6px;padding:7px 12px;font-size:12px;cursor:pointer;color:var(--muted);font-family:inherit">削除</button>
@@ -7791,6 +7860,7 @@ onPkgChange();       // 7+7パッケージのデフォルト値を適用
 initSaleSetting();   // 売電設定UIを初期化
 applyProposalMode(); // 提案モードUIを初期化（内部でcalc()を呼ぶ）
 renderSidebarHistory();
+setTimeout(() => fetchCloudHistory(true), 0); // クラウド履歴を非同期取得（定数定義後に実行）
 
 function scrollToTopHandler(e) {
   if (e && e.type === 'touchstart') e.preventDefault();
@@ -7903,6 +7973,15 @@ function setFormData(data) {
   _applyMonthlyData(data.monthly);
   calc();
   _syncPaymentOptionsLS(custData);
+  // 読込中の入力イベントで clearAIComment が走るため、AIコメントを最後に再セット
+  if (data.aiClosingComment !== undefined) {
+    const _restoreAI = () => {
+      const el = document.getElementById('ai-comment-text');
+      if (el) { el.value = data.aiClosingComment || ''; autoResizeAIComment(); updateRealPptxBtnState(); }
+    };
+    _restoreAI();
+    setTimeout(_restoreAI, 0);
+  }
 }
 
 function exportFormData() {
