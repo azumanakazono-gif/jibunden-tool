@@ -6714,6 +6714,42 @@ function _applyMonthlyData(monthly) {
   }, 0);
 }
 
+// ── Googleスプレッドシート連携（GAS Upsert） ──
+// GASウェブアプリのデプロイURLを設定（未設定の場合は送信スキップ）
+const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbzMtyCUjKq5Tp44nfViCDYOUevtak6bZ1xPpwaD3OnaK8-gs1F95cY1aMOTSkx5vfm4uA/exec';
+
+function syncCustomerToSheet(entry) {
+  if (!GAS_SHEET_ENDPOINT || !entry) return;
+  try {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+      console.warn('[Sheet同期] オフラインのため送信をスキップ');
+      return;
+    }
+    const cn = String(entry.cn || entry.customerName || '');
+    const payload = {
+      id: entry.id,
+      updated_at: new Date().toISOString(),
+      author: (() => { try { return localStorage.getItem('jibunden_author') || ''; } catch (e) { return ''; } })(),
+      proposal_name: cn,
+      customer_name: cn.replace(/（内容変更版）.*$/, '').split('様')[0].trim(),
+      category: (typeof proposalMode !== 'undefined' ? proposalMode : '') || '',
+      monthly_bill: parseFloat(entry.mb) || 0,
+      monthly_usage: parseFloat(entry.mkwh) || 0,
+      json_data: JSON.stringify(entry)
+    };
+    // text/plain でプリフライト（OPTIONS）を回避し、GASの302リダイレクトにも追従
+    fetch(GAS_SHEET_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload),
+      redirect: 'follow',
+      keepalive: true
+    }).catch(err => console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err));
+  } catch (e) {
+    console.warn('[Sheet同期] 送信準備エラー:', e);
+  }
+}
+
 function saveCustomer() {
     let base = {};
     try {
@@ -6749,6 +6785,7 @@ function saveCustomer() {
 
     const h = getHistory();
     const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
+    let overwriteId = null;
 
     if (existingIndex !== -1) {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
@@ -6768,6 +6805,7 @@ function saveCustomer() {
         const isOverwrite = isSameContent || confirm('同じご提案名の履歴が既に存在します。最新の状態に上書きしますか？\n（キャンセルを押すと、別バージョンの新規履歴として残します）');
         
         if (isOverwrite) {
+            overwriteId = existing.id; // 上書き時は同一IDを維持（シート側Upsertキー）
             h.splice(existingIndex, 1);
         } else {
             const baseCurrentName = (data.cn || "").replace(/（内容変更版）.*$/, "").trim();
@@ -6777,7 +6815,7 @@ function saveCustomer() {
 
     const entry = {
         ...base,
-        id: Date.now(),
+        id: overwriteId || Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
         cn: data.cn,
@@ -6829,6 +6867,7 @@ function saveCustomer() {
         return;
     }
     autoSaveImmediate(); // 現在の入力内容（jibunden_current）も即時保存
+    syncCustomerToSheet(entry); // スプレッドシートへ非同期Upsert（失敗しても操作は継続）
 
     // 左サイドバー「最近の履歴」と履歴一覧を即時再描画
     renderSidebarHistory();
