@@ -3624,6 +3624,24 @@ function loadDataToForm(data) {
   const _aiEl = document.getElementById('ai-comment-text');
   _aiEl.value = data.aiClosingComment || '';
   autoResizeAIComment();
+  // 導入後 時間帯別使用比率（平日デイタイム／休日／平日朝夕／夜間）を復元し、変更イベントを発火
+  const _afterRatios = { day: data.afterRatioDay, hol: data.afterRatioHol, living: data.afterRatioLiving, ngt: data.afterRatioNgt };
+  if (Object.values(_afterRatios).some(v => v != null && v !== '')) {
+    if (!document.getElementById('r-dn-day')) updateRatioPanel();
+    let _lastEl = null;
+    Object.entries(_afterRatios).forEach(([k, v]) => {
+      const el = document.getElementById(`r-dn-${k}`);
+      if (!el || v == null || v === '') return;
+      el.value = v;
+      const sl = document.getElementById(`r-dn-${k}-sl`);
+      if (sl) sl.value = v;
+      _lastEl = el;
+    });
+    if (_lastEl) {
+      _lastEl.dispatchEvent(new Event('input',  { bubbles: true }));
+      _lastEl.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+  }
   updateRealPptxBtnState();
 }
 
@@ -6757,7 +6775,12 @@ function saveCustomer() {
         familyComposition: data.fm,
         lifeStyle: data.ls,
         systemDesignSolarOnly: base.systemDesignSolarOnly || null,
-        systemDesignSolarAndBattery: base.systemDesignSolarAndBattery || null
+        systemDesignSolarAndBattery: base.systemDesignSolarAndBattery || null,
+        // 導入後 時間帯別使用比率（平日デイタイム／休日／平日朝夕／夜間）
+        afterRatioDay:    document.getElementById('r-dn-day')?.value    ?? base.afterRatioDay    ?? null,
+        afterRatioHol:    document.getElementById('r-dn-hol')?.value    ?? base.afterRatioHol    ?? null,
+        afterRatioLiving: document.getElementById('r-dn-living')?.value ?? base.afterRatioLiving ?? null,
+        afterRatioNgt:    document.getElementById('r-dn-ngt')?.value    ?? base.afterRatioNgt    ?? null
     };
 
     h.unshift(entry);
