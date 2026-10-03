@@ -3624,6 +3624,32 @@ function loadDataToForm(data) {
   const _aiEl = document.getElementById('ai-comment-text');
   _aiEl.value = data.aiClosingComment || '';
   autoResizeAIComment();
+  // 導入前 電気料金プラン関連を復元し、変更イベントを発火
+  // （プラン変更イベントは契約アンペア・比率をリセットするため、プラン→契約→比率の順で適用）
+  const _fire = (el, types) => types.forEach(t => el.dispatchEvent(new Event(t, { bubbles: true })));
+  if (data.kyudenPlan !== undefined) {
+    const _prevPreChanged = _prePlanUserChanged;
+    const _kpEl = document.getElementById('kyuden-plan');
+    _kpEl.value = data.kyudenPlan || '';
+    _fire(_kpEl, ['change']);
+    _prePlanUserChanged = _prevPreChanged; // 読込による発火はユーザー変更扱いにしない
+  }
+  const _ampEl = document.getElementById('juuryo-amp');
+  if (_ampEl && data.juuryoAmp != null && data.juuryoAmp !== '') { _ampEl.value = data.juuryoAmp; _fire(_ampEl, ['change']); }
+  const _kvaEl = document.getElementById('juuryo-kva');
+  if (_kvaEl && data.juuryoKva != null && data.juuryoKva !== '') { _kvaEl.value = data.juuryoKva; _fire(_kvaEl, ['input', 'change']); }
+  if (data.beforeRatios) {
+    let _lastBr = null;
+    Object.entries(data.beforeRatios).forEach(([id, v]) => {
+      const el = document.getElementById(`r-${id}`);
+      if (!el || v == null || v === '') return;
+      el.value = v;
+      const sl = document.getElementById(`r-${id}-sl`);
+      if (sl) sl.value = v;
+      _lastBr = el;
+    });
+    if (_lastBr) _fire(_lastBr, ['input', 'change']);
+  }
   // 導入後 時間帯別使用比率（平日デイタイム／休日／平日朝夕／夜間）を復元し、変更イベントを発火
   const _afterRatios = { day: data.afterRatioDay, hol: data.afterRatioHol, living: data.afterRatioLiving, ngt: data.afterRatioNgt };
   if (Object.values(_afterRatios).some(v => v != null && v !== '')) {
@@ -3637,10 +3663,7 @@ function loadDataToForm(data) {
       if (sl) sl.value = v;
       _lastEl = el;
     });
-    if (_lastEl) {
-      _lastEl.dispatchEvent(new Event('input',  { bubbles: true }));
-      _lastEl.dispatchEvent(new Event('change', { bubbles: true }));
-    }
+    if (_lastEl) _fire(_lastEl, ['input', 'change']);
   }
   updateRealPptxBtnState();
 }
@@ -6776,6 +6799,18 @@ function saveCustomer() {
         lifeStyle: data.ls,
         systemDesignSolarOnly: base.systemDesignSolarOnly || null,
         systemDesignSolarAndBattery: base.systemDesignSolarAndBattery || null,
+        // 導入前 電気料金プラン関連（プラン／契約アンペア・容量／時間帯別比率）
+        kyudenPlan: document.getElementById('kyuden-plan')?.value ?? base.kyudenPlan ?? '',
+        juuryoAmp:  document.getElementById('juuryo-amp')?.value  ?? base.juuryoAmp  ?? null,
+        juuryoKva:  document.getElementById('juuryo-kva')?.value  ?? base.juuryoKva  ?? null,
+        beforeRatios: (() => {
+            const r = {};
+            ['bdn','boh','bkj'].forEach(px => ['day','hol','living','ngt','ohisama','peak'].forEach(k => {
+                const el = document.getElementById(`r-${px}-${k}`);
+                if (el) r[`${px}-${k}`] = el.value;
+            }));
+            return Object.keys(r).length ? r : (base.beforeRatios || null);
+        })(),
         // 導入後 時間帯別使用比率（平日デイタイム／休日／平日朝夕／夜間）
         afterRatioDay:    document.getElementById('r-dn-day')?.value    ?? base.afterRatioDay    ?? null,
         afterRatioHol:    document.getElementById('r-dn-hol')?.value    ?? base.afterRatioHol    ?? null,
