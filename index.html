@@ -275,6 +275,12 @@ canvas#mini-chart { height: 220px !important; }
   font-size: 11px; font-weight: 700; cursor: pointer;
   animation: reest-pulse 1s ease-in-out infinite;
 }
+/* お客様履歴：クラウド新データありバッジ */
+.cloud-new-badge {
+  margin-left: auto; padding: 2px 8px; border-radius: 999px;
+  background: #ea580c; color: #fff; font-size: 10px; font-weight: 700; white-space: nowrap;
+  animation: reest-pulse 1.2s ease-in-out infinite;
+}
 /* お客様履歴 検索バー */
 .history-search { position: relative; margin-bottom: 10px; }
 .history-search input {
@@ -470,6 +476,7 @@ canvas#mini-chart { height: 220px !important; }
     </button>
     <button class="nav-btn" onclick="showSection('history')">
       <span class="icon">📋</span> お客様履歴
+      <span id="cloud-new-badge" class="cloud-new-badge" style="display:none" title="他の端末で保存・更新された案件があります">新データあり</span>
     </button>
     <button class="nav-btn" onclick="generatePPTX('model')" style="background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.18);border-radius:8px;margin:6px 12px 2px;width:calc(100% - 24px);padding:9px 14px;font-size:13px;color:rgba(255,255,255,.9)">
       <span class="icon">🔬</span> モデルケース版（サンプル）
@@ -3825,7 +3832,7 @@ function showSection(s) {
   document.getElementById('section-form').style.display = s==='form' ? '' : 'none';
   document.getElementById('section-history').style.display = s==='history' ? '' : 'none';
   document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===({'form':0,'history':1}[s])));
-  if (s==='history') { renderHistoryFull(); fetchCloudHistory(true); }
+  if (s==='history') { renderHistoryFull(); markCloudHistorySeen(); fetchCloudHistory(true); }
 }
 
 // ══════════════════════════════════════════
@@ -6754,6 +6761,7 @@ function _cloudRowToEntry(r) {
     monthlyElectricBill: d.monthlyElectricBill || _toNum(r.monthly_bill),
     aiClosingComment: d.aiClosingComment ?? r.aiClosingComment ?? '',
     updatedAt: Math.max(Number(d.updatedAt) || 0, ts),
+    _srcUpdatedAt: Number(d.updatedAt) || ts, // 保存した端末側の更新時刻（新着判定用）
     author: d.author || r.author || '',
     _cloud: true
   };
@@ -6771,6 +6779,36 @@ function getMergedHistory() {
     if (!c || lt >= (Number(c.updatedAt) || 0)) map.set(id, { ...l, _cloud: false, _synced: !!c });
   });
   return [...map.values()].sort((a, b) => (Number(b.updatedAt) || Number(b.id)) - (Number(a.updatedAt) || Number(a.id)));
+}
+
+// ── クラウド新データあり判定 ──
+// 「最後に履歴を見た時点」より後に更新され、この端末に無い（またはこの端末より新しい）
+// クラウド案件があればバッジを点灯する
+function _getCloudSeenAt() { try { return Number(localStorage.getItem('jibunden_cloud_seen_at')) || 0; } catch (e) { return 0; } }
+function _countNewCloudEntries() {
+  const seenAt = _getCloudSeenAt();
+  const hidden = new Set(_getHiddenIds().map(Number));
+  const local = new Map(getHistory().map(l => [Number(l.id), Number(l.updatedAt) || Number(l.id) || 0]));
+  return _cloudHistory.filter(c => {
+    if (!c) return false;
+    const id = Number(c.id), cu = Number(c.updatedAt) || 0;
+    if (hidden.has(id) || cu <= seenAt) return false;
+    // この端末で保存した内容がクラウドに戻ってきただけなら新着扱いしない
+    return !local.has(id) || (Number(c._srcUpdatedAt) || cu) > local.get(id);
+  }).length;
+}
+function updateCloudNewBadge() {
+  const badge = document.getElementById('cloud-new-badge');
+  if (!badge) return;
+  const n = _countNewCloudEntries();
+  badge.textContent = n > 1 ? `新データあり ${n}` : '新データあり';
+  badge.style.display = n > 0 ? '' : 'none';
+}
+// 最新状態を確認済みにする（履歴を開いた／再読込したとき）
+function markCloudHistorySeen() {
+  const latest = _cloudHistory.reduce((m, c) => Math.max(m, Number(c && c.updatedAt) || 0), 0);
+  try { localStorage.setItem('jibunden_cloud_seen_at', String(Math.max(latest, _getCloudSeenAt()))); } catch (e) { /* noop */ }
+  updateCloudNewBadge();
 }
 
 // お客様履歴画面のクラウド取得状況表示
@@ -6800,7 +6838,8 @@ function fetchCloudHistory(force) {
       _cloudFetchedAt = Date.now();
       try { localStorage.setItem('jibunden_cloud_cache', JSON.stringify(_cloudHistory)); } catch (e) { /* 容量超過時はメモリのみ */ }
       renderSidebarHistory();
-      if (document.getElementById('section-history')?.style.display !== 'none') renderHistoryFull();
+      if (document.getElementById('section-history')?.style.display !== 'none') { renderHistoryFull(); markCloudHistorySeen(); }
+      else updateCloudNewBadge();
       _setCloudStatus(`☁ クラウドから ${_cloudHistory.length} 件取得（${new Date().toLocaleTimeString('ja-JP', { timeZone: 'Asia/Tokyo' })}）`, 'var(--mg)');
     })
     .catch(err => {
