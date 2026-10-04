@@ -2151,7 +2151,7 @@ function calcJuuryoSteps(mkwh) {
   const s1 = Math.min(mkwh, 120);
   const s2 = Math.min(Math.max(mkwh-120, 0), 180);
   const s3 = Math.max(mkwh-300, 0);
-  const energy = Math.round((s1*18.37 + s2*23.97 + s3*26.97)*100)/100;
+  const energy = Math.round((s1*18.37 + s2*18.33 + s3*23.97)*100)/100;
   const base   = mkwh > 0 ? Math.round(energy/mkwh*100)/100 : 0;
   const eff    = Math.round((base + ADJUSTMENT_UNIT_PRICE)*100)/100;
   return { s1, s2, s3, energy, base, eff };
@@ -2172,7 +2172,7 @@ function _juuryoBasicCharge(kp) {
 // 従量電灯B/C 合計額：各項目（基本/電力量/燃料/再エネ）を個別に Math.round() した上で合算（Bのみ口座振替割引 -55円）
 function _juuryoGrandTotal(kp, mkwh) {
   const { s1, s2, s3 } = calcJuuryoSteps(mkwh);
-  const energyAmt = Math.round(s1*18.37 + s2*23.97 + s3*26.97);
+  const energyAmt = Math.round(s1*18.37 + s2*18.33 + s3*23.97);
   const fuelAmt   = Math.round(mkwh * FUEL_ADJUST);
   const saieneAmt = Math.round(mkwh * SAIENE_LEVY);
   const basicAmt  = Math.round(_juuryoBasicCharge(kp));
@@ -2190,7 +2190,7 @@ function estimateJyuryoKwhFromBill(monthlyBill, kp, kvaBasicCharge) {
   let bestKwh = 0, bestDiff = Infinity;
   for (let kwh = 0; kwh <= 3000; kwh++) {
     const { s1, s2, s3 } = calcJuuryoSteps(kwh);
-    const energyAmt = Math.round(s1*18.37 + s2*23.97 + s3*26.97);
+    const energyAmt = Math.round(s1*18.37 + s2*18.33 + s3*23.97);
     const fuelAmt   = Math.round(kwh * FUEL_ADJUST);
     const saieneAmt = Math.round(kwh * SAIENE_LEVY);
     const basicAmt  = isB ? KYUSHU_JUURYO.basicB[_juuryoBAmpFromKwh(kwh)] : kvaBasicCharge;
@@ -2774,9 +2774,9 @@ function _renderOhisamaBreakdown() {
 const KYUSHU_KIJI = {
   tariff: {
     daytimeSummer: 33.57, // 昼間 夏季（7〜9月）
-    daytimeOther:  27.71, // 昼間 その他季
-    living:        26.03, // 生活時間帯
-    night:         14.59, // 夜間
+    daytimeOther:  33.53, // 昼間 その他季
+    living:        27.71, // 生活時間帯
+    night:         27.67, // 夜間
   },
   styles: {
     even:        { day:0.30, living:0.20, ngt:0.50, label:'昼夜バランスよく（標準）' },
@@ -2811,10 +2811,10 @@ const KYUSHU_OHISAMA = {
 const KYUSHU_DENKA_NIGHT = {
   tariff: {
     weekdaySummerWinter: 27.63, // 平日昼 夏・冬（4ヶ月）
-    weekdaySpringFall:   24.74, // 平日昼 春・秋（8ヶ月）
-    weekendSummerWinter: 22.01, // 休日昼 夏・冬
-    weekendSpringFall:   18.61, // 休日昼 春・秋
-    night:               14.59, // 夜間
+    weekdaySpringFall:   27.59, // 平日昼 春・秋（8ヶ月）
+    weekendSummerWinter: 24.74, // 休日昼 夏・冬
+    weekendSpringFall:   24.70, // 休日昼 春・秋
+    night:               22.01, // 夜間
   },
   styles: {
     even:        { day:0.30, hol:0.10, living:0.10, ngt:0.50, label:'標準（ナイト22想定）' },
