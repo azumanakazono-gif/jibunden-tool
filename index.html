@@ -2910,10 +2910,16 @@ function _sheetNum(v) {
 
 // 「創蓄システムパッケージ」行 → PACKAGES、「ＰＶシステムパッケージ」行 → PACKAGES_PV
 function parsePackageSheet(csv) {
-  const pb = {}, pv = {};
+  const pb = {}, pv = {}, rejected = new Set();
   _parseCsv(csv).forEach(r => {
     const name = String(r[0] || '').trim();
     let m;
+    // I列が「不採用」の行は表示しない
+    if (String(r[8] || '').trim() === '不採用') {
+      if ((m = name.match(/^(\d+)\+(\d+)パッケージ$/))) rejected.add(`${m[1]}+${m[2]}`);
+      else if ((m = name.match(/^(\d+)kWパッケージ$/))) rejected.add(`pv${m[1]}`);
+      return;
+    }
     const panels = _sheetNum(r[1]), sk = _sheetNum(r[2]), yen = _sheetNum(r[4]), ag = _sheetNum(r[5]);
     if (!(Number.isInteger(panels) && panels > 0 && sk > 0 && yen > 0 && ag > 0)) return;
     const cost = Math.round(yen / 10000); // 円 → 万円
@@ -2925,7 +2931,7 @@ function parsePackageSheet(csv) {
       pv[`pv${m[1]}`] = {panels, sk, ag, cost};
     }
   });
-  return {pb, pv};
+  return {pb, pv, rejected};
 }
 
 function _rebuildPkgOptions(selId, table, labelFn) {
@@ -2981,11 +2987,11 @@ async function loadPackagesFromSheet() {
   try {
     const res = await fetch(PACKAGE_SHEET_CSV_URL, {cache: 'no-store', signal: ctrl.signal});
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const {pb, pv} = parsePackageSheet(await res.text());
+    const {pb, pv, rejected} = parsePackageSheet(await res.text());
     if (!Object.keys(pb).length || !Object.keys(pv).length) throw new Error('パッケージ行が見つかりません');
     const oldPb = {...PACKAGES}, oldPv = {...PACKAGES_PV};
     // 選択中なのにシートから消えたキーは保持（選択状態が壊れないように）
-    const keep = (tbl, old, ids) => ids.forEach(id => { const k = document.getElementById(id)?.value; if (k && old[k] && !tbl[k]) tbl[k] = old[k]; });
+    const keep = (tbl, old, ids) => ids.forEach(id => { const k = document.getElementById(id)?.value; if (k && old[k] && !tbl[k] && !rejected.has(k)) tbl[k] = old[k]; });
     keep(pb, oldPb, ['pkg-select']);
     keep(pv, oldPv, ['pkg-select-pv', 'pkg-select-so']);
     Object.keys(PACKAGES).forEach(k => delete PACKAGES[k]); Object.assign(PACKAGES, pb);
