@@ -485,6 +485,12 @@ canvas#mini-chart { height: 220px !important; }
     <button class="nav-btn" onclick="clearForm()">
       <span class="icon">🔄</span> フォームをリセット
     </button>
+    <button class="nav-btn" onclick="saveFormAsDefault()" title="現在の入力内容・設定を「フォームをリセット」時の初期値として保存します">
+      <span class="icon">📌</span> 現在の内容を初期値に設定
+    </button>
+    <button class="nav-btn" id="clear-form-default-btn" onclick="clearFormDefault()" style="display:none;font-size:11px;opacity:.8">
+      <span class="icon">↩</span> 初期値を標準に戻す
+    </button>
   </div>
   <!-- 履歴プレビュー（サイドバー内） -->
   <div style="flex: 1; overflow-y: auto; padding: 0 12px 8px; border-top: 1px solid rgba(255,255,255,.1); margin-top: 8px;">
@@ -6716,7 +6722,44 @@ function renderMiniChart() {
     ? `※電気代が毎年${erVal}%上昇した場合の試算。実際の上昇率は異なる場合があります。` : '';
 }
 
+// ── フォーム初期値（「フォームをリセット」時の復元先）──
+const FORM_DEFAULT_KEY = 'jibunden_form_default';
+function _getFormDefault() {
+  try { const s = localStorage.getItem(FORM_DEFAULT_KEY); return s ? JSON.parse(s) : null; } catch(e) { return null; }
+}
+function _updateFormDefaultBtn() {
+  const el = document.getElementById('clear-form-default-btn');
+  if (el) el.style.display = _getFormDefault() ? '' : 'none';
+}
+function saveFormAsDefault() {
+  if (!confirm('現在の入力内容・設定を初期値として保存しますか？\n（以後「フォームをリセット」でこの内容に戻ります）')) return;
+  const d = {};
+  saveFormToData(d);
+  try { localStorage.setItem(FORM_DEFAULT_KEY, JSON.stringify(d)); } catch(e) { alert('初期値の保存に失敗しました'); return; }
+  _updateFormDefaultBtn();
+  alert('現在の内容を初期値として保存しました');
+}
+function clearFormDefault() {
+  if (!confirm('保存した初期値を削除し、標準の初期値に戻しますか？')) return;
+  try { localStorage.removeItem(FORM_DEFAULT_KEY); } catch(e) {}
+  _updateFormDefaultBtn();
+}
+
 function clearForm() {
+  const _def = _getFormDefault();
+  if (_def) {
+    if (!confirm('フォームを保存した初期値にリセットしますか？')) return;
+    loadDataToForm(_def);
+    _applyMonthlyData(_def.monthly);
+    calc();
+    // 読込中の入力イベントで clearAIComment が走るため、AIコメントを最後に再セット
+    const _restoreAI = () => {
+      const el = document.getElementById('ai-comment-text');
+      if (el) { el.value = _def.aiClosingComment || ''; autoResizeAIComment(); updateRealPptxBtnState(); }
+    };
+    _restoreAI(); setTimeout(_restoreAI, 0);
+    return;
+  }
   if(!confirm('フォームをリセットしますか？')) return;
   ['cn','ls'].forEach(id=>{ const d={'cn':'○○様○○システム','ls':'日中は共働きで外出多め・夜間使用が中心'}; document.getElementById(id).value=d[id]||''; });
   document.getElementById('fm').value='4人家族（夫婦＋子ども2人）';
@@ -8120,6 +8163,7 @@ window.addEventListener('DOMContentLoaded', () => {
     setLoanMethod('zansai');
     loadDataToForm(custData); // 初期表示 or 復元データ
     _applyMonthlyData(custData.monthly); // 12ヶ月詳細入力の復元
+    _updateFormDefaultBtn();      // 保存済み初期値があれば「標準に戻す」ボタンを表示
     loadPackagesFromSheet();      // システムパッケージ表をスプレッドシートから取得（失敗時は組込み値）
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
