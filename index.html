@@ -931,22 +931,21 @@ canvas#mini-chart { height: 220px !important; }
             <label>📦 システムパッケージ</label>
             <select id="pkg-select" onchange="onPkgChange()" style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
               <option value="">── 手動入力（パッケージ選択なし）──</option>
-              <option value="5+7">5+7パッケージ（14枚 / 5.46kW / 7.7kWh）</option>
-              <option value="5+15">5+15パッケージ（14枚 / 5.46kW / 15.4kWh）</option>
-              <option value="6+7">6+7パッケージ（16枚 / 6.24kW / 7.7kWh）</option>
-              <option value="6+9">6+9パッケージ（16枚 / 6.24kW / 9.7kWh）</option>
-              <option value="6+15">6+15パッケージ（16枚 / 6.24kW / 15.4kWh）</option>
-              <option value="7+7" selected>7+7パッケージ（18枚 / 7.02kW / 7.7kWh）</option>
-              <option value="7+9">7+9パッケージ（18枚 / 7.02kW / 9.7kWh）</option>
-              <option value="7+15">7+15パッケージ（18枚 / 7.02kW / 15.4kWh）</option>
-              <option value="8+7">8+7パッケージ（21枚 / 8.16kW / 7.7kWh）</option>
-              <option value="8+15">8+15パッケージ（21枚 / 8.16kW / 15.4kWh）</option>
-              <option value="9+7">9+7パッケージ（24枚 / 9.36kW / 7.7kWh）</option>
-              <option value="9+15">9+15パッケージ（24枚 / 9.36kW / 15.4kWh）</option>
-              <option value="10+7">10+7パッケージ（27枚 / 10.53kW / 7.7kWh）</option>
-              <option value="10+15">10+15パッケージ（27枚 / 10.53kW / 15.4kWh）</option>
-              <option value="14+7">14+7パッケージ（36枚 / 14.04kW / 7.7kWh）</option>
-              <option value="14+15">14+15パッケージ（36枚 / 14.04kW / 15.4kWh）</option>
+              <option value="5+7">【長府工産】5+7パッケージ（14枚 / 5.58kW / 7.4kWh）</option>
+              <option value="6+7">【長府工産】6+7パッケージ（16枚 / 6.51kW / 7.4kWh）</option>
+              <option value="6+9">【長州産業】6+9パッケージ（16枚 / 6.24kW / 9.7kWh）</option>
+              <option value="7+7" selected>【長府工産】7+7パッケージ（18枚 / 7.44kW / 7.4kWh）</option>
+              <option value="7+9">【長州産業】7+9パッケージ（18枚 / 7.02kW / 9.7kWh）</option>
+              <option value="7+15">【長府工産】7+15パッケージ（18枚 / 7.44kW / 14.9kWh）</option>
+              <option value="8+7">【長府工産】8+7パッケージ（21枚 / 8.37kW / 7.4kWh）</option>
+              <option value="8+15">【長府工産】8+15パッケージ（21枚 / 8.37kW / 14.9kWh）</option>
+              <option value="9+7">【長州産業】9+7パッケージ（24枚 / 9.36kW / 7.7kWh）</option>
+              <option value="9+15">【長府工産】9+15パッケージ（24枚 / 9.3kW / 14.9kWh）</option>
+              <option value="10+7">【長州産業】10+7パッケージ（27枚 / 10.14kW / 7.7kWh）</option>
+              <option value="10+15">【長府工産】10+15パッケージ（27枚 / 10.23kW / 14.9kWh）</option>
+              <option value="12+23">【長州産業】12+23パッケージ（32枚 / 12.48kW / 23.1kWh）</option>
+              <option value="14+7">【長州産業】14+7パッケージ（36枚 / 14.04kW / 7.7kWh）</option>
+              <option value="14+15">【長府工産】14+15パッケージ（36枚 / 13.95kW / 14.9kWh）</option>
             </select>
           </div>
           <div class="field" style="min-width:130px">
@@ -965,13 +964,15 @@ canvas#mini-chart { height: 220px !important; }
               <label>📦 システムパッケージ（太陽光のみ）</label>
               <select id="pkg-select-pv" onchange="onPkgChangePv()" style="border:1.5px solid var(--border);border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
                 <option value="">— 手動入力（パッケージ選択なし）—</option>
-                <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
-                <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
-                <option value="pv7"> 7kWパッケージ（18枚 / 7.02kW）</option>
-                <option value="pv8"> 8kWパッケージ（21枚 / 8.16kW）</option>
-                <option value="pv9"> 9kWパッケージ（24枚 / 9.36kW）</option>
-                <option value="pv10">10kWパッケージ（27枚 / 10.53kW）</option>
-                <option value="pv14">14kWパッケージ（36枚 / 14.04kW）</option>
+                <option value="pv5">【長州産業】5kWパッケージ（14枚 / 5.46kW）</option>
+                <option value="pv6">【長府工産】6kWパッケージ（14枚 / 6.51kW）</option>
+                <option value="pv7">【長府工産】7kWパッケージ（16枚 / 7.44kW）</option>
+                <option value="pv8">【長州産業】8kWパッケージ（21枚 / 8.19kW）</option>
+                <option value="pv9">【長州産業】9kWパッケージ（24枚 / 9.36kW）</option>
+                <option value="pv10">【長州産業】10kWパッケージ（27枚 / 10.53kW）</option>
+                <option value="pv12">【長州産業】12kWパッケージ（32枚 / 12.48kW）</option>
+                <option value="pv14">【長州産業】14kWパッケージ（36枚 / 14.04kW）</option>
+                <option value="pv16">【長州産業】16kWパッケージ（42枚 / 16.38kW）</option>
               </select>
             </div>
             <div class="field" id="pkg-extra-pv-field" style="min-width:130px;display:none">
@@ -1050,13 +1051,15 @@ canvas#mini-chart { height: 220px !important; }
             <label>📦 システムパッケージ（太陽光のみ）</label>
             <select id="pkg-select-so" onchange="onPkgChangeSo()" style="border:1.5px solid #bae6fd;border-radius:8px;padding:9px 12px;font-size:14px;background:#fff;color:var(--text);font-family:inherit;width:100%">
               <option value="">— 手動入力（パッケージ選択なし）—</option>
-              <option value="pv5"> 5kWパッケージ（14枚 / 5.46kW）</option>
-              <option value="pv6"> 6kWパッケージ（16枚 / 6.24kW）</option>
-              <option value="pv7" selected> 7kWパッケージ（18枚 / 7.02kW）</option>
-              <option value="pv8"> 8kWパッケージ（21枚 / 8.16kW）</option>
-              <option value="pv9"> 9kWパッケージ（24枚 / 9.36kW）</option>
-              <option value="pv10">10kWパッケージ（27枚 / 10.53kW）</option>
-              <option value="pv14">14kWパッケージ（36枚 / 14.04kW）</option>
+              <option value="pv5">【長州産業】5kWパッケージ（14枚 / 5.46kW）</option>
+              <option value="pv6">【長府工産】6kWパッケージ（14枚 / 6.51kW）</option>
+              <option value="pv7" selected>【長府工産】7kWパッケージ（16枚 / 7.44kW）</option>
+              <option value="pv8">【長州産業】8kWパッケージ（21枚 / 8.19kW）</option>
+              <option value="pv9">【長州産業】9kWパッケージ（24枚 / 9.36kW）</option>
+              <option value="pv10">【長州産業】10kWパッケージ（27枚 / 10.53kW）</option>
+              <option value="pv12">【長州産業】12kWパッケージ（32枚 / 12.48kW）</option>
+              <option value="pv14">【長州産業】14kWパッケージ（36枚 / 14.04kW）</option>
+              <option value="pv16">【長州産業】16kWパッケージ（42枚 / 16.38kW）</option>
             </select>
           </div>
           <div class="field" id="pkg-extra-so-field" style="min-width:130px">
@@ -2854,32 +2857,33 @@ let modelUnlocked = false;
 const TAB_FIELDS = ['mb','mkwh','ag','sk','bk','ck','dc','bc','sub','wy','er','la2','lr','lc'];
 
 const PACKAGES_PV = {
-  pv5:  {panels:14, sk:5.46,  ag:6006,  cost:114},
-  pv6:  {panels:16, sk:6.24,  ag:6864,  cost:122},
-  pv7:  {panels:18, sk:7.02,  ag:7722,  cost:131},
-  pv8:  {panels:21, sk:8.16,  ag:8976,  cost:152},
-  pv9:  {panels:24, sk:9.36,  ag:10296, cost:174},
-  pv10: {panels:27, sk:10.53, ag:11583, cost:210},
-  pv14: {panels:36, sk:14.04, ag:15444, cost:249},
+  pv5:  {panels:14, sk:5.46, ag:6006, cost:124, maker:'長州産業'},
+  pv6:  {panels:14, sk:6.51, ag:7161, cost:138, maker:'長府工産'},
+  pv7:  {panels:16, sk:7.44, ag:8184, cost:148, maker:'長府工産'},
+  pv8:  {panels:21, sk:8.19, ag:9009, cost:162, maker:'長州産業'},
+  pv9:  {panels:24, sk:9.36, ag:10296, cost:184, maker:'長州産業'},
+  pv10: {panels:27, sk:10.53, ag:11583, cost:220, maker:'長州産業'},
+  pv12: {panels:32, sk:12.48, ag:13728, cost:242, maker:'長州産業'},
+  pv14: {panels:36, sk:14.04, ag:15444, cost:259, maker:'長州産業'},
+  pv16: {panels:42, sk:16.38, ag:18018, cost:285, maker:'長州産業'},
 };
 
 const PACKAGES = {
-  '5+7' :{panels:14,sk:5.46, bk:7.7, cost:286,ag:6006, bc:1967},
-  '5+15':{panels:14,sk:5.46, bk:15.4,cost:407,ag:6006, bc:3935},
-  '6+7' :{panels:16,sk:6.24, bk:7.7, cost:297,ag:6864, bc:1967},
-  '6+9' :{panels:16,sk:6.24, bk:9.7, cost:345,ag:6864, bc:2478},
-  '6+15':{panels:16,sk:6.24, bk:15.4,cost:418,ag:6864, bc:3935},
-  '7+7' :{panels:18,sk:7.02, bk:7.7, cost:300,ag:7722, bc:1967},
-  '7+9' :{panels:18,sk:7.02, bk:9.7, cost:353,ag:7722, bc:2478},
-  '7+15':{panels:18,sk:7.02, bk:15.4,cost:429,ag:7722, bc:3935},
-  '8+7' :{panels:21,sk:8.16, bk:7.7, cost:313,ag:8976, bc:1967},
-  '8+15':{panels:21,sk:8.16, bk:15.4,cost:440,ag:8976, bc:3935},
-  '9+7' :{panels:24,sk:9.36, bk:7.7, cost:346,ag:10296,bc:1967},
-  '9+15':{panels:24,sk:9.36, bk:15.4,cost:473,ag:10296,bc:3935},
-  '10+7':{panels:27,sk:10.53,bk:7.7, cost:363,ag:11583,bc:1967},
-  '10+15':{panels:27,sk:10.53,bk:15.4,cost:484,ag:11583,bc:3935},
-  '14+7':{panels:36,sk:14.04,bk:7.7, cost:398,ag:15444,bc:1967},
-  '14+15':{panels:36,sk:14.04,bk:15.4,cost:520,ag:15444,bc:3935},
+  '5+7':  {panels:14,sk:5.58,bk:7.4,cost:317,ag:6138,bc:1891,maker:'長府工産'},
+  '6+7':  {panels:16,sk:6.51,bk:7.4,cost:328,ag:7161,bc:1891,maker:'長府工産'},
+  '6+9':  {panels:16,sk:6.24,bk:9.7,cost:375,ag:6864,bc:2478,maker:'長州産業'},
+  '7+7':  {panels:18,sk:7.44,bk:7.4,cost:338,ag:8184,bc:1891,maker:'長府工産'},
+  '7+9':  {panels:18,sk:7.02,bk:9.7,cost:384,ag:7722,bc:2478,maker:'長州産業'},
+  '7+15': {panels:18,sk:7.44,bk:14.9,cost:444,ag:8184,bc:3807,maker:'長府工産'},
+  '8+7':  {panels:21,sk:8.37,bk:7.4,cost:349,ag:9207,bc:1891,maker:'長府工産'},
+  '8+15': {panels:21,sk:8.37,bk:14.9,cost:455,ag:9207,bc:3807,maker:'長府工産'},
+  '9+7':  {panels:24,sk:9.36,bk:7.7,cost:366,ag:10296,bc:1967,maker:'長州産業'},
+  '9+15': {panels:24,sk:9.3,bk:14.9,cost:474,ag:10230,bc:3807,maker:'長府工産'},
+  '10+7': {panels:27,sk:10.14,bk:7.7,cost:374,ag:11154,bc:1967,maker:'長州産業'},
+  '10+15':{panels:27,sk:10.23,bk:14.9,cost:485,ag:11253,bc:3807,maker:'長府工産'},
+  '12+23':{panels:32,sk:12.48,bk:23.1,cost:756,ag:13728,bc:5902,maker:'長州産業'},
+  '14+7': {panels:36,sk:14.04,bk:7.7,cost:417,ag:15444,bc:1967,maker:'長州産業'},
+  '14+15':{panels:36,sk:13.95,bk:14.9,cost:527,ag:15345,bc:3807,maker:'長府工産'},
 };
 // ── システムパッケージ表（Googleスプレッドシート）から価格・仕様を動的取得 ──
 // 上の PACKAGES_PV / PACKAGES は取得失敗時（オフライン等）のフォールバック値。
@@ -2909,29 +2913,52 @@ function _sheetNum(v) {
 }
 
 // 「創蓄システムパッケージ」行 → PACKAGES、「ＰＶシステムパッケージ」行 → PACKAGES_PV
+// 列位置は見出し行（「パッケージ名」を含む行）から毎回特定する（列の追加・並べ替えに追従）
+const _PKG_COLS = {
+  maker: /メーカー/, name: /パッケージ名/, panels: /パネル枚数/, sk: /太陽光容量/, bk: /蓄電池容量/,
+  yen: /価格/, ag: /年間発電量/, bc: /蓄電池で賄う/, judge: /判定/,
+};
+// 見出し行が見つからない場合の既定列（A:メーカー B:名称 C:枚数 D:kW E:kWh F:価格 G:発電量 H:蓄電池賄い I:判定）
+const _PKG_COLS_DEFAULT = {maker:0, name:1, panels:2, sk:3, bk:4, yen:5, ag:6, bc:7, judge:8};
+
 function parsePackageSheet(csv) {
   const pb = {}, pv = {}, rejected = new Set();
+  let col = {..._PKG_COLS_DEFAULT};
   _parseCsv(csv).forEach(r => {
-    const name = String(r[0] || '').trim();
-    let m;
-    // I列が「不採用」の行は表示しない
-    if (String(r[8] || '').trim() === '不採用') {
-      if ((m = name.match(/^(\d+)\+(\d+)パッケージ$/))) rejected.add(`${m[1]}+${m[2]}`);
-      else if ((m = name.match(/^(\d+)kWパッケージ$/))) rejected.add(`pv${m[1]}`);
+    const cells = r.map(c => String(c == null ? '' : c).replace(/\s+/g, ''));
+    if (cells.some(c => /パッケージ名/.test(c))) {
+      col = {};
+      Object.entries(_PKG_COLS).forEach(([k, re]) => { const i = cells.findIndex(c => re.test(c)); if (i >= 0) col[k] = i; });
       return;
     }
-    const panels = _sheetNum(r[1]), sk = _sheetNum(r[2]), yen = _sheetNum(r[4]), ag = _sheetNum(r[5]);
+    const cell = k => (col[k] == null ? '' : String(r[col[k]] == null ? '' : r[col[k]]).trim());
+    const name = cell('name').replace(/\s+/g, '').replace(/[０-９＋]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    const maker = cell('maker');
+    let m, key = null;
+    if ((m = name.match(/^(\d+)\+(\d+)パッケージ$/))) key = `${m[1]}+${m[2]}`;
+    else if ((m = name.match(/^(\d+)kWパッケージ$/i))) key = `pv${m[1]}`;
+    if (!key) return;
+    // I列（判定）が「不採用」の行は表示しない
+    if (cell('judge') === '不採用') { rejected.add(key); return; }
+    const panels = _sheetNum(cell('panels')), sk = _sheetNum(cell('sk')), yen = _sheetNum(cell('yen')), ag = _sheetNum(cell('ag'));
     if (!(Number.isInteger(panels) && panels > 0 && sk > 0 && yen > 0 && ag > 0)) return;
     const cost = Math.round(yen / 10000); // 円 → 万円
-    if ((m = name.match(/^(\d+)\+(\d+)パッケージ$/))) {
-      const bk = _sheetNum(r[3]), bc = _sheetNum(r[6]);
+    if (key.startsWith('pv')) {
+      pv[key] = {panels, sk, ag: Math.round(ag), cost, maker};
+    } else {
+      const bk = _sheetNum(cell('bk')), bc = _sheetNum(cell('bc'));
       if (!(bk > 0 && bc > 0)) return;
-      pb[`${m[1]}+${m[2]}`] = {panels, sk, bk, cost, ag, bc};
-    } else if ((m = name.match(/^(\d+)kWパッケージ$/))) {
-      pv[`pv${m[1]}`] = {panels, sk, ag, cost};
+      pb[key] = {panels, sk, bk, cost, ag: Math.round(ag), bc: Math.round(bc), maker};
     }
   });
   return {pb, pv, rejected};
+}
+
+// パッケージ表示名（採用メーカー名つき）
+function pkgDisplayName(key, p) {
+  if (!key || !p) return '';
+  const base = key.startsWith('pv') ? `${key.slice(2)}kWパッケージ` : `${key}パッケージ`;
+  return p.maker ? `【${p.maker}】${base}` : base;
 }
 
 function _rebuildPkgOptions(selId, table, labelFn) {
@@ -2996,8 +3023,8 @@ async function loadPackagesFromSheet() {
     keep(pv, oldPv, ['pkg-select-pv', 'pkg-select-so']);
     Object.keys(PACKAGES).forEach(k => delete PACKAGES[k]); Object.assign(PACKAGES, pb);
     Object.keys(PACKAGES_PV).forEach(k => delete PACKAGES_PV[k]); Object.assign(PACKAGES_PV, pv);
-    const pbLabel = (k, p) => `${k}パッケージ（${p.panels}枚 / ${p.sk}kW / ${p.bk}kWh）`;
-    const pvLabel = (k, p) => `${k.slice(2).padStart(2, ' ')}kWパッケージ（${p.panels}枚 / ${p.sk}kW）`;
+    const pbLabel = (k, p) => `${pkgDisplayName(k, p)}（${p.panels}枚 / ${p.sk}kW / ${p.bk}kWh）`;
+    const pvLabel = (k, p) => `${pkgDisplayName(k, p)}（${p.panels}枚 / ${p.sk}kW）`;
     _rebuildPkgOptions('pkg-select', PACKAGES, pbLabel);
     _rebuildPkgOptions('pkg-select-pv', PACKAGES_PV, pvLabel);
     _rebuildPkgOptions('pkg-select-so', PACKAGES_PV, pvLabel);
@@ -3408,8 +3435,8 @@ function updatePkgSummarySo() {
     const total = p.cost + extra;
     el.style.display = '';
     el.innerHTML = extra > 0
-      ? `標準パッケージ：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`
-      : `標準パッケージ：<b>${p.cost}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`;
+      ? `標準パッケージ（${pkgDisplayName(key, p)}）：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`
+      : `標準パッケージ（${pkgDisplayName(key, p)}）：<b>${p.cost}万円</b>　＝　最終：<b style="font-size:13px">${total}万円</b>`;
   } else { el.style.display = 'none'; }
 }
 
@@ -3430,7 +3457,7 @@ function updatePkgSummary() {
   if (key && PACKAGES[key]) {
     const total = pkgBaseCost + extra;
     el.style.display = '';
-    el.innerHTML = `標準パッケージ：<b>${pkgBaseCost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+    el.innerHTML = `標準パッケージ（${pkgDisplayName(key, PACKAGES[key])}）：<b>${pkgBaseCost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
   } else {
     el.style.display = 'none';
   }
@@ -3453,9 +3480,9 @@ function updatePkgSummaryPv() {
     const total = p.cost + extra;
     el.style.display = '';
     if (extra > 0) {
-      el.innerHTML = `標準パッケージ：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+      el.innerHTML = `標準パッケージ（${pkgDisplayName(key, p)}）：<b>${p.cost}万円</b>　＋　追加費用：<b>${extra}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
     } else {
-      el.innerHTML = `標準パッケージ：<b>${p.cost}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
+      el.innerHTML = `標準パッケージ（${pkgDisplayName(key, p)}）：<b>${p.cost}万円</b>　＝　最終税込総工事費用：<b style="color:var(--dg);font-size:13px">${total}万円</b>`;
     }
   } else {
     el.style.display = 'none';
@@ -3609,7 +3636,11 @@ function loadDataToForm(data) {
   document.getElementById('pkg-extra-so').value = so.pkgExtraSo || 0;
   document.getElementById('pkg-extra-so-note').value = so.pkgExtraSoNote || '';
   if (soKey && PACKAGES_PV[soKey]) {
-    pkgBaseCostSo = PACKAGES_PV[soKey].cost;
+    const _ps = PACKAGES_PV[soKey];
+    pkgBaseCostSo = _ps.cost;
+    document.getElementById('sk-so').value = _ps.sk;
+    document.getElementById('ag-so').value = _ps.ag;
+    document.getElementById('ck-so').value = _ps.cost + (so.pkgExtraSo || 0);
   }
   const isSoManual = !soKey;
   const soExtraField = document.getElementById('pkg-extra-so-field');
@@ -5953,9 +5984,13 @@ function calc() {
   // 太陽光のみ側：モードに関わらず「導入後の昼間帯比率 × ag-so」の直接消費のみで個別算出（蓄電池値 dc/bc は流用しない）
   _applyDcSo();
   document.getElementById('pkg-area-so').style.display = '';
-  document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${sk} kW)` : '';
+  var _pkKey = document.getElementById(proposalMode === 'pv_only' ? 'pkg-select-pv' : 'pkg-select').value;
+  var _pkName = pkgDisplayName(_pkKey, (proposalMode === 'pv_only' ? PACKAGES_PV : PACKAGES)[_pkKey]);
+  document.getElementById('title-pv-cap').textContent = sk > 0 ? `(${_pkName ? _pkName + ' / ' : ''}${sk} kW)` : '';
   var _skSoTitle = parseFloat(document.getElementById('sk-so').value) || 0;
-  document.getElementById('title-pv-cap-so').textContent = _skSoTitle > 0 ? `(${_skSoTitle} kW)` : '';
+  var _soKeyTitle = document.getElementById('pkg-select-so').value;
+  var _soName = pkgDisplayName(_soKeyTitle, PACKAGES_PV[_soKeyTitle]);
+  document.getElementById('title-pv-cap-so').textContent = _skSoTitle > 0 ? `(${_soName ? _soName + ' / ' : ''}${_skSoTitle} kW)` : '';
   // 実効蓄電容量表示・上限補正
   const _bkEffVal = effectiveBatteryKwh(bk);
   const _bkEffDispEl = document.getElementById('bk-eff-disp');
@@ -6719,7 +6754,12 @@ function clearForm() {
   document.getElementById('ag-so').value=7722; document.getElementById('sub-so').value=0;
   document.getElementById('wy-so').value=20; document.getElementById('dc-so').value=2310;
   document.getElementById('pkg-select-so').value='pv7'; document.getElementById('pkg-extra-so').value=0;
-  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=131; pkgBaseCostPv=131; updatePkgSummarySo();
+  document.getElementById('pkg-extra-so-note').value=''; pkgBaseCostSo=131; pkgBaseCostPv=131;
+  if (PACKAGES_PV.pv7) { // 最新パッケージ値（スプレッドシート取得済みならその値）を反映
+    const _p7 = PACKAGES_PV.pv7; pkgBaseCostSo = pkgBaseCostPv = _p7.cost;
+    document.getElementById('sk-so').value=_p7.sk; document.getElementById('ag-so').value=_p7.ag; document.getElementById('ck-so').value=_p7.cost;
+  }
+  updatePkgSummarySo();
 }
 
 // ══════════════════════════════════════════
