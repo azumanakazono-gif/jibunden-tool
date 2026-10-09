@@ -1278,6 +1278,10 @@ canvas#mini-chart { height: 220px !important; }
             </label>
             <input type="number" id="bc" value="2520" min="0" max="15000" step="10" oninput="onBcInput()">
             <span id="bc-monthly-hint" style="font-size:11px;color:var(--muted)"></span>
+            <div id="bc-limit-hint" style="display:none;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px;font-size:11px;color:var(--muted)">
+              <span>上限目安：<b id="bc-limit-val" style="color:#15803d">-</b> <span id="bc-limit-reason"></span></span>
+              <button type="button" onclick="applyBcLimit()" style="font-size:10px;padding:2px 7px;border:1px solid #16a34a;border-radius:5px;background:#f0fdf4;color:#15803d;cursor:pointer;font-family:inherit;font-weight:700">上限値を適用</button>
+            </div>
             <span id="bc-warn" style="display:none;font-size:11px;color:#dc2626;font-weight:600"></span>
           </div>
           <div id="bk-remain-disp" style="display:none;margin-top:8px;padding:12px 14px;background:#fff;border-radius:8px;border-left:4px solid var(--mg)">
@@ -2657,23 +2661,53 @@ function onDcSoCardInput() {
 function onBcInput() {
   bcManualEdited = true;
   _updateBcManualUI();
-  const bcEl = document.getElementById('bc');
-  const bk   = parseFloat(document.getElementById('bk').value) || 0;
-  const kwh  = parseFloat(bcEl.value) || 0;
+  calc(); // 上限超過の警告は calc 内の _updateBcLimitUI で表示
+}
+
+// 蓄電池で賄う量の上限目安＝min(あと自家消費に回せる見込み量（ag−dc）, 蓄電池の年間理論上限（実効容量×365）)
+function _bcLimit(ag, dc, bk) {
+  if (!(bk > 0)) return null;
+  const pvMax = Math.max(0, Math.round(ag - dc));
+  const bkMax = Math.round(effectiveBatteryKwh(bk) * 365);
+  return pvMax < bkMax
+    ? { limit: pvMax, reason: '（自家消費に回せる見込み量）' }
+    : { limit: bkMax, reason: '（蓄電池の年間理論上限）' };
+}
+
+function _updateBcLimitUI(ag, dc, bk, bc) {
+  const hintEl = document.getElementById('bc-limit-hint');
   const warnEl = document.getElementById('bc-warn');
-  if (bk > 0 && warnEl) {
-    const { effectiveBatteryKwh: _eff } = window;
-    const effVal = typeof effectiveBatteryKwh === 'function' ? effectiveBatteryKwh(bk) : bk;
-    const maxAnnual = Math.round(effVal * 365);
-    if (kwh > maxAnnual) {
-      warnEl.textContent = `⚠ 実効容量 ${effVal} kWh の年間上限（${maxAnnual.toLocaleString()} kWh）を超えています`;
-      warnEl.style.display = '';
-    } else {
-      warnEl.style.display = 'none';
-    }
-  } else if (warnEl) {
+  const bcEl   = document.getElementById('bc');
+  const lim = _bcLimit(ag, dc, bk);
+  if (!hintEl || !warnEl || !bcEl) return;
+  if (!lim) {
+    hintEl.style.display = 'none';
+    warnEl.style.display = 'none';
+    bcEl.style.borderColor = ''; bcEl.style.boxShadow = '';
+    bcEl.placeholder = '';
+    return;
+  }
+  hintEl.style.display = 'flex';
+  document.getElementById('bc-limit-val').textContent = `${lim.limit.toLocaleString()} kWh/年`;
+  document.getElementById('bc-limit-reason').textContent = lim.reason;
+  bcEl.placeholder = `上限目安 ${lim.limit.toLocaleString()}`;
+  const over = bc > lim.limit;
+  bcEl.style.borderColor = over ? '#dc2626' : '';
+  bcEl.style.boxShadow   = over ? '0 0 0 2px rgba(220,38,38,.2)' : '';
+  if (over) {
+    warnEl.textContent = `⚠ 上限目安（${lim.limit.toLocaleString()} kWh）を ${(bc - lim.limit).toLocaleString()} kWh 超過しています${lim.reason}`;
+    warnEl.style.display = 'block';
+  } else {
     warnEl.style.display = 'none';
   }
+}
+
+function applyBcLimit() {
+  const lim = _bcLimit(v('ag'), v('dc'), v('bk'));
+  if (!lim) return;
+  document.getElementById('bc').value = lim.limit;
+  bcManualEdited = true;
+  _updateBcManualUI();
   calc();
 }
 
@@ -6006,17 +6040,9 @@ function calc() {
       bc = Math.round(_bkEffVal * 365);
       document.getElementById('bc').value = bc;
     }
-    // 手動入力中は値を書き換えず bc-warn でインライン警告を表示（bk-error は別途）
-    const _warnEl = document.getElementById('bc-warn');
-    if (_warnEl && bcManualEdited) {
-      const _max = Math.round(_bkEffVal * 365);
-      _warnEl.textContent = `⚠ 実効容量 ${_bkEffVal} kWh の年間上限（${_max.toLocaleString()} kWh）を超えています`;
-      _warnEl.style.display = '';
-    }
-  } else {
-    const _warnEl = document.getElementById('bc-warn');
-    if (_warnEl && !bcManualEdited) _warnEl.style.display = 'none';
+    // 手動入力中は値を書き換えず、_updateBcLimitUI でインライン警告を表示（bk-error は別途）
   }
+  _updateBcLimitUI(ag, dc, bk, bc);
   // pv_only モードでは蓄電池消費を 0 として計算（フィールド値は保持）
   const bc_eff = proposalMode === 'pv_only' ? 0 : bc;
   // ── アクティブな提案モード（太陽光のみ／太陽光＋蓄電池）の「作る電気」側 参照値 ──
