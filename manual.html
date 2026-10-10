@@ -182,11 +182,47 @@
   #s10 .item strong{display:block;color:#1e293b;margin-bottom:3px;}
 
   /* ⑧ Q&A */
-  #s11 h2{font-size:1.8rem;margin-bottom:32px;}
-  #s11 .qa-list{width:860px;display:flex;flex-direction:column;gap:16px;}
-  #s11 .qa{background:#fff;border-radius:8px;padding:18px 22px;border-left:4px solid #10b981;box-shadow:0 1px 4px #0000000a;}
+  #s11 h2{font-size:1.8rem;margin-bottom:22px;}
+  #s11 .qa-list{width:860px;display:flex;flex-direction:column;gap:12px;}
+  #s11 .qa{background:#fff;border-radius:8px;padding:14px 22px;border-left:4px solid #10b981;box-shadow:0 1px 4px #0000000a;}
   #s11 .q{color:#10b981;font-weight:700;margin-bottom:6px;font-size:0.95rem;}
   #s11 .a{color:#475569;font-size:0.88rem;line-height:1.7;}
+  /* ── 詳細解説スライド（共通） ── */
+  .dt .dt-wrap{display:flex;gap:40px;width:1100px;align-items:center;}
+  .dt .dt-left{flex:0 0 480px;}
+  .dt .dt-left h2{font-size:1.6rem;margin-bottom:16px;line-height:1.4;}
+  .dt .dt-lead{font-size:0.9rem;color:#475569;line-height:1.8;margin-bottom:14px;}
+  .dt ol.steps{list-style:none;padding:0;counter-reset:st;}
+  .dt ol.steps li{counter-increment:st;position:relative;padding:8px 0 8px 36px;border-bottom:1px solid #e2e8f0;font-size:0.86rem;color:#475569;line-height:1.6;}
+  .dt ol.steps li::before{content:counter(st);position:absolute;left:0;top:8px;width:24px;height:24px;border-radius:50%;background:#10b981;color:#fff;font-weight:900;font-size:0.78rem;display:flex;align-items:center;justify-content:center;}
+  .dt ol.steps li b{color:#1e293b;}
+  .dt .dt-right{flex:1;display:flex;flex-direction:column;gap:12px;}
+  .mock{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:18px 20px;box-shadow:0 4px 18px rgba(30,41,59,.07);font-size:0.82rem;color:#475569;}
+  .mock-title{font-size:0.75rem;font-weight:700;color:#10b981;letter-spacing:.05em;margin-bottom:10px;}
+  .mbtn{display:inline-block;padding:5px 12px;border-radius:6px;font-size:0.78rem;font-weight:700;border:1.5px solid #10b981;color:#10b981;background:#fff;margin:2px 4px 2px 0;}
+  .mbtn.fill{background:#10b981;color:#fff;}
+  .mbtn.blue{background:#1d4ed8;border-color:#1d4ed8;color:#fff;}
+  .mbtn.off{background:#cbd5e1;border-color:#cbd5e1;color:#fff;}
+  .mbadge{display:inline-block;background:#ef4444;color:#fff;font-size:0.68rem;font-weight:700;padding:1px 7px;border-radius:9px;margin-left:6px;}
+  .minput{border:1.5px solid #e2e8f0;border-radius:6px;padding:6px 10px;color:#1e293b;background:#fff;margin:4px 0;}
+  .minput.ng{border-color:#dc2626;box-shadow:0 0 0 2px rgba(220,38,38,.2);}
+  .mwarn{color:#dc2626;font-weight:600;font-size:0.76rem;}
+  .mhint{background:#FEF2F2;border:1px solid #FCA5A5;border-radius:6px;padding:6px 10px;color:#B91C1C;font-weight:600;font-size:0.74rem;line-height:1.5;margin-top:6px;}
+  .mrow{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px dashed #e2e8f0;gap:8px;}
+  .mrow:last-child{border-bottom:none;}
+  .mrow.x{color:#cbd5e1;text-decoration:line-through;}
+  .note{background:#ecfdf5;border-left:3px solid #10b981;border-radius:6px;padding:10px 14px;font-size:0.8rem;color:#475569;line-height:1.6;}
+  .note b{color:#1e293b;}
+  @media(max-width:768px){
+    .dt .dt-wrap{flex-direction:column;width:100%;gap:14px;}
+    .dt .dt-left{flex:none;width:100%;}
+    .dt .dt-left h2{font-size:1.05rem!important;}
+    .dt .dt-lead{font-size:0.8rem;}
+    .dt ol.steps li{font-size:0.78rem;padding:7px 0 7px 32px;}
+    .dt .dt-right{width:100%;}
+    .mock{padding:14px 14px;font-size:0.76rem;}
+    .note{font-size:0.75rem;}
+  }
 </style>
 </head>
 <body>
@@ -194,7 +230,7 @@
 <div id="click-next"></div>
 <div id="nav">
   <button id="btn-prev">&#8592;</button>
-  <span class="counter" id="counter">1 / 8</span>
+  <span class="counter" id="counter"></span>
   <button id="btn-next">&#8594;</button>
   <button id="btn-home" onclick="window.close(); location.href='./index.html';">🏠 メインページ</button>
 </div>
@@ -204,8 +240,8 @@
 <!-- ① 表紙 -->
 <div class="slide active" id="s1">
   <div class="logo">じぶん<span>電気</span>ツール</div>
-  <div class="catch">PPTX自動生成 ユーザーマニュアル</div>
-  <div class="version">ver 1.0 &nbsp;|&nbsp; 2026</div>
+  <div class="catch">PPTX自動生成 実践ユーザーマニュアル（詳細版）</div>
+  <div class="version">ver 2.0 &nbsp;|&nbsp; 2026</div>
   <div class="slide-num">1 / 8</div>
 </div>
 
@@ -221,6 +257,8 @@
       <div class="pill">⚡ ブラウザだけで完結</div>
       <a class="pill pill-link" href="./pptx-detail.html" target="_blank">📊 PPTX自動生成 <span style="font-size:0.75rem">→ 詳しく見る</span></a>
       <div class="pill">💾 データ保存・読込</div>
+      <div class="pill">☁ クラウド同期・検索</div>
+      <div class="pill">🤖 AIコメント生成・添削</div>
       <div class="pill">📱 レスポンシブ対応</div>
     </div>
   </div>
@@ -240,12 +278,12 @@
     <div class="tile">
       <div class="icon">💾</div>
       <h3>データ保存・読込</h3>
-      <p>入力内容をJSONで書き出し・読み込み可能。同じお客様への再提案も瞬時に対応。</p>
+      <p>「💾 データ保存」で履歴＋クラウドへ保存。JSON書き出し・読込にも対応し、再提案も瞬時に対応。</p>
     </div>
     <div class="tile">
       <div class="icon">📋</div>
       <h3>履歴管理</h3>
-      <p>過去の作成履歴を一覧管理。データはクラウド（Googleスプレッドシート）で管理され、別のPC・タブレット・ブラウザとも自動で同期。他の端末で更新があると「新データあり」と通知されます。</p>
+      <p>過去の作成履歴を一覧管理。クラウド（Googleスプレッドシート）で他端末と自動同期し、検索バーで即座に絞り込み。更新があると「新データあり」と通知。</p>
     </div>
   </div>
   <div class="slide-num">3 / 8</div>
@@ -306,6 +344,114 @@
   <div class="slide-num">5 / 8</div>
 </div>
 
+<!-- ⑥ 初期値保存・リセット -->
+<div class="slide dt" id="s-default">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">STEP 1 詳細</div>
+      <h2>📌 フォームの<span class="accent">初期値保存・リセット</span></h2>
+      <div class="dt-lead">よく使う条件（担当者名・単価・生活スタイル等）を「自分専用の初期値」として登録できます。毎回の入力を省き、商談の立ち上がりを短縮します。</div>
+      <ol class="steps">
+        <li>よく使う内容をフォームに入力した状態で、サイドバー「操作」の <b>📌 現在の内容を初期値に設定</b> を押す</li>
+        <li>確認ダイアログでOK → 「現在の内容を初期値として保存しました」と表示</li>
+        <li>次の案件では <b>🔄 フォームをリセット</b> を押すと、保存した初期値に戻る</li>
+        <li>標準状態に戻したいときは <b>↩ 初期値を標準に戻す</b>（初期値保存時のみ表示）</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">サイドバー ＞ 操作</div>
+        <div class="mrow"><span>🔄 フォームをリセット</span><span style="font-size:0.72rem">保存した初期値へ復元</span></div>
+        <div class="mrow"><span>📌 現在の内容を初期値に設定</span><span style="font-size:0.72rem">今の入力を登録</span></div>
+        <div class="mrow"><span>↩ 初期値を標準に戻す</span><span style="font-size:0.72rem">登録を削除</span></div>
+      </div>
+      <div class="note"><b>💡 ポイント</b><br>初期値はこの端末・ブラウザ内に保存されます。端末ごとに設定してください。お客様固有の情報（氏名・電気代など）は初期値に含めず、共通項目だけで登録するのがおすすめです。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- ⑦ 蓄電池放電量の上限目安 -->
+<div class="slide dt" id="s-battery">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">SIMULATION</div>
+      <h2>🔋 蓄電池で賄う量の<span class="accent">上限チェック</span></h2>
+      <div class="dt-lead">「蓄電池で賄う量（kWh/年）」の欄に、物理的に無理のない<b>上限目安</b>を自動表示。過大な試算による提案ミスを防ぎます。</div>
+      <ol class="steps">
+        <li>入力欄の下に <b>上限目安：○○ kWh/年</b> と根拠が表示される</li>
+        <li>上限目安 ＝「自家消費に回せる見込み量（年間発電量−日中自家消費）」と「蓄電池の年間理論上限（実効容量×365日）」の<b>小さい方</b></li>
+        <li>上限を超えると入力欄が<b>赤枠</b>になり、超過量の警告が表示される</li>
+        <li><b>上限値を適用</b> ボタンでワンクリック補正。手入力時は「手動入力中」バッジが付き、<b>自動計算に戻す</b> で元に戻せる</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">蓄電池で賄う量（kWh/年）<span class="mbadge" style="background:#fef3c7;color:#92400e">手動入力中</span></div>
+        <div class="minput ng">3,800</div>
+        <div style="font-size:0.75rem;margin:4px 0">上限目安：<b style="color:#15803d">2,920 kWh/年</b>（蓄電池の年間理論上限）<span class="mbtn" style="font-size:0.68rem;padding:2px 7px;margin-left:6px">上限値を適用</span></div>
+        <div class="mwarn">⚠ 上限目安（2,920 kWh）を 880 kWh 超過しています</div>
+      </div>
+      <div class="note"><b>💡 ポイント</b><br>上限目安は「これ以上は理論上ほぼ不可能」というライン。お客様に誠実な提案をするため、警告が出たままの試算は使わず必ず見直しましょう。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- ⑧ パッケージ自動フィルタリング -->
+<div class="slide dt" id="s-package">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">SIMULATION</div>
+      <h2>📦 パッケージ詳細の<span class="accent">自動フィルタリング</span></h2>
+      <div class="dt-lead">「📦 システムパッケージ」の選択肢は、社内のパッケージ表（スプレッドシート）から<b>最新データを自動で読み込み</b>ます。</div>
+      <ol class="steps">
+        <li>パッケージ表の見出し行から列を自動判別し、最新シートを読込</li>
+        <li>判定列（I列）が <b>「不採用」</b> の行は選択肢・詳細から<b>自動で除外</b></li>
+        <li>選択肢には <b>【採用メーカー名】</b>・枚数・kW・kWhを表示</li>
+        <li>選ぶとパネル容量・蓄電池容量・価格・年間発電量などが自動入力される</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">📦 システムパッケージ</div>
+        <div class="mrow"><span>── 手動入力（パッケージ選択なし）──</span></div>
+        <div class="mrow"><span>【長府工産】6+7パッケージ</span><span style="font-size:0.72rem">16枚 / 6.51kW / 7.4kWh</span></div>
+        <div class="mrow"><span>【長州産業】7+9パッケージ</span><span style="font-size:0.72rem">18枚 / 7.02kW / 9.7kWh</span></div>
+        <div class="mrow x"><span>○+○パッケージ</span><span style="font-size:0.72rem">判定：不採用 → 非表示</span></div>
+      </div>
+      <div class="note"><b>💡 ポイント</b><br>選択肢の追加・停止はパッケージ表の更新だけでOK。ツール側の修正は不要で、現場は常に「今売れる商品」だけを提案できます。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- ⑨ AIクロージングコメント -->
+<div class="slide dt" id="s-ai">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">AI COMMENT</div>
+      <h2>🤖 AIクロージングコメントの<span class="accent">生成・添削</span></h2>
+      <div class="dt-lead">実データ版PPTXの最終ページに載るお客様向けメッセージを、試算結果をもとにAIが作成します（100〜150文字目安・最大200文字）。</div>
+      <ol class="steps">
+        <li>試算が固まったら <b>✨ AIコメント生成</b> を押す（削減額・導入メリットを反映した文章が入る）</li>
+        <li>お客様の言葉や商談の温度感に合わせて、欄内を<b>直接編集</b>（「✍️ コメント自主編集中」表示）</li>
+        <li>編集すると <b>✨ AI添削・ブラッシュアップ</b> が使えるようになり、ニュアンスを保ったままプロの営業トークに整える</li>
+        <li><b>💾 データ保存</b> で、入力内容とコメントを履歴・スプレッドシートへ保存</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">🤖 AIクロージングコメント（実データ版 最終ページに反映）</div>
+        <div class="minput" style="font-size:0.76rem;line-height:1.6;min-height:58px">〇〇様のご家庭では、太陽光と蓄電池で「じぶん電気」をつくって使うことで、毎月の電気代を大きく抑えられます…</div>
+        <span class="mbtn fill">✨ AIコメント生成</span><span class="mbtn">✨ AI添削・ブラッシュアップ</span><span class="mbtn">💾 データ保存</span>
+      </div>
+      <div class="note"><b>💡 ポイント</b><br>入力内容（プラン・モード等）を変更すると、古い試算に基づくコメントは<b>自動でクリア</b>されます。最終の数値で生成し直してください。20年間のコスト差がマイナスの場合は「スタッフ向け注意文」が入るので、必ずお客様向けの文章に書き換えます。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
 <!-- ⑥ STEP2 提案書の完成 -->
 <div class="slide" id="s9">
   <div class="tag">STEP 2</div>
@@ -313,16 +459,104 @@
   <div class="two-col">
     <div class="item">
       <div class="circle-img">📥</div>
-      <h3>PPTXダウンロード</h3>
-      <p>生成されたPPTXファイルをワンクリックでダウンロード。PowerPointで即編集可能。</p>
+      <h3>実データ版PPTX出力</h3>
+      <p>フォーム下部の「👤 実データ版PPTXを出力」でお客様専用の提案書をダウンロード。サンプル確認はサイドバーの「🔬 モデルケース版」で。</p>
     </div>
     <div class="item">
       <div class="circle-img">💾</div>
       <h3>データ保存</h3>
-      <p>入力情報をJSON形式で保存。次回の提案時に読み込めば入力の手間を大幅削減。</p>
+      <p>「💾 データ保存」で履歴とクラウドに保存。JSON書き出し（ヘッダーの「データ保存」）にも対応。</p>
     </div>
   </div>
   <div class="slide-num">6 / 8</div>
+</div>
+
+<!-- 出力条件の案内 -->
+<div class="slide dt" id="s-output">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">STEP 2 詳細</div>
+      <h2>📄 出力ボタンが<span class="accent">押せないとき</span></h2>
+      <div class="dt-lead">お客様へ誤った提案書を渡さないよう、AIクロージングコメントが整っていない間は「👤 実データ版PPTXを出力」が<b>グレーアウト</b>し、ボタン直下に<b>理由と対処法</b>が赤枠で表示されます。</div>
+      <ol class="steps">
+        <li><b>コメント未入力</b> →「✨ AIコメント生成」を押すか直接入力</li>
+        <li><b>200文字超過</b> → 文字数を調整</li>
+        <li><b>警告・エラー表示中</b>（⚠️／❌）→ 注意文の書き換え、または再生成・再添削で解消</li>
+        <li>条件がそろうと案内が消え、ボタンが押せるようになる</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">フォーム下部 ＞ アクションエリア</div>
+        <span class="mbtn off" style="width:100%;text-align:center;padding:10px">👤 実データ版PPTXを出力</span>
+        <div class="mhint">※AIクロージングコメントが未入力のため出力できません。「✨ AIコメント生成」を押すか、コメントを直接入力してください</div>
+      </div>
+      <div class="mock">
+        <div class="mock-title">条件クリア後</div>
+        <span class="mbtn blue" style="width:100%;text-align:center;padding:10px">👤 実データ版PPTXを出力</span>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- 履歴管理：クラウド同期 -->
+<div class="slide dt" id="s-cloud">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">HISTORY</div>
+      <h2>📋 履歴管理と<span class="accent">クラウド同期</span></h2>
+      <div class="dt-lead">保存した案件はこの端末とGoogleスプレッドシートの両方に記録。事務所のPC・現場のタブレットなど、<b>どの端末からでも同じ履歴</b>を開けます。</div>
+      <ol class="steps">
+        <li><b>💾 データ保存</b> → 「✅ 保存しました！（クラウドにも同期済み）」で完了</li>
+        <li>サイドバー <b>📋 お客様履歴</b> を開くと、端末内＋クラウドの案件を更新日時順に統合表示</li>
+        <li>他端末の案件には <b>☁</b> マーク。<b>読み込む</b> でフォームに復元</li>
+        <li>最新を取り直すときは <b>🔄 クラウドから再読込</b></li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">ステータス表示の見方</div>
+        <div class="mrow"><span>☁ クラウドから ○件取得（時刻）</span><span style="color:#10b981;font-weight:700">正常</span></div>
+        <div class="mrow"><span>☁ クラウドから取得中…</span><span>通信中</span></div>
+        <div class="mrow"><span>☁ オフラインのため、前回取得した…</span><span style="color:#d97706;font-weight:700">要確認</span></div>
+        <div class="mrow"><span>💾 保存しました！（端末内のみ…）</span><span style="color:#d97706;font-weight:700">未同期</span></div>
+      </div>
+      <div class="note"><b>💡 ポイント</b><br>電波の弱い現場でも保存は端末内に必ず残ります。「端末内のみ」と出た場合は、通信が戻ってから再度「💾 データ保存」を押してクラウドへ反映しましょう。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- 履歴：検索・新データあり -->
+<div class="slide dt" id="s-search">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">HISTORY</div>
+      <h2>🔍 リアルタイム検索と<span class="accent">「新データあり」通知</span></h2>
+      <div class="dt-lead">案件が増えても、目的の履歴に数秒でたどり着けます。</div>
+      <ol class="steps">
+        <li>お客様履歴の検索バーに <b>顧客名・提案名・作成者・日付</b> を入力 → 入力と同時に絞り込み</li>
+        <li>スペース区切りで<b>複数キーワード（AND検索）</b>。例：「山田 2026/10」</li>
+        <li>「○ / ○ 件」でヒット数を確認。<b>×</b> で検索をクリア</li>
+        <li>他端末で保存・更新された案件があると、サイドバーの「📋 お客様履歴」に <b>新データあり</b> バッジ（複数時は件数）が点灯。履歴を開くと既読になり消える</li>
+      </ol>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">サイドバー</div>
+        <div class="mrow"><span>📋 お客様履歴<span class="mbadge">新データあり 2</span></span></div>
+      </div>
+      <div class="mock">
+        <div class="mock-title">📋 お客様履歴</div>
+        <div class="minput">🔍 山田 2026/10<span style="float:right;color:#94a3b8">×</span></div>
+        <div style="font-size:0.7rem;color:#94a3b8;margin-bottom:4px">2 / 48 件</div>
+        <div class="mrow"><span>☁ 山田 太郎 様</span><span class="mbtn" style="font-size:0.68rem;padding:2px 8px">読み込む</span></div>
+        <div class="mrow"><span>山田 花子 様</span><span class="mbtn" style="font-size:0.68rem;padding:2px 8px">読み込む</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
 </div>
 
 <!-- ⑩ 現場のコツ チェックリスト -->
@@ -332,7 +566,7 @@
   <div class="checklist">
     <div class="item">
       <div class="chk">✓</div>
-      <div><strong>事前にデータを保存</strong>長い商談では途中でデータ保存すると安心です。</div>
+      <div><strong>初期値で時短</strong>共通項目は「📌 現在の内容を初期値に設定」で登録しておきましょう。</div>
     </div>
     <div class="item">
       <div class="chk">✓</div>
@@ -344,15 +578,15 @@
     </div>
     <div class="item">
       <div class="chk">✓</div>
-      <div><strong>再訪問時は読込から</strong>「データ読込」で前回情報を即時復元。</div>
+      <div><strong>再訪問時は履歴から</strong>検索バーで案件を探し「読み込む」で前回情報を即時復元。</div>
     </div>
     <div class="item">
       <div class="chk">✓</div>
-      <div><strong>グラフ数値は最新に</strong>市場データは月1回は見直しましょう。</div>
+      <div><strong>警告はその場で解消</strong>蓄電池の上限超過は「上限値を適用」で即補正。</div>
     </div>
     <div class="item">
       <div class="chk">✓</div>
-      <div><strong>印刷前に確認</strong>プレビュー表示で最終確認を忘れずに。</div>
+      <div><strong>AIコメントは最後に</strong>数値確定後に生成→自分の言葉で編集→添削で仕上げ。</div>
     </div>
   </div>
   <div class="slide-num">7 / 8</div>
@@ -369,7 +603,7 @@
     </div>
     <div class="qa">
       <div class="q">Q. 保存したデータはどこに保存されますか？</div>
-      <div class="a">A. ローカルのダウンロードフォルダにJSONファイルとして保存されます。サーバーには送信されません。</div>
+      <div class="a">A. 「💾 データ保存」は端末内の履歴とGoogleスプレッドシート（クラウド）の両方に保存され、他端末と同期されます。ヘッダーの「データ保存」はJSONファイルとしてダウンロードフォルダに書き出します。</div>
     </div>
     <div class="qa">
       <div class="q">Q. スマートフォンでも使えますか？</div>
@@ -377,7 +611,11 @@
     </div>
     <div class="qa">
       <div class="q">Q. 入力内容が消えてしまった場合は？</div>
-      <div class="a">A. 定期的に「データ保存」ボタンでバックアップを取ることをお勧めします。</div>
+      <div class="a">A. 保存済みであれば「📋 お客様履歴」から「読み込む」で復元できます。商談中もこまめに「💾 データ保存」をしておくと安心です。</div>
+    </div>
+    <div class="qa">
+      <div class="q">Q. 実データ版PPTXの出力ボタンが押せません。</div>
+      <div class="a">A. ボタン直下の赤枠に理由が表示されます。多くはAIクロージングコメントの未入力・文字数超過・警告表示が原因です。案内に沿って解消してください。</div>
     </div>
   </div>
   <div class="slide-num">8 / 8</div>
@@ -392,6 +630,8 @@
   const counter = document.getElementById('counter');
   const total = slides.length;
   let cur = 0;
+  slides.forEach((s, i) => { const n = s.querySelector('.slide-num'); if (n) n.textContent = (i + 1) + ' / ' + total; });
+  counter.textContent = '1 / ' + total;
 
   function go(n){
     n = Math.max(0, Math.min(total - 1, n));
