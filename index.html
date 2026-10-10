@@ -7071,52 +7071,20 @@ function fetchCurrentUser() {
     .catch(err => { console.warn('[使用者] 取得失敗:', err); fallback(); });
 }
 // ── 担当者設定モーダル ──
-// 主要メンバー（window.JIBUNDEN_MEMBERS で上書き可）＋直接入力で登録した名前
-const AUTHOR_MEMBERS = window.JIBUNDEN_MEMBERS || ['中園', '内田', '中島', '江上'];
+// 選択肢は置かず、本人が名前を直接入力。決定した名前は localStorage に保存し、次回以降も既定値として使用
 let _authorModalCb = null;
-let _authorPick = '';
-function _customAuthors() {
-  try { return JSON.parse(localStorage.getItem('jibunden_author_custom') || '[]').filter(_isValidUser); } catch (e) { return []; }
-}
-function _renderAuthorChoices() {
-  const box = document.getElementById('author-choices');
-  if (!box) return;
-  const names = [...new Set([...AUTHOR_MEMBERS, ..._customAuthors()])];
-  box.innerHTML = '';
-  names.forEach(n => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'author-choice' + (n === _authorPick ? ' on' : '');
-    b.textContent = n;
-    b.onclick = () => { _authorPick = n; _showAuthorOther(false); _renderAuthorChoices(); };
-    box.appendChild(b);
-  });
-  const o = document.createElement('button');
-  o.type = 'button';
-  o.className = 'author-choice other' + (_authorPick === '__other' ? ' on' : '');
-  o.textContent = '✏ その他（直接入力）';
-  o.onclick = () => { _authorPick = '__other'; _showAuthorOther(true); _renderAuthorChoices(); };
-  box.appendChild(o);
-}
-function _showAuthorOther(on) {
-  const w = document.getElementById('author-other-wrap');
-  if (w) w.style.display = on ? 'block' : 'none';
-  if (on) setTimeout(() => document.getElementById('author-other-input')?.focus(), 0);
-}
 // lead: 上部の案内文 / cb: 設定完了後に実行（保存の再開など）
 function openAuthorModal(lead, cb) {
   const ov = document.getElementById('author-modal');
   if (!ov) return;
   _authorModalCb = cb || null;
   const cur = _localAuthor();
-  const known = [...AUTHOR_MEMBERS, ..._customAuthors()];
-  _authorPick = _isValidUser(cur) ? (known.includes(cur) ? cur : '__other') : '';
-  document.getElementById('author-other-input').value = _authorPick === '__other' ? cur : '';
-  document.getElementById('author-modal-lead').textContent = lead || '保存データと使用者ログに記録する担当者を選んでください。';
+  const inp = document.getElementById('author-name-input');
+  inp.value = _isValidUser(cur) ? cur : '';
+  document.getElementById('author-modal-lead').textContent = lead || 'あなたの名前を入力してください。保存データと使用者ログに記録されます。';
   document.getElementById('author-modal-error').style.display = 'none';
-  _renderAuthorChoices();
-  _showAuthorOther(_authorPick === '__other');
   ov.style.display = 'flex';
+  setTimeout(() => { inp.focus(); inp.select(); }, 0);
 }
 function closeAuthorModal() {
   const ov = document.getElementById('author-modal');
@@ -7124,21 +7092,14 @@ function closeAuthorModal() {
   _authorModalCb = null;
 }
 function confirmAuthorModal() {
-  const isOther = _authorPick === '__other';
-  const v = (isOther ? document.getElementById('author-other-input').value : _authorPick).trim();
+  const v = document.getElementById('author-name-input').value.trim();
   if (!_isValidUser(v)) {
     const err = document.getElementById('author-modal-error');
-    err.textContent = isOther || !_authorPick ? '❌ 担当者名を選択または入力してください（「ゲストユーザー」は使用できません）' : '❌ 担当者名を選択してください';
+    err.textContent = '❌ 名前を入力してください（「ゲストユーザー」は使用できません）';
     err.style.display = 'block';
     return;
   }
-  try {
-    localStorage.setItem('jibunden_author', v);
-    if (!AUTHOR_MEMBERS.includes(v)) {
-      const list = [...new Set([..._customAuthors(), v])].slice(-10); // 直接入力した名前を次回から選択肢に
-      localStorage.setItem('jibunden_author_custom', JSON.stringify(list));
-    }
-  } catch (e) { /* noop */ }
+  try { localStorage.setItem('jibunden_author', v); } catch (e) { /* noop */ }
   _setCurrentUserBadge(v, '端末の担当者名'); // ヘッダーへ即時反映
   const cb = _authorModalCb;
   closeAuthorModal();
@@ -8339,7 +8300,7 @@ window.addEventListener('DOMContentLoaded', () => {
     _updateFormDefaultBtn();      // 保存済み初期値があれば「標準に戻す」ボタンを表示
     loadPackagesFromSheet();      // システムパッケージ表をスプレッドシートから取得（失敗時は組込み値）
     // ヘッダーに現在の使用者を表示。未設定・ゲストなら担当者設定モーダルを自動表示
-    fetchCurrentUser().then(() => { if (!_isValidUser(_currentUser)) openAuthorModal('はじめに担当者を選んでください。保存データと使用者ログに記録されます。'); });
+    fetchCurrentUser().then(() => { if (!_isValidUser(_currentUser)) openAuthorModal('はじめにあなたの名前を入力してください。保存データと使用者ログに記録されます。'); });
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
     updateJuuryoPanel();          // 従量電灯B 段階料金パネルを初期表示
@@ -8361,23 +8322,14 @@ window.addEventListener('DOMContentLoaded', () => {
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
 
 <!-- ── 担当者設定モーダル ── -->
-<style>
-  .author-choice{padding:10px 8px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
-  .author-choice:hover{border-color:var(--lg)}
-  .author-choice.on{background:var(--mg);border-color:var(--mg);color:#fff}
-  .author-choice.other{grid-column:1/-1;font-size:13px;font-weight:600}
-</style>
 <div id="author-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25)">
     <div style="font-size:40px;margin-bottom:10px">👤</div>
     <div style="font-size:17px;font-weight:900;color:var(--dg);margin-bottom:6px">担当者の設定</div>
     <div id="author-modal-lead" style="font-size:13px;color:#6b7280;margin-bottom:18px"></div>
-    <div id="author-choices" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
-    <div id="author-other-wrap" style="display:none;margin-top:10px">
-      <input type="text" id="author-other-input" placeholder="担当者名（またはメールアドレス）" maxlength="60"
-             style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit"
-             onkeydown="if(event.key==='Enter')confirmAuthorModal()">
-    </div>
+    <input type="text" id="author-name-input" placeholder="例：山田 太郎" maxlength="60" autocomplete="name"
+           style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:11px 12px;font-size:16px;font-family:inherit;text-align:center"
+           onkeydown="if(event.key==='Enter')confirmAuthorModal()">
     <div id="author-modal-error" style="display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:600"></div>
     <div style="display:flex;gap:8px;justify-content:center;margin-top:20px">
       <button type="button" onclick="closeAuthorModal()"
