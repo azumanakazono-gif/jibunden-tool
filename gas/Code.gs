@@ -6,6 +6,15 @@
 // 合言葉（任意）: スクリプトプロパティ API_TOKEN を設定すると、
 //   POST は body.token、GET は ?token= が一致しない限り拒否します。
 //   （プロジェクトの設定 → スクリプト プロパティ → API_TOKEN）
+//
+// CORS: GASは ContentService の応答に Access-Control-Allow-Origin: * を自動付与する
+//   （独自ヘッダーは設定不可）。条件は「実行ユーザー=自分 / アクセス=全員」で公開し、
+//   doGet・doPost が必ず JSON を返すこと。関数が無い・例外で HTML エラーページになると
+//   ヘッダーが付かずブラウザでは CORS エラー（Failed to fetch）になる。
+//   フロントは Content-Type: text/plain で送りプリフライト（OPTIONS）を回避している。
+//   デプロイ確認: <URL>?action=ping → {"ok":true,"version":"…"} が返れば正常
+
+const VERSION = '2026-10-10';
 
 const SHEET_NAME = '';           // 空なら先頭シート
 const TZ = 'Asia/Tokyo';
@@ -183,6 +192,9 @@ function doGet(e) {
     const p = (e && e.parameter) || {};
     if (!_tokenOk(p.token)) {
       return _json({ ok: false, status: 'error', error: 'unauthorized' });
+    }
+    if (p.action === 'ping') {
+      return _json({ ok: true, status: 'success', version: VERSION, sheet: _sheet().getName() });
     }
     if (p.action === 'whoami') {
       const who = _resolveUser({ author: p.author });
