@@ -6959,8 +6959,7 @@ function fetchCloudHistory(force) {
   _setCloudStatus('☁ クラウドから取得中…');
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 15000);
-  const _getUrl = GAS_SHEET_TOKEN ? `${GAS_SHEET_ENDPOINT}?token=${encodeURIComponent(GAS_SHEET_TOKEN)}` : GAS_SHEET_ENDPOINT;
-  _cloudFetching = fetch(_getUrl, { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctrl.signal })
+  _cloudFetching = fetch(GAS_SHEET_ENDPOINT, { method: 'GET', redirect: 'follow', cache: 'no-store', signal: ctrl.signal })
     .then(res => res.json().catch(() => { throw new Error('JSON以外の応答（GASに doGet が未デプロイの可能性）'); }))
     .then(json => {
       const rows = Array.isArray(json) ? json : (json && (json.rows || json.data));
@@ -6978,7 +6977,7 @@ function fetchCloudHistory(force) {
       const msg = String(err && err.message || err);
       _setCloudStatus(/doGet/.test(msg)
         ? '⚠ クラウド履歴を取得できません（GASに一覧取得 doGet が未デプロイ）'
-        : /unauthorized/.test(msg) ? '⚠ クラウド履歴を取得できません（合言葉が一致しません）'
+        : /unauthorized/.test(msg) ? '⚠ クラウド履歴を取得できません（GAS側で認証が有効です。スクリプトプロパティ API_TOKEN を削除してください）'
         : '⚠ クラウド履歴を取得できません（通信エラー）。この端末の履歴のみ表示中', '#dc2626');
     })
     .finally(() => { clearTimeout(timer); _cloudFetching = null; });
@@ -7031,8 +7030,6 @@ function _applyMonthlyData(monthly) {
 // ── Googleスプレッドシート連携（GAS Upsert） ──
 // GASウェブアプリのデプロイURLを設定（未設定の場合は送信スキップ）
 const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbwmElEbni4PmrVUlfT-9mfkoSsRofCWvrqOQJpm2zqEVla7p11xqzi04v4hjXFOooo_Fw/exec';
-// GASのスクリプトプロパティ API_TOKEN と同じ値（未設定なら空のまま）
-const GAS_SHEET_TOKEN = window.JIBUNDEN_GAS_TOKEN || '';
 
 // ── 現在の使用者（ヘッダー表示） ──
 // GASの Session.getActiveUser() → 端末に設定した担当者名 → ゲストユーザー の順で決定（保存ログと同じ規則）
@@ -7060,7 +7057,6 @@ function fetchCurrentUser() {
   const fallback = () => _setCurrentUserBadge(local, local ? '端末の担当者名' : 'フォールバック');
   if (!GAS_SHEET_ENDPOINT || (typeof navigator !== 'undefined' && navigator.onLine === false)) { fallback(); return Promise.resolve(); }
   const q = new URLSearchParams({ action: 'whoami', author: local });
-  if (GAS_SHEET_TOKEN) q.set('token', GAS_SHEET_TOKEN);
   return fetch(`${GAS_SHEET_ENDPOINT}?${q}`, { method: 'GET', redirect: 'follow', cache: 'no-store' })
     .then(res => res.json())
     .then(json => {
@@ -7144,7 +7140,6 @@ function syncCustomerToSheet(entry) {
     }
     const cn = String(entry.cn || entry.customerName || '');
     const payload = {
-      token: GAS_SHEET_TOKEN,
       id: String(entry.id),
       updated_at: _nowJst(), // GAS側でもJSTで再確定
       author: (() => { try { return localStorage.getItem('jibunden_author') || ''; } catch (e) { return ''; } })(),
