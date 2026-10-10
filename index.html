@@ -1690,6 +1690,7 @@ canvas#mini-chart { height: 220px !important; }
           👤 実データ版PPTXを出力
         </button>
       </div>
+      <div id="real-pptx-hint" style="display:none;margin-top:8px;padding:8px 12px;background:#FEF2F2;border:1px solid #FCA5A5;border-radius:8px;font-size:12px;font-weight:600;color:#B91C1C;line-height:1.5"></div>
     </div>
 
   </div><!-- /form-body -->
@@ -3336,6 +3337,20 @@ function updateRealPptxBtnState() {
   const statusText = statusEl?.textContent || '';
   const isWarningOrError = /^(⚠️|❌)/.test(statusText);
   btn.disabled = isEmpty || isOverLimit || isWarningOrError;
+  // 非活性の理由を出力ボタン直下に常時表示（解消されたら非表示）
+  const hintEl = document.getElementById('real-pptx-hint');
+  if (hintEl) {
+    const reason = isEmpty
+      ? '※AIクロージングコメントが未入力のため出力できません。「✨ AIコメント生成」を押すか、コメントを直接入力してください'
+      : isOverLimit
+        ? `※AIクロージングコメントが${maxLen}文字を超えているため出力できません。文字数を調整してください`
+        : isWarningOrError
+          ? '※AIクロージングコメント欄の警告・エラーが解消されていないため出力できません。内容を確認・修正してください'
+          : '';
+    hintEl.textContent = reason;
+    hintEl.style.display = reason ? '' : 'none';
+    btn.title = reason;
+  }
 }
 
 // AIコメント欄をスタッフが手動編集し始めたときの処理。
