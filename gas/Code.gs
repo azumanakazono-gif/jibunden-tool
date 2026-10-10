@@ -33,7 +33,7 @@ function _resolveUser(data) {
   try { email = Session.getActiveUser().getEmail() || ''; } catch (err) { email = ''; }
   if (email) return { user: email, source: 'Googleアカウント' };
   const author = String((data && data.author) || '').trim();
-  if (author) return { user: author, source: '画面の担当者名' };
+  if (author && author !== GUEST_USER) return { user: author, source: '画面の担当者名' };
   return { user: GUEST_USER, source: 'フォールバック' };
 }
 
@@ -108,6 +108,8 @@ function doPost(e) {
     if (!data.id) return _json({ ok: false, status: 'error', error: 'id required' });
 
     const who = _resolveUser(data);
+    // 使用者が特定できない（ゲスト）保存は拒否：データもログも書き込まない
+    if (who.user === GUEST_USER) return _json({ ok: false, status: 'error', error: 'user required' });
     const sheet = _sheet();
     if (sheet.getName() === LOG_SHEET_NAME) throw new Error('メインデータシートが見つかりません');
     const map = _headerMap(sheet);
