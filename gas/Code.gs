@@ -15,9 +15,55 @@ const COLUMNS = [
 ];
 const NUMBER_COLUMNS = ['monthly_bill', 'monthly_usage'];
 
+// 使用者ログ（保存のたびに1行追記する別シート）
+const LOG_SHEET_NAME = '使用者ログ';
+const LOG_HEADER = ['タイムスタンプ', '使用者', '取得元', '操作内容', '提案名', '顧客名', '区分', 'id', '行番号'];
+const GUEST_USER = 'ゲストユーザー';
+
 function _sheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   return (SHEET_NAME && ss.getSheetByName(SHEET_NAME)) || ss.getSheets()[0];
+}
+
+// 使用者の特定: Googleアカウント → 画面の担当者名 → ゲストユーザー
+// ※ ウェブアプリを「自分として実行・全員アクセス可」で公開している場合、
+//    getActiveUser() は同一Workspaceドメイン外だと空文字になるためフォールバック必須
+function _resolveUser(data) {
+  let email = '';
+  try { email = Session.getActiveUser().getEmail() || ''; } catch (err) { email = ''; }
+  if (email) return { user: email, source: 'Googleアカウント' };
+  const author = String((data && data.author) || '').trim();
+  if (author) return { user: author, source: '画面の担当者名' };
+  return { user: GUEST_USER, source: 'フォールバック' };
+}
+
+function _logSheet() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(LOG_SHEET_NAME);
+  if (!sh) {
+    // 末尾に追加（先頭シート＝メインデータの位置を崩さない）
+    sh = ss.insertSheet(LOG_SHEET_NAME, ss.getSheets().length);
+  }
+  if (sh.getLastRow() === 0) {
+    sh.getRange(1, 1, 1, LOG_HEADER.length).setValues([LOG_HEADER]).setFontWeight('bold');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+
+// ログ追記の失敗はメイン保存を失敗扱いにしない
+function _appendLog(who, operation, data, row) {
+  try {
+    _logSheet().appendRow([
+      _nowJst(), _safeText(who.user), who.source, _safeText(operation),
+      _safeText(data.proposal_name), _safeText(data.customer_name), _safeText(data.category),
+      "'" + String(data.id), row
+    ]);
+    return true;
+  } catch (err) {
+    console.error('使用者ログ追記失敗: ' + err);
+    return false;
+  }
 }
 
 function _tokenOk(token) {
@@ -61,7 +107,9 @@ function doPost(e) {
     if (!_tokenOk(data.token)) return _json({ ok: false, status: 'error', error: 'unauthorized' });
     if (!data.id) return _json({ ok: false, status: 'error', error: 'id required' });
 
+    const who = _resolveUser(data);
     const sheet = _sheet();
+    if (sheet.getName() === LOG_SHEET_NAME) throw new Error('メインデータシートが見つかりません');
     const map = _headerMap(sheet);
     const width = Math.max(sheet.getLastColumn(), ...Object.values(map));
 
@@ -83,6 +131,7 @@ function doPost(e) {
     COLUMNS.forEach(c => {
       let v = data[c];
       if (c === 'id') v = String(data.id);
+      else if (c === 'author') v = _safeText(String(v || '').trim() || who.user); // 未入力なら使用者で補完
       else if (c === 'updated_at') v = _nowJst();           // サーバー側でJST確定
       else if (NUMBER_COLUMNS.indexOf(c) !== -1) v = _toNumber(v);
       else v = _safeText(v);
@@ -92,7 +141,10 @@ function doPost(e) {
     // id はテキスト書式（13桁の数値丸め・指数表記を防止）
     sheet.getRange(target, map.id).setNumberFormat('@');
     sheet.getRange(target, 1, 1, width).setValues([row]);
-    return _json({ ok: true, status: 'success', action: action, row: target });
+
+    const opLabel = (action === 'inserted' ? '新規保存' : '上書き保存') + (data.operation ? '（' + data.operation + '）' : '');
+    const logged = _appendLog(who, opLabel, data, target);
+    return _json({ ok: true, status: 'success', action: action, row: target, user: who.user, logged: logged });
   } catch (err) {
     return _json({ ok: false, status: 'error', error: String(err) });
   } finally {

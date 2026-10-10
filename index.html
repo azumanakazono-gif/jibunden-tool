@@ -7052,21 +7052,25 @@ function syncCustomerToSheet(entry) {
       monthly_bill: _toNum(entry.mb),
       monthly_usage: _toNum(entry.mkwh),
       json_data: JSON.stringify(entry),
-      aiClosingComment: String(entry.aiClosingComment || '')
+      aiClosingComment: String(entry.aiClosingComment || ''),
+      operation: '提案保存' // 使用者ログの「操作内容」
     };
+    const body = JSON.stringify(payload);
     // text/plain でプリフライト（OPTIONS）を回避し、GASの302リダイレクトにも追従
     return fetch(GAS_SHEET_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload),
+      body: body,
       redirect: 'follow',
-      keepalive: true
+      // keepalive は本文64KB超で送信自体が失敗するため、小さい時のみ付与
+      keepalive: new Blob([body]).size < 60000
     })
       .then(res => res.ok ? res.json().catch(() => ({ ok: true })) : { ok: false, error: 'HTTP ' + res.status })
       .then(json => {
         // GAS側の応答形式差を吸収（{ok:true} / {status:'success'} のどちらも成功扱い）
         const ok = !!json && (json.ok === true || String(json.status || '').toLowerCase() === 'success');
         if (!ok) console.warn('[Sheet同期] GASがエラーを返しました:', json);
+        else if (json.logged === false) console.warn('[Sheet同期] 保存は成功、使用者ログの追記に失敗しました');
         return ok;
       })
       .catch(err => { console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err); return false; });
