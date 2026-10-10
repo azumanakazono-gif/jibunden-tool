@@ -153,10 +153,16 @@ function doPost(e) {
 }
 
 // 全行を JSON で返す（他端末からの一覧読込用）
+// ?action=whoami のときは現在の使用者だけを返す（画面ヘッダー表示用）
 function doGet(e) {
   try {
-    if (!_tokenOk(e && e.parameter && e.parameter.token)) {
+    const p = (e && e.parameter) || {};
+    if (!_tokenOk(p.token)) {
       return _json({ ok: false, status: 'error', error: 'unauthorized' });
+    }
+    if (p.action === 'whoami') {
+      const who = _resolveUser({ author: p.author });
+      return _json({ ok: true, status: 'success', user: who.user, source: who.source });
     }
     const sheet = _sheet();
     const lastRow = sheet.getLastRow();

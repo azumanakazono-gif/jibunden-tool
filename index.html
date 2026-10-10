@@ -505,6 +505,7 @@ canvas#mini-chart { height: 220px !important; }
     <div>
       <div style="display: flex; align-items: center; gap: 10px;">
         <h1 id="main-title">お客様情報を入力してください</h1>
+        <button id="current-user-badge" type="button" onclick="editCurrentUser()" title="現在の使用者（クリックで担当者名を設定）" style="padding: 4px 10px; background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; border-radius: 999px; cursor: pointer; font-size: 0.8rem; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis;">👤 使用者を確認中…</button>
         <button id="manualBtn" style="padding: 4px 12px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">📖 ユーザーマニュアル</button>
       </div>
       <div class="sub">入力内容をもとにPPTXを自動生成します</div>
@@ -7033,6 +7034,42 @@ const GAS_SHEET_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com
 // GASのスクリプトプロパティ API_TOKEN と同じ値（未設定なら空のまま）
 const GAS_SHEET_TOKEN = window.JIBUNDEN_GAS_TOKEN || '';
 
+// ── 現在の使用者（ヘッダー表示） ──
+// GASの Session.getActiveUser() → 端末に設定した担当者名 → ゲストユーザー の順で決定（保存ログと同じ規則）
+const GUEST_USER_LABEL = 'ゲストユーザー';
+function _localAuthor() {
+  try { return (localStorage.getItem('jibunden_author') || '').trim(); } catch (e) { return ''; }
+}
+function _setCurrentUserBadge(user, source) {
+  const el = document.getElementById('current-user-badge');
+  if (!el) return;
+  const name = user || GUEST_USER_LABEL;
+  el.textContent = '👤 ' + name;
+  el.title = `現在の使用者：${name}${source ? '（' + source + '）' : ''}\nクリックで担当者名を設定`;
+  el.style.color = name === GUEST_USER_LABEL ? '#b45309' : '#334155';
+}
+function fetchCurrentUser() {
+  const local = _localAuthor();
+  const fallback = () => _setCurrentUserBadge(local, local ? '端末の担当者名' : 'フォールバック');
+  if (!GAS_SHEET_ENDPOINT || (typeof navigator !== 'undefined' && navigator.onLine === false)) { fallback(); return Promise.resolve(); }
+  const q = new URLSearchParams({ action: 'whoami', author: local });
+  if (GAS_SHEET_TOKEN) q.set('token', GAS_SHEET_TOKEN);
+  return fetch(`${GAS_SHEET_ENDPOINT}?${q}`, { method: 'GET', redirect: 'follow', cache: 'no-store' })
+    .then(res => res.json())
+    .then(json => {
+      // 旧GAS（whoami未対応）は user を返さないため端末側で判定
+      if (json && json.user) _setCurrentUserBadge(json.user, json.source);
+      else fallback();
+    })
+    .catch(err => { console.warn('[使用者] 取得失敗:', err); fallback(); });
+}
+function editCurrentUser() {
+  const v = prompt('担当者名（またはメールアドレス）を入力してください。\nGoogleアカウントが取得できない場合に使用者として記録されます。', _localAuthor());
+  if (v === null) return;
+  try { localStorage.setItem('jibunden_author', v.trim()); } catch (e) { /* noop */ }
+  fetchCurrentUser();
+}
+
 function syncCustomerToSheet(entry) {
   if (!GAS_SHEET_ENDPOINT || !entry) return Promise.resolve(false);
   try {
@@ -7071,6 +7108,7 @@ function syncCustomerToSheet(entry) {
         const ok = !!json && (json.ok === true || String(json.status || '').toLowerCase() === 'success');
         if (!ok) console.warn('[Sheet同期] GASがエラーを返しました:', json);
         else if (json.logged === false) console.warn('[Sheet同期] 保存は成功、使用者ログの追記に失敗しました');
+        if (ok && json.user) _setCurrentUserBadge(json.user); // ログに記録された使用者をヘッダーにも反映
         return ok;
       })
       .catch(err => { console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err); return false; });
@@ -8210,6 +8248,7 @@ window.addEventListener('DOMContentLoaded', () => {
     _applyMonthlyData(custData.monthly); // 12ヶ月詳細入力の復元
     _updateFormDefaultBtn();      // 保存済み初期値があれば「標準に戻す」ボタンを表示
     loadPackagesFromSheet();      // システムパッケージ表をスプレッドシートから取得（失敗時は組込み値）
+    fetchCurrentUser();           // ヘッダーに現在の使用者を表示
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
     updateJuuryoPanel();          // 従量電灯B 段階料金パネルを初期表示
