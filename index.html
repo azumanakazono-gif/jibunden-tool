@@ -7064,34 +7064,96 @@ function fetchCurrentUser() {
   return fetch(`${GAS_SHEET_ENDPOINT}?${q}`, { method: 'GET', redirect: 'follow', cache: 'no-store' })
     .then(res => res.json())
     .then(json => {
-      // 旧GAS（whoami未対応）は user を返さないため端末側で判定
-      if (json && json.user) _setCurrentUserBadge(json.user, json.source);
+      // 旧GAS（whoami未対応）やゲスト応答時は端末側の担当者名を優先
+      if (json && _isValidUser(json.user)) _setCurrentUserBadge(json.user, json.source);
       else fallback();
     })
     .catch(err => { console.warn('[使用者] 取得失敗:', err); fallback(); });
 }
-// 担当者名の入力（無効な名前は再入力）。設定できたら true
-function _promptAuthor(lead) {
-  let v = _localAuthor();
-  for (;;) {
-    v = prompt((lead ? lead + '\n\n' : '') + '担当者名（またはメールアドレス）を入力してください。\n保存データと使用者ログに記録されます。', v);
-    if (v === null) return false;
-    v = v.trim();
-    if (_isValidUser(v)) break;
-    alert('担当者名が空欄、または「ゲストユーザー」のままです。正しい担当者名を入力してください。');
+// ── 担当者設定モーダル ──
+// 主要メンバー（window.JIBUNDEN_MEMBERS で上書き可）＋直接入力で登録した名前
+const AUTHOR_MEMBERS = window.JIBUNDEN_MEMBERS || ['中園', '内田', '中島', '江上'];
+let _authorModalCb = null;
+let _authorPick = '';
+function _customAuthors() {
+  try { return JSON.parse(localStorage.getItem('jibunden_author_custom') || '[]').filter(_isValidUser); } catch (e) { return []; }
+}
+function _renderAuthorChoices() {
+  const box = document.getElementById('author-choices');
+  if (!box) return;
+  const names = [...new Set([...AUTHOR_MEMBERS, ..._customAuthors()])];
+  box.innerHTML = '';
+  names.forEach(n => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'author-choice' + (n === _authorPick ? ' on' : '');
+    b.textContent = n;
+    b.onclick = () => { _authorPick = n; _showAuthorOther(false); _renderAuthorChoices(); };
+    box.appendChild(b);
+  });
+  const o = document.createElement('button');
+  o.type = 'button';
+  o.className = 'author-choice other' + (_authorPick === '__other' ? ' on' : '');
+  o.textContent = '✏ その他（直接入力）';
+  o.onclick = () => { _authorPick = '__other'; _showAuthorOther(true); _renderAuthorChoices(); };
+  box.appendChild(o);
+}
+function _showAuthorOther(on) {
+  const w = document.getElementById('author-other-wrap');
+  if (w) w.style.display = on ? 'block' : 'none';
+  if (on) setTimeout(() => document.getElementById('author-other-input')?.focus(), 0);
+}
+// lead: 上部の案内文 / cb: 設定完了後に実行（保存の再開など）
+function openAuthorModal(lead, cb) {
+  const ov = document.getElementById('author-modal');
+  if (!ov) return;
+  _authorModalCb = cb || null;
+  const cur = _localAuthor();
+  const known = [...AUTHOR_MEMBERS, ..._customAuthors()];
+  _authorPick = _isValidUser(cur) ? (known.includes(cur) ? cur : '__other') : '';
+  document.getElementById('author-other-input').value = _authorPick === '__other' ? cur : '';
+  document.getElementById('author-modal-lead').textContent = lead || '保存データと使用者ログに記録する担当者を選んでください。';
+  document.getElementById('author-modal-error').style.display = 'none';
+  _renderAuthorChoices();
+  _showAuthorOther(_authorPick === '__other');
+  ov.style.display = 'flex';
+}
+function closeAuthorModal() {
+  const ov = document.getElementById('author-modal');
+  if (ov) ov.style.display = 'none';
+  _authorModalCb = null;
+}
+function confirmAuthorModal() {
+  const isOther = _authorPick === '__other';
+  const v = (isOther ? document.getElementById('author-other-input').value : _authorPick).trim();
+  if (!_isValidUser(v)) {
+    const err = document.getElementById('author-modal-error');
+    err.textContent = isOther || !_authorPick ? '❌ 担当者名を選択または入力してください（「ゲストユーザー」は使用できません）' : '❌ 担当者名を選択してください';
+    err.style.display = 'block';
+    return;
   }
-  try { localStorage.setItem('jibunden_author', v); } catch (e) { /* noop */ }
-  _setCurrentUserBadge(v, '端末の担当者名');
-  return true;
+  try {
+    localStorage.setItem('jibunden_author', v);
+    if (!AUTHOR_MEMBERS.includes(v)) {
+      const list = [...new Set([..._customAuthors(), v])].slice(-10); // 直接入力した名前を次回から選択肢に
+      localStorage.setItem('jibunden_author_custom', JSON.stringify(list));
+    }
+  } catch (e) { /* noop */ }
+  _setCurrentUserBadge(v, '端末の担当者名'); // ヘッダーへ即時反映
+  const cb = _authorModalCb;
+  closeAuthorModal();
+  toast(`担当者を「${v}」に設定しました`);
+  if (cb) cb();
 }
 function editCurrentUser() {
-  if (_promptAuthor()) fetchCurrentUser();
+  openAuthorModal(null, fetchCurrentUser);
 }
-// 保存前の使用者チェック：未設定・ゲストなら警告して入力を求め、設定できなければ保存を中断
-function ensureCurrentUser() {
+// 保存前の使用者チェック：未設定・ゲストなら保存を中断し、担当者設定モーダルを表示
+// retry: 担当者設定後に再実行する保存処理
+function ensureCurrentUser(retry) {
   if (_isValidUser(_currentUser) || _isValidUser(_localAuthor())) return true;
-  alert('⚠ 担当者名が設定されていないため保存できません。\n画面上部の「👤」から担当者名を設定してください。');
-  return _promptAuthor('担当者名を設定すると、このまま保存を続行します。');
+  openAuthorModal('⚠ 担当者名が未設定のため保存できません。担当者を設定すると、そのまま保存を続行します。', retry);
+  return false;
 }
 
 function syncCustomerToSheet(entry) {
@@ -7145,7 +7207,7 @@ function syncCustomerToSheet(entry) {
 }
 
 function saveCustomer() {
-    if (!ensureCurrentUser()) return null; // 担当者未設定・ゲストは保存ブロック
+    if (!ensureCurrentUser(() => saveCustomer())) return null; // 担当者未設定・ゲストは保存ブロック
     let base = {};
     try {
         base = getFormData() || {};
@@ -7287,9 +7349,10 @@ function saveFromAIComment() {
     st.textContent = msg; st.style.color = color || 'var(--mg)';
     _aiSaveStatusTimer = setTimeout(() => { st.textContent = ''; }, 6000);
   };
+  if (!ensureCurrentUser(saveFromAIComment)) { show('担当者名が未設定のため保存を中止しました', '#dc2626'); return; }
   if (btn) btn.disabled = true;
   const entry = saveCustomer(); // localStorage保存＋syncCustomerToSheet（内部で実行）
-  if (!entry) { if (btn) btn.disabled = false; show(_isValidUser(_currentUser) || _isValidUser(_localAuthor()) ? '保存に失敗しました' : '担当者名が未設定のため保存を中止しました', '#dc2626'); return; }
+  if (!entry) { if (btn) btn.disabled = false; show('保存に失敗しました', '#dc2626'); return; }
   show('💾 保存しました！（クラウド同期中…）');
   (entry._sheetSync || Promise.resolve(false)).then(ok => {
     show(ok ? '✅ 保存しました！（クラウドにも同期済み）' : '💾 保存しました！（端末内のみ・クラウド同期は未完了）', ok ? 'var(--mg)' : '#d97706');
@@ -8275,7 +8338,8 @@ window.addEventListener('DOMContentLoaded', () => {
     _applyMonthlyData(custData.monthly); // 12ヶ月詳細入力の復元
     _updateFormDefaultBtn();      // 保存済み初期値があれば「標準に戻す」ボタンを表示
     loadPackagesFromSheet();      // システムパッケージ表をスプレッドシートから取得（失敗時は組込み値）
-    fetchCurrentUser();           // ヘッダーに現在の使用者を表示
+    // ヘッダーに現在の使用者を表示。未設定・ゲストなら担当者設定モーダルを自動表示
+    fetchCurrentUser().then(() => { if (!_isValidUser(_currentUser)) openAuthorModal('はじめに担当者を選んでください。保存データと使用者ログに記録されます。'); });
     _styleKyudenSelect('kyushu_juuryo_b');
     _applyWipLock();
     updateJuuryoPanel();          // 従量電灯B 段階料金パネルを初期表示
@@ -8295,6 +8359,34 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 <button id="scroll-top-btn" title="上へ戻る" onclick="scrollToTopHandler(event)">↑</button>
+
+<!-- ── 担当者設定モーダル ── -->
+<style>
+  .author-choice{padding:10px 8px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff;color:#334155;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+  .author-choice:hover{border-color:var(--lg)}
+  .author-choice.on{background:var(--mg);border-color:var(--mg);color:#fff}
+  .author-choice.other{grid-column:1/-1;font-size:13px;font-weight:600}
+</style>
+<div id="author-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:10000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:400px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.25)">
+    <div style="font-size:40px;margin-bottom:10px">👤</div>
+    <div style="font-size:17px;font-weight:900;color:var(--dg);margin-bottom:6px">担当者の設定</div>
+    <div id="author-modal-lead" style="font-size:13px;color:#6b7280;margin-bottom:18px"></div>
+    <div id="author-choices" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px"></div>
+    <div id="author-other-wrap" style="display:none;margin-top:10px">
+      <input type="text" id="author-other-input" placeholder="担当者名（またはメールアドレス）" maxlength="60"
+             style="width:100%;box-sizing:border-box;border:1.5px solid #cbd5e1;border-radius:8px;padding:10px 12px;font-size:15px;font-family:inherit"
+             onkeydown="if(event.key==='Enter')confirmAuthorModal()">
+    </div>
+    <div id="author-modal-error" style="display:none;color:#dc2626;font-size:12px;margin-top:10px;font-weight:600"></div>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:20px">
+      <button type="button" onclick="closeAuthorModal()"
+              style="padding:9px 18px;border-radius:8px;border:1px solid #d1d5db;background:#f9fafb;color:#6b7280;font-size:13px;cursor:pointer;font-family:inherit">あとで</button>
+      <button type="button" onclick="confirmAuthorModal()"
+              style="padding:9px 26px;background:var(--mg);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit">決定</button>
+    </div>
+  </div>
+</div>
 
 <!-- ── 仮説モデル入力 ロックモーダル ── -->
 <div id="hyp-lock-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center">
@@ -8371,6 +8463,7 @@ function setFormData(data) {
 }
 
 function exportFormData() {
+  if (!ensureCurrentUser(exportFormData)) return;
   if (!saveCustomer()) return; // 担当者未設定などで保存できない場合は書き出しも中止
   const data = getFormData();
   const json = JSON.stringify(data, null, 2);
