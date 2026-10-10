@@ -88,6 +88,16 @@ function _headerMap(sheet) {
   return map;
 }
 
+// シート内で重複しない数値ID（ミリ秒ベース）
+function _newId(sheet, map, lastRow) {
+  const used = lastRow >= 2
+    ? sheet.getRange(2, map.id, lastRow - 1, 1).getValues().map(r => String(r[0]))
+    : [];
+  let id = Date.now();
+  while (used.indexOf(String(id)) !== -1) id++;
+  return String(id);
+}
+
 function _toNumber(v) {
   const n = Number(String(v == null ? '' : v).replace(/[^\d.\-]/g, ''));
   return isFinite(n) ? n : 0;
@@ -123,7 +133,18 @@ function doPost(e) {
       const idx = ids.findIndex(r => String(r[0]) === String(data.id));
       if (idx !== -1) target = idx + 2;
     }
-    const action = target === -1 ? 'inserted' : 'updated';
+    let action = target === -1 ? 'inserted' : 'updated';
+
+    // 上書き保護：既存行の作成者が保存者と異なる場合は上書きせず、新しいIDで新規行として追加
+    const requester = String(data.author || '').trim() || who.user;
+    if (action === 'updated') {
+      const owner = String(sheet.getRange(target, map.author).getValue() || '').replace(/^'/, '').trim();
+      if (owner && owner !== requester) {
+        data.id = _newId(sheet, map, lastRow);
+        target = -1;
+        action = 'forked';
+      }
+    }
     if (target === -1) target = lastRow + 1;
 
     // 既存行を読み、管理列だけ上書き（他の手入力列は保持）
@@ -133,7 +154,7 @@ function doPost(e) {
     COLUMNS.forEach(c => {
       let v = data[c];
       if (c === 'id') v = String(data.id);
-      else if (c === 'author') v = _safeText(String(v || '').trim() || who.user); // 未入力なら使用者で補完
+      else if (c === 'author') v = _safeText(requester); // 未入力なら使用者で補完
       else if (c === 'updated_at') v = _nowJst();           // サーバー側でJST確定
       else if (NUMBER_COLUMNS.indexOf(c) !== -1) v = _toNumber(v);
       else v = _safeText(v);
@@ -144,9 +165,10 @@ function doPost(e) {
     sheet.getRange(target, map.id).setNumberFormat('@');
     sheet.getRange(target, 1, 1, width).setValues([row]);
 
-    const opLabel = (action === 'inserted' ? '新規保存' : '上書き保存') + (data.operation ? '（' + data.operation + '）' : '');
+    const opLabel = { inserted: '新規保存', updated: '上書き保存', forked: '新規保存（他担当者データから分岐）' }[action]
+      + (data.operation ? '（' + data.operation + '）' : '');
     const logged = _appendLog(who, opLabel, data, target);
-    return _json({ ok: true, status: 'success', action: action, row: target, user: who.user, logged: logged });
+    return _json({ ok: true, status: 'success', action: action, id: String(data.id), row: target, user: who.user, logged: logged });
   } catch (err) {
     return _json({ ok: false, status: 'error', error: String(err) });
   } finally {

@@ -7117,6 +7117,24 @@ function ensureCurrentUser(retry) {
   return false;
 }
 
+// 既存IDと重複しない新しいID（数値・ミリ秒ベース）
+function _newUniqueId(list) {
+  const used = new Set((list || getMergedHistory()).map(e => Number(e.id)));
+  let id = Date.now();
+  while (used.has(id)) id++;
+  return id;
+}
+// GAS側で別IDに分岐された場合、端末の履歴IDを合わせる
+function _remapHistoryId(oldId, newId) {
+  if (!newId || String(oldId) === String(newId) || !Number(newId)) return;
+  const h = getHistory();
+  const e = h.find(x => Number(x.id) === Number(oldId));
+  if (!e) return;
+  e.id = Number(newId);
+  try { saveHistory(h); } catch (err) { /* noop */ }
+  renderSidebarHistory();
+}
+
 function syncCustomerToSheet(entry) {
   if (!GAS_SHEET_ENDPOINT || !entry) return Promise.resolve(false);
   try {
@@ -7158,6 +7176,7 @@ function syncCustomerToSheet(entry) {
           : '[Sheet同期] GASがエラーを返しました:', json);
         else if (json.logged === false) console.warn('[Sheet同期] 保存は成功、使用者ログの追記に失敗しました');
         if (ok && json.user) _setCurrentUserBadge(json.user); // ログに記録された使用者をヘッダーにも反映
+        if (ok && json.action === 'forked') _remapHistoryId(entry.id, json.id); // 他担当者の行は上書きされず新規行になった
         return ok;
       })
       .catch(err => { console.warn('[Sheet同期] 送信失敗（ローカル保存は完了済み）:', err); return false; });
@@ -7202,12 +7221,20 @@ function saveCustomer() {
     const currentBaseName = cleanName(data.cn);
 
     const h = getHistory();
-    const existingIndex = h.findIndex(item => cleanName(item.cn || item.customerName) === currentBaseName);
+    // 上書き保護：同名データはローカル＋クラウドから探し、作成者が自分のものだけ上書き対象にする
+    const me = _localAuthor() || _currentUser;
+    const isMine = item => { const a = String(item.author || '').trim(); return !a || a === me; }; // 作成者不明の旧データは従来どおり
+    const merged = getMergedHistory();
+    const sameName = merged.filter(item => cleanName(item.cn || item.customerName) === currentBaseName);
+    const existing = sameName.find(isMine) || sameName[0] || null;
     let overwriteId = null;
+    let forkedFrom = '';
 
-    if (existingIndex !== -1) {
+    if (existing && !isMine(existing)) {
+        // 他の担当者のデータ：元IDは使わず新しいIDで新規保存（シート上は新規行）
+        forkedFrom = String(existing.author).trim();
+    } else if (existing) {
         const norm = v => (v == null ? '' : String(v).replace(/[\s　]+/g, "").trim());
-        const existing = h[existingIndex];
         
         const isSameContent = 
             norm(existing.mb) === norm(data.mb) && 
@@ -7224,7 +7251,8 @@ function saveCustomer() {
         
         if (isOverwrite) {
             overwriteId = existing.id; // 上書き時は同一IDを維持（シート側Upsertキー）
-            h.splice(existingIndex, 1);
+            const li = h.findIndex(item => Number(item.id) === Number(existing.id));
+            if (li !== -1) h.splice(li, 1);
         } else {
             const baseCurrentName = (data.cn || "").replace(/（内容変更版）.*$/, "").trim();
             data.cn = `${baseCurrentName}（内容変更版）`;
@@ -7233,8 +7261,8 @@ function saveCustomer() {
 
     const entry = {
         ...base,
-        id: overwriteId || Date.now(),
-        author: (() => { try { return localStorage.getItem('jibunden_author') || base.author || ''; } catch (e) { return base.author || ''; } })(),
+        id: overwriteId || _newUniqueId(merged),
+        author: me, // 読み込んだデータの作成者ではなく、保存した本人を記録
         updatedAt: Date.now(),
         date: new Date().toLocaleString('ja-JP'),
         customerName: data.cn.trim() || '名称未設定',
@@ -7295,7 +7323,9 @@ function saveCustomer() {
     // 左サイドバー「最近の履歴」と履歴一覧を即時再描画
     renderSidebarHistory();
     renderHistoryFull();
-    toast(`「${entry.customerName}」を保存しました`);
+    toast(forkedFrom
+      ? `「${entry.customerName}」は${forkedFrom}さんのデータのため、新しいIDで新規保存しました`
+      : `「${entry.customerName}」を保存しました`);
     return entry;
 }
 
