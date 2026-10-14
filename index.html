@@ -1571,6 +1571,7 @@ canvas#mini-chart { height: 220px !important; }
             <span id="rd-top" style="font-size:26px;font-weight:900;color:#15803d;line-height:1">-</span>
             <span style="font-size:12px;color:#15803d;font-weight:700">万円</span>
           </div>
+          <div id="rd-top-note" style="display:none;font-size:10px;color:#15803d;margin-top:6px;line-height:1.5"></div>
         </div>
         <div style="border-radius:12px;padding:16px 12px;border:2px solid #bbf7d0;background:#f0fdf4;box-shadow:0 1px 4px rgba(0,0,0,.06)">
           <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px">年間経済メリット</div>
@@ -1580,6 +1581,7 @@ canvas#mini-chart { height: 220px !important; }
             <span id="rs" style="font-size:26px;font-weight:900;color:#15803d;line-height:1">-</span>
             <span style="font-size:12px;color:#15803d;font-weight:700">円/年</span>
           </div>
+          <div id="rs-note" style="display:none;font-size:10px;color:#15803d;margin-top:6px;line-height:1.5"></div>
         </div>
       </div>
       <div class="grid2" style="gap:10px;margin-bottom:16px">
@@ -1836,6 +1838,36 @@ function calcSellRevenueTotal(surplusKwh, years) {
   let total = 0;
   for (let y = 1; y <= years; y++) total += Math.round(surplusKwh * getSellPriceForYear(y));
   return total;
+}
+// 段階的売電単価の注釈（FITで単価が年数により変わる場合のみ。それ以外は空文字）
+function fitSteppedSegments(horizon = 20) {
+  if (saleMode !== 'fit') return [];
+  const rate = fitPeriodRate();
+  if (!rate) return [];
+  const seg = [];
+  if (rate.earlyPrice !== undefined) {
+    seg.push(`1〜${rate.earlyYears}年目${rate.earlyPrice}円`);
+    seg.push(`${rate.earlyYears + 1}〜${rate.years}年目${rate.latePrice}円`);
+  } else {
+    seg.push(`1〜${rate.years}年目${rate.price}円`);
+  }
+  if (rate.years < horizon) seg.push(`${rate.years + 1}年目以降${POST_FIT_DEFAULT}円（卒FIT）`);
+  return seg.length > 1 ? seg : [];
+}
+function fitSteppedNoteText(horizon = 20) {
+  const seg = fitSteppedSegments(horizon);
+  return seg.length ? `※売電収入は${seg.join('、')}の段階的単価を反映` : '';
+}
+function fitYear1NoteText(horizon = 20) {
+  if (!fitSteppedSegments(horizon).length) return '';
+  return `※売電収入は1年目単価（${getSellPriceForYear(1)}円/kWh）で算出。以降は年数により単価が下がります`;
+}
+// 売電単価の表示ラベル（段階的FIT時は「24→8.3→7円/kWh（段階）」）
+function sellPriceLabel(saleP, horizon = 20) {
+  if (!fitSteppedSegments(horizon).length) return `${saleP}円/kWh`;
+  const prices = [];
+  for (let y = 1; y <= horizon; y++) { const v = getSellPriceForYear(y); if (prices[prices.length - 1] !== v) prices.push(v); }
+  return `${prices.join('→')}円/kWh（段階）`;
 }
 function fitAutoNote() {
   const p = FIT_MASTER.find(p => p.id === fitPeriodId) || FIT_MASTER[FIT_MASTER.length - 1];
@@ -5819,7 +5851,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       `<span>📤 余剰電力量：<b>${fmt(surplusKwh)} kWh/年</b></span>` +
       `<span style="color:var(--or)">🛒 残り購入量：<b>${fmt(remainKWh)} kWh/年</b>（月平均 ¥${fmt(remainBill)}）</span>` +
       `<span>💡 買電単価：<b>${up.toFixed(1)}円/kWh</b></span>` +
-      (hasSolarMode && saleP > 0 ? `<span>💴 売電単価：<b>${saleP}円/kWh</b></span>` : '') +
+      (hasSolarMode && saleP > 0 ? `<span>💴 売電単価：<b>${sellPriceLabel(saleP)}</b></span>` : '') +
     `</div>`;
   document.getElementById('self-detail-bk').innerHTML = detailEl.innerHTML;
 
@@ -5925,7 +5957,8 @@ function _renderDualBreakdown(pbData, soData) {
         row('💰','月々の節約額', (pbData.monthlySaving >= 0 ? '約 ¥' + f(pbData.monthlySaving) : '－ ¥' + f(Math.abs(pbData.monthlySaving))),'','#15803d') +
         row('📈','年間経済メリット（削減額＋売電収入）', '約 ¥' + f(pbData.annualSaving),'','#15803d') +
         row('💴','年間売電収入', pbData.annualSell > 0 ? '約 ¥' + f(pbData.annualSell) : '—','', pbData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
-        row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d')
+        row('📊','20年間コスト差', '約 ' + pbData.diffMan + '万円おトク','','#15803d') +
+        (pbData.annualSell > 0 && fitSteppedNoteText() ? '<div style="font-size:10px;color:#64748b;line-height:1.5;padding:4px 2px 0">' + fitYear1NoteText().replace('※','※年間：') + '<br>' + fitSteppedNoteText().replace('※','※20年：') + '</div>' : '')
       ) +
       section('🔢 自家消費率',
         '<div class="dual-breakdown-row"><span class="db-label">🏠 自家消費率</span><span class="db-val" style="color:#15803d"><span id="pb-self-rate">' + pbData.selfRate + '</span>%</span></div>' +
@@ -5958,7 +5991,8 @@ function _renderDualBreakdown(pbData, soData) {
         row('💰','月々の節約額', (soData.monthlySaving >= 0 ? '約 ¥' + f(soData.monthlySaving) : '－ ¥' + f(Math.abs(soData.monthlySaving))),'','#1d4ed8') +
         row('📈','年間経済メリット（削減額＋売電収入）', '約 ¥' + f(soData.annualSaving),'','#1d4ed8') +
         row('💴','年間売電収入', soData.annualSell > 0 ? '約 ¥' + f(soData.annualSell) : '—','', soData.annualSell > 0 ? '#0f766e' : '#94a3b8') +
-        row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8')
+        row('📊','20年間コスト差', '約 ' + soData.diffMan + '万円おトク','','#1d4ed8') +
+        (soData.annualSell > 0 && fitSteppedNoteText() ? '<div style="font-size:10px;color:#64748b;line-height:1.5;padding:4px 2px 0">' + fitYear1NoteText().replace('※','※年間：') + '<br>' + fitSteppedNoteText().replace('※','※20年：') + '</div>' : '')
       ) +
       section('🔢 自家消費率',
         '<div class="dual-breakdown-row"><span class="db-label">🏠 自家消費率</span><span class="db-val" style="color:#1d4ed8"><span id="so-self-rate">' + soData.selfRate + '</span>%</span></div>' +
@@ -6343,7 +6377,7 @@ function calc() {
           '<span>📤 余剰電力量：<b>' + fmt(surplusSo) + ' kWh/年</b></span>' +
           '<span style="color:#b45309">🛒 残り購入量：<b>' + fmt(remainKwhSo) + ' kWh/年</b>（月平均 ¥' + fmt(mSo.remainBill) + '）</span>' +
           '<span>💡 買電単価：<b>' + up.toFixed(1) + '円/kWh</b></span>' +
-          (soValid && _saleP0 > 0 ? '<span>💴 売電単価：<b>' + _saleP0 + '円/kWh</b></span>' : '') +
+          (soValid && _saleP0 > 0 ? '<span>💴 売電単価：<b>' + sellPriceLabel(_saleP0) + '</b></span>' : '') +
         '</div>';
     }
   })();
@@ -6454,6 +6488,10 @@ function calc() {
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
   const _merit20Man = Math.round((_selfSavingActive * wyActive + _sellTotalActive) / 10000);
   document.getElementById('rd-top').textContent = _merit20Man;
+  const _hasSellActive = _sellTotalActive > 0;
+  const _setNote = (id, txt) => { const el = document.getElementById(id); if (el) { el.textContent = txt; el.style.display = txt ? '' : 'none'; } };
+  _setNote('rd-top-note', _hasSellActive ? fitSteppedNoteText(wyActive) : '');
+  _setNote('rs-note',     _hasSellActive ? fitYear1NoteText(wyActive) : '');
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
   document.getElementById('rb-up').innerHTML = up > 0
     ? `<span style="font-size:11px;font-weight:500;opacity:.8">現在の平均単価</span><br><span style="font-size:20px;font-weight:800">${up.toFixed(1)}円/kWh</span>`
@@ -7697,7 +7735,7 @@ async function generatePPTX(mode) {
       sl.addText([
         {text:"📊 月々の残り電気代：",options:{color:C.darkGreen}},
         {text:`約${fmt(hM.remainBill)}円`,options:{bold:true,fontSize:22,color:C.orange}},
-        {text:`　→　経済メリット 月${fmt(hM.annualSaving/12)}円・20年で約${hM.saving20YMan}万円`,options:{color:C.charcoal,fontSize:13}},
+        {text:`　→　経済メリット 月${fmt(hM.annualSaving/12)}円・20年で約${hM.saving20YMan}万円${_ppSale20ManH>0?`（＋売電収入 約${_ppSale20ManH}万円${fitSteppedSegments(hCfg.warrantyYears).length?'・段階単価反映':''}）`:''}`,options:{color:C.charcoal,fontSize:13}},
       ],{x:0.8,y:4.05,w:8.5,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
     }
     // ── Slide 6：トータルコスト比較（仮説モデル）──
@@ -7727,7 +7765,7 @@ async function generatePPTX(mode) {
       if(remWH>0.9)sl.addText(`残電気代\n${netRemain20ManH}万`,{x:0.4+costWH,y:3.32,w:remWH,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addText(`計 ${fmt(hM.totalCostMan+netRemain20ManH)} 万円`,{x:0.4+costWH+remWH+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
       sl.addText(_ppSale20ManH>0
-        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManH}万円　－　売電収入 ${_ppSale20ManH}万円　＝　計 ${fmt(hM.totalCostMan+netRemain20ManH)}万円`,options:{color:C.gray}}]
+        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManH}万円　－　売電収入 ${_ppSale20ManH}万円${fitSteppedSegments(hCfg.warrantyYears).length?'（段階単価）':''}　＝　計 ${fmt(hM.totalCostMan+netRemain20ManH)}万円`,options:{color:C.gray}}]
         :[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${hM.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${netRemain20ManH}万円　＝　計 ${fmt(hM.totalCostMan+netRemain20ManH)}万円`,options:{color:C.gray}}]
       ,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
       const diff=_ppCorrDiffH;
@@ -7973,7 +8011,7 @@ async function generatePPTX(mode) {
       sl.addText([
         {text:"📊 月々の残り電気代：",options:{color:C.darkGreen}},
         {text:`約${fmt(m.remainBill)}円`,options:{bold:true,fontSize:22,color:C.orange}},
-        {text:`　→　経済メリット 月${fmt(m.annualSaving/12)}円・20年で約${m.saving20YMan}万円`,options:{color:C.charcoal,fontSize:13}},
+        {text:`　→　経済メリット 月${fmt(m.annualSaving/12)}円・20年で約${m.saving20YMan}万円${_ppSale20Man>0?`（＋売電収入 約${_ppSale20Man}万円${fitSteppedSegments(cfg.warrantyYears).length?'・段階単価反映':''}）`:''}`,options:{color:C.charcoal,fontSize:13}},
       ],{x:0.8,y:4.05,w:8.5,h:1.2,fontSize:16,fontFace:"Meiryo",valign:"middle"});
     }
     // ── 実データ E：コスト比較 ──
@@ -8003,7 +8041,7 @@ async function generatePPTX(mode) {
       if(remWE>0.9)sl.addText(`残電気代\n${netRemain20ManE}万`,{x:0.4+costWE,y:3.32,w:remWE,h:0.7,fontSize:9,bold:true,color:C.darkGreen,align:"center",valign:"middle",fontFace:"Meiryo"});
       sl.addText(`計 ${fmt(m.totalCostMan+netRemain20ManE)} 万円`,{x:0.4+costWE+remWE+0.1,y:3.32,w:2.5,h:0.7,fontSize:18,bold:true,color:C.midGreen,valign:"middle",fontFace:"Meiryo"});
       sl.addText(_ppSale20Man>0
-        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManE}万円　－　売電収入 ${_ppSale20Man}万円　＝　計 ${fmt(m.totalCostMan+netRemain20ManE)}万円`,options:{color:C.gray}}]
+        ?[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${remain20ManE}万円　－　売電収入 ${_ppSale20Man}万円${fitSteppedSegments(cfg.warrantyYears).length?'（段階単価）':''}　＝　計 ${fmt(m.totalCostMan+netRemain20ManE)}万円`,options:{color:C.gray}}]
         :[{text:"■ ",options:{color:C.midGreen}},{text:`初期費用 ${m.totalCostMan}万円　＋　`,options:{color:C.gray}},{text:"■ ",options:{color:C.lightGreen}},{text:`残り電気代 ${netRemain20ManE}万円　＝　計 ${fmt(m.totalCostMan+netRemain20ManE)}万円`,options:{color:C.gray}}]
       ,{x:0.4,y:4.08,w:8.8,h:0.28,fontSize:10,fontFace:"Meiryo",valign:"middle"});
       const diffE=_ppCorrDiff;
