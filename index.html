@@ -1565,7 +1565,7 @@ canvas#mini-chart { height: 220px !important; }
       <div class="grid2" style="gap:10px;margin-bottom:12px">
         <div style="border-radius:12px;padding:16px 12px;border:2px solid #bbf7d0;background:linear-gradient(135deg,#f0fdf4,#dcfce7);box-shadow:0 2px 8px rgba(0,0,0,.08)">
           <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:2px">20年間の経済メリット目安</div>
-          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">年間メリット×20年の概算（上昇率・FIT変動非反映）</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:6px">自家消費×20年＋年別売電単価の累計（上昇率非反映）</div>
           <div style="display:flex;align-items:baseline;gap:2px">
             <span style="font-size:11px;color:#15803d;font-weight:700">約</span>
             <span id="rd-top" style="font-size:26px;font-weight:900;color:#15803d;line-height:1">-</span>
@@ -1829,6 +1829,13 @@ function getSellPriceForYear(year) {
     return POST_FIT_DEFAULT;
   }
   return year <= rate.years ? rate.price : POST_FIT_DEFAULT;
+}
+// 余剰電力量×年別売電単価（FIT段階単価・卒FIT単価を反映）の累計売電収入（円）
+function calcSellRevenueTotal(surplusKwh, years) {
+  if (!(surplusKwh > 0)) return 0;
+  let total = 0;
+  for (let y = 1; y <= years; y++) total += Math.round(surplusKwh * getSellPriceForYear(y));
+  return total;
 }
 function fitAutoNote() {
   const p = FIT_MASTER.find(p => p.id === fitPeriodId) || FIT_MASTER[FIT_MASTER.length - 1];
@@ -6211,6 +6218,10 @@ function calc() {
     const annualSellRevenue   = hasSolarMode ? Math.round(surplusKwhCalc * saleP) : 0;
     return annualSelfSaving + annualSellRevenue;
   })();
+  // 20年累計の売電収入（年別FIT単価反映）
+  const _sellTotalActive = (proposalMode !== 'battery_only' && (parseFloat(document.getElementById('sale-price').value) || 0) > 0)
+    ? calcSellRevenueTotal(_surplusKwhActive, wyActive) : 0;
+  const _selfSavingActive = Math.round((dcActive + bc_eff) * up);
   document.getElementById('rs').textContent = fmt(_annualTotal);
   document.getElementById('rs-month').textContent = fmt(Math.round(_annualTotal / 12));
   // 画面表示と完全一致させるため、AIコメント生成が参照する実測値をここで保持しておく
@@ -6225,7 +6236,7 @@ function calc() {
   const _hasSolar0 = proposalMode !== 'battery_only';
   const _annualSellRev0 = (_hasSolar0 && _surplusKwhChart > 0 && _saleP0 > 0)
     ? Math.round(_surplusKwhChart * _saleP0) : 0;
-  const _sale20Man = Math.round(_annualSellRev0 * wy / 10000);
+  const _sale20Man = _annualSellRev0 > 0 ? Math.round(calcSellRevenueTotal(_surplusKwhChart, wy) / 10000) : 0;
   const _netRemain20Man = remain20Man - _sale20Man;
   const _netCost20Man = m_pb.totalCostMan + _netRemain20Man;
   const totalW_pb = bill20Show > 0 ? Math.min(Math.round(Math.max(0, _netCost20Man) / bill20Show * 100), 100) : 0;
@@ -6272,7 +6283,7 @@ function calc() {
     var mSo = calcMetrics(cSo);
     var surplusSo = Math.max(0, agSo - dcSo);
     var annualSellSo = (surplusSo > 0 && _saleP0 > 0) ? Math.round(surplusSo * _saleP0) : 0;
-    var sale20ManSo = Math.round(annualSellSo * wySo / 10000);
+    var sale20ManSo = annualSellSo > 0 ? Math.round(calcSellRevenueTotal(surplusSo, wySo) / 10000) : 0;
     var remain20ManSo = er > 0 ? Math.round(mSo.remain20Y_rise / 10000) : Math.round(mSo.remainBill * 12 * wySo / 10000);
     var netRemain20ManSo = remain20ManSo - sale20ManSo;
     var netCost20ManSo = mSo.totalCostMan + netRemain20ManSo;
@@ -6386,7 +6397,7 @@ function calc() {
     var _salePPb = parseFloat(document.getElementById('sale-price').value) || 0;
     var annSellPb = (surplusPb > 0 && _salePPb > 0) ? Math.round(surplusPb * _salePPb) : 0;
     var annSavePb = Math.round(selfKwhPb * up) + annSellPb;
-    var diffPb = mPb.costDiff_with_rise + Math.round(annSellPb * pbWy / 10000);
+    var diffPb = mPb.costDiff_with_rise + (annSellPb > 0 ? Math.round(calcSellRevenueTotal(surplusPb, pbWy) / 10000) : 0);
     var pbData = {
       ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: mPb.remainBill,
@@ -6417,7 +6428,7 @@ function calc() {
     var saleP2 = parseFloat(document.getElementById('sale-price').value) || 0;
     var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
     var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
-    var diffSo2 = mSo2.costDiff_with_rise + Math.round(annSellSo2 * wySo2 / 10000);
+    var diffSo2 = mSo2.costDiff_with_rise + (annSellSo2 > 0 ? Math.round(calcSellRevenueTotal(surplusSo2, wySo2) / 10000) : 0);
     var selfRateRawSo2 = agSo2 > 0 ? (dcSo2 / agSo2 * 100) : 0;
     var selfRateSo2 = Math.min(100, Math.round(selfRateRawSo2));
     var surplusRateSo2 = agSo2 > 0 ? Math.round(surplusSo2 / agSo2 * 100) : 0;
@@ -6441,7 +6452,7 @@ function calc() {
   })();
 
   // KPIカード：年間経済メリット×保証年数（シンプルな目安）
-  const _merit20Man = Math.round(_annualTotal * wyActive / 10000);
+  const _merit20Man = Math.round((_selfSavingActive * wyActive + _sellTotalActive) / 10000);
   document.getElementById('rd-top').textContent = _merit20Man;
   document.getElementById('rb-note').textContent = er > 0 ? `年${er}%上昇想定` : '現状維持';
   document.getElementById('rb-up').innerHTML = up > 0
@@ -7488,12 +7499,12 @@ async function generatePPTX(mode) {
   const _ppSaleP = parseFloat(document.getElementById('sale-price').value) || 0;
   const _ppSurplusKwh = proposalMode !== 'battery_only'
     ? Math.max(0, cfg.annualGenerationKWh - cfg.directConsumptionKWh - cfg.batteryConsumptionKWh) : 0;
-  const _ppSale20Man = Math.round(_ppSurplusKwh * _ppSaleP * cfg.warrantyYears / 10000);
+  const _ppSale20Man = _ppSaleP > 0 ? Math.round(calcSellRevenueTotal(_ppSurplusKwh, cfg.warrantyYears) / 10000) : 0;
   const _ppCorrDiff = m.costDiff_with_rise + _ppSale20Man;
 
   const _ppSurplusKwhH = proposalMode !== 'battery_only'
     ? Math.max(0, hCfg.annualGenerationKWh - hCfg.directConsumptionKWh - hCfg.batteryConsumptionKWh) : 0;
-  const _ppSale20ManH = Math.round(_ppSurplusKwhH * _ppSaleP * hCfg.warrantyYears / 10000);
+  const _ppSale20ManH = _ppSaleP > 0 ? Math.round(calcSellRevenueTotal(_ppSurplusKwhH, hCfg.warrantyYears) / 10000) : 0;
   const _ppCorrDiffH = hM.costDiff_with_rise + _ppSale20ManH;
 
   const safeName = n => (n||'お客様').replace(/[\\/:*?"<>|]/g,'_');
