@@ -1,6 +1,6 @@
 {
   "description": "九州電力・新電力の単価マスタ。scripts/update-electricity-rates.mjs が毎週月曜6時(JST)に自動更新し、index.html の単価定数へ反映する。",
-  "lastChangedAt": "2026-10-05",
+  "lastChangedAt": "2026-11-02",
   "settings": {
     "applyGovernmentDiscount": false,
     "updateOhisama": false
@@ -10,21 +10,21 @@
     "kiji": "https://customer.kyuden.co.jp/ja/electricity/home-plan/kijibetsu.html",
     "ohisama": "https://customer.kyuden.co.jp/ja/electricity/home-plan/ohisama.html",
     "denkaNight": "https://customer.kyuden.co.jp/ja/electricity/home-plan/denka-de-night.html",
-    "fuel": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202610.html"
+    "fuel": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202611.html"
   },
   "kyushu": {
     "saieneLevy": 4.18,
     "saieneFiscalYear": 2026,
     "fuel": {
-      "month": "202610",
-      "url": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202610.html",
+      "month": "202611",
+      "url": "https://customer.kyuden.co.jp/ja/electricity/system/adjustment-past/202611.html",
       "juuryo": {
         "adjust": 1.86,
-        "net": -1.64
+        "net": 1.86
       },
       "denka": {
         "adjust": 1.86,
-        "net": -1.64
+        "net": 1.86
       }
     },
     "fuelAdjust": 1.86,
