@@ -142,6 +142,16 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
       </div>
       <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
+      <div class="field" style="margin-bottom:10px">
+        <label>ローン会社・金利区分</label>
+        <select id="po-lender" onchange="syncLoanRepaymentLimitPO();updateLoan();updateSlideLink()">
+          <option value="manual">金利を手入力（従来方式）</option>
+          <option value="orico_reform">オリコ｜Webリフォームローン</option>
+          <option value="jaccs_fixed">ジャックス｜固定金利</option>
+          <option value="jaccs_variable">ジャックス｜変動金利</option>
+        </select>
+        <div id="po-rate-status" style="font-size:11px;margin-top:5px;line-height:1.6" aria-live="polite">手入力の金利を使用します。</div>
+      </div>
       <div class="grid2" style="margin-bottom:14px">
         <div class="field">
           <label>金利（年率 %）</label>
@@ -149,6 +159,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
         <div class="field">
           <label>返済期間</label>
+          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
           <select id="po-lc" onchange="updateLoan()">
             <option value="36">3年（36回）</option>
             <option value="60">5年（60回）</option>
@@ -451,6 +462,63 @@ function setMode(mode) {
   updateLoan();
 }
 
+// 毎月の金利は提供された会社資料だけを使用。未登録月は計算を停止する。
+const PO_MONTHLY_RATES = {
+  orico_reform: {name:'オリコ Webリフォームローン', min:500000,max:10000000,minCount:12,maxCount:120,rates:{'2026-10':5.25}},
+  jaccs_fixed: {name:'ジャックス 固定金利', min:200000,max:null,minCount:6,maxCount:120,rates:{'2026-11':5.40,'2026-12':5.70}},
+  jaccs_variable: {name:'ジャックス 変動金利',min:1000000,max:null,minCount:60,maxCount:240,rates:{'2026-11':4.45,'2026-12':4.45},variable:true}
+};
+function poYearMonth() {
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'}).formatToParts(new Date());
+  return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
+}
+// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+function syncLoanRepaymentLimitPO() {
+  const lender = document.getElementById('po-lender');
+  const countSelect = document.getElementById('po-lc');
+  if (!lender || !countSelect) return;
+  const isOrico = lender.value === 'orico_reform';
+  Array.from(countSelect.options).forEach(option => {
+    option.disabled = isOrico && Number(option.value) > 120;
+  });
+  if (isOrico && Number(countSelect.value) > 120) {
+    countSelect.value = '120';
+  }
+  const note = document.getElementById('po-lc-orico-limit');
+  if (note) note.style.display = isOrico ? '' : 'none';
+}
+
+function poApplyLenderRate(principal,count) {
+  const sel=document.getElementById('po-lender');
+  const status=document.getElementById('po-rate-status');
+  const input=document.getElementById('po-lr');
+  if (!sel || !status || !input) return true;
+  if (sel.value==='manual') {
+    input.readOnly=false;
+    status.textContent='手入力の金利を使用します。';
+    return true;
+  }
+  const product=PO_MONTHLY_RATES[sel.value], month=poYearMonth(), rate=product && product.rates[month];
+  input.readOnly=true;
+  if (rate===undefined) {
+    input.value='';
+    status.textContent='⚠️ '+month+'の金利資料が未登録です。最新版の資料を登録するか、手入力を選択してください。';
+    return false;
+  }
+  input.value=rate;
+  if (principal<product.min || (product.max && principal>product.max)
+      || count<product.minCount || count>product.maxCount) {
+    status.textContent='⚠️ 対象条件外：'+product.name+'（'+(product.min/10000)+'万円以上'
+      +(product.max?'・'+(product.max/10000)+'万円以下':'')+'、'
+      +product.minCount+'〜'+product.maxCount+'回）';
+    return false;
+  }
+  status.textContent=month+'の適用金利：年'+rate.toFixed(2)+'%。'
+    +(product.variable?'変動金利のため将来の返済額は変わる可能性があります。':'')
+    +'正式な返済額はローン会社へご確認ください。';
+  return true;
+}
+
 function getInputs() {
   const method = document.querySelector('input[name="po-method"]:checked').value;
   const monthlyBill = parseFloat(document.getElementById('po-mb') ? document.getElementById('po-mb').value : 0) || 0;
@@ -459,11 +527,13 @@ function getInputs() {
     const dpMan     = parseFloat(document.getElementById('po-dp').value) || 0;
     const borrowMan = Math.max(0, totalMan - dpMan);
     const principal = borrowMan * 10000;
-    const rate      = parseFloat(document.getElementById('po-lr').value) || 0;
+    syncLoanRepaymentLimitPO();
     const count     = parseInt(document.getElementById('po-lc').value) || 180;
+    const loanRateValid = poApplyLenderRate(principal,count);
+    const rate      = parseFloat(document.getElementById('po-lr').value) || 0;
     const el = document.getElementById('po-borrow-val');
     if (el) el.textContent = borrowMan.toLocaleString('ja-JP') + '万円';
-    return { principal, rate, count, method, totalMan, dpMan, borrowMan, monthlyBill };
+    return { principal, rate, count, method, totalMan, dpMan, borrowMan, monthlyBill, loanRateValid };
   } else {
     const principal    = parseFloat(document.getElementById('po-la-m').value) || 0;
     const rate         = parseFloat(document.getElementById('po-lr-m').value) || 0;
@@ -477,6 +547,15 @@ function updateLoan() {
   const inputs = getInputs();
   const { principal, rate, count, method, manualMonthly } = inputs;
   const isManualMonthly = currentMode === 'manual' && manualMonthly > 0;
+  if (currentMode === 'preset' && !inputs.loanRateValid) {
+    setKinri('計算不可','-','-');
+    setGankin('-','-','-','-');
+    _currentMonthlyPayment=0;
+    _currentLoanCount=0;
+    _currentPrincipal=0;
+    document.getElementById('slide-link').removeAttribute('href');
+    return;
+  }
   const isGankin = method === 'gankin' && !isManualMonthly;
 
   document.getElementById('res-kinri').style.display  = isGankin ? 'none' : '';
@@ -747,7 +826,14 @@ function updateSlideLink() {
     ? document.getElementById('po-lr-m')
     : document.getElementById('po-lr');
   const rateVal = rateEl ? (parseFloat(rateEl.value) || 4.0) : 4.0;
+  if (currentMode === 'preset' && !poApplyLenderRate(Math.max(0,(parseFloat(document.getElementById('po-cost').value)||0)-(parseFloat(document.getElementById('po-dp').value)||0))*10000,parseInt(document.getElementById('po-lc').value)||180)) {
+    document.getElementById('slide-link').removeAttribute('href');
+    return;
+  }
   base.set('interestRate', rateVal);
+  const lender=document.getElementById('po-lender');
+  if (currentMode === 'preset' && lender && lender.value !== 'manual') base.set('loanLender',lender.value);
+  else base.delete('loanLender');
   const qs = base.toString();
   document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
 }
