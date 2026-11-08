@@ -1375,7 +1375,7 @@ canvas#mini-chart { height: 220px !important; }
         </div>
         <div class="field" style="margin-bottom:10px">
           <label>ローン会社・金利区分</label>
-          <select id="loan-lender" onchange="calc()">
+          <select id="loan-lender" onchange="syncLoanRepaymentLimit();calc()">
             <option value="manual">金利を手入力（従来方式）</option>
             <option value="orico_reform">オリコ｜Webリフォームローン</option>
             <option value="jaccs_fixed">ジャックス｜固定金利</option>
@@ -1390,6 +1390,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
           <div class="field">
             <label>支払回数（回）</label>
+          <div id="lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
             <select id="lc" onchange="onLcChange()">
               <option value="12">12回（1年）</option>
               <option value="24">24回（2年）</option>
@@ -5626,6 +5627,22 @@ function japanYearMonth() {
   const month = parts.find(p => p.type === 'month').value;
   return year + '-' + month;
 }
+// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+function syncLoanRepaymentLimit() {
+  const lender = document.getElementById('loan-lender');
+  const countSelect = document.getElementById('lc');
+  if (!lender || !countSelect) return;
+  const isOrico = lender.value === 'orico_reform';
+  Array.from(countSelect.options).forEach(option => {
+    option.disabled = isOrico && Number(option.value) > 120;
+  });
+  if (isOrico && Number(countSelect.value) > 120) {
+    countSelect.value = '120';
+  }
+  const note = document.getElementById('lc-orico-limit');
+  if (note) note.style.display = isOrico ? '' : 'none';
+}
+
 function applyMonthlyLoanRate(borrowAmt, count) {
   const selector = document.getElementById('loan-lender');
   const status = document.getElementById('loan-rate-status');
@@ -5767,6 +5784,7 @@ function calcLoan() {
   }
   const dp         = v('dp') || 0;
   const borrowAmt  = Math.max(0, (v('la2') - dp)) * 10000;
+  syncLoanRepaymentLimit();
   const count      = v('lc');
   const rateValid  = applyMonthlyLoanRate(borrowAmt, count);
   if (!rateValid) {
