@@ -240,8 +240,8 @@
 <!-- ① 表紙 -->
 <div class="slide active" id="s1">
   <div class="logo">じぶん<span>電気</span>ツール</div>
-  <div class="catch">PPTX自動生成 実践ユーザーマニュアル（詳細版）</div>
-  <div class="version">ver 2.0 &nbsp;|&nbsp; 2026</div>
+  <div class="catch">提案・試算・ローン・PPTX出力 ユーザーマニュアル</div>
+  <div class="version">ver 2.1 &nbsp;|&nbsp; 2026年11月8日</div>
   <div class="slide-num">1 / 8</div>
 </div>
 
@@ -292,7 +292,7 @@
 <!-- ④ 2ステップ -->
 <div class="slide" id="s4">
   <div class="tag">HOW TO USE</div>
-  <h2>使い方 <span class="accent">2ステップ</span></h2>
+  <h2>基本操作 <span class="accent">2ステップ＋確認</span></h2>
   <div class="timeline">
     <div class="step">
       <div class="circle">1</div>
@@ -427,6 +427,64 @@
 </div>
 
 <!-- ⑨ AIクロージングコメント -->
+
+<!-- 現行機能：ローン会社別金利 -->
+<div class="slide dt" id="s-loan">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">LOAN / 2026.11</div>
+      <h2>🏦 ローン会社別の<span class="accent">当月金利を使う</span></h2>
+      <p class="dt-lead">「ローン」欄の自動計算で、会社と金利区分を選択すると、登録済みの<strong>当月の確認済み金利</strong>を試算に適用します。</p>
+      <ol class="steps">
+        <li><b>ローンの自動計算</b>を選び、借入金額・頭金を入力</li>
+        <li><b>ローン会社・金利区分</b>から「オリコ｜Webリフォームローン」「ジャックス｜固定金利」「ジャックス｜変動金利」のいずれかを選択</li>
+        <li><b>支払回数</b>を選択し、金利欄と直下の<b>適用年月・金利・出典</b>の表示を確認</li>
+        <li>月々の返済額・総返済額を確認し、見積・提案条件と照合</li>
+      </ol>
+      <div class="note">💡 <b>重要：</b>金利は外部サイトからその場で取得するものではなく、ツール内に登録された「当月」の金利を使用します。毎月の資料更新・条件確認が必要です。</div>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">実際のフォームで選ぶ項目</div>
+        <div class="mrow"><span>計算方法</span><b>🔢 自動計算</b></div>
+        <div class="mrow"><span>ローン会社・金利区分</span><b>オリコ／ジャックス固定／変動</b></div>
+        <div class="mrow"><span>金利（年率 %）</span><b>当月の登録値を表示</b></div>
+        <div class="mrow"><span>支払回数（回）</span><b>商品条件に合わせて選択</b></div>
+      </div>
+      <div class="note">⚠️ <b>手入力したい場合：</b>ローン会社で「金利を手入力（従来方式）」を選び、金利欄に入力してください。会社選択の自動金利と、自由に月額を入力する「✏️ 手動入力」は別の操作です。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
+
+<!-- 現行機能：ローン制限とエラー -->
+<div class="slide dt" id="s-loan-warning">
+  <div class="dt-wrap">
+    <div class="dt-left">
+      <div class="tag">LOAN / CHECK</div>
+      <h2>⚠️ オリコの<span class="accent">120回制限</span>と金利未登録時</h2>
+      <p class="dt-lead">ローン会社を選択した際は、金利表示だけでなく、返済回数と適用条件も確認してください。</p>
+      <ol class="steps">
+        <li><b>オリコを選ぶと最大120回（10年）</b>。121回以上の候補は選択できず、選択済みの回数が120回超なら120回に切り替わります</li>
+        <li><b>「当月の確認済み金利がありません」</b>と出た場合、その会社の当月金利は未登録。空欄のまま自動試算しないでください</li>
+        <li>金利資料の更新を依頼するか、承認済みの金利が分かる場合は<b>「金利を手入力」</b>に切り替えます</li>
+        <li><b>「対象条件外」</b>の警告が出たら、借入額・返済回数と商品条件を再確認します</li>
+      </ol>
+      <div class="note">💡 ジャックスの固定・変動は別の区分です。変動金利の返済額は将来の金利見直しにより変わる可能性があります。試算結果は金融会社の正式審査・契約条件を保証しません。</div>
+    </div>
+    <div class="dt-right">
+      <div class="mock">
+        <div class="mock-title">警告の見方と対応</div>
+        <div class="mrow"><span>オリコ 180回を選択中</span><b>→ 120回に変更</b></div>
+        <div class="mrow"><span>当月金利なし</span><b>→ 更新／確認後に手入力</b></div>
+        <div class="mrow"><span>対象条件外</span><b>→ 借入額・回数を確認</b></div>
+        <div class="mrow"><span>ジャックス変動</span><b>→ 将来の金利変更に注意</b></div>
+      </div>
+      <div class="note">確認するのは「金利数値」だけではありません。<b>年月・金利区分・出典・対象条件</b>をセットで確認してからお客様向けの提案書へ進みます。</div>
+    </div>
+  </div>
+  <div class="slide-num"></div>
+</div>
 <div class="slide dt" id="s-ai">
   <div class="dt-wrap">
     <div class="dt-left">
@@ -616,6 +674,11 @@
     <div class="qa">
       <div class="q">Q. 実データ版PPTXの出力ボタンが押せません。</div>
       <div class="a">A. ボタン直下の赤枠に理由が表示されます。多くはAIクロージングコメントの未入力・文字数超過・警告表示が原因です。案内に沿って解消してください。</div>
+    </div>
+
+    <div class="qa">
+      <div class="q">Q. オリコを選んだのに金利が表示されません。</div>
+      <div class="a">A. 当月の確認済み金利が未登録、または借入額・返済回数が商品条件外の可能性があります。金利欄の下の状態表示を確認し、資料更新または条件変更を行ってください。未確認の金利で自動試算しないでください。</div>
     </div>
   </div>
   <div class="slide-num">8 / 8</div>
