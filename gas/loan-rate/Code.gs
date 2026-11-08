@@ -89,7 +89,7 @@ function _saveLoanRate(data) {
   const author = String(data.author || '').trim();
 
   if (LOAN_RATE_PRODUCTS.indexOf(product) < 0 ||
-      !\/^\d{4}-(0[1-9]|1[0-2])$/.test(month) ||
+      !/^\d{4}-(0[1-9]|1[0-2])$/.test(month) ||
       !Number.isFinite(rate) || rate <= 0 || rate > 30 ||
       rate !== Math.round(rate * 100) / 100 ||
       !source || source.length > 200 ||
