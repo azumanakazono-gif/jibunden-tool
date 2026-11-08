@@ -144,7 +144,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
       <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
       <div class="field" style="margin-bottom:10px">
         <label>ローン会社・金利区分</label>
-        <select id="po-lender" onchange="updateLoan();updateSlideLink()">
+        <select id="po-lender" onchange="syncLoanRepaymentLimitPO();updateLoan();updateSlideLink()">
           <option value="manual">金利を手入力（従来方式）</option>
           <option value="orico_reform">オリコ｜Webリフォームローン</option>
           <option value="jaccs_fixed">ジャックス｜固定金利</option>
@@ -159,6 +159,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
         <div class="field">
           <label>返済期間</label>
+          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
           <select id="po-lc" onchange="updateLoan()">
             <option value="36">3年（36回）</option>
             <option value="60">5年（60回）</option>
@@ -471,6 +472,22 @@ function poYearMonth() {
   const parts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'}).formatToParts(new Date());
   return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
+// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+function syncLoanRepaymentLimitPO() {
+  const lender = document.getElementById('po-lender');
+  const countSelect = document.getElementById('po-lc');
+  if (!lender || !countSelect) return;
+  const isOrico = lender.value === 'orico_reform';
+  Array.from(countSelect.options).forEach(option => {
+    option.disabled = isOrico && Number(option.value) > 120;
+  });
+  if (isOrico && Number(countSelect.value) > 120) {
+    countSelect.value = '120';
+  }
+  const note = document.getElementById('po-lc-orico-limit');
+  if (note) note.style.display = isOrico ? '' : 'none';
+}
+
 function poApplyLenderRate(principal,count) {
   const sel=document.getElementById('po-lender');
   const status=document.getElementById('po-rate-status');
@@ -510,6 +527,7 @@ function getInputs() {
     const dpMan     = parseFloat(document.getElementById('po-dp').value) || 0;
     const borrowMan = Math.max(0, totalMan - dpMan);
     const principal = borrowMan * 10000;
+    syncLoanRepaymentLimitPO();
     const count     = parseInt(document.getElementById('po-lc').value) || 180;
     const loanRateValid = poApplyLenderRate(principal,count);
     const rate      = parseFloat(document.getElementById('po-lr').value) || 0;
