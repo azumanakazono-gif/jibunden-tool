@@ -25,6 +25,12 @@
   #click-prev{position:fixed;left:0;top:0;width:15%;height:100%;z-index:50;cursor:w-resize;}
   #click-next{position:fixed;right:0;top:0;width:15%;height:100%;z-index:50;cursor:e-resize;}
 
+  /* 画面端クリック操作の案内：クリック領域を妨げない */
+  #nav-hint{position:fixed;bottom:75px;left:50%;transform:translateX(-50%);z-index:101;pointer-events:none;background:rgba(255,255,255,.94);border:1px solid #d1fae5;border-radius:20px;padding:7px 16px;box-shadow:0 2px 8px #0001;color:#475569;font-size:.76rem;white-space:nowrap;text-align:center;}
+  #nav-hint strong{color:#047857;}
+  #nav-hint .mobile-hint{display:none;}
+  @media(max-width:768px){#nav-hint{bottom:56px;font-size:.7rem;padding:5px 10px;max-width:94%;white-space:normal;}#nav-hint .desktop-hint{display:none;}#nav-hint .mobile-hint{display:inline;}}
+
   /* スマホ対応 */
   @media(max-width:768px){
     /* スライド共通：上部余白＋スクロール可能 */
@@ -226,8 +232,9 @@
 </style>
 </head>
 <body>
-<div id="click-prev"></div>
-<div id="click-next"></div>
+<div id="click-prev" role="button" aria-label="画面左側をクリックして前のページへ戻る" title="クリックで前のページへ戻る"></div>
+<div id="click-next" role="button" aria-label="画面右側をクリックして次のページへ進む" title="クリックで次のページへ進む"></div>
+<div id="nav-hint"><span class="desktop-hint"><strong>操作：</strong>画面の左側クリックで戻る　｜　右側クリックで進む　｜　下部の矢印でも操作できます</span><span class="mobile-hint">左右スワイプまたは下部の矢印でページ移動</span></div>
 <div id="nav">
   <button id="btn-prev">&#8592;</button>
   <span class="counter" id="counter"></span>
