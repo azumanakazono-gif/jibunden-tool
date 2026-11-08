@@ -9,6 +9,8 @@
 <title>じぶん電気 提案書作成ツール</title>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="/api/loan-rate-config.js"></script>
+<script src="loan-rate-registry.js"></script>
 <style>
 :root {
   --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
@@ -5643,6 +5645,14 @@ function syncLoanRepaymentLimit() {
   if (note) note.style.display = isOrico ? '' : 'none';
 }
 
+window.addEventListener('DOMContentLoaded', function () {
+  if (!window.LoanRateRegistry) return;
+  window.LoanRateRegistry.attach({
+    selector:'loan-lender',status:'loan-rate-status',
+    recalculate:function () { if (typeof calc === 'function') calc(); }
+  });
+  window.LoanRateRegistry.load();
+});
 function applyMonthlyLoanRate(borrowAmt, count) {
   const selector = document.getElementById('loan-lender');
   const status = document.getElementById('loan-rate-status');
@@ -5654,7 +5664,9 @@ function applyMonthlyLoanRate(borrowAmt, count) {
   }
   const product = MONTHLY_LOAN_RATES[selector.value];
   const month = japanYearMonth();
-  const rate = product && product.rates[month];
+  const fallback = product && product.rates[month];
+  const sharedRate = window.LoanRateRegistry && window.LoanRateRegistry.get(selector.value, month, fallback, product && product.source);
+  const rate = sharedRate ? sharedRate.rate : undefined;
   rateInput.readOnly = true;
   if (rate === undefined) {
     rateInput.value = '';
@@ -5670,7 +5682,8 @@ function applyMonthlyLoanRate(borrowAmt, count) {
       + '、' + product.minCount + '〜' + product.maxCount + '回）。';
     return false;
   }
-  status.textContent = month + ' 適用金利：年' + rate.toFixed(2) + '%（' + product.source + '）。'
+  status.textContent = month + ' 適用金利：年' + rate.toFixed(2) + '%（' +
+    (sharedRate ? (sharedRate.shared ? '共有DB登録値：' : '資料登録値：') + sharedRate.source : product.source) + '）。'
     + (product.variable ? '変動金利のため将来の返済額は金利見直しで変わる可能性があります。' : '')
     + ' 正式な返済額はローン会社へご確認ください。';
   return true;
