@@ -140,6 +140,10 @@
   #s3 .tile .icon{font-size:2.6rem;margin-bottom:14px;background:#ecfdf5;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;}
   #s3 .tile h3{font-size:1.1rem;color:#10b981;margin-bottom:10px;border:none;padding:0;}
   #s3 .tile p{font-size:0.82rem;color:#475569;line-height:1.7;}
+  #s3 .tile-link{display:block;text-decoration:none;color:inherit;cursor:pointer;transition:transform .15s,box-shadow .15s,border-color .15s;}
+  #s3 .tile-link:hover,#s3 .tile-link:focus-visible{transform:translateY(-2px);border-color:#10b981;box-shadow:0 5px 18px #10b98122;outline:none;}
+  #s3 .tile-link-note{display:block;margin-top:12px;font-weight:700;font-size:.78rem;color:#047857;}
+
 
   /* ④ 2ステップ */
   #s4 h2{font-size:2rem;margin-bottom:48px;}
@@ -280,11 +284,12 @@
       <h3>自動PPTX生成</h3>
       <p>入力情報をもとにスライドを即座に生成。デザインテンプレートが自動適用されます。</p>
     </div>
-    <div class="tile">
+    <a class="tile tile-link" href="https://docs.google.com/spreadsheets/d/1lzC3LjRF19ufArTIJUYgvUzy6Rqs9Rme4htn7CrgyJo/edit?gid=148386834#gid=148386834" target="_blank" rel="noopener noreferrer" title="保存データベースを新しいタブで開く" aria-label="データ保存・読込：Googleスプレッドシートのデータベースを開く">
       <div class="icon">💾</div>
       <h3>データ保存・読込</h3>
       <p>「💾 データ保存」で履歴＋クラウドへ保存。JSON書き出し・読込にも対応し、再提案も瞬時に対応。</p>
-    </div>
+      <span class="tile-link-note">↗ データベースを開く</span>
+    </a>
     <div class="tile">
       <div class="icon">📋</div>
       <h3>履歴管理</h3>
