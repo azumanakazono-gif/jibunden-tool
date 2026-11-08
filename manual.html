@@ -22,8 +22,8 @@
   #nav button:hover{background:#ecfdf5;border-color:#10b981;color:#10b981;}
   #nav .counter{font-size:0.8rem;color:#94a3b8;min-width:48px;text-align:center;}
   #btn-home{width:auto!important;padding:0 14px;font-size:0.78rem!important;border-radius:20px!important;white-space:nowrap;}
-  #click-prev{position:fixed;left:0;top:0;width:15%;height:100%;z-index:50;cursor:w-resize;}
-  #click-next{position:fixed;right:0;top:0;width:15%;height:100%;z-index:50;cursor:e-resize;}
+  /* 画面の左右半分でページ移動。操作可能な本文要素は遮らない */
+  #click-prev,#click-next{display:none;}
 
   /* 画面端クリック操作の案内：クリック領域を妨げない */
   #nav-hint{position:fixed;bottom:75px;left:50%;transform:translateX(-50%);z-index:101;pointer-events:none;background:rgba(255,255,255,.94);border:1px solid #d1fae5;border-radius:20px;padding:7px 16px;box-shadow:0 2px 8px #0001;color:#475569;font-size:.76rem;white-space:nowrap;text-align:center;}
@@ -232,8 +232,6 @@
 </style>
 </head>
 <body>
-<div id="click-prev" role="button" aria-label="画面左側をクリックして前のページへ戻る" title="クリックで前のページへ戻る"></div>
-<div id="click-next" role="button" aria-label="画面右側をクリックして次のページへ進む" title="クリックで次のページへ進む"></div>
 <div id="nav-hint"><span class="desktop-hint"><strong>操作：</strong>画面の左側クリックで戻る　｜　右側クリックで進む　｜　下部の矢印でも操作できます</span><span class="mobile-hint">左右スワイプまたは下部の矢印でページ移動</span></div>
 <div id="nav">
   <button id="btn-prev">&#8592;</button>
@@ -718,8 +716,16 @@
 
   document.getElementById('btn-next').addEventListener('click', () => go(cur + 1));
   document.getElementById('btn-prev').addEventListener('click', () => go(cur - 1));
-  document.getElementById('click-next').addEventListener('click', () => go(cur + 1));
-  document.getElementById('click-prev').addEventListener('click', () => go(cur - 1));
+  // PCでは画面の右半分をクリックすると次へ、左半分で前へ。
+  // リンク・ボタン・入力・テキスト選択など本来の操作は優先する。
+  document.addEventListener('click', e => {
+    if (window.innerWidth <= 768 || e.button !== 0 || e.defaultPrevented) return;
+    if (e.target.closest('a, button, input, select, textarea, label, summary, [role="button"], [contenteditable="true"], #nav')) return;
+    const selected = window.getSelection();
+    if (selected && !selected.isCollapsed) return;
+    if (e.clientX >= window.innerWidth / 2) go(cur + 1);
+    else go(cur - 1);
+  });
 
   // タッチスワイプ
   let tx = 0, ty = 0;
