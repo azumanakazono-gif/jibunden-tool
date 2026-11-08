@@ -1373,6 +1373,16 @@ canvas#mini-chart { height: 220px !important; }
         <div id="dp-borrow-disp" style="font-size:12px;color:var(--mg);margin-bottom:8px;padding:5px 10px;background:var(--pg);border-radius:6px;border:1px solid var(--border)">
           実際の借入額：<b id="dp-borrow-val">-</b>
         </div>
+        <div class="field" style="margin-bottom:10px">
+          <label>ローン会社・金利区分</label>
+          <select id="loan-lender" onchange="calc()">
+            <option value="manual">金利を手入力（従来方式）</option>
+            <option value="orico_reform">オリコ｜Webリフォームローン</option>
+            <option value="jaccs_fixed">ジャックス｜固定金利</option>
+            <option value="jaccs_variable">ジャックス｜変動金利</option>
+          </select>
+          <div id="loan-rate-status" style="font-size:11px;line-height:1.6;margin-top:5px;color:var(--muted)" aria-live="polite">手入力の金利を使用します。</div>
+        </div>
         <div class="grid2" style="margin-bottom:12px">
           <div class="field">
             <label>金利（年率 %）</label>
@@ -5592,6 +5602,63 @@ function onHearingChange(data) {
   }
 }
 
+// 金利原本: オリコ2026年10月取扱条件、ジャックス2026年11月提示表（12月予定値を含む）。
+// 月の資料がない場合は前月の金利を流用せず、手入力に切り替える。
+const MONTHLY_LOAN_RATES = {
+  orico_reform: {
+    name: 'オリコ Webリフォームローン', min: 500000, max: 10000000, minCount: 12, maxCount: 120,
+    rates: { '2026-10': 5.25 }, source: 'オリコ 2026年10月取扱条件'
+  },
+  jaccs_fixed: {
+    name: 'ジャックス 固定金利', min: 200000, max: null, minCount: 6, maxCount: 120,
+    rates: { '2026-11': 5.40, '2026-12': 5.70 }, source: 'ジャックス 2026年11月提示金利表'
+  },
+  jaccs_variable: {
+    name: 'ジャックス 変動金利', min: 1000000, max: null, minCount: 60, maxCount: 240,
+    rates: { '2026-11': 4.45, '2026-12': 4.45 }, source: 'ジャックス 2026年11月提示金利表',
+    variable: true
+  }
+};
+function japanYearMonth() {
+  const parts = new Intl.DateTimeFormat('en-US', {timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'})
+    .formatToParts(new Date());
+  const year = parts.find(p => p.type === 'year').value;
+  const month = parts.find(p => p.type === 'month').value;
+  return year + '-' + month;
+}
+function applyMonthlyLoanRate(borrowAmt, count) {
+  const selector = document.getElementById('loan-lender');
+  const status = document.getElementById('loan-rate-status');
+  const rateInput = document.getElementById('lr');
+  if (!selector || !status || !rateInput || selector.value === 'manual') {
+    if (rateInput) rateInput.readOnly = false;
+    if (status) status.textContent = '手入力の金利を使用します。';
+    return true;
+  }
+  const product = MONTHLY_LOAN_RATES[selector.value];
+  const month = japanYearMonth();
+  const rate = product && product.rates[month];
+  rateInput.readOnly = true;
+  if (rate === undefined) {
+    rateInput.value = '';
+    status.textContent = '⚠️ ' + month + 'の確認済み金利がありません。最新資料を登録するか、手入力に切り替えてください。';
+    return false;
+  }
+  rateInput.value = String(rate);
+  if (borrowAmt < product.min || (product.max && borrowAmt > product.max)
+      || count < product.minCount || count > product.maxCount) {
+    status.textContent = '⚠️ ' + product.name + 'の対象条件外です（借入'
+      + (product.min / 10000) + '万円以上'
+      + (product.max ? '・' + (product.max / 10000) + '万円以下' : '')
+      + '、' + product.minCount + '〜' + product.maxCount + '回）。';
+    return false;
+  }
+  status.textContent = month + ' 適用金利：年' + rate.toFixed(2) + '%（' + product.source + '）。'
+    + (product.variable ? '変動金利のため将来の返済額は金利見直しで変わる可能性があります。' : '')
+    + ' 正式な返済額はローン会社へご確認ください。';
+  return true;
+}
+
 function setLoanInputMode(mode) {
   loanInputMode = mode;
   const isManual = mode === 'manual';
@@ -5700,8 +5767,19 @@ function calcLoan() {
   }
   const dp         = v('dp') || 0;
   const borrowAmt  = Math.max(0, (v('la2') - dp)) * 10000;
-  const annualRate = v('lr') / 100;
   const count      = v('lc');
+  const rateValid  = applyMonthlyLoanRate(borrowAmt, count);
+  if (!rateValid) {
+    document.getElementById('lp').value = 0;
+    document.getElementById('ly').value = count / 12;
+    document.getElementById('lp-display').textContent = '計算不可';
+    document.getElementById('lt-display').textContent = '-';
+    document.getElementById('li-display').textContent = '-';
+    document.getElementById('loan-compare-table').style.display = 'none';
+    document.getElementById('loan-warning').textContent = '⚠️ 金利または融資条件が未確認です。試算として使用できません。';
+    return;
+  }
+  const annualRate = v('lr') / 100;
   const dpEl = document.getElementById('dp-borrow-val');
   if (dpEl) dpEl.textContent = borrowAmt > 0 ? Math.round(borrowAmt/10000).toLocaleString('ja-JP') + '万円' : '0万円';
   const res = calcLoanValues(borrowAmt, annualRate, count);
