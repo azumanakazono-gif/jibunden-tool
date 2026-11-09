@@ -1596,16 +1596,19 @@ catch (error) { console.error('将来設計グラフの初期化エラー:', err
 
 /* スライド画面の左半分で戻る、右半分で進む。
    下部ナビ・ドット・ボタン上のクリックはページ移動させない。 */
-document.getElementById('slidesWrap').addEventListener('click', event => {
-  const target = event.target instanceof Element ? event.target : event.target.parentElement;
+/* 画面クリックによる移動はdocument captureで受ける。
+   子要素のイベント処理やslides-wrapの重なりに左右されないようにする。 */
+document.addEventListener('click', event => {
+  const target = event.target instanceof Element ? event.target : event.target?.parentElement;
   if (!target || target.closest('.nav,button,a,input,select,textarea,[data-no-slide-nav]')) return;
-  const activeSlide = target.closest('.slide');
-  if (!activeSlide || !activeSlide.classList.contains('active')) return;
+  const activeSlide = target.closest('.slide.active');
+  if (!activeSlide || !document.getElementById('slidesWrap')?.contains(activeSlide)) return;
   const rect = activeSlide.getBoundingClientRect();
+  if (!rect.width) return;
   const x = event.clientX - rect.left;
   if (x < rect.width / 2) goTo(current - 1);
   else goTo(current + 1);
-});
+}, true);
 
  document.addEventListener('keydown', e => {
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') goTo(current + 1);
