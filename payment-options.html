@@ -146,7 +146,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <label>ローン会社・金利区分</label>
         <select id="po-lender" onchange="syncLoanRepaymentLimitPO();syncOfficialLoanPO();updateLoan();updateSlideLink()">
           <option value="manual">金利を手入力（従来方式）</option>
-          <option value="orico_reform">オリコ｜Webリフォームローン</option>
+          <option value="orico_reform">オリコ｜固定金利（5.40%・最大120回）</option>
+          <option value="orico_solar_variable">オリコ｜太陽光・蓄電池 変動（4.50%・最大180回）</option>
+          <option value="orico_general_variable">オリコ｜一般リフォーム 変動（4.80%・最大180回）</option>
           <option value="jaccs_fixed">ジャックス｜固定金利</option>
           <option value="jaccs_variable">ジャックス｜変動金利</option>
         </select>
@@ -171,6 +173,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
           <label>返済期間</label>
           <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
           <select id="po-lc" onchange="clearOfficialLoanPO();updateLoan()">
+            <option value="6">6ヶ月（6回）</option>
+            <option value="12">1年（12回）</option>
+            <option value="24">2年（24回）</option>
             <option value="36">3年（36回）</option>
             <option value="60">5年（60回）</option>
             <option value="84">7年（84回）</option>
@@ -474,7 +479,9 @@ function setMode(mode) {
 
 // 毎月の金利は提供された会社資料だけを使用。未登録月は計算を停止する。
 const PO_MONTHLY_RATES = {
-  orico_reform: {name:'オリコ Webリフォームローン', min:500000,max:10000000,minCount:12,maxCount:120,rates:{'2026-10':5.25}},
+  orico_reform: {name:'オリコ 固定金利', min:100000,max:10000000,minCount:6,maxCount:120,rates:{'2026-11':5.40}},
+  orico_solar_variable: {name:'オリコ 太陽光・蓄電池 変動金利', min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.50},variable:true},
+  orico_general_variable: {name:'オリコ 一般リフォーム 変動金利', min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.80},variable:true},
   jaccs_fixed: {name:'ジャックス 固定金利', min:200000,max:null,minCount:6,maxCount:120,rates:{'2026-11':5.40,'2026-12':5.70}},
   jaccs_variable: {name:'ジャックス 変動金利',min:1000000,max:null,minCount:60,maxCount:240,rates:{'2026-11':4.45,'2026-12':4.45},variable:true}
 };
@@ -484,6 +491,8 @@ function poYearMonth() {
 }
 const PO_OFFICIAL_URLS = {
  orico_reform:'http://simulation.m-orico.jp/eco/',
+ orico_solar_variable:'http://simulation.m-orico.jp/eco/',
+ orico_general_variable:'http://simulation.m-orico.jp/eco/',
  jaccs_fixed:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1',
  jaccs_variable:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1'
 };
@@ -492,7 +501,7 @@ function syncOfficialLoanPO(){
  const official=!!PO_OFFICIAL_URLS[lender];
  document.getElementById('po-official-area').style.display=official?'':'none';
  document.getElementById('po-official-link').href=official?PO_OFFICIAL_URLS[lender]:'#';
- document.getElementById('po-official-link').textContent=(lender==='orico_reform'?'オリコ':'ジャックス')+'公式シミュレーションを開く ↗';
+ document.getElementById('po-official-link').textContent=(lender.startsWith('orico_')?'オリコ':'ジャックス')+'公式シミュレーションを開く ↗';
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
@@ -522,15 +531,22 @@ function syncLoanRepaymentLimitPO() {
   const lender = document.getElementById('po-lender');
   const countSelect = document.getElementById('po-lc');
   if (!lender || !countSelect) return;
-  const isOrico = lender.value === 'orico_reform';
+  const product=PO_MONTHLY_RATES[lender.value];
+  const isOrico=lender.value.startsWith('orico_');
+  const min=product?product.minCount:1;
+  const max=product?product.maxCount:Infinity;
   Array.from(countSelect.options).forEach(option => {
-    option.disabled = isOrico && Number(option.value) > 120;
+    option.disabled=Number(option.value)<min||Number(option.value)>max;
   });
-  if (isOrico && Number(countSelect.value) > 120) {
-    countSelect.value = '120';
+  if (product && (Number(countSelect.value)<min || Number(countSelect.value)>max)) {
+    const allowed=Array.from(countSelect.options).filter(o=>!o.disabled).map(o=>Number(o.value));
+    countSelect.value=String(allowed[allowed.length-1]);
   }
-  const note = document.getElementById('po-lc-orico-limit');
-  if (note) note.style.display = isOrico ? '' : 'none';
+  const note=document.getElementById('po-lc-orico-limit');
+  if(note) {
+    note.style.display=isOrico?'':'none';
+    note.textContent=isOrico?'オリコの返済回数：6〜'+max+'回（商品ごとに異なります）。':'';
+  }
 }
 
 function poApplyLenderRate(principal,count) {
