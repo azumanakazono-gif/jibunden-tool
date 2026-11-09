@@ -722,6 +722,7 @@ html,body{
  .s1-tag{font-size:13px;padding:8px 13px}
 }
 
+.legacy-slide-reference{display:none!important}
 </style>
 </head>
 <body>
@@ -750,34 +751,22 @@ html,body{
 
 
     <!-- ── MAIN SLIDE 2：20年間の単価比較 ── -->
-    <div class="slide jd-main jd-unit-slide" data-idx="main-units">
-      <div class="sh">
-        <div class="slide-num">SLIDE 02 / UNIT COST</div>
-        <div class="slide-ttl">☀️ <span class="g">20年間のじぶん電気単価比較</span></div>
+    
+
+<div class="slide jd-supplemental jd-story-detail jd-story-why" data-idx="detail-why">
+      <div class="sh"><div class="slide-num">DETAIL 01 / WHY</div><div class="slide-ttl">なぜ、<span class="g">自分で電気をつくる</span>のか</div></div>
+      <div class="why-flow">
+        <div class="why-side"><div class="why-icon">🏢</div><h3>買い続ける電気</h3><p>使用量と料金単価の変化により、毎月の電気代が決まります。</p><strong>料金の決定を電力会社に委ねる暮らし</strong></div>
+        <div class="why-arrow">→</div>
+        <div class="why-side why-own"><div class="why-icon">☀️</div><h3>自分でつくる電気</h3><p>発電設備の費用と20年間の総発電量から、自分の電気の単価を把握できます。</p><strong>じぶん電気単価を知り、使い方を選べる暮らし</strong></div>
       </div>
-      <div class="jd-lead">いま電気を買う単価と、自分でつくる電気のじぶん電気単価。<br>お客様の条件で、3つを並べてご覧いただけます。</div>
-      <div class="jd-compare">
-        <div class="jd-tile jd-tile-now">
-          <h3>🏢 現状</h3>
-          <div class="jd-num" id="jd-now-cost">—</div><div class="jd-unit">円/kWh</div>
-          <div class="jd-detail">現在の平均買電単価<br>電気料金 ÷ 使用電力量</div>
-        </div>
-        <div class="jd-tile">
-          <h3>💴 現金一括</h3>
-          <div class="jd-num" id="jd-cash-cost">—</div><div class="jd-unit">円/kWh</div>
-          <div class="jd-detail">補助金控除後の設備購入額<br>÷ 20年間の総発電量</div>
-        </div>
-        <div class="jd-tile">
-          <h3>🏦 ローン活用</h3>
-          <div class="jd-num" id="jd-loan-cost">—</div><div class="jd-unit">円/kWh</div>
-          <div class="jd-detail">頭金＋利息込み総返済額<br>÷ 20年間の総発電量</div>
-        </div>
-      </div>
-      <div class="jd-note">「現状」は電力会社から購入する電気の単価、「現金・ローン」は20年間の総発電量を基準にしたじぶん電気単価です。維持費・売電収入などを含まない参考値であり、同一の料金条件を比較したものではありません。</div>
+      <div class="jd-note">じぶん電気は、単に電気代を下げる提案ではありません。自分で電気をつくり、その単価を知り、将来の使い方を選べるようにする提案です。</div>
     </div>
 
-    <!-- ── MAIN SLIDE 3：つくる電気と使い方 ── -->
-    <div class="slide jd-main jd-energy-slide" data-idx="main-energy">
+    <!-- ── 詳細ストーリー 2：発電量と使い方 ── -->
+    
+
+<div class="slide jd-main jd-energy-slide" data-idx="main-energy">
       <div class="sh">
         <div class="slide-num">SLIDE 03 / ENERGY</div>
         <div class="slide-ttl">つくる電気の量と、<span class="g">使い方を選ぶ</span></div>
@@ -810,7 +799,38 @@ html,body{
     </div>
 
     <!-- ── MAIN SLIDE 4：購入方法の選択 ── -->
-    <div class="slide jd-main jd-payment-slide" data-idx="main-payments">
+    
+
+<div class="slide jd-main jd-unit-slide" data-idx="main-units">
+      <div class="sh">
+        <div class="slide-num">SLIDE 02 / UNIT COST</div>
+        <div class="slide-ttl">☀️ <span class="g">20年間のじぶん電気単価比較</span></div>
+      </div>
+      <div class="jd-lead">いま電気を買う単価と、自分でつくる電気のじぶん電気単価。<br>お客様の条件で、3つを並べてご覧いただけます。</div>
+      <div class="jd-compare">
+        <div class="jd-tile jd-tile-now">
+          <h3>🏢 現状</h3>
+          <div class="jd-num" id="jd-now-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">現在の平均買電単価<br>電気料金 ÷ 使用電力量</div>
+        </div>
+        <div class="jd-tile">
+          <h3>💴 現金一括</h3>
+          <div class="jd-num" id="jd-cash-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">補助金控除後の設備購入額<br>÷ 20年間の総発電量</div>
+        </div>
+        <div class="jd-tile">
+          <h3>🏦 ローン活用</h3>
+          <div class="jd-num" id="jd-loan-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">頭金＋利息込み総返済額<br>÷ 20年間の総発電量</div>
+        </div>
+      </div>
+      <div class="jd-note">「現状」は電力会社から購入する電気の単価、「現金・ローン」は20年間の総発電量を基準にしたじぶん電気単価です。維持費・売電収入などを含まない参考値であり、同一の料金条件を比較したものではありません。</div>
+    </div>
+
+    <!-- ── MAIN SLIDE 3：つくる電気と使い方 ── -->
+    
+
+<div class="slide jd-main jd-payment-slide" data-idx="main-payments">
       <div class="sh">
         <div class="slide-num">SLIDE 04 / PAYMENT CHOICE</div>
         <div class="slide-ttl">じぶん電気の<span class="g">始め方を選ぶ</span></div>
@@ -834,7 +854,19 @@ html,body{
     </div>
 
     <!-- ── MAIN SLIDE 5：20年保証と継続サポート ── -->
-    <div class="slide jd-main jd-warranty-slide" data-idx="main-warranty">
+    
+
+<div class="slide jd-supplemental jd-story-detail jd-story-loan" data-idx="detail-loan">
+      <div class="sh"><div class="slide-num">DETAIL 04 / FINANCING</div><div class="slide-ttl">導入方法に合わせて、<span class="g">返済計画を選ぶ</span></div></div>
+      <div class="loan-story-top"><div class="loan-story-main"><span>借入元金</span><strong id="story-principal">—</strong></div><div class="loan-story-main"><span>毎月返済額</span><strong id="story-monthly">—</strong></div><div class="loan-story-main"><span>返済期間</span><strong id="story-term">—</strong></div></div>
+      <div class="loan-breakdown"><div class="loan-break-item"><span>ローン会社</span><b id="story-lender">公式試算の選択内容を確認</b></div><div class="loan-break-item"><span>適用金利</span><b id="story-rate">—</b></div><div class="loan-break-item"><span>頭金</span><b id="story-down">—</b></div><div class="loan-break-item"><span>利息総額</span><b id="story-interest">—</b></div><div class="loan-break-item"><span>総支払額</span><b id="story-loan-total">—</b></div></div>
+      <div class="jd-note">ローン会社・商品ごとに金利、返済回数、初回・通常月・最終回の返済額が異なります。公式シミュレーション結果を優先し、変動金利は将来変更される可能性があることを説明します。</div>
+    </div>
+
+    <!-- ── 詳細ストーリー 5：20年間の経済効果 ── -->
+    
+
+<div class="slide jd-main jd-warranty-slide" data-idx="main-warranty">
       <div class="sh">
         <div class="slide-num">SLIDE 05 / LONG-TERM TRUST</div>
         <div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div>
@@ -858,42 +890,9 @@ html,body{
 
 
     <!-- ── 詳細ストーリー 1：なぜ自分でつくるのか ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-why" data-idx="detail-why">
-      <div class="sh"><div class="slide-num">DETAIL 01 / WHY</div><div class="slide-ttl">なぜ、<span class="g">自分で電気をつくる</span>のか</div></div>
-      <div class="why-flow">
-        <div class="why-side"><div class="why-icon">🏢</div><h3>買い続ける電気</h3><p>使用量と料金単価の変化により、毎月の電気代が決まります。</p><strong>料金の決定を電力会社に委ねる暮らし</strong></div>
-        <div class="why-arrow">→</div>
-        <div class="why-side why-own"><div class="why-icon">☀️</div><h3>自分でつくる電気</h3><p>発電設備の費用と20年間の総発電量から、自分の電気の単価を把握できます。</p><strong>じぶん電気単価を知り、使い方を選べる暮らし</strong></div>
-      </div>
-      <div class="jd-note">じぶん電気は、単に電気代を下げる提案ではありません。自分で電気をつくり、その単価を知り、将来の使い方を選べるようにする提案です。</div>
-    </div>
+    
 
-    <!-- ── 詳細ストーリー 2：発電量と使い方 ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-generation" data-idx="detail-generation">
-      <div class="sh"><div class="slide-num">DETAIL 02 / GENERATION</div><div class="slide-ttl">20年間で、<span class="g">どれだけ発電するか</span></div></div>
-      <div class="generation-hero"><div><div class="g-label">年間発電量（試算）</div><div class="g-number" id="story-annual-gen">—</div><div class="g-unit">kWh / 年</div></div><div class="g-multiply">× 20年間</div><div><div class="g-label">20年間の総発電量</div><div class="g-number" id="story-total-gen">—</div><div class="g-unit">kWh</div></div></div>
-      <div class="power-flow"><div class="power-node"><span>☀️</span><b>太陽光で発電</b></div><div class="power-line">→</div><div class="power-split"><div class="power-node own"><span>🏠</span><b>自家消費</b><small>電力会社からの購入を減らす</small></div><div class="power-node surplus"><span>🔌</span><b>余剰売電</b><small>使い切れない電気を売る</small></div></div></div>
-      <div class="jd-note">20年間の総発電量は、じぶん電気単価を計算するための分母です。自家消費量と売電量は別の指標として管理し、混同しません。</div>
-    </div>
-
-    <!-- ── 詳細ストーリー 3：単価の意味と計算根拠 ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-unit" data-idx="detail-unit">
-      <div class="sh"><div class="slide-num">DETAIL 03 / UNIT COST</div><div class="slide-ttl"><span class="g">3つの単価</span>を同じ条件で読み解く</div></div>
-      <div class="unit-story-grid"><div class="unit-story-card"><h3>🏢 現状</h3><div class="unit-story-number" id="story-buy-unit">—</div><b>円/kWh</b><p>現在の平均買電単価</p></div><div class="unit-story-card"><h3>💴 現金一括</h3><div class="unit-story-number" id="story-cash-unit">—</div><b>円/kWh</b><p>補助金控除後の設備購入額 ÷ 20年総発電量</p></div><div class="unit-story-card"><h3>🏦 ローン活用</h3><div class="unit-story-number" id="story-loan-unit">—</div><b>円/kWh</b><p>頭金＋利息込み総返済額 ÷ 20年総発電量</p></div></div>
-      <div class="formula-story"><div>現金購入時のじぶん電気単価 = <b>補助金控除後の設備購入額</b> ÷ 20年総発電量</div><div>ローン活用時のじぶん電気単価 = <b>頭金＋公式返済総額</b> ÷ 20年総発電量</div></div>
-      <div class="jd-note">現状は買電単価、現金・ローンは20年間の総発電量を基準にしたじぶん電気単価です。比較の意味が異なるため、維持費・売電収入を含む総合的な経済効果とは区別して説明します。</div>
-    </div>
-
-    <!-- ── 詳細ストーリー 4：ローン会社と返済計画 ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-loan" data-idx="detail-loan">
-      <div class="sh"><div class="slide-num">DETAIL 04 / FINANCING</div><div class="slide-ttl">導入方法に合わせて、<span class="g">返済計画を選ぶ</span></div></div>
-      <div class="loan-story-top"><div class="loan-story-main"><span>借入元金</span><strong id="story-principal">—</strong></div><div class="loan-story-main"><span>毎月返済額</span><strong id="story-monthly">—</strong></div><div class="loan-story-main"><span>返済期間</span><strong id="story-term">—</strong></div></div>
-      <div class="loan-breakdown"><div class="loan-break-item"><span>ローン会社</span><b id="story-lender">公式試算の選択内容を確認</b></div><div class="loan-break-item"><span>適用金利</span><b id="story-rate">—</b></div><div class="loan-break-item"><span>頭金</span><b id="story-down">—</b></div><div class="loan-break-item"><span>利息総額</span><b id="story-interest">—</b></div><div class="loan-break-item"><span>総支払額</span><b id="story-loan-total">—</b></div></div>
-      <div class="jd-note">ローン会社・商品ごとに金利、返済回数、初回・通常月・最終回の返済額が異なります。公式シミュレーション結果を優先し、変動金利は将来変更される可能性があることを説明します。</div>
-    </div>
-
-    <!-- ── 詳細ストーリー 5：20年間の経済効果 ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-economics" data-idx="detail-economics">
+<div class="slide jd-supplemental jd-story-detail jd-story-economics" data-idx="detail-economics">
       <div class="sh"><div class="slide-num">DETAIL 05 / 20-YEAR VIEW</div><div class="slide-ttl">20年間の支出と、<span class="g">電気の価値</span>を確認する</div></div>
       <div class="econ-story-grid"><div class="econ-card"><span>現金購入の対象負担額</span><strong id="story-cash-total">—</strong><small>設備費 − 補助金</small></div><div class="econ-card"><span>ローン活用の総支払額</span><strong id="story-loan-total-2">—</strong><small>頭金＋公式返済総額</small></div><div class="econ-card"><span>20年間の総発電量</span><strong id="story-gen-total-2">—</strong><small>年間発電量 × 20年</small></div></div>
       <div class="econ-caveat"><b>経済効果を説明するときの注意</b><p>じぶん電気単価と、電気代削減額・売電収入・維持費を含めた経済効果は別の計算です。累積支出や回収年数は、電気料金上昇率、売電単価、設備維持費などの前提を明示した補足資料として説明します。</p></div>
@@ -901,151 +900,9 @@ html,body{
     </div>
 
     <!-- ── 詳細ストーリー 6：保証と継続サポート ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-support" data-idx="detail-support">
-      <div class="sh"><div class="slide-num">DETAIL 06 / LONG-TERM SUPPORT</div><div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div></div>
-      <div class="support-timeline"><div class="support-phase support-20"><div class="support-year">導入〜20年</div><div class="support-title">設備保証</div><p>対象機器・保証条件に基づく保証で、長期利用の安心を支えます。</p></div><div class="support-bridge">20年を経過</div><div class="support-phase support-after"><div class="support-year">21年目以降</div><div class="support-title">継続サポート</div><p>点検・修理・設備更新・使い方の見直しなど、必要に応じて相談・対応します。</p></div></div>
-      <div class="jd-note">21年目以降の継続サポートは保証延長や無償修理を約束するものではありません。対応内容と費用は、その時点の設備状況に応じて個別に確認します。</div>
-      <div class="jd-footer">地域でエネルギーをつくり、地域で使い、地域の事業者が長く支える。じぶん電気は「地域循環共生圏」「強い田舎」につながる取り組みです。</div>
-    </div>
+    
 
-
-    <!-- ── 詳細資料：従来のローン戦略スライド ── -->
-    <!-- ── SLIDE 2 ── -->
-    <div class="slide s2 jd-supplemental" data-idx="1">
-      <div class="sh">
-        <div class="slide-num">SLIDE 02 / CONCEPT</div>
-        <div class="slide-ttl">電気代を<span class="g">費用</span>から<span class="g">資産</span>へ</div>
-      </div>
-      <div class="concept-row">
-        <div class="cb before">
-          <div class="cb-icon">🔥</div>
-          <div class="cb-tag">BEFORE — 現在</div>
-          <div class="cb-main">費用（コスト）</div>
-          <div class="cb-desc">
-            毎月 <strong style="color:#f87171">2.1万円</strong> が<br>
-            電力会社に消えていく<br><br>
-            支払い続けても<br>何も残らない
-          </div>
-        </div>
-        <div class="c-arr">
-          <div class="c-arr-icon">▶</div>
-          <div class="c-arr-txt">SMART<br>LOAN<br>PLAN</div>
-          <div class="c-arr-icon">▶</div>
-        </div>
-        <div class="cb after">
-          <div class="cb-icon">☀️</div>
-          <div class="cb-tag">AFTER — 導入後</div>
-          <div class="cb-main">資産形成へ変換</div>
-          <div class="cb-desc">
-            電気代がローン返済に置き換わり<br>
-            <strong style="color:var(--gold-light)" id="s2-loan-years">15年で完済</strong> すれば<br><br>
-            以降は固定費を賢く抑え<br>家計にゆとりが生まれる生活へ
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SLIDE 3 ── -->
-    <div class="slide s3 jd-supplemental" data-idx="2">
-      <div class="sh">
-        <div class="slide-num">SLIDE 03 / INVESTMENT</div>
-        <div class="slide-ttl"><span class="g">初期投資</span>の透明性</div>
-      </div>
-      <div class="inv-flow">
-        <div class="ib total">
-          <div class="ib-lbl">工事費（総額）</div>
-          <div class="ib-num" id="s3-total">280</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note">太陽光パネル＋工事費<br>一式込みの正直価格</div>
-        </div>
-        <div class="inv-op minus">－</div>
-        <div class="ib sub">
-          <div class="ib-lbl">補助金（国・自治体）</div>
-          <div class="ib-num" id="s3-sub">38</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note">各種補助金を<br>フル活用した場合</div>
-        </div>
-        <div class="inv-op eq">=</div>
-        <div class="ib net">
-          <div class="ib-lbl">実質負担総額</div>
-          <div class="ib-num" id="s3-net">242</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note" id="s3-net-note">この金額をローンで<br>分割してスタート</div>
-        </div>
-      </div>
-      <div class="inv-sub-note">
-        補助金 <strong id="s3-sub2" style="color:var(--accent)">38万円</strong> の適用により、実質負担を大幅に削減。総額のうち約 <strong id="s3-pct" style="color:var(--accent)">13.6%</strong> が補助金でカバーされます。
-      </div>
-    </div>
-
-    <!-- ── SLIDE 4 ── -->
-    <div class="slide s4 jd-supplemental" data-idx="3">
-      <div class="sh" style="margin-bottom:0">
-        <div class="slide-num">SLIDE 04 / MONTHLY CASHFLOW</div>
-        <div class="slide-ttl"><span class="g">月間収支</span>の最適化</div>
-      </div>
-      <div class="s4-banner">
-        <span id="s4-banner-text">月々の家計負担が <strong id="s4-saving">1,500</strong>円 軽減されます</span>
-      </div>
-      <div class="cf-row">
-        <div class="cf-box cur">
-          <div class="cf-lbl">▲ 現在（電力会社へ支払い続ける）</div>
-          <div><span class="cf-amount" id="s4-cur-amount">2.1</span><span class="cf-unit">万円/月</span></div>
-          <div class="cf-note">毎月電力会社に消えていく費用<br>支払い続けても何も資産に残らない</div>
-          <div class="cf-bk">
-            <div class="cf-bk-row"><span>月額電気代</span><span id="s4-cur-monthly">21,000円</span></div>
-            <div class="cf-bk-row"><span>年間コスト</span><span id="s4-cur-annual">252,000円</span></div>
-            <div class="cf-bk-row cf-bk-main"><span>20年累計</span><span id="s4-cur-20y">504万円</span></div>
-          </div>
-        </div>
-        <div class="cf-box nw">
-          <div class="cf-lbl">✦ 導入後の実質持ち出し額</div>
-          <div><span class="cf-amount" id="s4-total-man">1.45</span><span class="cf-unit">万円/月</span></div>
-          <div class="cf-note">ローン返済＋残り電気代から<br>売電収入を差し引いた実質負担</div>
-          <div class="cf-bk">
-            <div class="cf-bk-row"><span>実質月額負担</span><span id="s4-jis-monthly">14,500円</span></div>
-            <div id="s4-breakdown" style="font-size:12px;color:var(--w60);margin:2px 0 6px;line-height:1.5;font-weight:500">（内訳：ローン返済 約17,900円 ＋ 残り電気代 約3,000円 － 売電収入 約6,400円）</div>
-            <div class="cf-bk-row"><span>実質年間負担</span><span id="s4-jis-annual">174,000円</span></div>
-            <div class="cf-bk-row cf-bk-main"><span>20年累計実質負担</span><span id="s4-jis-20y">348万円</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SLIDE 5 ── -->
-    <div class="slide s5 jd-supplemental" data-idx="4">
-      <div class="sh">
-        <div class="slide-num">SLIDE 05 / REPAYMENT</div>
-        <div class="slide-ttl"><span class="g">返済額</span>シミュレーション</div>
-      </div>
-      <div class="rep-layout">
-        <div class="rep-left">
-          <div class="rep-circle">
-            <div class="rc-lbl">月々のご返済額</div>
-            <div class="rc-val" id="s5-pmt">17,900</div>
-            <div class="rc-unit">円 / 月</div>
-            <div class="rc-note" id="s5-pmt-note">実質242万円 / 15年想定</div>
-          </div>
-        </div>
-        <div class="rep-right">
-          <table class="rep-tbl">
-            <tr><td>借入額（実質負担）</td><td id="s5-net">2,420,000 円</td></tr>
-            <tr><td>返済期間</td><td id="s5-period">15年（180回払い）</td></tr>
-            <tr><td>適用金利（想定）</td><td id="s5-rate-lbl">年 4.0%</td></tr>
-            <tr class="hl"><td>月々返済額</td><td id="s5-pmt2">17,900 円</td></tr>
-            <tr><td>総返済額</td><td id="s5-total">3,222,000 円</td></tr>
-            <tr><td>支払利息総額</td><td id="s5-interest">802,000 円</td></tr>
-          </table>
-          <div class="rep-note" id="s5-note">
-            ※ 金利は<span id="s5-rate-note">年4.0%</span>の元利均等返済を想定した試算値です。実際の金利は金融機関・商品により異なります。<br>
-            ※ 補助金 <span id="s5-sub-note">38万円</span> を差し引いた後の借入額を基準に算出しています。
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
+<div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
       <div class="sh"><div class="slide-num">DETAIL 07 / LIFECYCLE PLAN</div><div class="slide-ttl">お客様に合わせた<span class="g">設備更新と将来設計</span></div></div>
       <div class="lifecycle-controls">
         <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select> 年</div>
@@ -1065,7 +922,9 @@ html,body{
       <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCSは20年間の保証基準後に10年または15年周期で更新する仮定です。蓄電池・パネルの更新時期と価格は個別設定です。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
     </div>
     <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
-    <div class="slide s7 jd-supplemental jd-final-plan" data-idx="detail-final">
+    
+
+<div class="slide s7 jd-supplemental jd-final-plan" data-idx="detail-final">
       <div class="sh"><div class="slide-num">ページ 17</div><div class="slide-ttl">これからも、<span class="g">自分の電気と歩む</span>ために</div></div>
       <div class="final-plan-lead">設備を導入して終わりではなく、使い続けるための準備を一緒に考えます。</div>
       <div class="final-plan-grid">
@@ -1814,3 +1673,179 @@ scaleSlides();
 </script>
 </body>
 </html>
+
+
+<!-- 非表示：旧ページの計算参照用。提案スライドには表示しない -->
+<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-generation" style="display:none" data-idx="detail-generation">
+      <div class="sh"><div class="slide-num">DETAIL 02 / GENERATION</div><div class="slide-ttl">20年間で、<span class="g">どれだけ発電するか</span></div></div>
+      <div class="generation-hero"><div><div class="g-label">年間発電量（試算）</div><div class="g-number" id="story-annual-gen">—</div><div class="g-unit">kWh / 年</div></div><div class="g-multiply">× 20年間</div><div><div class="g-label">20年間の総発電量</div><div class="g-number" id="story-total-gen">—</div><div class="g-unit">kWh</div></div></div>
+      <div class="power-flow"><div class="power-node"><span>☀️</span><b>太陽光で発電</b></div><div class="power-line">→</div><div class="power-split"><div class="power-node own"><span>🏠</span><b>自家消費</b><small>電力会社からの購入を減らす</small></div><div class="power-node surplus"><span>🔌</span><b>余剰売電</b><small>使い切れない電気を売る</small></div></div></div>
+      <div class="jd-note">20年間の総発電量は、じぶん電気単価を計算するための分母です。自家消費量と売電量は別の指標として管理し、混同しません。</div>
+    </div>
+
+    <!-- ── 詳細ストーリー 3：単価の意味と計算根拠 ── -->
+    
+
+<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-unit" style="display:none" data-idx="detail-unit">
+      <div class="sh"><div class="slide-num">DETAIL 03 / UNIT COST</div><div class="slide-ttl"><span class="g">3つの単価</span>を同じ条件で読み解く</div></div>
+      <div class="unit-story-grid"><div class="unit-story-card"><h3>🏢 現状</h3><div class="unit-story-number" id="story-buy-unit">—</div><b>円/kWh</b><p>現在の平均買電単価</p></div><div class="unit-story-card"><h3>💴 現金一括</h3><div class="unit-story-number" id="story-cash-unit">—</div><b>円/kWh</b><p>補助金控除後の設備購入額 ÷ 20年総発電量</p></div><div class="unit-story-card"><h3>🏦 ローン活用</h3><div class="unit-story-number" id="story-loan-unit">—</div><b>円/kWh</b><p>頭金＋利息込み総返済額 ÷ 20年総発電量</p></div></div>
+      <div class="formula-story"><div>現金購入時のじぶん電気単価 = <b>補助金控除後の設備購入額</b> ÷ 20年総発電量</div><div>ローン活用時のじぶん電気単価 = <b>頭金＋公式返済総額</b> ÷ 20年総発電量</div></div>
+      <div class="jd-note">現状は買電単価、現金・ローンは20年間の総発電量を基準にしたじぶん電気単価です。比較の意味が異なるため、維持費・売電収入を含む総合的な経済効果とは区別して説明します。</div>
+    </div>
+
+    <!-- ── 詳細ストーリー 4：ローン会社と返済計画 ── -->
+    
+
+<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-support" style="display:none" data-idx="detail-support">
+      <div class="sh"><div class="slide-num">DETAIL 06 / LONG-TERM SUPPORT</div><div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div></div>
+      <div class="support-timeline"><div class="support-phase support-20"><div class="support-year">導入〜20年</div><div class="support-title">設備保証</div><p>対象機器・保証条件に基づく保証で、長期利用の安心を支えます。</p></div><div class="support-bridge">20年を経過</div><div class="support-phase support-after"><div class="support-year">21年目以降</div><div class="support-title">継続サポート</div><p>点検・修理・設備更新・使い方の見直しなど、必要に応じて相談・対応します。</p></div></div>
+      <div class="jd-note">21年目以降の継続サポートは保証延長や無償修理を約束するものではありません。対応内容と費用は、その時点の設備状況に応じて個別に確認します。</div>
+      <div class="jd-footer">地域でエネルギーをつくり、地域で使い、地域の事業者が長く支える。じぶん電気は「地域循環共生圏」「強い田舎」につながる取り組みです。</div>
+    </div>
+
+
+    <!-- ── 詳細資料：従来のローン戦略スライド ── -->
+    <!-- ── SLIDE 2 ── -->
+    
+
+<div class="legacy-slide-reference s2 jd-supplemental" style="display:none" data-idx="1">
+      <div class="sh">
+        <div class="slide-num">SLIDE 02 / CONCEPT</div>
+        <div class="slide-ttl">電気代を<span class="g">費用</span>から<span class="g">資産</span>へ</div>
+      </div>
+      <div class="concept-row">
+        <div class="cb before">
+          <div class="cb-icon">🔥</div>
+          <div class="cb-tag">BEFORE — 現在</div>
+          <div class="cb-main">費用（コスト）</div>
+          <div class="cb-desc">
+            毎月 <strong style="color:#f87171">2.1万円</strong> が<br>
+            電力会社に消えていく<br><br>
+            支払い続けても<br>何も残らない
+          </div>
+        </div>
+        <div class="c-arr">
+          <div class="c-arr-icon">▶</div>
+          <div class="c-arr-txt">SMART<br>LOAN<br>PLAN</div>
+          <div class="c-arr-icon">▶</div>
+        </div>
+        <div class="cb after">
+          <div class="cb-icon">☀️</div>
+          <div class="cb-tag">AFTER — 導入後</div>
+          <div class="cb-main">資産形成へ変換</div>
+          <div class="cb-desc">
+            電気代がローン返済に置き換わり<br>
+            <strong style="color:var(--gold-light)" id="s2-loan-years">15年で完済</strong> すれば<br><br>
+            以降は固定費を賢く抑え<br>家計にゆとりが生まれる生活へ
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SLIDE 3 ── -->
+    
+
+<div class="legacy-slide-reference s3 jd-supplemental" style="display:none" data-idx="2">
+      <div class="sh">
+        <div class="slide-num">SLIDE 03 / INVESTMENT</div>
+        <div class="slide-ttl"><span class="g">初期投資</span>の透明性</div>
+      </div>
+      <div class="inv-flow">
+        <div class="ib total">
+          <div class="ib-lbl">工事費（総額）</div>
+          <div class="ib-num" id="s3-total">280</div>
+          <div class="ib-unit">万円</div>
+          <div class="ib-note">太陽光パネル＋工事費<br>一式込みの正直価格</div>
+        </div>
+        <div class="inv-op minus">－</div>
+        <div class="ib sub">
+          <div class="ib-lbl">補助金（国・自治体）</div>
+          <div class="ib-num" id="s3-sub">38</div>
+          <div class="ib-unit">万円</div>
+          <div class="ib-note">各種補助金を<br>フル活用した場合</div>
+        </div>
+        <div class="inv-op eq">=</div>
+        <div class="ib net">
+          <div class="ib-lbl">実質負担総額</div>
+          <div class="ib-num" id="s3-net">242</div>
+          <div class="ib-unit">万円</div>
+          <div class="ib-note" id="s3-net-note">この金額をローンで<br>分割してスタート</div>
+        </div>
+      </div>
+      <div class="inv-sub-note">
+        補助金 <strong id="s3-sub2" style="color:var(--accent)">38万円</strong> の適用により、実質負担を大幅に削減。総額のうち約 <strong id="s3-pct" style="color:var(--accent)">13.6%</strong> が補助金でカバーされます。
+      </div>
+    </div>
+
+    <!-- ── SLIDE 4 ── -->
+    
+
+<div class="legacy-slide-reference s4 jd-supplemental" style="display:none" data-idx="3">
+      <div class="sh" style="margin-bottom:0">
+        <div class="slide-num">SLIDE 04 / MONTHLY CASHFLOW</div>
+        <div class="slide-ttl"><span class="g">月間収支</span>の最適化</div>
+      </div>
+      <div class="s4-banner">
+        <span id="s4-banner-text">月々の家計負担が <strong id="s4-saving">1,500</strong>円 軽減されます</span>
+      </div>
+      <div class="cf-row">
+        <div class="cf-box cur">
+          <div class="cf-lbl">▲ 現在（電力会社へ支払い続ける）</div>
+          <div><span class="cf-amount" id="s4-cur-amount">2.1</span><span class="cf-unit">万円/月</span></div>
+          <div class="cf-note">毎月電力会社に消えていく費用<br>支払い続けても何も資産に残らない</div>
+          <div class="cf-bk">
+            <div class="cf-bk-row"><span>月額電気代</span><span id="s4-cur-monthly">21,000円</span></div>
+            <div class="cf-bk-row"><span>年間コスト</span><span id="s4-cur-annual">252,000円</span></div>
+            <div class="cf-bk-row cf-bk-main"><span>20年累計</span><span id="s4-cur-20y">504万円</span></div>
+          </div>
+        </div>
+        <div class="cf-box nw">
+          <div class="cf-lbl">✦ 導入後の実質持ち出し額</div>
+          <div><span class="cf-amount" id="s4-total-man">1.45</span><span class="cf-unit">万円/月</span></div>
+          <div class="cf-note">ローン返済＋残り電気代から<br>売電収入を差し引いた実質負担</div>
+          <div class="cf-bk">
+            <div class="cf-bk-row"><span>実質月額負担</span><span id="s4-jis-monthly">14,500円</span></div>
+            <div id="s4-breakdown" style="font-size:12px;color:var(--w60);margin:2px 0 6px;line-height:1.5;font-weight:500">（内訳：ローン返済 約17,900円 ＋ 残り電気代 約3,000円 － 売電収入 約6,400円）</div>
+            <div class="cf-bk-row"><span>実質年間負担</span><span id="s4-jis-annual">174,000円</span></div>
+            <div class="cf-bk-row cf-bk-main"><span>20年累計実質負担</span><span id="s4-jis-20y">348万円</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── SLIDE 5 ── -->
+    
+
+<div class="legacy-slide-reference s5 jd-supplemental" style="display:none" data-idx="4">
+      <div class="sh">
+        <div class="slide-num">SLIDE 05 / REPAYMENT</div>
+        <div class="slide-ttl"><span class="g">返済額</span>シミュレーション</div>
+      </div>
+      <div class="rep-layout">
+        <div class="rep-left">
+          <div class="rep-circle">
+            <div class="rc-lbl">月々のご返済額</div>
+            <div class="rc-val" id="s5-pmt">17,900</div>
+            <div class="rc-unit">円 / 月</div>
+            <div class="rc-note" id="s5-pmt-note">実質242万円 / 15年想定</div>
+          </div>
+        </div>
+        <div class="rep-right">
+          <table class="rep-tbl">
+            <tr><td>借入額（実質負担）</td><td id="s5-net">2,420,000 円</td></tr>
+            <tr><td>返済期間</td><td id="s5-period">15年（180回払い）</td></tr>
+            <tr><td>適用金利（想定）</td><td id="s5-rate-lbl">年 4.0%</td></tr>
+            <tr class="hl"><td>月々返済額</td><td id="s5-pmt2">17,900 円</td></tr>
+            <tr><td>総返済額</td><td id="s5-total">3,222,000 円</td></tr>
+            <tr><td>支払利息総額</td><td id="s5-interest">802,000 円</td></tr>
+          </table>
+          <div class="rep-note" id="s5-note">
+            ※ 金利は<span id="s5-rate-note">年4.0%</span>の元利均等返済を想定した試算値です。実際の金利は金融機関・商品により異なります。<br>
+            ※ 補助金 <span id="s5-sub-note">38万円</span> を差し引いた後の借入額を基準に算出しています。
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
+    
