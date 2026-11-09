@@ -397,6 +397,10 @@ function _savePO() {
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
 const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
 let currentMode = 'preset';
+const _poPersistedAtLoad = (() => {
+  try { return JSON.parse(localStorage.getItem('jibunden_po') || 'null'); }
+  catch(e) { return null; }
+})();
 
 
 /* 顧客DBの既存行へ公式ローン計算結果を保存。
@@ -1121,7 +1125,7 @@ window.onload = () => {
 
   // localStorage から導入手段の状態を復元（URLパラメータがない項目のみ）
   try {
-    const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
+    const _po = _poPersistedAtLoad;
     if (_po) {
       if (_po.selectedPayment) selectPayment(_po.selectedPayment);
       if (_po.lr   != null && !(_initLr > 0))  { const el = document.getElementById('po-lr');   if (el) el.value = _po.lr; }
@@ -1136,6 +1140,27 @@ window.onload = () => {
       else updateLoan();
     }
   } catch(e) {}
+
+  // 保存された顧客固有のローン会社・公式試算値を再表示する。
+  // 他の案件・旧フォーマットの共通設定は公式値の復元対象にしない。
+  const _savedLoan = _poPersistedAtLoad?.loanSimulation;
+  const _currentCustomer = _urlParams.get('customerName') || '';
+  const _normCustomer = v => String(v||'').replace(/[\s　]+/g,'').replace(/金利\d+(?:\.\d+)?[%％]/g,'').trim();
+  if (_savedLoan && _savedLoan.customerName
+      && _normCustomer(_savedLoan.customerName) === _normCustomer(_currentCustomer)) {
+    const lenderEl = document.getElementById('po-lender');
+    if (lenderEl && Array.from(lenderEl.options).some(o=>o.value===_savedLoan.lender)) {
+      lenderEl.value = _savedLoan.lender;
+      syncLoanRepaymentLimitPO();
+      syncOfficialLoanPO();
+      if (_savedLoan.official) {
+        document.getElementById('po-official-monthly').value = _savedLoan.officialMonthlyYen ?? '';
+        const special = _savedLoan.lender.startsWith('jaccs_')
+          ? _savedLoan.officialLastYen : _savedLoan.officialFirstYen;
+        document.getElementById('po-official-first').value = special ?? '';
+      }
+    }
+  }
 
   // URLパラメータを最末尾で最優先適用（localStorageや初期値より後に実行）
   if (_initLr > 0) { const el = document.getElementById('po-lr'); if (el) el.value = _initLr; }
