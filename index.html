@@ -1379,7 +1379,9 @@ canvas#mini-chart { height: 220px !important; }
           <label>ローン会社・金利区分</label>
           <select id="loan-lender" onchange="syncLoanRepaymentLimit();calc()">
             <option value="manual">金利を手入力（従来方式）</option>
-            <option value="orico_reform">オリコ｜Webリフォームローン</option>
+            <option value="orico_fixed">オリコ｜固定金利（太陽光・蓄電池／リフォーム）</option>
+            <option value="orico_solar_variable">オリコ｜変動金利（太陽光・蓄電池）</option>
+            <option value="orico_general_variable">オリコ｜変動金利（一般リフォーム）</option>
             <option value="jaccs_fixed">ジャックス｜固定金利</option>
             <option value="jaccs_variable">ジャックス｜変動金利</option>
           </select>
@@ -1392,7 +1394,7 @@ canvas#mini-chart { height: 220px !important; }
           </div>
           <div class="field">
             <label>支払回数（回）</label>
-          <div id="lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
+          <div id="lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコ固定金利は最大120回、変動金利は最大180回です。</div>
             <select id="lc" onchange="onLcChange()">
               <option value="12">12回（1年）</option>
               <option value="24">24回（2年）</option>
@@ -5605,12 +5607,20 @@ function onHearingChange(data) {
   }
 }
 
-// 金利原本: オリコ2026年10月取扱条件、ジャックス2026年11月提示表（12月予定値を含む）。
+// 金利原本: オリコ2026年11月の固定・太陽光用変動・一般リフォーム用変動の3資料、ジャックス2026年11月提示表（12月予定値を含む）。
 // 月の資料がない場合は前月の金利を流用せず、手入力に切り替える。
 const MONTHLY_LOAN_RATES = {
-  orico_reform: {
-    name: 'オリコ Webリフォームローン', min: 500000, max: 10000000, minCount: 12, maxCount: 120,
-    rates: { '2026-10': 5.25 }, source: 'オリコ 2026年10月取扱条件'
+  orico_fixed: {
+    name: 'オリコ 固定金利（太陽光・蓄電池／リフォーム）', min: 100000, max: 10000000, minCount: 6, maxCount: 120,
+    rates: { '2026-11': 5.40 }, source: 'オリコ Webリフォームローンのご案内（固定金利）・2026年11月'
+  },
+  orico_solar_variable: {
+    name: 'オリコ 変動金利（太陽光・蓄電池）', min: 100000, max: 10000000, minCount: 6, maxCount: 180,
+    rates: { '2026-11': 4.50 }, source: 'オリコ 【11月度】【太陽光用】変動金利型Webリフォームローンチラシ', variable: true
+  },
+  orico_general_variable: {
+    name: 'オリコ 変動金利（一般リフォーム）', min: 100000, max: 10000000, minCount: 6, maxCount: 180,
+    rates: { '2026-11': 4.80 }, source: 'オリコ 【11月度】【一般リフォーム用】変動金利型Webリフォームローンチラシ', variable: true
   },
   jaccs_fixed: {
     name: 'ジャックス 固定金利', min: 200000, max: null, minCount: 6, maxCount: 120,
@@ -5629,17 +5639,19 @@ function japanYearMonth() {
   const month = parts.find(p => p.type === 'month').value;
   return year + '-' + month;
 }
-// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+// 2026年11月オリコ: 固定金利は最大120回、変動金利2商品は最大180回。
 function syncLoanRepaymentLimit() {
   const lender = document.getElementById('loan-lender');
   const countSelect = document.getElementById('lc');
   if (!lender || !countSelect) return;
-  const isOrico = lender.value === 'orico_reform';
+  const product = MONTHLY_LOAN_RATES[lender.value];
+  const isOrico = lender.value.indexOf('orico_') === 0;
+  const limit = isOrico && product ? product.maxCount : null;
   Array.from(countSelect.options).forEach(option => {
-    option.disabled = isOrico && Number(option.value) > 120;
+    option.disabled = limit !== null && Number(option.value) > limit;
   });
-  if (isOrico && Number(countSelect.value) > 120) {
-    countSelect.value = '120';
+  if (limit !== null && Number(countSelect.value) > limit) {
+    countSelect.value = String(limit);
   }
   const note = document.getElementById('lc-orico-limit');
   if (note) note.style.display = isOrico ? '' : 'none';
