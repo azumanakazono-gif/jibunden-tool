@@ -5934,6 +5934,10 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     if (Number.isFinite(_poAnnualGeneration) && _poAnnualGeneration > 0) {
       _poParams.set('generationKwh20', String(_poAnnualGeneration * 20));
     }
+    // 保存済み顧客レコードがあればIDを渡し、詳細資料の将来設計設定を同じDBレコードへ戻す
+    const _cleanProposalKey = x => String(x || '').replace('（内容変更版）', '').replaceAll(' ', '').replaceAll('　', '').trim();
+    const _savedProposal = getMergedHistory().find(x => _cleanProposalKey(x.cn || x.customerName) === _cleanProposalKey(_cleanCn));
+    if (_savedProposal && _savedProposal.id) _poParams.set('proposalId', String(_savedProposal.id));
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
       _poParams.set('surplusKwhYear', Math.round(surplusKwh));
@@ -7454,6 +7458,17 @@ function saveCustomer() {
         aiClosingComment: document.getElementById('ai-comment-text')?.value ?? base.aiClosingComment ?? ''
     };
 
+    // 詳細資料で先に設定した将来設計条件を、顧客保存時に同じレコードへ取り込む
+    try {
+      const pending = JSON.parse(localStorage.getItem('jibunden_lifecycle_pending') || '{}');
+      const pendingKey = String(entry.cn || entry.customerName || '').replace('（内容変更版）', '').replaceAll(' ', '').replaceAll('　', '').trim();
+      if (pendingKey && pending[pendingKey]) {
+        entry.lifecyclePlan = pending[pendingKey];
+        delete pending[pendingKey];
+        localStorage.setItem('jibunden_lifecycle_pending', JSON.stringify(pending));
+      }
+    } catch (e) { console.warn('[将来設計] 保留設定の取込に失敗:', e); }
+
     h.unshift(entry);
     if (h.length > 30) h.pop();
     
@@ -8717,6 +8732,48 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 
   setTimeout(forceSyncUpperPanel, 50);
 })();
+
+// ── 詳細資料の将来設計設定を顧客DBへ同期 ──
+function _applyLifecyclePlanUpdate(payload) {
+  if (!payload || payload.type !== 'jibunden-lifecycle-plan' || !payload.lifecyclePlan) return;
+  const clean = x => String(x || '').replace('（内容変更版）', '').replaceAll(' ', '').replaceAll('　', '').trim();
+  const history = getHistory();
+  const merged = getMergedHistory();
+  let target = payload.proposalId
+    ? merged.find(x => String(x.id) === String(payload.proposalId))
+    : merged.find(x => clean(x.cn || x.customerName) === clean(payload.customerName));
+  const me = _localAuthor() || _currentUser;
+  if (target && target.author && me && target.author !== me) target = null;
+  if (target) {
+    let local = history.find(x => String(x.id) === String(target.id));
+    if (!local) { local = { ...target, _cloud: false }; history.unshift(local); }
+    local.lifecyclePlan = payload.lifecyclePlan;
+    local.updatedAt = Date.now();
+    local.date = new Date().toLocaleString('ja-JP');
+    saveHistory(history);
+    syncCustomerToSheet(local).then(ok => {
+      if (ok) toast('将来設計の設定を顧客DBへ保存しました');
+      else toast('将来設計の設定は端末に保存しました。クラウド同期を確認してください', 'warning');
+    });
+    renderSidebarHistory();
+    renderHistoryFull();
+  } else {
+    try {
+      const pending = JSON.parse(localStorage.getItem('jibunden_lifecycle_pending') || '{}');
+      const key = clean(payload.customerName);
+      if (key) { pending[key] = payload.lifecyclePlan; localStorage.setItem('jibunden_lifecycle_pending', JSON.stringify(pending)); }
+    } catch (e) { console.warn('[将来設計] 保留保存に失敗:', e); }
+  }
+}
+window.addEventListener('message', e => {
+  if (e.origin !== location.origin) return;
+  _applyLifecyclePlanUpdate(e.data);
+});
+window.addEventListener('storage', e => {
+  if (e.key === 'jibunden_lifecycle_update' && e.newValue) {
+    try { _applyLifecyclePlanUpdate(JSON.parse(e.newValue)); } catch (err) {}
+  }
+});
 </script>
 </body>
 </html>
