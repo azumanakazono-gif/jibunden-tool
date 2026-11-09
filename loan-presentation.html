@@ -880,8 +880,16 @@ if (!hasSubsidy) {
   const s3El = document.querySelector('.slide.s3');
   if (s3El) s3El.remove();
 }
-const pmt          = calcPMT(loanPrincipal);
-const totalPaid    = pmt * MONTHS;
+// 公式サイトの計算結果を転記した場合は、その金額を優先する。
+const officialMonthlyRaw = params.get('officialMonthlyPayment');
+const officialFirstRaw = params.get('officialFirstPayment');
+const officialMonthly = officialMonthlyRaw !== null && /^\d+$/.test(officialMonthlyRaw) ? Number(officialMonthlyRaw) : 0;
+const officialFirst = officialFirstRaw !== null && /^\d+$/.test(officialFirstRaw) ? Number(officialFirstRaw) : officialMonthly;
+const officialLastRaw = params.get('officialLastPayment');
+const officialLast = officialLastRaw !== null && /^\d+$/.test(officialLastRaw) ? Number(officialLastRaw) : officialMonthly;
+const hasOfficialPayment = Number.isSafeInteger(officialMonthly) && officialMonthly > 0 && Number.isSafeInteger(officialFirst) && officialFirst > 0 && Number.isSafeInteger(officialLast) && officialLast > 0;
+const pmt          = hasOfficialPayment ? officialMonthly : calcPMT(loanPrincipal);
+const totalPaid    = hasOfficialPayment ? officialFirst + pmt * Math.max(0, MONTHS-2) + (MONTHS>1?officialLast:0) : pmt * MONTHS;
 const totalInterest = totalPaid - loanPrincipal;
 const newMonthly   = pmt + RESIDUAL;
 const saving       = CURRENT - newMonthly;
