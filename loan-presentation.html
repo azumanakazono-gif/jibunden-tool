@@ -1429,6 +1429,13 @@ function goTo(idx) {
   if (slides[current]) slides[current].classList.add('active');
   if (dotsEl.children[current]) dotsEl.children[current].classList.add('active');
   if (counter) counter.textContent = (current + 1) + ' / ' + TOTAL;
+  // 将来設計ページは初期化時に非表示のため、表示後にグラフを再生成して実寸で描画する。
+  if (slides[current]?.classList.contains('jd-story-lifecycle')) {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      try { updateLifecyclePlan(); lifecycleChart?.resize(); lifecycleChart?.update('none'); }
+      catch (error) { console.error('将来設計グラフの表示時再描画に失敗:', error); }
+    }));
+  }
   if (chartSlideIdx >= 0 && current === chartSlideIdx && !chartBuilt) {
     chartBuilt = true;
     setTimeout(() => { try { build20YChart(); } catch(error) { console.error('累積支出グラフの描画エラー:',error); } }, 80);
