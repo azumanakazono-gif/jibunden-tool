@@ -5917,8 +5917,8 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     const _dpVal = _dpEl ? (parseFloat(_dpEl.value) || 0) : (parseFloat(custData.dp) || 0);
     const _cleanCn = _rawCn.replace(/[\s　]*金利\s*\d+\.?\d*\s*[%％]/g, '').trim();
     const _poParams = new URLSearchParams({
-      totalCost:             v('ck'),
-      subsidy:               v('sub'),
+      totalCost:             proposalMode === 'pv_only' ? (Number(document.getElementById('ck-so')?.value) || 0) : v('ck'),
+      subsidy:               proposalMode === 'pv_only' ? (Number(document.getElementById('sub-so')?.value) || 0) : v('sub'),
       downPayment:           _dpVal,
       interestRate:          _effectiveLr,
       loanCount:             _lcVal,
