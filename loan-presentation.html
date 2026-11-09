@@ -594,6 +594,10 @@ html,body{
 @media (max-width:900px){.jd-main{padding:26px 34px}.jd-tile .jd-num{font-size:46px}}
 
 
+/* ── スライド表示制御：jd-main の display 指定が非アクティブ画面を上書きしないようにする ── */
+.slide.jd-main{display:none}
+.slide.jd-main.active{display:flex}
+
 /* ── 各ページ専用レイアウト：共通カード並びを解消 ── */
 .jd-main{gap:0}
 .jd-unit-slide{background:linear-gradient(145deg,#f8fafc 0%,#edf7f0 100%);padding:52px 64px}
