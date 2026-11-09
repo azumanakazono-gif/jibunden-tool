@@ -8542,7 +8542,18 @@ function getFormData() {
   saveFormToData(custData);
   const monthly = custData.monthly || _readMonthlyGrid();
   const result = { ...custData, monthly, timestamp: new Date().toISOString() };
+  // 導入手段画面で保存した公式ローン結果は顧客ごとに引き継ぐ。
+  // 同名でない別顧客のブラウザ設定は混入させない。
+  let _matchedLoan = null;
+  try {
+    const _po = JSON.parse(localStorage.getItem('jibunden_po') || 'null');
+    const norm = v => String(v || '').replace(/[\s　]+/g, '').trim();
+    if (_po?.customerName && norm(_po.customerName) === norm(custData.cn) && _po.loanSimulation) {
+      _matchedLoan = _po.loanSimulation;
+    }
+  } catch (e) { /* 旧データ形式は無視 */ }
   result.paymentOptions = {
+    ...(custData.paymentOptions || {}),
     selectedPlan:  selectedPlan,
     interestRate:  custData.lr,
     loanCount:     custData.lc,
@@ -8551,6 +8562,7 @@ function getFormData() {
     loanMethod:    custData.loanMethod,
     loanInputMode: custData.loanInputMode,
     lpManual:      custData.lpManual,
+    loanSimulation: _matchedLoan || custData.paymentOptions?.loanSimulation || null,
   };
   return result;
 }
@@ -8564,6 +8576,8 @@ function _syncPaymentOptionsLS(d) {
     dp:     d.dp    || 0,
     cost:   d.la2   || 0,
     method: (d.loanMethod === 'gankin') ? 'gankin' : 'kinri',
+    customerName: d.cn || d.customerName || '',
+    loanSimulation: d.paymentOptions?.loanSimulation || null,
   }));
 }
 
