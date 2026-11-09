@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>じぶん電気：スマートローン戦略プラン</title>
+<title>じぶん電気｜20年間の単価比較・提案スライド</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <style>
@@ -567,6 +567,38 @@ html,body{
     font-size:10px;
   }
 }
+
+/* ── じぶん電気の基本提案（既存スライドは詳細資料として保持） ── */
+.jd-main{padding:38px 56px;background:#f8fafc;color:#1e293b;display:flex;flex-direction:column;gap:16px}
+.jd-main .sh{margin:0 0 8px}
+.jd-main .slide-ttl{font-size:38px}
+.jd-lead{font-size:18px;color:#475569;line-height:1.65}
+.jd-compare{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:18px}
+.jd-tile{background:#fff;border:2px solid #cfe8d9;border-radius:18px;padding:26px 18px 22px;min-width:0;box-shadow:0 7px 22px rgba(27,67,50,.07);text-align:center}
+.jd-tile.jd-tile-now{border-color:#cbd5e1;background:#f8fafc}
+.jd-tile h3{font-size:23px;color:#1B4332;font-weight:800;margin:0 0 12px}
+.jd-tile .jd-num{font-size:56px;line-height:1.2;font-weight:900;color:#1B4332;white-space:nowrap}
+.jd-tile-now .jd-num{color:#334155}
+.jd-tile .jd-unit{font-size:20px;font-weight:800;margin-top:3px}
+.jd-tile .jd-detail{font-size:13px;color:#64748b;line-height:1.65;margin-top:14px}
+.jd-note{background:#eef8f2;border-left:4px solid #2D6A4F;border-radius:10px;padding:16px 20px;font-size:15px;line-height:1.65;color:#264b38;margin-top:auto}
+.jd-row{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:20px}
+.jd-panel{border-radius:16px;background:#fff;border:1px solid #cfe8d9;padding:22px 26px;min-width:0}
+.jd-panel h3{font-size:21px;color:#1B4332;margin-bottom:16px}
+.jd-panel .jd-big{font-size:40px;color:#1B4332;font-weight:900}
+.jd-panel .jd-small{font-size:16px;color:#475569;line-height:1.7}
+.jd-stats{display:flex;flex-direction:column;gap:13px}
+.jd-stat{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #e2e8f0;padding-bottom:10px;font-size:17px}
+.jd-stat b{color:#1B4332}
+.jd-tag{font-size:14px;color:#2D6A4F;font-weight:750;margin-top:5px}
+.jd-warranty{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:22px}
+.jd-warranty .jd-panel{padding:34px}
+.jd-warranty .jd-big{font-size:50px}
+.jd-footer{font-size:13px;color:#64748b;line-height:1.65;margin-top:auto}
+.nav-details{border:1px solid #52B788;background:#fff;color:#1B4332;border-radius:7px;font-weight:700;font-size:12px;padding:8px 12px;cursor:pointer}
+.nav-details.active{background:#D8F3DC}
+@media (max-width:900px){.jd-main{padding:26px 34px}.jd-tile .jd-num{font-size:46px}}
+
 </style>
 </head>
 <body>
@@ -578,23 +610,126 @@ html,body{
       <div class="s1-grid"></div>
       <div class="s1-glow"></div>
       <div class="s1-inner">
-        <div class="s1-badge">SMART LOAN STRATEGY</div>
+        <div class="s1-badge">JIBUNDEN ELECTRICITY · 20 YEARS</div>
         <div class="s1-title"><span class="brand">じぶん電気</span></div>
-        <div class="s1-title" style="font-size:53px;margin-top:4px">スマートローン戦略プラン</div>
-        <div class="s1-sub">太陽光発電 × ローン活用 × 資産形成</div>
+        <div class="s1-title" style="font-size:53px;margin-top:4px">20年間の単価比較・ご提案</div>
+        <div class="s1-sub">電気を買い続ける未来から、自分でつくり選べる未来へ</div>
         <div class="s1-line"></div>
         <div class="s1-tags">
-          <span class="s1-tag">補助金フル活用</span>
-          <span class="s1-tag">月次収支を改善</span>
-          <span class="s1-tag">完済後の自由</span>
-          <span class="s1-tag">資産価値の向上</span>
+          <span class="s1-tag">1kWhの原価を知る</span>
+          <span class="s1-tag">現金・ローンを比べる</span>
+          <span class="s1-tag">20年間の安心</span>
+          <span class="s1-tag">その先のサポート</span>
         </div>
       </div>
-      <div class="s1-corner">じぶん電気 提案書 — Loan Strategy</div>
+      <div class="s1-corner">じぶん電気 提案書 — 20年の安心。その先も、ずっと。</div>
     </div>
 
+
+    <!-- ── MAIN SLIDE 2：20年間の単価比較 ── -->
+    <div class="slide jd-main" data-idx="main-units">
+      <div class="sh">
+        <div class="slide-num">SLIDE 02 / UNIT COST</div>
+        <div class="slide-ttl">☀️ <span class="g">20年間のじぶん電気単価比較</span></div>
+      </div>
+      <div class="jd-lead">いま電気を買う単価と、自分で電気をつくる原価。<br>お客様の条件で、3つを並べてご覧いただけます。</div>
+      <div class="jd-compare">
+        <div class="jd-tile jd-tile-now">
+          <h3>🏢 現状</h3>
+          <div class="jd-num" id="jd-now-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">現在の平均買電単価<br>電気料金 ÷ 使用電力量</div>
+        </div>
+        <div class="jd-tile">
+          <h3>💴 現金一括</h3>
+          <div class="jd-num" id="jd-cash-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">補助金控除後の設備購入額<br>÷ 20年間の総発電量</div>
+        </div>
+        <div class="jd-tile">
+          <h3>🏦 ローン活用</h3>
+          <div class="jd-num" id="jd-loan-cost">—</div><div class="jd-unit">円/kWh</div>
+          <div class="jd-detail">頭金＋利息込み総返済額<br>÷ 20年間の総発電量</div>
+        </div>
+      </div>
+      <div class="jd-note">「現状」は買う電気の単価、「現金・ローン」は発電原価です。維持費・売電収入などを含まない参考値であり、同一の料金条件を比較したものではありません。</div>
+    </div>
+
+    <!-- ── MAIN SLIDE 3：つくる電気と使い方 ── -->
+    <div class="slide jd-main" data-idx="main-energy">
+      <div class="sh">
+        <div class="slide-num">SLIDE 03 / ENERGY</div>
+        <div class="slide-ttl">つくる電気の量と、<span class="g">使い方を選ぶ</span></div>
+      </div>
+      <div class="jd-lead">自家消費にも売電にも使える、地域でつくるエネルギー。電力会社からの購入量を減らす選択肢です。</div>
+      <div class="jd-row">
+        <div class="jd-panel">
+          <h3>☀️ 総発電量</h3>
+          <div class="jd-big"><span id="jd-annual-kwh">—</span><span style="font-size:19px"> kWh / 年</span></div>
+          <div class="jd-tag">20年間の総発電量 <span id="jd-total-kwh">—</span> kWh</div>
+          <p class="jd-small" style="margin-top:18px">太陽光でつくる電気の量を、20年間を基準に示します。</p>
+        </div>
+        <div class="jd-panel">
+          <h3>🏠 自家消費と余剰売電</h3>
+          <div class="jd-stats">
+            <div class="jd-stat"><span>年間余剰売電量</span><b id="jd-surplus-kwh">—</b></div>
+            <div class="jd-stat"><span>年間自家消費相当量（差引参考）</span><b id="jd-self-kwh">—</b></div>
+            <div class="jd-stat"><span>電力会社との関係</span><b>買電量の削減</b></div>
+          </div>
+          <p class="jd-small" style="margin-top:15px">自家消費相当量は、年間総発電量から余剰売電量を差し引いた参考値です。</p>
+        </div>
+      </div>
+      <div class="jd-note">じぶん電気は、電力会社の料金が変動しても、発電に必要な原価を見通し、自分で電気の使い方を選べる取り組みです。</div>
+    </div>
+
+    <!-- ── MAIN SLIDE 4：購入方法の選択 ── -->
+    <div class="slide jd-main" data-idx="main-payments">
+      <div class="sh">
+        <div class="slide-num">SLIDE 04 / PAYMENT CHOICE</div>
+        <div class="slide-ttl">じぶん電気の<span class="g">始め方を選ぶ</span></div>
+      </div>
+      <div class="jd-lead">現金購入・ローン活用。設備そのものの価値は同じでも、お客様の支払い総額は変わります。</div>
+      <div class="jd-row">
+        <div class="jd-panel">
+          <h3>💴 現金一括購入</h3>
+          <div class="jd-big"><span id="jd-net-man">—</span><span style="font-size:19px"> 万円</span></div>
+          <p class="jd-small">補助金を差し引いた設備購入額。借入金利の負担がありません。</p>
+          <div class="jd-tag">発電原価 <span id="jd-cash-cost-small">—</span> 円/kWh</div>
+        </div>
+        <div class="jd-panel">
+          <h3>🏦 ローン活用</h3>
+          <div class="jd-big"><span id="jd-loan-total-man">—</span><span style="font-size:19px"> 万円</span></div>
+          <p class="jd-small">頭金と利息込みの総支払額。月々の返済額 <b id="jd-monthly-yen">—</b> 円、<span id="jd-loan-years">—</span> 年の想定です。</p>
+          <div class="jd-tag">発電原価 <span id="jd-loan-cost-small">—</span> 円/kWh</div>
+        </div>
+      </div>
+      <div class="jd-note">ローンの金利・返済総額は契約条件と公式試算結果で確認します。変動金利は将来変更される場合があります。</div>
+    </div>
+
+    <!-- ── MAIN SLIDE 5：20年保証と継続サポート ── -->
+    <div class="slide jd-main" data-idx="main-warranty">
+      <div class="sh">
+        <div class="slide-num">SLIDE 05 / LONG-TERM TRUST</div>
+        <div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div>
+      </div>
+      <div class="jd-lead">アズマは設備をお届けした後も、お客様と長い関係を築いていきます。</div>
+      <div class="jd-warranty">
+        <div class="jd-panel">
+          <div class="jd-big">20年間</div>
+          <h3 style="margin-top:16px">設備保証の安心</h3>
+          <p class="jd-small">対象設備と保証条件に基づく20年間の保証を、長く使うための安心の基盤にします。</p>
+        </div>
+        <div class="jd-panel">
+          <div class="jd-big" style="font-size:39px">21年目以降も</div>
+          <h3 style="margin-top:18px">継続的に支える</h3>
+          <p class="jd-small">点検・修理・設備更新・電気の使い方の見直しなど、必要に応じて相談・対応します。</p>
+        </div>
+      </div>
+      <div class="jd-note">21年目以降の継続サポートは、保証延長や無償修理を約束するものではありません。内容・費用は個別に確認します。</div>
+      <div class="jd-footer">地域で電気をつくり、地域で使い、地域の事業者が長く支える。じぶん電気は「強い田舎」につながる取り組みです。</div>
+    </div>
+
+    <!-- ── 詳細資料：従来のローン戦略スライド ── -->
     <!-- ── SLIDE 2 ── -->
-    <div class="slide s2" data-idx="1">
+    <div class="slide s2 jd-supplemental" data-idx="1">
       <div class="sh">
         <div class="slide-num">SLIDE 02 / CONCEPT</div>
         <div class="slide-ttl">電気代を<span class="g">費用</span>から<span class="g">資産</span>へ</div>
@@ -629,7 +764,7 @@ html,body{
     </div>
 
     <!-- ── SLIDE 3 ── -->
-    <div class="slide s3" data-idx="2">
+    <div class="slide s3 jd-supplemental" data-idx="2">
       <div class="sh">
         <div class="slide-num">SLIDE 03 / INVESTMENT</div>
         <div class="slide-ttl"><span class="g">初期投資</span>の透明性</div>
@@ -662,7 +797,7 @@ html,body{
     </div>
 
     <!-- ── SLIDE 4 ── -->
-    <div class="slide s4" data-idx="3">
+    <div class="slide s4 jd-supplemental" data-idx="3">
       <div class="sh" style="margin-bottom:0">
         <div class="slide-num">SLIDE 04 / MONTHLY CASHFLOW</div>
         <div class="slide-ttl"><span class="g">月間収支</span>の最適化</div>
@@ -696,7 +831,7 @@ html,body{
     </div>
 
     <!-- ── SLIDE 5 ── -->
-    <div class="slide s5" data-idx="4">
+    <div class="slide s5 jd-supplemental" data-idx="4">
       <div class="sh">
         <div class="slide-num">SLIDE 05 / REPAYMENT</div>
         <div class="slide-ttl"><span class="g">返済額</span>シミュレーション</div>
@@ -728,12 +863,12 @@ html,body{
     </div>
 
     <!-- ── SLIDE 6 ── -->
-    <div class="slide s6" data-idx="5">
+    <div class="slide s6 jd-supplemental" data-idx="5">
       <div class="sh" style="margin-bottom:12px">
         <div class="slide-num">SLIDE 06 / 20-YEAR ANALYSIS</div>
-        <div class="slide-ttl"><span class="g">20年間</span>の累積メリット分析</div>
+        <div class="slide-ttl"><span class="g">20年間</span>の累積支出比較（参考資料）</div>
         <div style="margin-top:8px;font-size:16px;color:#f87171;font-weight:700;letter-spacing:.03em">
-          💡 今、電力会社に払い続けているお金は「掛け捨て」です
+          💡 これは支出推移の参考比較です。採算・回収を保証するものではありません。
         </div>
       </div>
       <div class="chart-wrap">
@@ -755,11 +890,11 @@ html,body{
     </div>
 
     <!-- ── SLIDE 7 ── -->
-    <div class="slide s7" data-idx="6">
+    <div class="slide s7 jd-supplemental" data-idx="6">
       <div class="s7-inner">
         <div class="sh" style="margin-bottom:14px">
           <div class="slide-num">SLIDE 07 / POST-PAYOFF BENEFIT</div>
-          <div class="slide-ttl">完済後の<span class="g">圧倒的な</span>家計メリット</div>
+          <div class="slide-ttl">完済後の<span class="g">家計変化</span>（参考資料）</div>
         </div>
         <div class="ben-grid">
           <div class="ben-card">
@@ -796,7 +931,7 @@ html,body{
           </div>
           <div class="sb-notice">
             <div class="sb-notice-ttl">💡【20年目以降のメンテナンスについて】</div>
-            <div class="sb-notice-body">20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は【現在の価格を基準とした目安】として、この466万円の節約メリットの中からスマートに準備・相殺が可能です。そのため、ご家庭からの新たな「持ち出し負担」を実質的にゼロへ抑える計画が立てられます。</div>
+            <div class="sb-notice-body">20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は将来の実額が不確定です。必要な機器更新・点検・修理は、保証条件とお客様の状況に応じて別途見積・相談します。</div>
           </div>
         </div>
       </div>
@@ -812,6 +947,7 @@ html,body{
     <button class="nav-close" onclick="window.open('','_self').close()">✕ 閉じる</button>
     <div class="dots" id="dotsEl"></div>
     <span class="counter" id="counterEl">1 / 7</span>
+    <button id="jdDetailsToggle" class="nav-details" onclick="toggleJibundenDetails()">📊 詳細資料を見る</button>
     <button class="nav-pptx" onclick="exportToPPTX()">📥 PPTX出力</button>
   </div>
 </div>
@@ -1139,17 +1275,64 @@ function build20YChart() {
   });
 }
 
+
+/* ── 20年間の発電原価：既存の購入・公式返済試算をそのまま使用 ── */
+const JIBUNDEN_GEN20 = Number(params.get('generationKwh20'));
+const JIBUNDEN_HAS_GEN = Number.isFinite(JIBUNDEN_GEN20) && JIBUNDEN_GEN20 > 0;
+const JIBUNDEN_BUY_UNIT = Number(params.get('currentBuyUnitPrice'));
+const JIBUNDEN_CASH_TOTAL = Math.max(0,netCost);
+const JIBUNDEN_LOAN_TOTAL = downPaymentRaw + totalPaid;
+const JIBUNDEN_CASH_UNIT = JIBUNDEN_HAS_GEN ? JIBUNDEN_CASH_TOTAL/JIBUNDEN_GEN20 : null;
+const JIBUNDEN_LOAN_UNIT = JIBUNDEN_HAS_GEN ? JIBUNDEN_LOAN_TOTAL/JIBUNDEN_GEN20 : null;
+function jdText(id,text){
+  const element=document.getElementById(id);
+  if(element)element.textContent=String(text);
+}
+(function updateJibundenCore(){
+  const unit=v => v===null || !Number.isFinite(v) ? '—' : v.toFixed(1);
+  jdText('jd-now-cost',Number.isFinite(JIBUNDEN_BUY_UNIT) && JIBUNDEN_BUY_UNIT>0 ? JIBUNDEN_BUY_UNIT.toFixed(1) : '—');
+  jdText('jd-cash-cost',unit(JIBUNDEN_CASH_UNIT));
+  jdText('jd-loan-cost',unit(JIBUNDEN_LOAN_UNIT));
+  jdText('jd-cash-cost-small',unit(JIBUNDEN_CASH_UNIT));
+  jdText('jd-loan-cost-small',unit(JIBUNDEN_LOAN_UNIT));
+  jdText('jd-total-kwh',JIBUNDEN_HAS_GEN ? fmt(JIBUNDEN_GEN20) : '—');
+  jdText('jd-annual-kwh',JIBUNDEN_HAS_GEN ? fmt(JIBUNDEN_GEN20/20) : '—');
+  jdText('jd-surplus-kwh',SURPLUS_KWH_YEAR>0 ? fmt(SURPLUS_KWH_YEAR)+' kWh/年' : '未連携');
+  jdText('jd-self-kwh',JIBUNDEN_HAS_GEN && SURPLUS_KWH_YEAR>0 && JIBUNDEN_GEN20/20>=SURPLUS_KWH_YEAR
+    ? fmt(JIBUNDEN_GEN20/20-SURPLUS_KWH_YEAR)+' kWh/年' : '未連携');
+  jdText('jd-net-man',(JIBUNDEN_CASH_TOTAL/10000).toFixed(1));
+  jdText('jd-loan-total-man',(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1));
+  jdText('jd-monthly-yen',fmt(pmt));
+  jdText('jd-loan-years',(MONTHS/12).toFixed(MONTHS%12===0?0:1));
+})();
+
 /* ─────────────────────────────────────────
    Slide Navigation
 ───────────────────────────────────────── */
-const slides  = Array.from(document.querySelectorAll('.slide'));
-const dotsEl  = document.getElementById('dotsEl');
+let showJibundenDetails = false;
+let slides = Array.from(document.querySelectorAll('.slide:not(.jd-supplemental)'));
+const dotsEl = document.getElementById('dotsEl');
 const counter = document.getElementById('counterEl');
 const btnPrev = document.getElementById('btnPrev');
 const btnNext = document.getElementById('btnNext');
-const TOTAL   = slides.length;
-let current   = 0;
+let TOTAL = slides.length;
+let current = 0;
 let chartBuilt = false;
+function toggleJibundenDetails(){
+  showJibundenDetails = !showJibundenDetails;
+  const oldSlide = slides[current];
+  oldSlide?.classList.remove('active');
+  slides = Array.from(document.querySelectorAll(showJibundenDetails ? '.slide' : '.slide:not(.jd-supplemental)'));
+  TOTAL = slides.length;
+  const toggler=document.getElementById('jdDetailsToggle');
+  if(toggler){
+    toggler.textContent = showJibundenDetails ? '☀️ 基本提案に戻る' : '📊 詳細資料を見る';
+    toggler.classList.toggle('active',showJibundenDetails);
+  }
+  chartSlideIdx = slides.findIndex(el=>el.classList.contains('s6'));
+  current = 0;
+  buildDots();goTo(0);
+}
 
 /* スライドが削除された分だけ連番を振り直す */
 slides.forEach((slide, i) => {
@@ -1162,7 +1345,7 @@ slides.forEach((slide, i) => {
 });
 
 /* s6（20年チャート）の動的インデックス */
-const chartSlideIdx = slides.findIndex(s => s.classList.contains('s6'));
+let chartSlideIdx = slides.findIndex(s => s.classList.contains('s6'));
 
 function buildDots() {
   dotsEl.innerHTML = '';
@@ -1218,10 +1401,91 @@ document.addEventListener('touchend',   e => {
   if (dx >  50) goTo(current - 1);
 }, {passive:true});
 
+
+/* 基本提案のPPTXは画面と同じ5ページ。ローン詳細は「詳細資料を見る」から出力可能。 */
+async function exportJibundenCorePPTX() {
+  if(typeof PptxGenJS==='undefined') { alert('PPTXライブラリを読み込めませんでした');return; }
+  const ppt = new PptxGenJS();
+  ppt.layout='LAYOUT_16x9';
+  ppt.title='じぶん電気｜20年間の単価比較';
+  const DARK='1B4332',GREEN='2D6A4F',LIGHT='D8F3DC',GRAY='475569';
+  const addBase=(tag,title)=>{
+    const slide=ppt.addSlide();
+    slide.background={color:'F8FAFC'};
+    slide.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:0.07,line:{color:DARK},fill:{color:DARK}});
+    slide.addText(tag,{x:0.75,y:0.38,w:10,h:0.28,fontSize:12,color:GREEN,bold:true,fontFace:'Meiryo'});
+    slide.addText(title,{x:0.75,y:0.85,w:11.8,h:0.75,fontSize:31,bold:true,color:DARK,fontFace:'Meiryo'});
+    return slide;
+  };
+  const txt=(sl,text,x,y,w,h,size=17,color=GRAY,bold=false,align='left')=>{
+    sl.addText(String(text),{x,y,w,h,fontSize:size,color,bold,align,valign:'mid',fontFace:'Meiryo',breakLine:false,margin:0.07});
+  };
+  const box=(sl,x,y,w,h,fill='FFFFFF')=>sl.addShape(ppt.ShapeType.roundRect,{
+    x,y,w,h,rectRadius:0.14,fill:{color:fill},line:{color:'D1E8DC',width:1.5}
+  });
+  {
+    const sl=ppt.addSlide();sl.background={color:DARK};
+    txt(sl,'じぶん電気',1,1.35,11.3,1.0,50,LIGHT,true,'center');
+    txt(sl,'20年間の単価比較・ご提案',1.1,2.5,11.1,0.75,32,'FFFFFF',true,'center');
+    txt(sl,'電気を買い続ける未来から、自分でつくり選べる未来へ',1.1,3.75,11.1,0.56,20,LIGHT,false,'center');
+    txt(sl,'20年の安心。その先も、ずっと。',1.1,5.2,11.1,0.52,21,'FFFFFF',true,'center');
+  }
+  {
+    const sl=addBase('02 / 20 YEARS','20年間のじぶん電気単価比較');
+    const cards=[['現状','平均買電単価',JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—'],
+      ['現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1)],
+      ['ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1)]];
+    cards.forEach(([name,sub,amount],i)=>{const x=0.75+i*4.2;box(sl,x,2.05,3.9,3.15);
+      txt(sl,name,x+0.18,2.24,3.54,0.45,22,DARK,true,'center');
+      txt(sl,amount,x+0.2,3.0,3.5,0.9,48,DARK,true,'center');
+      txt(sl,'円/kWh',x+0.2,3.9,3.5,0.35,18,GREEN,true,'center');
+      txt(sl,sub,x+0.14,4.55,3.62,0.35,12,GRAY,false,'center');
+    });
+    box(sl,0.75,5.63,11.8,0.9,'EEF8F2');
+    txt(sl,'現状は買電単価、現金・ローンは参考発電原価。維持費・売電収入は含みません。',0.96,5.77,11.25,0.6,15,GRAY);
+  }
+  {
+    const sl=addBase('03 / GENERATION','自分でつくる電気と、使い方');
+    box(sl,0.8,2.1,5.65,2.9);
+    txt(sl,'年間発電量',1.05,2.38,5.1,0.5,23,DARK,true);
+    txt(sl,JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20/20)+' kWh':'未連携',1.05,3.1,5.1,0.9,34,GREEN,true);
+    txt(sl,'20年間の総発電量：'+(JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20)+' kWh':'未連携'),1.05,4.22,5.05,0.4,16,GRAY);
+    box(sl,6.8,2.1,5.65,2.9);
+    txt(sl,'余剰売電と自家消費',7.03,2.38,5.1,0.5,23,DARK,true);
+    txt(sl,'余剰売電量：'+(SURPLUS_KWH_YEAR>0?fmt(SURPLUS_KWH_YEAR)+' kWh/年':'未連携'),7.03,3.1,5.04,0.54,17,GREEN,true);
+    txt(sl,'自家消費相当量は総発電量との差分で参考算出',7.03,3.88,5.0,0.65,15,GRAY);
+    txt(sl,'地域で電気をつくり、地域で使い、地域の事業者が支える。',0.9,5.58,11.5,0.65,20,DARK,true,'center');
+  }
+  {
+    const sl=addBase('04 / PAYMENT','じぶん電気の始め方を選ぶ');
+    box(sl,0.8,2.05,5.6,3.3);
+    txt(sl,'現金一括購入',1.06,2.31,5.05,0.6,25,DARK,true);
+    txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.06,3.1,5.05,0.86,38,GREEN,true);
+    txt(sl,'利息負担なし・20年間の原価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+'円/kWh',1.06,4.42,5.1,0.6,16,GRAY);
+    box(sl,6.82,2.05,5.6,3.3);
+    txt(sl,'ローン活用',7.1,2.31,5.0,0.6,25,DARK,true);
+    txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.1,3.1,4.98,0.86,38,GREEN,true);
+    txt(sl,'月々 '+fmt(pmt)+'円 / '+MONTHS+'回の想定',7.1,4.42,5.08,0.6,16,GRAY);
+    txt(sl,'変動金利は将来変更される可能性があります。契約条件は金融機関の正式資料でご確認ください。',0.95,5.85,11.5,0.65,14,GRAY);
+  }
+  {
+    const sl=addBase('05 / SUPPORT','20年の安心。その先も、ずっと。');
+    box(sl,0.8,2.05,5.6,3.25);
+    txt(sl,'20年間の設備保証',1.08,2.38,5.0,0.72,28,DARK,true);
+    txt(sl,'対象設備・保証条件に基づく長期保証',1.08,3.4,4.9,0.8,18,GRAY);
+    box(sl,6.8,2.05,5.6,3.25);
+    txt(sl,'21年目以降も',7.08,2.38,5.05,0.72,28,DARK,true);
+    txt(sl,'点検・修理・更新などの継続サポート',7.08,3.4,4.95,0.8,18,GRAY);
+    txt(sl,'※21年目以降の保証延長や無償対応を約束するものではありません。内容・費用は個別に確認します。',0.9,5.8,11.55,0.7,15,GRAY);
+  }
+  await ppt.writeFile({fileName:'じぶん電気_20年間の単価比較_ご提案.pptx'});
+}
+
 /* ─────────────────────────────────────────
    PPTX Export
 ───────────────────────────────────────── */
 async function exportToPPTX() {
+  if (!showJibundenDetails) return exportJibundenCorePPTX();
   const _f = n => Math.round(n).toLocaleString('ja-JP');
   const NAV='f8fafc',NAV2='f1f5f9',NAV3='e2e8f0';
   const GLD='1B4332',GLD2='2D6A4F';
