@@ -5,7 +5,9 @@
   'use strict';
   var ENDPOINT = window.JIBUNDEN_LOAN_RATE_GAS_URL || '';
   var PRODUCTS = {
-    orico_reform: 'オリコ｜Webリフォームローン',
+    orico_fixed: 'オリコ｜固定金利（太陽光・蓄電池／リフォーム）',
+    orico_solar_variable: 'オリコ｜変動金利（太陽光・蓄電池）',
+    orico_general_variable: 'オリコ｜変動金利（一般リフォーム）',
     jaccs_fixed: 'ジャックス｜固定金利',
     jaccs_variable: 'ジャックス｜変動金利'
   };
