@@ -672,19 +672,22 @@ html,body{
 .jd-story-lifecycle{gap:7px;padding:16px 34px 12px;overflow-y:auto}
 .jd-story-lifecycle .sh{margin-bottom:2px;flex:0 0 auto}
 .jd-story-lifecycle .slide-ttl{font-size:28px}
-.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:0 0 auto}
+.lifecycle-general-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:0 0 auto}
 .life-control{display:flex;flex-direction:column;align-items:stretch;gap:4px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:6px 9px;min-width:0}
-.life-control label,.lifecycle-costs label{font-size:10px;line-height:1.25;font-weight:750;color:#475569}
-.life-control select,.life-control input,.lifecycle-costs input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;font-size:12px;background:#fff;color:#1e293b}
-.lifecycle-costs{display:grid;grid-template-columns:1fr;gap:5px;flex:0 0 auto}
-.lifecycle-cost-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);align-items:center;gap:14px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:5px 10px;min-height:34px}
-.lifecycle-cost-row label{display:block;text-align:left}
+.life-control label,.lifecycle-cost-card label{font-size:10px;line-height:1.25;font-weight:750;color:#475569}
+.life-control select,.life-control input,.lifecycle-cost-card input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;font-size:12px;background:#fff;color:#1e293b}
+.life-input-unit{display:grid;grid-template-columns:minmax(0,1fr) 18px;align-items:center;gap:5px}
+.life-input-unit span{font-size:11px;color:#64748b}
+.lifecycle-equipment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;flex:0 0 auto}
+.lifecycle-equipment-card{display:flex;flex-direction:column;gap:6px;min-width:0;background:#f5faf7;border:1px solid #cfe4d6;border-radius:10px;padding:7px}
+.lifecycle-equipment-card .life-control{padding:5px 6px;min-height:58px}
+.lifecycle-cost-card{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:7px}
 .lifecycle-cost-input{display:grid;grid-template-columns:minmax(0,1fr) 22px;align-items:center;gap:6px}
 .lifecycle-cost-input span{font-size:11px;color:#64748b}
 .lifecycle-chart{height:145px;min-height:125px;max-height:145px;flex:0 0 145px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:5px;position:relative}
 .lifecycle-summary{font-size:10px;line-height:1.35;color:#334155;background:#eef8f2;border-radius:8px;padding:6px 10px;flex:0 0 auto}
 .jd-story-lifecycle .jd-note{font-size:9px;line-height:1.3;padding:6px 9px;margin:0;flex:0 0 auto}
-@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-cost-row{grid-template-columns:minmax(0,1fr) 180px}.jd-story-lifecycle{padding:12px 16px 10px}.lifecycle-chart{height:130px;min-height:110px;flex-basis:130px}}
+@media(max-width:850px){.lifecycle-general-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-equipment-grid{grid-template-columns:1fr}.jd-story-lifecycle{padding:12px 16px 10px}.lifecycle-chart{height:130px;min-height:110px;flex-basis:130px}}
 
 .jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
 
@@ -918,18 +921,24 @@ html,body{
 
 <div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
       <div class="sh"><div class="slide-num">DETAIL 07 / LIFECYCLE PLAN</div><div class="slide-ttl">お客様に合わせた<span class="g">設備更新と将来設計</span></div></div>
-      <div class="lifecycle-controls">
-        <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select> 年</div>
-        <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
-        <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
-        <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
-        <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"> %</div>
-        <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"> %</div>
+      <div class="lifecycle-general-controls">
+        <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select></div>
+        <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><div class="life-input-unit"><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"><span>%</span></div></div>
+        <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><div class="life-input-unit"><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"><span>%</span></div></div>
       </div>
-      <div class="lifecycle-costs" aria-label="設備ごとの現在交換費用">
-        <div class="lifecycle-cost-row"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
-        <div class="lifecycle-cost-row"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"><span>円</span></div></div>
-        <div class="lifecycle-cost-row"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"><span>円</span></div></div>
+      <div class="lifecycle-equipment-grid" aria-label="設備ごとの更新時期と現在交換費用">
+        <div class="lifecycle-equipment-card">
+          <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
+          <div class="lifecycle-cost-card"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
+        </div>
+        <div class="lifecycle-equipment-card">
+          <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
+          <div class="lifecycle-cost-card"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"><span>円</span></div></div>
+        </div>
+        <div class="lifecycle-equipment-card">
+          <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
+          <div class="lifecycle-cost-card"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"><span>円</span></div></div>
+        </div>
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
