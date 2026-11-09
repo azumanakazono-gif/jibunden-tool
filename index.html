@@ -5946,6 +5946,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
     })();
     const _savedLifecycle = _savedProposal?.lifecyclePlan || _pendingLifecycle;
     if (_savedLifecycle) _poParams.set('lifecyclePlan', JSON.stringify(_savedLifecycle));
+    if (_savedProposal?.paymentPlan) _poParams.set('paymentPlan', JSON.stringify(_savedProposal.paymentPlan));
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
       _poParams.set('surplusKwhYear', Math.round(surplusKwh));
@@ -7327,7 +7328,7 @@ function syncCustomerToSheet(entry) {
       // keepalive は本文64KB超で送信自体が失敗するため、小さい時のみ付与
       keepalive: new Blob([body]).size < 60000
     })
-      .then(res => res.ok ? res.json().catch(() => ({ ok: true })) : { ok: false, error: 'HTTP ' + res.status })
+      .then(res => res.ok ? res.json().catch(() => ({ ok: false, error: 'GASからJSON以外の応答' })) : { ok: false, error: 'HTTP ' + res.status })
       .then(json => {
         // GAS側の応答形式差を吸収（{ok:true} / {status:'success'} のどちらも成功扱い）
         const ok = !!json && (json.ok === true || String(json.status || '').toLowerCase() === 'success');
