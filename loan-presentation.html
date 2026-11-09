@@ -1247,33 +1247,6 @@ if (downPaymentRaw > 0) {
   s5note.innerHTML += '<br>※ 頭金 ' + Math.round(downPaymentRaw/10000) + '万円 を差し引いた後の借入額（' + fmt(loanPrincipal) + '円）を基準に算出しています。';
 }
 
-/* ── Slide 6: s6-total-save を事前計算（グラフ構築前から正しい値を表示） ── */
-{
-  const _trad20  = CURRENT * 12 * 20;
-  const _solar20 = calcSolarCum(20) + downPaymentRaw; // 頭金を含めた累積支出
-  document.getElementById('s6-total-save').textContent = Math.round((_trad20 - _solar20) / 10000) + '万円';
-}
-
-/* ── Slide 7 ── */
-const s7Desc1 = RESIDUAL < 3000
-  ? '電気代がほぼゼロ達成\nローン返済もなし\n完全な家計の自由へ'
-  : '電気代の自給率が大幅アップ\nローン返済もなし\n購入電力量を賢く最小化';
-(function(){
-  const el = document.getElementById('s7-bc-desc');
-  if (el) el.innerHTML = s7Desc1.replace(/\n/g,'<br>');
-})();
-const annual7  = monthlySavePost * 12;
-const ten7     = Math.round(annual7 * 10 / 10000);
-const twenty7  = ten7 * 2;
-document.getElementById('s7-monthly').textContent = fmt(monthlySavePost);
-document.getElementById('s7-annual').textContent  = (annual7 / 10000).toFixed(1);
-document.getElementById('s7-10y').textContent     = ten7;
-document.getElementById('s7-20y').textContent     = twenty7;
-const _noticeBody = document.querySelector('.sb-notice-body');
-if (_noticeBody) {
-  _noticeBody.textContent = `20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は【現在の価格を基準とした目安】として、この${twenty7}万円の節約メリットの中からスマートに準備・相殺が可能です。そのため、ご家庭からの新たな「持ち出し負担」を実質的にゼロへ抑える計画が立てられます。`;
-}
-
 /* ─────────────────────────────────────────
    20-Year Chart (Slide 6)
 ───────────────────────────────────────── */
