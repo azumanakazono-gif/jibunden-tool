@@ -599,6 +599,55 @@ html,body{
 .nav-details.active{background:#D8F3DC}
 @media (max-width:900px){.jd-main{padding:26px 34px}.jd-tile .jd-num{font-size:46px}}
 
+
+/* ── 各ページ専用レイアウト：共通カード並びを解消 ── */
+.jd-main{gap:0}
+.jd-unit-slide{background:linear-gradient(145deg,#f8fafc 0%,#edf7f0 100%);padding:52px 64px}
+.jd-unit-slide .sh{margin-bottom:10px}
+.jd-unit-slide .jd-lead{font-size:21px;font-weight:650;color:#334155;margin-top:4px}
+.jd-unit-slide .jd-compare{margin-top:30px;gap:22px}
+.jd-unit-slide .jd-tile{min-height:270px;display:flex;flex-direction:column;justify-content:center;border-radius:20px;padding:30px 20px;box-shadow:0 12px 30px rgba(27,67,50,.09)}
+.jd-unit-slide .jd-tile-now{border-top:8px solid #64748b}
+.jd-unit-slide .jd-tile:nth-child(2){border-top:8px solid #2D6A4F}
+.jd-unit-slide .jd-tile:nth-child(3){border-top:8px solid #D4A72C}
+.jd-unit-slide .jd-note{margin-top:24px;font-size:14px}
+.jd-energy-slide{background:#102f24;color:#fff;padding:48px 64px;position:relative}
+.jd-energy-slide:after{content:"☀";position:absolute;right:75px;top:65px;font-size:150px;color:rgba(216,243,220,.08);pointer-events:none}
+.jd-energy-slide .slide-num,.jd-energy-slide .slide-ttl{color:#fff}
+.jd-energy-slide .slide-ttl .g{color:#74C69D}
+.jd-energy-slide .jd-lead{color:#d8f3dc;font-size:20px;max-width:930px}
+.jd-energy-slide .jd-row{grid-template-columns:.85fr 1.15fr;gap:28px;margin-top:30px}
+.jd-energy-slide .jd-panel{background:#f8fafc;border:0;border-radius:18px;padding:30px 34px;box-shadow:0 12px 32px rgba(0,0,0,.16)}
+.jd-energy-slide .jd-panel h3{font-size:24px}
+.jd-energy-slide .jd-big{font-size:48px}
+.jd-energy-slide .jd-stats{gap:20px}
+.jd-energy-slide .jd-stat{font-size:18px;padding:12px 0}
+.jd-energy-slide .jd-note{background:rgba(216,243,220,.12);border:1px solid rgba(216,243,220,.35);border-left:5px solid #74C69D;color:#e8fff0;margin-top:auto}
+.jd-payment-slide{background:linear-gradient(130deg,#eef6f0 0%,#fff 50%,#f7f3e8 100%);padding:48px 64px}
+.jd-payment-slide .jd-lead{font-size:21px;max-width:950px}
+.jd-payment-slide .jd-row{grid-template-columns:1fr 1fr;gap:34px;margin-top:32px;align-items:stretch}
+.jd-payment-slide .jd-panel{border:0;border-radius:20px;padding:32px 36px;box-shadow:0 10px 30px rgba(27,67,50,.10);position:relative;overflow:hidden}
+.jd-payment-slide .jd-panel:first-child{border-top:9px solid #2D6A4F}
+.jd-payment-slide .jd-panel:last-child{border-top:9px solid #D4A72C}
+.jd-payment-slide .jd-big{font-size:52px}
+.jd-payment-slide .jd-panel p{font-size:18px}
+.jd-payment-slide .jd-note{margin-top:auto}
+.jd-warranty-slide{background:#f8fafc;padding:48px 64px;position:relative}
+.jd-warranty-slide .jd-lead{font-size:21px}
+.jd-warranty-slide .jd-warranty{grid-template-columns:1fr 100px 1fr;align-items:center;gap:18px;margin-top:30px}
+.jd-warranty-slide .jd-panel{min-height:245px;border:0;border-radius:20px;box-shadow:0 10px 30px rgba(27,67,50,.09);display:flex;flex-direction:column;justify-content:center;padding:30px}
+.jd-warranty-slide .jd-panel:first-child{background:linear-gradient(145deg,#e4f5e9,#fff);border-left:9px solid #2D6A4F}
+.jd-warranty-slide .jd-panel:last-child{background:linear-gradient(145deg,#edf2f7,#fff);border-left:9px solid #64748b}
+.jd-warranty-slide .jd-warranty:after{content:"→";grid-column:2;grid-row:1;font-size:56px;color:#2D6A4F;text-align:center}
+.jd-warranty-slide .jd-note{margin-top:22px}
+.jd-warranty-slide .jd-footer{font-size:15px;margin-top:auto;padding-top:20px;border-top:1px solid #dbe7df}
+@media(max-width:900px){
+ .jd-main{padding:28px 30px}
+ .jd-unit-slide .jd-tile .jd-num{font-size:42px}
+ .jd-energy-slide .jd-row,.jd-payment-slide .jd-row{grid-template-columns:1fr 1fr}
+ .jd-warranty-slide .jd-warranty{grid-template-columns:1fr 60px 1fr}
+}
+
 </style>
 </head>
 <body>
@@ -627,7 +676,7 @@ html,body{
 
 
     <!-- ── MAIN SLIDE 2：20年間の単価比較 ── -->
-    <div class="slide jd-main" data-idx="main-units">
+    <div class="slide jd-main jd-unit-slide" data-idx="main-units">
       <div class="sh">
         <div class="slide-num">SLIDE 02 / UNIT COST</div>
         <div class="slide-ttl">☀️ <span class="g">20年間のじぶん電気単価比較</span></div>
@@ -654,7 +703,7 @@ html,body{
     </div>
 
     <!-- ── MAIN SLIDE 3：つくる電気と使い方 ── -->
-    <div class="slide jd-main" data-idx="main-energy">
+    <div class="slide jd-main jd-energy-slide" data-idx="main-energy">
       <div class="sh">
         <div class="slide-num">SLIDE 03 / ENERGY</div>
         <div class="slide-ttl">つくる電気の量と、<span class="g">使い方を選ぶ</span></div>
@@ -681,7 +730,7 @@ html,body{
     </div>
 
     <!-- ── MAIN SLIDE 4：購入方法の選択 ── -->
-    <div class="slide jd-main" data-idx="main-payments">
+    <div class="slide jd-main jd-payment-slide" data-idx="main-payments">
       <div class="sh">
         <div class="slide-num">SLIDE 04 / PAYMENT CHOICE</div>
         <div class="slide-ttl">じぶん電気の<span class="g">始め方を選ぶ</span></div>
@@ -705,7 +754,7 @@ html,body{
     </div>
 
     <!-- ── MAIN SLIDE 5：20年保証と継続サポート ── -->
-    <div class="slide jd-main" data-idx="main-warranty">
+    <div class="slide jd-main jd-warranty-slide" data-idx="main-warranty">
       <div class="sh">
         <div class="slide-num">SLIDE 05 / LONG-TERM TRUST</div>
         <div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div>
@@ -1404,80 +1453,17 @@ document.addEventListener('touchend',   e => {
 
 /* 基本提案のPPTXは画面と同じ5ページ。ローン詳細は「詳細資料を見る」から出力可能。 */
 async function exportJibundenCorePPTX() {
-  if(typeof PptxGenJS==='undefined') { alert('PPTXライブラリを読み込めませんでした');return; }
-  const ppt = new PptxGenJS();
-  ppt.layout='LAYOUT_16x9';
-  ppt.title='じぶん電気｜20年間の単価比較';
-  const DARK='1B4332',GREEN='2D6A4F',LIGHT='D8F3DC',GRAY='475569';
-  const addBase=(tag,title)=>{
-    const slide=ppt.addSlide();
-    slide.background={color:'F8FAFC'};
-    slide.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:0.07,line:{color:DARK},fill:{color:DARK}});
-    slide.addText(tag,{x:0.75,y:0.38,w:10,h:0.28,fontSize:12,color:GREEN,bold:true,fontFace:'Meiryo'});
-    slide.addText(title,{x:0.75,y:0.85,w:11.8,h:0.75,fontSize:31,bold:true,color:DARK,fontFace:'Meiryo'});
-    return slide;
-  };
-  const txt=(sl,text,x,y,w,h,size=17,color=GRAY,bold=false,align='left')=>{
-    sl.addText(String(text),{x,y,w,h,fontSize:size,color,bold,align,valign:'mid',fontFace:'Meiryo',breakLine:false,margin:0.07});
-  };
-  const box=(sl,x,y,w,h,fill='FFFFFF')=>sl.addShape(ppt.ShapeType.roundRect,{
-    x,y,w,h,rectRadius:0.14,fill:{color:fill},line:{color:'D1E8DC',width:1.5}
-  });
-  {
-    const sl=ppt.addSlide();sl.background={color:DARK};
-    txt(sl,'じぶん電気',1,1.35,11.3,1.0,50,LIGHT,true,'center');
-    txt(sl,'20年間の単価比較・ご提案',1.1,2.5,11.1,0.75,32,'FFFFFF',true,'center');
-    txt(sl,'電気を買い続ける未来から、自分でつくり選べる未来へ',1.1,3.75,11.1,0.56,20,LIGHT,false,'center');
-    txt(sl,'20年の安心。その先も、ずっと。',1.1,5.2,11.1,0.52,21,'FFFFFF',true,'center');
-  }
-  {
-    const sl=addBase('02 / 20 YEARS','20年間のじぶん電気単価比較');
-    const cards=[['現状','平均買電単価',JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—'],
-      ['現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1)],
-      ['ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1)]];
-    cards.forEach(([name,sub,amount],i)=>{const x=0.75+i*4.2;box(sl,x,2.05,3.9,3.15);
-      txt(sl,name,x+0.18,2.24,3.54,0.45,22,DARK,true,'center');
-      txt(sl,amount,x+0.2,3.0,3.5,0.9,48,DARK,true,'center');
-      txt(sl,'円/kWh',x+0.2,3.9,3.5,0.35,18,GREEN,true,'center');
-      txt(sl,sub,x+0.14,4.55,3.62,0.35,12,GRAY,false,'center');
-    });
-    box(sl,0.75,5.63,11.8,0.9,'EEF8F2');
-    txt(sl,'現状は買電単価、現金・ローンは参考発電原価。維持費・売電収入は含みません。',0.96,5.77,11.25,0.6,15,GRAY);
-  }
-  {
-    const sl=addBase('03 / GENERATION','自分でつくる電気と、使い方');
-    box(sl,0.8,2.1,5.65,2.9);
-    txt(sl,'年間発電量',1.05,2.38,5.1,0.5,23,DARK,true);
-    txt(sl,JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20/20)+' kWh':'未連携',1.05,3.1,5.1,0.9,34,GREEN,true);
-    txt(sl,'20年間の総発電量：'+(JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20)+' kWh':'未連携'),1.05,4.22,5.05,0.4,16,GRAY);
-    box(sl,6.8,2.1,5.65,2.9);
-    txt(sl,'余剰売電と自家消費',7.03,2.38,5.1,0.5,23,DARK,true);
-    txt(sl,'余剰売電量：'+(SURPLUS_KWH_YEAR>0?fmt(SURPLUS_KWH_YEAR)+' kWh/年':'未連携'),7.03,3.1,5.04,0.54,17,GREEN,true);
-    txt(sl,'自家消費相当量は総発電量との差分で参考算出',7.03,3.88,5.0,0.65,15,GRAY);
-    txt(sl,'地域で電気をつくり、地域で使い、地域の事業者が支える。',0.9,5.58,11.5,0.65,20,DARK,true,'center');
-  }
-  {
-    const sl=addBase('04 / PAYMENT','じぶん電気の始め方を選ぶ');
-    box(sl,0.8,2.05,5.6,3.3);
-    txt(sl,'現金一括購入',1.06,2.31,5.05,0.6,25,DARK,true);
-    txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.06,3.1,5.05,0.86,38,GREEN,true);
-    txt(sl,'利息負担なし・20年間の原価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+'円/kWh',1.06,4.42,5.1,0.6,16,GRAY);
-    box(sl,6.82,2.05,5.6,3.3);
-    txt(sl,'ローン活用',7.1,2.31,5.0,0.6,25,DARK,true);
-    txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.1,3.1,4.98,0.86,38,GREEN,true);
-    txt(sl,'月々 '+fmt(pmt)+'円 / '+MONTHS+'回の想定',7.1,4.42,5.08,0.6,16,GRAY);
-    txt(sl,'変動金利は将来変更される可能性があります。契約条件は金融機関の正式資料でご確認ください。',0.95,5.85,11.5,0.65,14,GRAY);
-  }
-  {
-    const sl=addBase('05 / SUPPORT','20年の安心。その先も、ずっと。');
-    box(sl,0.8,2.05,5.6,3.25);
-    txt(sl,'20年間の設備保証',1.08,2.38,5.0,0.72,28,DARK,true);
-    txt(sl,'対象設備・保証条件に基づく長期保証',1.08,3.4,4.9,0.8,18,GRAY);
-    box(sl,6.8,2.05,5.6,3.25);
-    txt(sl,'21年目以降も',7.08,2.38,5.05,0.72,28,DARK,true);
-    txt(sl,'点検・修理・更新などの継続サポート',7.08,3.4,4.95,0.8,18,GRAY);
-    txt(sl,'※21年目以降の保証延長や無償対応を約束するものではありません。内容・費用は個別に確認します。',0.9,5.8,11.55,0.7,15,GRAY);
-  }
+  if(typeof PptxGenJS==='undefined'){alert('PPTXライブラリを読み込めませんでした');return;}
+  const ppt=new PptxGenJS();ppt.layout='LAYOUT_16x9';ppt.title='じぶん電気｜20年間の単価比較';
+  const D='1B4332',G='2D6A4F',L='D8F3DC',W='FFFFFF',M='475569';
+  const base=(tag,title,dark=false)=>{const sl=ppt.addSlide();sl.background={color:dark?D:'F8FAFC'};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:.07,fill:{color:G},line:{color:G}});sl.addText(tag,{x:.7,y:.35,w:10,h:.25,fontSize:11,bold:true,color:dark?L:G,fontFace:'Meiryo'});sl.addText(title,{x:.7,y:.8,w:12,h:.65,fontSize:29,bold:true,color:dark?W:D,fontFace:'Meiryo'});return sl;};
+  const txt=(sl,t,x,y,w,h,size=16,color=M,bold=false,align='left')=>sl.addText(String(t),{x,y,w,h,fontSize:size,color,bold,align,valign:'mid',fontFace:'Meiryo',margin:.06,breakLine:false});
+  const box=(sl,x,y,w,h,fill='FFFFFF',line='D1E8DC')=>sl.addShape(ppt.ShapeType.roundRect,{x,y,w,h,rectRadius:.12,fill:{color:fill},line:{color,width:1.3}});
+  {const sl=ppt.addSlide();sl.background={color:D};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:7.5,fill:{color:D},line:{color:D}});txt(sl,'じぶん電気',1,1.4,11.3,1,52,L,true,'center');txt(sl,'20年間の単価比較・ご提案',1,2.65,11.3,.7,30,W,true,'center');txt(sl,'電気を買い続ける未来から、自分でつくり選べる未来へ',1,3.75,11.3,.5,20,L,false,'center');txt(sl,'20年の安心。その先も、ずっと。',1,5.55,11.3,.4,18,W,true,'center');}
+  {const sl=base('02 / UNIT COST','20年間のじぶん電気単価比較');const cards=[['🏢 現状','平均買電単価',Number.isFinite(JIBUNDEN_BUY_UNIT)&&JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—','64748B'],['💴 現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1),G],['🏦 ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1),'D4A72C']];cards.forEach((c,i)=>{const x=.65+i*4.25;box(sl,x,1.85,3.95,3.55);sl.addShape(ppt.ShapeType.rect,{x,y:1.85,w:3.95,h:.12,fill:{color:c[3]},line:{color:c[3]}});txt(sl,c[0],x+.15,2.2,3.65,.5,21,D,true,'center');txt(sl,c[2],x+.15,3.05,3.65,1,48,c[3],true,'center');txt(sl,'円/kWh',x+.15,4.0,3.65,.35,17,D,true,'center');txt(sl,c[1],x+.15,4.55,3.65,.45,12,M,false,'center');});box(sl,.75,5.75,11.8,.8,'EEF8F2');txt(sl,'現状は買電単価、現金・ローンは参考発電原価。維持費・売電収入は含みません。',.95,5.9,11.4,.45,14,M);}
+  {const sl=base('03 / GENERATION','つくる電気の量と、使い方を選ぶ',true);box(sl,.8,1.9,5.2,3.9,'F8FAFC');txt(sl,'☀ 年間発電量',1.1,2.25,4.6,.5,23,D,true);txt(sl,JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20/20)+' kWh':'未連携',1.1,3.05,4.6,.85,39,G,true);txt(sl,'20年間 '+(JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20)+' kWh':'未連携'),1.1,4.2,4.6,.45,17,M);txt(sl,'総発電量',1.1,4.8,4.6,.35,13,G,true);box(sl,6.6,1.9,5.85,3.9,'F8FAFC');txt(sl,'🏠 発電した電気の使い方',6.95,2.25,5.15,.5,22,D,true);txt(sl,'余剰売電量',6.95,3.05,2.5,.4,15,M);txt(sl,SURPLUS_KWH_YEAR>0?fmt(SURPLUS_KWH_YEAR)+' kWh/年':'未連携',9.45,3.05,2.5,.4,17,G,true,'right');txt(sl,'自家消費相当量（差引参考）',6.95,3.9,3.5,.4,14,M);txt(sl,JIBUNDEN_HAS_GEN&&SURPLUS_KWH_YEAR>0?fmt(JIBUNDEN_GEN20/20-SURPLUS_KWH_YEAR)+' kWh/年':'未連携',10,3.9,2.0,.4,15,G,true,'right');txt(sl,'自家消費相当量は総発電量から余剰売電量を引いた参考値です。',6.95,4.7,5.1,.65,12,M);txt(sl,'地域でつくり、地域で使い、地域の事業者が支える。',1,6.25,11.3,.45,18,L,true,'center');}
+  {const sl=base('04 / PAYMENT CHOICE','じぶん電気の始め方を選ぶ');box(sl,.8,1.9,5.65,3.9,'EAF5ED');box(sl,6.85,1.9,5.65,3.9,'FBF6E8');txt(sl,'💴 現金一括購入',1.1,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.1,3.1,5.05,.85,40,G,true);txt(sl,'発電原価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+' 円/kWh',1.1,4.3,5.05,.4,17,D,true);txt(sl,'金利負担なし。補助金適用後の設備購入額。',1.1,5.0,5.05,.5,14,M);txt(sl,'🏦 ローン活用',7.15,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.15,3.1,5.05,.85,40,G,true);txt(sl,'月々 '+fmt(pmt)+' 円 / '+MONTHS+' 回',7.15,4.3,5.05,.4,17,D,true);txt(sl,'利息込みの総支払額。変動金利は将来変わる場合があります。',7.15,5.0,5.05,.6,14,M);}
+  {const sl=base('05 / LONG-TERM SUPPORT','20年の安心。その先も、ずっと。',true);box(sl,.8,2.0,5.35,3.1,'F0FDF4');box(sl,7.15,2.0,5.35,3.1,'F1F5F9');txt(sl,'20年間',1.15,2.45,4.65,.8,42,G,true,'center');txt(sl,'設備保証の安心',1.15,3.35,4.65,.45,22,D,true,'center');txt(sl,'対象設備・保証条件に基づく長期保証',1.15,4.15,4.65,.5,15,M,false,'center');txt(sl,'→',6.2,3.2,.8,.6,32,L,true,'center');txt(sl,'21年目以降も',7.45,2.45,4.75,.8,34,D,true,'center');txt(sl,'継続的に支える',7.45,3.35,4.75,.45,22,D,true,'center');txt(sl,'点検・修理・設備更新などの相談・対応',7.45,4.15,4.75,.5,15,M,false,'center');txt(sl,'※21年目以降の保証延長や無償修理を約束するものではありません。内容・費用は個別に確認します。',.9,5.65,11.5,.6,13,L);}
   await ppt.writeFile({fileName:'じぶん電気_20年間の単価比較_ご提案.pptx'});
 }
 
