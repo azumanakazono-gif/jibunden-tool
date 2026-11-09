@@ -669,7 +669,7 @@ html,body{
 
 
 /* 設備更新ライフプラン：縦に揃えた費用入力と、16:9画面内に収まる密度 */
-.jd-story-lifecycle{gap:5px;padding:12px 30px 8px;overflow-y:auto}
+.jd-story-lifecycle{gap:4px;padding:10px 30px 7px;overflow-y:auto}
 .jd-story-lifecycle .sh{margin-bottom:0;flex:0 0 auto}
 .jd-story-lifecycle .slide-ttl{font-size:27px}
 .lifecycle-general-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;flex:0 0 auto}
@@ -680,19 +680,19 @@ html,body{
 .life-input-unit span{font-size:10px;color:#64748b}
 /* 設備ごとに「更新時期→現在交換費用」を縦に対応させた3列カード */
 .lifecycle-equipment-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;flex:0 0 auto;align-items:stretch}
-.lifecycle-equipment-card{display:flex;flex-direction:column;gap:5px;min-width:0;background:#f3f8f5;border:1px solid #cfe4d6;border-radius:10px;padding:6px;align-self:stretch}
-.lifecycle-equipment-card .life-control{display:flex;flex-direction:column;justify-content:flex-start;gap:3px;padding:5px 7px;min-height:58px;background:#fff;border:1px solid #d1e8dc;border-radius:8px}
-.lifecycle-equipment-card .life-control label{font-size:10px;line-height:1.2;font-weight:800;color:#1B4332;min-height:22px}
-.lifecycle-equipment-card .life-control select{width:100%;min-height:28px;font-size:11px}
-.lifecycle-cost-card{display:flex;flex-direction:column;justify-content:flex-start;gap:4px;flex:1;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:5px 7px}
+.lifecycle-equipment-card{display:flex;flex-direction:column;gap:3px;min-width:0;background:#f3f8f5;border:1px solid #cfe4d6;border-radius:10px;padding:4px;align-self:stretch}
+.lifecycle-equipment-card .life-control{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;padding:3px 7px;min-height:49px;background:#fff;border:1px solid #d1e8dc;border-radius:8px}
+.lifecycle-equipment-card .life-control label{font-size:10px;line-height:1.2;font-weight:800;color:#1B4332;min-height:19px}
+.lifecycle-equipment-card .life-control select{width:100%;min-height:25px;font-size:11px}
+.lifecycle-cost-card{display:flex;flex-direction:column;justify-content:flex-start;gap:2px;flex:1;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:3px 7px}
 .lifecycle-cost-card label{font-size:10px;line-height:1.2;font-weight:800;color:#475569;min-height:14px}
 .lifecycle-cost-input{display:grid;grid-template-columns:minmax(0,1fr) 22px;align-items:center;gap:5px}
-.lifecycle-cost-input input{width:100%;min-width:0;min-height:29px;border:1px solid #cbd5e1;border-radius:6px;padding:4px 7px;font-size:12px;background:#fff;color:#1e293b;text-align:right}
+.lifecycle-cost-input input{width:100%;min-width:0;min-height:25px;border:1px solid #cbd5e1;border-radius:6px;padding:3px 7px;font-size:12px;background:#fff;color:#1e293b;text-align:right}
 .lifecycle-cost-input span{font-size:11px;color:#64748b}
-.lifecycle-chart{height:345px;min-height:325px;max-height:345px;flex:0 0 345px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px;position:relative}
+.lifecycle-chart{height:400px;min-height:370px;max-height:400px;flex:0 0 400px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px;position:relative}
 .lifecycle-summary{font-size:9px;line-height:1.25;color:#334155;background:#eef8f2;border-radius:7px;padding:5px 8px;flex:0 0 auto}
 .jd-story-lifecycle .jd-note{font-size:9px;line-height:1.3;padding:6px 9px;margin:0;flex:0 0 auto}
-@media(max-width:850px){.lifecycle-general-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-equipment-grid{grid-template-columns:1fr;gap:5px}.lifecycle-equipment-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;padding:5px}.lifecycle-equipment-card .life-control{min-height:unset}.lifecycle-equipment-card .life-control label{min-height:unset}.lifecycle-cost-card{justify-content:center}.jd-story-lifecycle{padding:10px 14px 8px}.lifecycle-chart{height:245px;min-height:225px;flex-basis:245px}}
+@media(max-width:850px){.lifecycle-general-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-equipment-grid{grid-template-columns:1fr;gap:5px}.lifecycle-equipment-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;padding:5px}.lifecycle-equipment-card .life-control{min-height:unset}.lifecycle-equipment-card .life-control label{min-height:unset}.lifecycle-cost-card{justify-content:center}.jd-story-lifecycle{padding:10px 14px 8px}.lifecycle-chart{height:275px;min-height:245px;flex-basis:275px}}
 
 .jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
 
@@ -942,7 +942,7 @@ html,body{
         </div>
         <div class="lifecycle-equipment-card">
           <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="1">初年度</option><option value="5">5年目</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
-          <div class="lifecycle-cost-card"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000"><span>円</span></div></div>
+          <div class="lifecycle-cost-card"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" value="700000"><span>円</span></div></div>
         </div>
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
@@ -1242,7 +1242,7 @@ function updateLifecyclePlan(){
  const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
  const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
  const labels=[],utility=[],cash=[],loan=[],events=[];
- let cumulativeUtility=0,cumulativeCash=0,cumulativeLoan=0;
+ let cumulativeUtility=0,cumulativeCash=Math.max(0,netCost),cumulativeLoan=Math.max(0,downPaymentRaw);
  for(let y=0;y<=years;y++){
    labels.push(y===0?'導入時':y+'年目');
    if(y>0){
@@ -1251,11 +1251,6 @@ function updateLifecyclePlan(){
      const residual=RESIDUAL*12*escalation;
      const sales=fitSaleForYear(y)*12*escalation;
      const operatingCost=Math.max(0,residual-sales);
-     // 導入時点は0円。初期投資は1年目の支出として計上する。
-     if(y===1){
-       cumulativeCash+=Math.max(0,netCost);
-       cumulativeLoan+=Math.max(0,downPaymentRaw);
-     }
      cumulativeCash+=operatingCost;
      cumulativeLoan+=operatingCost+(y<=loanYears?pmt*12:0);
      const addEvent=(name,cost)=>{
@@ -1286,7 +1281,7 @@ function updateLifecyclePlan(){
  const summary=document.getElementById('lifecycle-summary');
  if(summary){
   const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
-  summary.textContent='表示期間：'+years+'年間｜導入時点：0円（初期投資は1年目に計上）｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
+  summary.textContent='表示期間：'+years+'年間｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
  }
 }
 function initLifecyclePlan(){
