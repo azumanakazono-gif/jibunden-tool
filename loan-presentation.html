@@ -1059,53 +1059,6 @@ function calcSolarCum(upToYear) {
 }
 const jissitsu20y = calcSolarCum(20);
 
-/* ── Slide 4 / INVESTMENT（補助金ありの場合のみ） ── */
-if (hasSubsidy) {
-  document.getElementById('s3-total').textContent = Math.round(totalCostRaw / 10000);
-  document.getElementById('s3-sub').textContent   = Math.round(subsidyRaw / 10000);
-  document.getElementById('s3-net').textContent   = Math.round(netCost / 10000);
-  document.getElementById('s3-sub2').textContent  = Math.round(subsidyRaw / 10000) + '万円';
-  document.getElementById('s3-pct').textContent   = (subsidyRaw / totalCostRaw * 100).toFixed(1) + '%';
-  if (downPaymentRaw > 0) {
-    document.getElementById('s3-net-note').innerHTML =
-      '頭金 ' + Math.round(downPaymentRaw/10000) + '万円 を除いた<br>借入額：' + Math.round(loanPrincipal/10000) + '万円';
-  }
-}
-
-/* ── Slide 3 / MONTHLY CASHFLOW ── */
-document.getElementById('s4-cur-amount').textContent  = (CURRENT / 10000).toFixed(1);
-document.getElementById('s4-cur-monthly').textContent = fmt(CURRENT) + '円';
-document.getElementById('s4-cur-annual').textContent  = fmt(CURRENT * 12) + '円';
-document.getElementById('s4-cur-20y').textContent     = Math.round(CURRENT * 12 * 20 / 10000) + '万円';
-if (rawSaving4 > 0) {
-  document.getElementById('s4-saving').textContent = fmt(saving4);
-} else {
-  document.getElementById('s4-banner-text').innerHTML =
-    `ローン期間中は月々 約<strong id="s4-saving">${fmt(Math.abs(rawSaving4))}</strong>円 の実質負担（投資）となります`;
-}
-document.getElementById('s4-total-man').textContent   = (jissitsuMonthly / 10000).toFixed(2);
-document.getElementById('s4-jis-monthly').textContent = fmt(jissitsuMonthly) + '円';
-document.getElementById('s4-breakdown').textContent =
-  `（内訳：ローン返済 約${fmt(pmt)}円 ＋ 残り電気代 約${fmt(RESIDUAL)}円 － 売電収入 約${fmt(SALE_INCOME_EARLY)}円）`;
-document.getElementById('s4-jis-annual').textContent  = fmt(jissitsuAnnual) + '円';
-document.getElementById('s4-jis-20y').textContent     = Math.round(jissitsu20y / 10000) + '万円';
-
-/* ── Slide 5 ── */
-document.getElementById('s5-rate-lbl').textContent  = '年 ' + RATE_PCT.toFixed(1) + '%';
-document.getElementById('s5-rate-note').textContent = '年' + RATE_PCT.toFixed(1) + '%';
-document.getElementById('s5-pmt').textContent      = fmt(pmt);
-document.getElementById('s5-pmt2').textContent     = fmt(pmt) + ' 円';
-document.getElementById('s5-net').textContent      = fmt(loanPrincipal) + ' 円';
-document.getElementById('s5-total').textContent    = fmt(totalPaid) + ' 円';
-document.getElementById('s5-interest').textContent = fmt(totalInterest) + ' 円';
-document.getElementById('s5-pmt-note').textContent = '実質' + Math.round(loanPrincipal/10000) + '万円 / ' + Math.round(MONTHS/12) + '年想定';
-document.getElementById('s5-period').textContent   = Math.round(MONTHS/12) + '年（' + MONTHS + '回払い）';
-document.getElementById('s5-sub-note').textContent = Math.round(subsidyRaw/10000) + '万円';
-if (downPaymentRaw > 0) {
-  const s5note = document.getElementById('s5-note');
-  s5note.innerHTML += '<br>※ 頭金 ' + Math.round(downPaymentRaw/10000) + '万円 を差し引いた後の借入額（' + fmt(loanPrincipal) + '円）を基準に算出しています。';
-}
-
 /* ─────────────────────────────────────────
    20-Year Chart (Slide 6)
 ───────────────────────────────────────── */
