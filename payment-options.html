@@ -407,7 +407,7 @@ function collectLoanSimulation() {
   const numeric = id => Number(el(id)?.value);
   const price = id => {
     const t = String(el(id)?.textContent || '').replace(/,/g, '').trim();
-    return /^\\d+(?:\\.\\d+)?円$/.test(t) ? Number(t.slice(0,-1)) : null;
+    return /^\d+(?:\.\d+)?円$/.test(t) ? Number(t.slice(0,-1)) : null;
   };
   const mode = currentMode;
   const costMan = numeric('po-cost');
@@ -451,7 +451,7 @@ async function saveLoanDetailsToSheet() {
   const show = (message, ok=false) => { status.textContent = (ok?'✅ ':'⚠️ ')+message; status.style.color = ok ? 'var(--mg)' : '#9a3412'; };
   const author = String(localStorage.getItem('jibunden_author') || '').trim();
   const data = collectLoanSimulation();
-  const norm = v => String(v||'').replace(/[\\s　]+/g,'').replace(/金利\\d+(?:\\.\\d+)?[%％]/g,'').trim();
+  const norm = v => String(v||'').replace(/[\s　]+/g,'').replace(/金利\d+(?:\.\d+)?[%％]/g,'').trim();
   if (!author || !data.customerName) { show('担当者名または案件名がありません。メイン画面で担当者・案件を設定してください。'); return; }
   if (data.selectedPayment === 'loan' && (!Number.isFinite(data.repaymentTotalYen) || data.repaymentTotalYen <= 0)) {
     show('ローン返済額が未確定です。公式結果を入力するか、計算可能な条件を指定してください。'); return;
