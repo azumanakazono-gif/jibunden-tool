@@ -144,13 +144,23 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
       <div class="dp-borrow">実際の借入額：<b id="po-borrow-val">-</b></div>
       <div class="field" style="margin-bottom:10px">
         <label>ローン会社・金利区分</label>
-        <select id="po-lender" onchange="syncLoanRepaymentLimitPO();updateLoan();updateSlideLink()">
+        <select id="po-lender" onchange="syncLoanRepaymentLimitPO();syncOfficialLoanPO();updateLoan();updateSlideLink()">
           <option value="manual">金利を手入力（従来方式）</option>
           <option value="orico_reform">オリコ｜Webリフォームローン</option>
           <option value="jaccs_fixed">ジャックス｜固定金利</option>
           <option value="jaccs_variable">ジャックス｜変動金利</option>
         </select>
         <div id="po-rate-status" style="font-size:11px;margin-top:5px;line-height:1.6" aria-live="polite">手入力の金利を使用します。</div>
+      </div>
+      <div id="po-official-area" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;margin-bottom:14px">
+        <b>公式シミュレーション優先</b>
+        <p style="font-size:12px;margin:8px 0">公式サイトで借入額・回数を入力して試算し、表示された返済額を転記してください。自動入力・自動取得には対応していません。</p>
+        <a id="po-official-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display:inline-block;margin-bottom:10px">公式シミュレーションを開く ↗</a>
+        <div class="grid2">
+          <div class="field"><label>公式の通常月返済額（円）</label><input id="po-official-monthly" type="number" min="1" step="1" placeholder="例：28500" oninput="updateLoan()"></div>
+          <div class="field"><label>初回返済額（円・任意）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="通常月と同じなら空欄" oninput="updateLoan()"></div>
+        </div>
+        <p id="po-official-note" style="font-size:11px;margin-top:8px">公式結果未入力：社内計算は概算です。返済方式は公式の契約条件に従ってください。</p>
       </div>
       <div class="grid2" style="margin-bottom:14px">
         <div class="field">
@@ -196,7 +206,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     </div>
 
     <!-- 返済方式トグル -->
-    <div class="method-toggle">
+    <div class="method-toggle" id="po-method-toggle">
       <input type="radio" id="m-kinri" name="po-method" value="kinri" checked onchange="updateLoan()">
       <label for="m-kinri">元利均等 (Equal Installments)</label>
       <input type="radio" id="m-gankin" name="po-method" value="gankin" onchange="updateLoan()">
@@ -458,7 +468,7 @@ function setMode(mode) {
     b.classList.toggle('active', (i === 0) === (mode === 'preset')));
   document.getElementById('mode-preset').classList.toggle('active', mode === 'preset');
   document.getElementById('mode-manual').classList.toggle('active', mode === 'manual');
-  document.querySelector('.method-toggle').style.display = mode === 'manual' ? 'none' : '';
+  document.querySelector('.method-toggle').style.display = mode === 'manual' || !!PO_OFFICIAL_URLS[document.getElementById('po-lender').value] ? 'none' : '';
   updateLoan();
 }
 
@@ -471,6 +481,29 @@ const PO_MONTHLY_RATES = {
 function poYearMonth() {
   const parts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'}).formatToParts(new Date());
   return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
+}
+const PO_OFFICIAL_URLS = {
+ orico_reform:'http://simulation.m-orico.jp/eco/',
+ jaccs_fixed:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1',
+ jaccs_variable:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1'
+};
+function syncOfficialLoanPO(){
+ const lender=document.getElementById('po-lender').value;
+ const official=!!PO_OFFICIAL_URLS[lender];
+ document.getElementById('po-official-area').style.display=official?'':'none';
+ document.getElementById('po-official-link').href=official?PO_OFFICIAL_URLS[lender]:'#';
+ document.getElementById('po-official-link').textContent=(lender==='orico_reform'?'オリコ':'ジャックス')+'公式シミュレーションを開く ↗';
+ document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
+ document.getElementById('po-official-monthly').value='';
+ document.getElementById('po-official-first').value='';
+}
+function poOfficialResult(){
+ if(currentMode!=='preset'||!PO_OFFICIAL_URLS[document.getElementById('po-lender').value])return null;
+ const m=Number(document.getElementById('po-official-monthly').value);
+ const raw=document.getElementById('po-official-first').value;
+ const first=raw===''?m:Number(raw);
+ if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(first)||first<=0)return null;
+ return {monthly:m,first};
 }
 // オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
 function syncLoanRepaymentLimitPO() {
@@ -547,7 +580,7 @@ function updateLoan() {
   const inputs = getInputs();
   const { principal, rate, count, method, manualMonthly } = inputs;
   const isManualMonthly = currentMode === 'manual' && manualMonthly > 0;
-  if (currentMode === 'preset' && !inputs.loanRateValid) {
+  if (currentMode === 'preset' && !inputs.loanRateValid && !poOfficialResult()) {
     setKinri('計算不可','-','-');
     setGankin('-','-','-','-');
     _currentMonthlyPayment=0;
@@ -556,12 +589,23 @@ function updateLoan() {
     document.getElementById('slide-link').removeAttribute('href');
     return;
   }
-  const isGankin = method === 'gankin' && !isManualMonthly;
+  const official=poOfficialResult();
+  const isGankin = method === 'gankin' && !isManualMonthly && !official;
 
   document.getElementById('res-kinri').style.display  = isGankin ? 'none' : '';
   document.getElementById('res-gankin').style.display = isGankin ? '' : 'none';
 
   const lbl = document.getElementById('lbl-monthly');
+  if (official) {
+    const total=official.first+official.monthly*(count-1);
+    lbl.textContent='月々の返済額（公式結果を転記）';
+    setKinri(fmt(official.monthly),fmt(total),fmt(total-principal));
+    _currentMonthlyPayment=official.monthly;_currentLoanCount=count;_currentPrincipal=principal;
+    document.getElementById('po-official-note').textContent='公式結果を反映中。初回と通常月以外の変動額・手数料は含みません。条件変更時は公式サイトで再確認してください。';
+    drawCumulativeChart();updateSlideLink();_savePO();return;
+  }
+  if(currentMode==='preset' && PO_OFFICIAL_URLS[document.getElementById('po-lender').value])
+    document.getElementById('po-official-note').textContent='公式結果未入力：社内計算は概算です。提案前に公式サイトで確認してください。';
   if (isManualMonthly) {
     lbl.textContent = '月々の返済額';
     if (count > 0) {
@@ -826,11 +870,14 @@ function updateSlideLink() {
     ? document.getElementById('po-lr-m')
     : document.getElementById('po-lr');
   const rateVal = rateEl ? (parseFloat(rateEl.value) || 4.0) : 4.0;
-  if (currentMode === 'preset' && !poApplyLenderRate(Math.max(0,(parseFloat(document.getElementById('po-cost').value)||0)-(parseFloat(document.getElementById('po-dp').value)||0))*10000,parseInt(document.getElementById('po-lc').value)||180)) {
+  if (currentMode === 'preset' && !poOfficialResult() && !poApplyLenderRate(Math.max(0,(parseFloat(document.getElementById('po-cost').value)||0)-(parseFloat(document.getElementById('po-dp').value)||0))*10000,parseInt(document.getElementById('po-lc').value)||180)) {
     document.getElementById('slide-link').removeAttribute('href');
     return;
   }
   base.set('interestRate', rateVal);
+  const official=poOfficialResult();
+  if(official){base.set('officialMonthlyPayment',official.monthly);base.set('officialFirstPayment',official.first);}
+  else{base.delete('officialMonthlyPayment');base.delete('officialFirstPayment');}
   const lender=document.getElementById('po-lender');
   if (currentMode === 'preset' && lender && lender.value !== 'manual') base.set('loanLender',lender.value);
   else base.delete('loanLender');
