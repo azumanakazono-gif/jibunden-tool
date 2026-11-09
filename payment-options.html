@@ -320,6 +320,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     <a id="slide-link" href="loan-presentation.html" target="_blank" class="btn btn-primary" style="display:none">
       🖥️ 導入手段用スライドを表示
     </a>
+    <button type="button" id="po-save-customer-btn" class="btn btn-primary" onclick="savePaymentOptionsToCustomer()" style="background:#1B4332">💾 顧客データへ保存</button>
+    <span id="po-save-customer-status" role="status" aria-live="polite" style="font-size:12px;align-self:center;max-width:290px"></span>
   </div>
 
   <!-- リース・PPA メモ欄（非表示・コードは保持） -->
@@ -1019,6 +1021,7 @@ window.onload = () => {
     if (_initLc > 0) { const el = document.getElementById('po-lc'); if (el) el.value = _initLc; }
     if (_initDp !== null && !isNaN(_initDp)) { const el = document.getElementById('po-dp'); if (el) el.value = _initDp; }
     updateLoan();
+    restorePaymentOptionsForCustomer();
     updateSlideLink();
   }, 50);
 };
@@ -1215,6 +1218,105 @@ async function generateLoanPPTX() {
   render();
   window.addEventListener('load', () => setTimeout(render,100));
 })();
+
+
+
+// 顧客DBへの保存は元のじぶん電気画面が行い、この画面は結果を待って表示する。
+let _poPendingSaveRequest = '';
+function collectPaymentOptionsForCustomer() {
+ const value = id => document.getElementById(id)?.value ?? '';
+ const selected = document.querySelector('.option-card.selected')?.id === 'card-cash' ? 'cash' : 'loan';
+ const fields = ['po-mb','po-cost','po-dp','po-lender','po-lr','po-lc','po-official-monthly','po-official-first','po-la-m','po-lr-m','po-lc-m','po-monthly-m'];
+ const inputs = {};
+ fields.forEach(id => { inputs[id] = value(id); });
+ const official = poOfficialResult();
+ return {
+   version: 1, selectedPayment: selected, mode: currentMode,
+   lender: value('po-lender'),
+   method: document.querySelector('input[name="po-method"]:checked')?.value || 'kinri',
+   inputs,
+   officialResult: official ? {monthly: official.monthly, first: official.first, last: official.last} : null,
+   calculatedMonthlyPayment: _currentMonthlyPayment,
+   calculatedLoanCount: _currentLoanCount,
+   calculatedPrincipal: _currentPrincipal,
+   updatedAt: new Date().toISOString()
+ };
+}
+function restorePaymentOptionsForCustomer() {
+ try {
+  const raw = _urlParams.get('paymentPlan');
+  if(!raw) return;
+  const plan=JSON.parse(raw);
+  if(!plan || plan.version!==1 || typeof plan.inputs!=='object')return;
+  const fields=['po-mb','po-cost','po-dp','po-lender','po-lr','po-lc','po-official-monthly','po-official-first','po-la-m','po-lr-m','po-lc-m','po-monthly-m'];
+  // 先に選択肢を復元してから公式返済額を入力する。
+  const put=id=>{ const el=document.getElementById(id); if(el && Object.prototype.hasOwnProperty.call(plan.inputs,id)) el.value=String(plan.inputs[id]); };
+  put('po-lender');
+  if(plan.mode==='manual'||plan.mode==='preset')setMode(plan.mode);
+  fields.forEach(put);
+  if(plan.method==='kinri'||plan.method==='gankin'){
+   const radio=document.querySelector('input[name="po-method"][value="'+plan.method+'"]');
+   if(radio)radio.checked=true;
+  }
+  syncOfficialLoanPO();
+  // syncOfficialLoanPOは会社切替時に公式結果を初期化する場合があるため再適用
+  put('po-official-monthly');
+  put('po-official-first');
+  updateLoan();
+  if(plan.selectedPayment==='cash'||plan.selectedPayment==='loan')selectPayment(plan.selectedPayment);
+  updateSlideLink();
+ }catch(e){ console.warn('[導入手段] 保存済み条件の復元に失敗:',e); }
+}
+function _paymentSaveMessage(msg, success){
+ const label=document.getElementById('po-save-customer-status');
+ if(label){label.textContent=msg;label.style.color=success===false?'#b45309':'#2D6A4F';}
+ const button=document.getElementById('po-save-customer-btn');
+ if(button)button.disabled=false;
+}
+function savePaymentOptionsToCustomer(){
+ const customerName=(_urlParams.get('customerName')||'').trim();
+ if(!customerName){_paymentSaveMessage('顧客名がありません。元画面で顧客情報を入力してください。',false);return;}
+ const requestId='po-'+Date.now()+'-'+Math.random().toString(36).slice(2,9);
+ const payload={
+  type:'jibunden-payment-save',requestId,
+  proposalId:_urlParams.get('proposalId')||'',
+  customerName,
+  paymentPlan:collectPaymentOptionsForCustomer()
+ };
+ const button=document.getElementById('po-save-customer-btn');
+ if(button)button.disabled=true;
+ _poPendingSaveRequest=requestId;
+ _paymentSaveMessage('顧客DBへの保存を確認中…');
+ if(button)button.disabled=true;
+ try {
+  localStorage.setItem('jibunden_payment_save_request',JSON.stringify(payload));
+  if(window.opener&&!window.opener.closed)window.opener.postMessage(payload,location.origin);
+ }catch(e){
+  _poPendingSaveRequest='';
+  _paymentSaveMessage('保存依頼を送信できませんでした。',false);
+  return;
+ }
+ setTimeout(()=>{
+  if(_poPendingSaveRequest===requestId){
+   _poPendingSaveRequest='';
+   _paymentSaveMessage('保存結果を確認できません。元のじぶん電気画面を開いた状態で再実行してください。',false);
+  }
+ },12000);
+}
+function handlePaymentSaveAck(data) {
+ if(!data||data.type!=='jibunden-payment-save-ack'||data.requestId!==_poPendingSaveRequest)return;
+ _poPendingSaveRequest='';
+ if(data.proposalId) _urlParams.set('proposalId',String(data.proposalId));
+ _paymentSaveMessage(data.ok?'顧客DBに保存しました。':'保存未完了：'+(data.message||'元画面の状態を確認してください。'),!!data.ok);
+}
+window.addEventListener('storage',event=>{
+ if(event.key==='jibunden_payment_save_ack'&&event.newValue){
+  try{handlePaymentSaveAck(JSON.parse(event.newValue));}catch(e){}
+ }
+});
+window.addEventListener('message',event=>{
+ if(event.origin===location.origin)handlePaymentSaveAck(event.data);
+});
 
 
 // 詳細資料（子タブ）から届いた将来設計設定を、元のじぶん電気画面へ中継
