@@ -5923,6 +5923,7 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       interestRate:          _effectiveLr,
       loanCount:             _lcVal,
       monthlyBill:           v('mb') || 0,
+      currentBuyUnitPrice:   Number.isFinite(Number(up)) && Number(up) > 0 ? Number(up) : '',
       monthlyRemainingCost:  remainBill || 0,
       customerName:          _cleanCn,
     });
