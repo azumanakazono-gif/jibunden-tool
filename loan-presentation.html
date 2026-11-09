@@ -883,8 +883,8 @@ if (!hasSubsidy) {
 // 公式サイトの計算結果を転記した場合は、その金額を優先する。
 const officialMonthlyRaw = params.get('officialMonthlyPayment');
 const officialFirstRaw = params.get('officialFirstPayment');
-const officialMonthly = officialMonthlyRaw !== null && /^\\d+$/.test(officialMonthlyRaw) ? Number(officialMonthlyRaw) : 0;
-const officialFirst = officialFirstRaw !== null && /^\\d+$/.test(officialFirstRaw) ? Number(officialFirstRaw) : officialMonthly;
+const officialMonthly = officialMonthlyRaw !== null && /^\d+$/.test(officialMonthlyRaw) ? Number(officialMonthlyRaw) : 0;
+const officialFirst = officialFirstRaw !== null && /^\d+$/.test(officialFirstRaw) ? Number(officialFirstRaw) : officialMonthly;
 const hasOfficialPayment = Number.isSafeInteger(officialMonthly) && officialMonthly > 0 && Number.isSafeInteger(officialFirst) && officialFirst > 0;
 const pmt          = hasOfficialPayment ? officialMonthly : calcPMT(loanPrincipal);
 const totalPaid    = hasOfficialPayment ? officialFirst + pmt * (MONTHS-1) : pmt * MONTHS;
