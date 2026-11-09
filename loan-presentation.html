@@ -99,8 +99,9 @@ html,body{
 }
 .s1-title{font-size:74px;font-weight:900;color:#fff;line-height:1.15;margin-bottom:10px;letter-spacing:-.01em}
 .s1-title .brand{
-  background:linear-gradient(90deg,#D8F3DC,#fff,#D8F3DC);
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+  display:inline-block;background:transparent;border:0;box-shadow:none;padding:0;
+  color:#FFFFFF;-webkit-text-fill-color:#FFFFFF;-webkit-background-clip:initial;background-clip:initial;
+  text-shadow:0 3px 18px rgba(0,0,0,.16);
 }
 .s1-sub{font-size:23px;color:rgba(255,255,255,0.75);letter-spacing:.06em;margin-bottom:36px}
 .s1-line{width:72px;height:2px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);margin:0 auto 36px}
@@ -1267,23 +1268,29 @@ function updateLifecyclePlan(){
      if(y>=20&&y===batteryYear&&batteryYear>=20&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
      if(y>=1&&y===panelYear&&panelYear>=1&&panelCost>0)addEvent('パネル更新',panelCost);
    }
-   utility.push(Math.round(cumulativeUtility/10000));
-   cash.push(Math.round(cumulativeCash/10000));
-   loan.push(Math.round(cumulativeLoan/10000));
+   // グラフ描画単位は万円に統一（内部計算は円）。小数1桁を保持する。
+   utility.push(Number((cumulativeUtility/10000).toFixed(1)));
+   cash.push(Number((cumulativeCash/10000).toFixed(1)));
+   loan.push(Number((cumulativeLoan/10000).toFixed(1)));
  }
  const canvas=document.getElementById('lifecycle-chart');
+ const chartMax=Math.max(0,...utility,...cash,...loan);
+ const chartStep=chartMax>0?Math.max(10,Math.ceil(chartMax/8/10)*10):10;
+ const chartAxisMax=chartStep*8;
+ const chartHasData=chartMax>0;
  if(canvas&&typeof Chart!=='undefined'){
    if(lifecycleChart)lifecycleChart.destroy();
    lifecycleChart=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
-    {label:'電力会社から購入し続ける場合',data:utility,borderColor:'#d97777',borderDash:[6,4],pointRadius:0,tension:.2},
-    {label:'じぶん電気・現金一括購入',data:cash,borderColor:'#2563eb',pointRadius:0,tension:.2},
-    {label:'じぶん電気・ローン購入',data:loan,borderColor:'#2D6A4F',pointRadius:0,tension:.2}
-   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+c.parsed.y.toLocaleString('ja-JP')+'万円'}}},scales:{y:{ticks:{callback:v=>v+'万円'}},x:{ticks:{maxTicksLimit:12}}}}});
+    {label:'電力会社から購入し続ける場合',data:utility,borderColor:'#d97777',backgroundColor:'transparent',borderDash:[6,4],borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false},
+    {label:'じぶん電気・現金一括購入',data:cash,borderColor:'#2563eb',backgroundColor:'transparent',borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false},
+    {label:'じぶん電気・ローン購入',data:loan,borderColor:'#2D6A4F',backgroundColor:'transparent',borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false}
+   ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+Number(c.parsed.y).toLocaleString('ja-JP',{minimumFractionDigits:1,maximumFractionDigits:1})+'万円'}}},scales:{y:{beginAtZero:true,min:0,max:chartAxisMax,ticks:{stepSize:chartStep,callback:v=>v+'万円'}},x:{ticks:{maxTicksLimit:12}}}}});
+   if(!chartHasData)console.warn('[将来設計] グラフデータがすべて0です。入力条件を確認してください。');
  }
  const summary=document.getElementById('lifecycle-summary');
  if(summary){
   const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
-  summary.textContent='表示期間：'+years+'年間｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
+  summary.textContent='表示期間：'+years+'年間｜'+years+'年目累積：電力会社 '+utility[utility.length-1].toLocaleString('ja-JP')+'万円／現金 '+cash[cash.length-1].toLocaleString('ja-JP')+'万円／ローン '+loan[loan.length-1].toLocaleString('ja-JP')+'万円｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
  }
 }
 function readLifecyclePlanFromUrl(){
