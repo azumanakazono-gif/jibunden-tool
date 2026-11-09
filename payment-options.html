@@ -158,7 +158,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <a id="po-official-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display:inline-block;margin-bottom:10px">公式シミュレーションを開く ↗</a>
         <div class="grid2">
           <div class="field"><label>公式の通常月返済額（円）</label><input id="po-official-monthly" type="number" min="1" step="1" placeholder="例：28500" oninput="updateLoan()"></div>
-          <div class="field"><label>初回返済額（円・任意）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="通常月と同じなら空欄" oninput="updateLoan()"></div>
+          <div class="field" id="po-official-special-wrap"><label id="po-official-special-label">初回返済額（円・任意）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="通常月と同じなら空欄" oninput="updateLoan()"></div>
         </div>
         <p id="po-official-note" style="font-size:11px;margin-top:8px">公式結果未入力：社内計算は概算です。返済方式は公式の契約条件に従ってください。</p>
       </div>
@@ -496,6 +496,10 @@ function syncOfficialLoanPO(){
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
+ const jaccs=lender.startsWith('jaccs_');
+ document.getElementById('po-official-special-label').textContent=jaccs?'最終回返済額（円・必須）':'初回返済額（円・任意）';
+ document.getElementById('po-official-first').placeholder=jaccs?'公式サイトの最終回額を入力':'通常月と同じなら空欄';
+ document.getElementById('po-official-note').textContent=jaccs?'通常月と最終回の返済額を両方入力してください。':'公式サイトの通常月返済額を入力してください。';
 }
 function clearOfficialLoanPO(){
  const monthly=document.getElementById('po-official-monthly');
@@ -507,9 +511,11 @@ function poOfficialResult(){
  if(currentMode!=='preset'||!PO_OFFICIAL_URLS[document.getElementById('po-lender').value])return null;
  const m=Number(document.getElementById('po-official-monthly').value);
  const raw=document.getElementById('po-official-first').value;
- const first=raw===''?m:Number(raw);
- if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(first)||first<=0)return null;
- return {monthly:m,first};
+ const jaccs=document.getElementById('po-lender').value.startsWith('jaccs_');
+ if(jaccs&&raw==='')return null;
+ const special=raw===''?m:Number(raw);
+ if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(special)||special<=0)return null;
+ return jaccs?{monthly:m,first:m,last:special}:{monthly:m,first:special,last:m};
 }
 // オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
 function syncLoanRepaymentLimitPO() {
@@ -603,11 +609,11 @@ function updateLoan() {
 
   const lbl = document.getElementById('lbl-monthly');
   if (official) {
-    const total=official.first+official.monthly*(count-1);
+    const total=count===1?official.first:official.first+official.monthly*(count-2)+official.last;
     lbl.textContent='月々の返済額（公式結果を転記）';
     setKinri(fmt(official.monthly),fmt(total),fmt(total-principal));
     _currentMonthlyPayment=official.monthly;_currentLoanCount=count;_currentPrincipal=principal;
-    document.getElementById('po-official-note').textContent='公式結果を反映中。初回と通常月以外の変動額・手数料は含みません。条件変更時は公式サイトで再確認してください。';
+    document.getElementById('po-official-note').textContent='公式結果を反映中（通常月 '+fmt(official.monthly)+'／最終回 '+fmt(official.last)+'）。ボーナス払い・その他の変動額は含みません。';
     drawCumulativeChart();updateSlideLink();_savePO();return;
   }
   if(currentMode==='preset' && PO_OFFICIAL_URLS[document.getElementById('po-lender').value])
@@ -882,8 +888,8 @@ function updateSlideLink() {
   }
   base.set('interestRate', rateVal);
   const official=poOfficialResult();
-  if(official){base.set('officialMonthlyPayment',official.monthly);base.set('officialFirstPayment',official.first);}
-  else{base.delete('officialMonthlyPayment');base.delete('officialFirstPayment');}
+  if(official){base.set('officialMonthlyPayment',official.monthly);base.set('officialFirstPayment',official.first);base.set('officialLastPayment',official.last);}
+  else{base.delete('officialMonthlyPayment');base.delete('officialFirstPayment');base.delete('officialLastPayment');}
   const lender=document.getElementById('po-lender');
   if (currentMode === 'preset' && lender && lender.value !== 'manual') base.set('loanLender',lender.value);
   else base.delete('loanLender');
