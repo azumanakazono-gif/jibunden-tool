@@ -934,7 +934,7 @@ html,body{
       </div>
       <div class="lifecycle-equipment-grid" aria-label="設備ごとの更新時期と現在交換費用">
         <div class="lifecycle-equipment-card">
-          <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10">10年ごと</option><option value="15" selected>15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
+          <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
           <div class="lifecycle-cost-card"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
         </div>
         <div class="lifecycle-equipment-card">
@@ -949,7 +949,7 @@ html,body{
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
       <div id="lifecycle-save-status" aria-live="polite" style="font-size:10px;color:#2D6A4F;min-height:14px">設定を変更すると顧客データへの保存を依頼します。</div>
-      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCS・蓄電池・パネルの更新費用は、20年間の保証期間中は計上せず、21年目以降の更新想定のみを反映します。PCSは21年目以降に10年または15年周期、蓄電池・パネルは21年目以降の任意の時期を設定します。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
+      <div class="jd-note">20年間のじぶん電気単価と設備保証の計算基準は変更しません。PCS更新費用は20年間計上せず、21年目以降に設定周期で試算します。蓄電池は20年目以降、パネルは初年度以降の任意の交換年を設定できます。交換費用は将来の参考想定であり、実際の更新・保証対応を約束するものではありません。20年間の保証条件と21年目以降の継続サポートは区別します。</div>
     </div>
     <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
     
