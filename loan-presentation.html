@@ -1479,6 +1479,7 @@ function updateLifecyclePlan(){
 }
 function initLifecyclePlan(){
  ['life-years','life-pcs-cycle','life-battery-year','life-panel-year','life-inflation','life-electric','life-pcs-cost','life-battery-cost','life-panel-cost'].forEach(id=>document.getElementById(id)?.addEventListener('change',updateLifecyclePlan));
+ updateLifecyclePlan();
 }
 
 /* 詳細ストーリー6ページへ、既存URLと公式ローン計算結果を反映 */
