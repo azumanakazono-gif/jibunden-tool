@@ -723,6 +723,16 @@ html,body{
 }
 
 .legacy-slide-reference{display:none!important}
+
+/* 設備更新費用：PCS・蓄電池・パネルを縦一列にそろえる */
+.lifecycle-costs{display:grid;grid-template-columns:1fr;gap:7px}
+.lifecycle-costs .lifecycle-cost-row{display:grid;grid-template-columns:minmax(220px,34%) minmax(0,1fr);align-items:center;gap:14px;background:#fff;border:1px solid #d1e8dc;border-radius:9px;padding:7px 12px}
+.lifecycle-costs .lifecycle-cost-row label{font-size:12px;font-weight:750;color:#475569}
+.lifecycle-cost-input{display:flex;align-items:center;gap:8px;max-width:420px}
+.lifecycle-cost-input input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:6px;padding:6px 9px;font-size:14px;background:#fff;color:#1e293b;text-align:right}
+.lifecycle-cost-input span{font-size:13px;color:#64748b}
+@media(max-width:850px){.lifecycle-costs .lifecycle-cost-row{grid-template-columns:minmax(135px,40%) minmax(0,1fr);gap:8px;padding:7px 9px}}
+
 </style>
 </head>
 <body>
@@ -912,10 +922,10 @@ html,body{
         <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"> %</div>
         <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"> %</div>
       </div>
-      <div class="lifecycle-costs">
-        <div><label for="life-pcs-cost">PCS現在交換費用</label><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"> 円</div>
-        <div><label for="life-battery-cost">蓄電池現在交換費用</label><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"> 円</div>
-        <div><label for="life-panel-cost">パネル現在交換費用</label><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"> 円</div>
+      <div class="lifecycle-costs" aria-label="設備ごとの現在交換費用">
+        <div class="lifecycle-cost-row"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
+        <div class="lifecycle-cost-row"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"><span>円</span></div></div>
+        <div class="lifecycle-cost-row"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"><span>円</span></div></div>
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
