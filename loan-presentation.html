@@ -937,7 +937,7 @@ html,body{
           <div class="lifecycle-cost-card"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
         </div>
         <div class="lifecycle-equipment-card">
-          <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
+          <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30">30年目</option><option value="35">35年目</option><option value="40">40年目</option><option value="45">45年目</option><option value="50">50年目</option></select></div>
           <div class="lifecycle-cost-card"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"><span>円</span></div></div>
         </div>
         <div class="lifecycle-equipment-card">
@@ -947,7 +947,7 @@ html,body{
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
-      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCSは20年間の保証基準後に10年または15年周期で更新する仮定です。蓄電池・パネルの更新時期と価格は個別設定です。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
+      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCS・蓄電池・パネルの更新費用は、20年間の保証期間中は計上せず、21年目以降の更新想定のみを反映します。PCSは21年目以降に10年または15年周期、蓄電池・パネルは21年目以降の任意の時期を設定します。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
     </div>
     <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
     
@@ -1255,8 +1255,8 @@ function updateLifecyclePlan(){
      const addEvent=(name,cost)=>{const future=cost*Math.pow(1+inflation,y);cumulativeSolar+=future;events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');};
      // PCSは保証基準の20年間は費用計上せず、21年目以降に選択周期で更新を想定
      if(y>=21&&pcsCycle>0&&(y-20)%pcsCycle===0&&pcsCost>0)addEvent('PCS更新',pcsCost);
-     if(y===batteryYear&&batteryYear>0&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
-     if(y===panelYear&&panelYear>0&&panelCost>0)addEvent('パネル更新',panelCost);
+     if(y>=21&&y===batteryYear&&batteryYear>20&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
+     if(y>=21&&y===panelYear&&panelYear>20&&panelCost>0)addEvent('パネル更新',panelCost);
    }
    buy.push(Math.round(cumulativeBuy/10000));
    solar.push(Math.round(cumulativeSolar/10000));
