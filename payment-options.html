@@ -6,6 +6,8 @@
 <title>導入手段 (Payment Options) — じぶん電気 提案書作成ツール</title>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/api/loan-rate-config.js"></script>
+<script src="loan-rate-registry.js"></script>
 <style>
 :root {
   --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
@@ -146,7 +148,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <label>ローン会社・金利区分</label>
         <select id="po-lender" onchange="syncLoanRepaymentLimitPO();updateLoan();updateSlideLink()">
           <option value="manual">金利を手入力（従来方式）</option>
-          <option value="orico_reform">オリコ｜Webリフォームローン</option>
+          <option value="orico_fixed">オリコ｜固定金利（太陽光・蓄電池／リフォーム）</option>
+          <option value="orico_solar_variable">オリコ｜変動金利（太陽光・蓄電池）</option>
+          <option value="orico_general_variable">オリコ｜変動金利（一般リフォーム）</option>
           <option value="jaccs_fixed">ジャックス｜固定金利</option>
           <option value="jaccs_variable">ジャックス｜変動金利</option>
         </select>
@@ -159,7 +163,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
         <div class="field">
           <label>返済期間</label>
-          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
+          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコ固定金利は最大120回、変動金利は最大180回です。</div>
           <select id="po-lc" onchange="updateLoan()">
             <option value="36">3年（36回）</option>
             <option value="60">5年（60回）</option>
@@ -464,7 +468,9 @@ function setMode(mode) {
 
 // 毎月の金利は提供された会社資料だけを使用。未登録月は計算を停止する。
 const PO_MONTHLY_RATES = {
-  orico_reform: {name:'オリコ Webリフォームローン', min:500000,max:10000000,minCount:12,maxCount:120,rates:{'2026-10':5.25}},
+  orico_fixed: {name:'オリコ 固定金利（太陽光・蓄電池／リフォーム）',min:100000,max:10000000,minCount:6,maxCount:120,rates:{'2026-11':5.40},source:'オリコ Webリフォームローンのご案内（固定金利）・2026年11月'},
+  orico_solar_variable: {name:'オリコ 変動金利（太陽光・蓄電池）',min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.50},source:'オリコ 【11月度】【太陽光用】変動金利型Webリフォームローンチラシ',variable:true},
+  orico_general_variable: {name:'オリコ 変動金利（一般リフォーム）',min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.80},source:'オリコ 【11月度】【一般リフォーム用】変動金利型Webリフォームローンチラシ',variable:true},
   jaccs_fixed: {name:'ジャックス 固定金利', min:200000,max:null,minCount:6,maxCount:120,rates:{'2026-11':5.40,'2026-12':5.70}},
   jaccs_variable: {name:'ジャックス 変動金利',min:1000000,max:null,minCount:60,maxCount:240,rates:{'2026-11':4.45,'2026-12':4.45},variable:true}
 };
@@ -472,17 +478,19 @@ function poYearMonth() {
   const parts = new Intl.DateTimeFormat('en-US',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit'}).formatToParts(new Date());
   return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
-// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+// 2026年11月オリコ: 固定金利は最大120回、変動金利2商品は最大180回。
 function syncLoanRepaymentLimitPO() {
   const lender = document.getElementById('po-lender');
   const countSelect = document.getElementById('po-lc');
   if (!lender || !countSelect) return;
-  const isOrico = lender.value === 'orico_reform';
+  const product = PO_MONTHLY_RATES[lender.value];
+  const isOrico = lender.value.indexOf('orico_') === 0;
+  const limit = isOrico && product ? product.maxCount : null;
   Array.from(countSelect.options).forEach(option => {
-    option.disabled = isOrico && Number(option.value) > 120;
+    option.disabled = limit !== null && Number(option.value) > limit;
   });
-  if (isOrico && Number(countSelect.value) > 120) {
-    countSelect.value = '120';
+  if (limit !== null && Number(countSelect.value) > limit) {
+    countSelect.value = String(limit);
   }
   const note = document.getElementById('po-lc-orico-limit');
   if (note) note.style.display = isOrico ? '' : 'none';
@@ -498,7 +506,10 @@ function poApplyLenderRate(principal,count) {
     status.textContent='手入力の金利を使用します。';
     return true;
   }
-  const product=PO_MONTHLY_RATES[sel.value], month=poYearMonth(), rate=product && product.rates[month];
+  const product=PO_MONTHLY_RATES[sel.value], month=poYearMonth();
+  const fallback=product && product.rates[month];
+  const sharedRate=window.LoanRateRegistry && window.LoanRateRegistry.get(sel.value,month,fallback,product && product.source || '添付の金利資料');
+  const rate=sharedRate ? sharedRate.rate : undefined;
   input.readOnly=true;
   if (rate===undefined) {
     input.value='';
@@ -513,7 +524,8 @@ function poApplyLenderRate(principal,count) {
       +product.minCount+'〜'+product.maxCount+'回）';
     return false;
   }
-  status.textContent=month+'の適用金利：年'+rate.toFixed(2)+'%。'
+  status.textContent=month+'の適用金利：年'+rate.toFixed(2)+'%（'+
+    (sharedRate ? (sharedRate.shared ? '共有DB登録値：' : '資料登録値：') + sharedRate.source : '資料登録値')+'）。'
     +(product.variable?'変動金利のため将来の返済額は変わる可能性があります。':'')
     +'正式な返済額はローン会社へご確認ください。';
   return true;
@@ -838,6 +850,15 @@ function updateSlideLink() {
   document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
 }
 
+// 金利マスタは共有DBから読み込み、登録がある月は既存の組込値より優先する。
+window.addEventListener('load', function () {
+  if (!window.LoanRateRegistry) return;
+  window.LoanRateRegistry.attach({
+    selector:'po-lender',status:'po-rate-status',
+    recalculate:function () {updateLoan();updateSlideLink();}
+  });
+  window.LoanRateRegistry.load();
+});
 // ── 初期化 ──
 updateLoan();
 
