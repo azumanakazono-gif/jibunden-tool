@@ -698,6 +698,30 @@ html,body{
 .jd-energy-purchase-note strong{font-size:15px;color:#334155}
 @media(max-width:900px){.jd-energy-metric{padding:12px}.jd-energy-metric-label strong{font-size:16px}.jd-energy-metric-value b{font-size:25px}}
 
+
+/* 表紙：縦方向の重心を中央へ。見出し・説明・タグに明確な余白を設ける */
+.s1{padding:54px 72px 76px}
+.s1-inner{width:100%;max-width:1120px;min-height:100%;justify-content:center;transform:translateY(22px);gap:0}
+.s1-badge{margin-bottom:34px;font-size:12px;letter-spacing:.24em;padding:7px 24px}
+.s1-title{font-size:70px;line-height:1.12;margin-bottom:0}
+.s1-plan-title{font-size:56px!important;margin-top:12px!important;letter-spacing:.04em}
+.s1-sub{font-size:24px;margin-top:28px;margin-bottom:0;letter-spacing:.08em}
+.s1-line{margin:30px auto 24px}
+.s1-description{max-width:850px;font-size:17px;line-height:1.8;color:rgba(255,255,255,.84);letter-spacing:.035em;margin-bottom:28px}
+.s1-tags{gap:12px;flex-wrap:wrap}
+.s1-tag{padding:10px 20px;font-size:15px}
+.s1-corner{bottom:28px;right:42px;font-size:11px}
+@media(max-width:900px){
+ .s1{padding:38px 28px 70px}
+ .s1-inner{transform:translateY(8px)}
+ .s1-title{font-size:56px}
+ .s1-plan-title{font-size:43px!important}
+ .s1-sub{font-size:19px;margin-top:22px}
+ .s1-description{font-size:15px;margin-bottom:22px}
+ .s1-tags{max-width:700px}
+ .s1-tag{font-size:13px;padding:8px 13px}
+}
+
 </style>
 </head>
 <body>
@@ -709,16 +733,16 @@ html,body{
       <div class="s1-grid"></div>
       <div class="s1-glow"></div>
       <div class="s1-inner">
-        <div class="s1-badge">JIBUNDEN ELECTRICITY · 20 YEARS</div>
+        <div class="s1-badge">AZUMA · JIBUN DENKI</div>
         <div class="s1-title"><span class="brand">じぶん電気</span></div>
-        <div class="s1-title" style="font-size:53px;margin-top:4px">20年間の単価比較・ご提案</div>
-        <div class="s1-sub">電気を買い続ける未来から、自分でつくり選べる未来へ</div>
+        <div class="s1-title s1-plan-title">未来設計プラン</div>
+        <div class="s1-sub">電気をつくる。使う。未来に備える。</div>
         <div class="s1-line"></div>
+        <div class="s1-description">お客様の暮らしに合わせた、これからのエネルギーの使い方を一緒に考えます。</div>
         <div class="s1-tags">
-          <span class="s1-tag">1kWhのじぶん電気単価を知る</span>
-          <span class="s1-tag">現金・ローンを比べる</span>
-          <span class="s1-tag">20年間の安心</span>
-          <span class="s1-tag">その先のサポート</span>
+          <span class="s1-tag">つくる電気の単価を知る</span>
+          <span class="s1-tag">導入方法を選ぶ</span>
+          <span class="s1-tag">将来の更新に備える</span>
         </div>
       </div>
       <div class="s1-corner">じぶん電気 提案書 — 20年の安心。その先も、ずっと。</div>
@@ -1595,12 +1619,12 @@ document.addEventListener('touchend',   e => {
 /* 基本提案のPPTXは画面と同じ5ページ。ローン詳細は「詳細資料を見る」から出力可能。 */
 async function exportJibundenCorePPTX() {
   if(typeof PptxGenJS==='undefined'){alert('PPTXライブラリを読み込めませんでした');return;}
-  const ppt=new PptxGenJS();ppt.layout='LAYOUT_16x9';ppt.title='じぶん電気｜20年間の単価比較';
+  const ppt=new PptxGenJS();ppt.layout='LAYOUT_16x9';ppt.title='じぶん電気 未来設計プラン';
   const D='1B4332',G='2D6A4F',L='D8F3DC',W='FFFFFF',M='475569';
   const base=(tag,title,dark=false)=>{const sl=ppt.addSlide();sl.background={color:dark?D:'F8FAFC'};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:.07,fill:{color:G},line:{color:G}});sl.addText(tag,{x:.7,y:.35,w:10,h:.25,fontSize:11,bold:true,color:dark?L:G,fontFace:'Meiryo'});sl.addText(title,{x:.7,y:.8,w:12,h:.65,fontSize:29,bold:true,color:dark?W:D,fontFace:'Meiryo'});return sl;};
   const txt=(sl,t,x,y,w,h,size=16,color=M,bold=false,align='left')=>sl.addText(String(t),{x,y,w,h,fontSize:size,color,bold,align,valign:'mid',fontFace:'Meiryo',margin:.06,breakLine:false});
   const box=(sl,x,y,w,h,fill='FFFFFF',line='D1E8DC')=>sl.addShape(ppt.ShapeType.roundRect,{x,y,w,h,rectRadius:.12,fill:{color:fill},line:{color,width:1.3}});
-  {const sl=ppt.addSlide();sl.background={color:D};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:7.5,fill:{color:D},line:{color:D}});txt(sl,'じぶん電気',1,1.4,11.3,1,52,L,true,'center');txt(sl,'20年間の単価比較・ご提案',1,2.65,11.3,.7,30,W,true,'center');txt(sl,'電気を買い続ける未来から、自分でつくり選べる未来へ',1,3.75,11.3,.5,20,L,false,'center');txt(sl,'20年の安心。その先も、ずっと。',1,5.55,11.3,.4,18,W,true,'center');}
+  {const sl=ppt.addSlide();sl.background={color:D};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:7.5,fill:{color:D},line:{color:D}});txt(sl,'AZUMA · JIBUN DENKI',1,1.0,11.3,.35,13,L,true,'center');txt(sl,'じぶん電気',1,1.8,11.3,.85,48,L,true,'center');txt(sl,'未来設計プラン',1,2.75,11.3,.7,34,W,true,'center');txt(sl,'電気をつくる。使う。未来に備える。',1,3.8,11.3,.5,21,L,false,'center');txt(sl,'お客様の暮らしに合わせた、これからのエネルギーの使い方を一緒に考えます。',1.2,4.55,10.9,.65,15,W,false,'center');txt(sl,'20年の安心。その先も、ずっと。',1,5.8,11.3,.4,18,W,true,'center');}
   {const sl=base('02 / UNIT COST','20年間のじぶん電気単価比較');const cards=[['🏢 現状','平均買電単価',Number.isFinite(JIBUNDEN_BUY_UNIT)&&JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—','64748B'],['💴 現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1),G],['🏦 ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1),'D4A72C']];cards.forEach((c,i)=>{const x=.65+i*4.25;box(sl,x,1.85,3.95,3.55);sl.addShape(ppt.ShapeType.rect,{x,y:1.85,w:3.95,h:.12,fill:{color:c[3]},line:{color:c[3]}});txt(sl,c[0],x+.15,2.2,3.65,.5,21,D,true,'center');txt(sl,c[2],x+.15,3.05,3.65,1,48,c[3],true,'center');txt(sl,'円/kWh',x+.15,4.0,3.65,.35,17,D,true,'center');txt(sl,c[1],x+.15,4.55,3.65,.45,12,M,false,'center');});box(sl,.75,5.75,11.8,.8,'EEF8F2');txt(sl,'現状は買電単価、現金・ローンは参考じぶん電気単価。維持費・売電収入は含みません。',.95,5.9,11.4,.45,14,M);}
   {const sl=base('03 / GENERATION','つくる電気の量と、使い方を選ぶ',true);box(sl,.8,1.9,5.2,3.9,'F8FAFC');txt(sl,'☀ 年間発電量',1.1,2.25,4.6,.5,23,D,true);txt(sl,JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20/20)+' kWh':'未連携',1.1,3.05,4.6,.85,39,G,true);txt(sl,'20年間 '+(JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20)+' kWh':'未連携'),1.1,4.2,4.6,.45,17,M);txt(sl,'総発電量',1.1,4.8,4.6,.35,13,G,true);box(sl,6.6,1.9,5.85,3.9,'F8FAFC');txt(sl,'🏠 発電した電気の使い方',6.95,2.25,5.15,.5,22,D,true);txt(sl,'余剰売電量',6.95,3.05,2.5,.4,15,M);txt(sl,SURPLUS_KWH_YEAR>0?fmt(SURPLUS_KWH_YEAR)+' kWh/年':'未連携',9.45,3.05,2.5,.4,17,G,true,'right');txt(sl,'自家消費相当量（差引参考）',6.95,3.9,3.5,.4,14,M);txt(sl,JIBUNDEN_HAS_GEN&&SURPLUS_KWH_YEAR>0?fmt(JIBUNDEN_GEN20/20-SURPLUS_KWH_YEAR)+' kWh/年':'未連携',10,3.9,2.0,.4,15,G,true,'right');txt(sl,'自家消費相当量は総発電量から余剰売電量を引いた参考値です。',6.95,4.7,5.1,.65,12,M);txt(sl,'地域でつくり、地域で使い、地域の事業者が支える。',1,6.25,11.3,.45,18,L,true,'center');}
   {const sl=base('04 / PAYMENT CHOICE','じぶん電気の始め方を選ぶ');box(sl,.8,1.9,5.65,3.9,'EAF5ED');box(sl,6.85,1.9,5.65,3.9,'FBF6E8');txt(sl,'💴 現金一括購入',1.1,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.1,3.1,5.05,.85,40,G,true);txt(sl,'じぶん電気単価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+' 円/kWh',1.1,4.3,5.05,.4,17,D,true);txt(sl,'金利負担なし。補助金適用後の設備購入額。',1.1,5.0,5.05,.5,14,M);txt(sl,'🏦 ローン活用',7.15,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.15,3.1,5.05,.85,40,G,true);txt(sl,'月々 '+fmt(pmt)+' 円 / '+MONTHS+' 回',7.15,4.3,5.05,.4,17,D,true);txt(sl,'利息込みの総支払額。変動金利は将来変わる場合があります。',7.15,5.0,5.05,.6,14,M);}
