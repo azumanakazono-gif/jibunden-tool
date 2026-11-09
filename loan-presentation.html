@@ -684,7 +684,7 @@ html,body{
         <div class="s1-sub">電気を買い続ける未来から、自分でつくり選べる未来へ</div>
         <div class="s1-line"></div>
         <div class="s1-tags">
-          <span class="s1-tag">1kWhの原価を知る</span>
+          <span class="s1-tag">1kWhのじぶん電気単価を知る</span>
           <span class="s1-tag">現金・ローンを比べる</span>
           <span class="s1-tag">20年間の安心</span>
           <span class="s1-tag">その先のサポート</span>
@@ -700,7 +700,7 @@ html,body{
         <div class="slide-num">SLIDE 02 / UNIT COST</div>
         <div class="slide-ttl">☀️ <span class="g">20年間のじぶん電気単価比較</span></div>
       </div>
-      <div class="jd-lead">いま電気を買う単価と、自分で電気をつくる原価。<br>お客様の条件で、3つを並べてご覧いただけます。</div>
+      <div class="jd-lead">いま電気を買う単価と、自分でつくる電気のじぶん電気単価。<br>お客様の条件で、3つを並べてご覧いただけます。</div>
       <div class="jd-compare">
         <div class="jd-tile jd-tile-now">
           <h3>🏢 現状</h3>
@@ -718,7 +718,7 @@ html,body{
           <div class="jd-detail">頭金＋利息込み総返済額<br>÷ 20年間の総発電量</div>
         </div>
       </div>
-      <div class="jd-note">「現状」は買う電気の単価、「現金・ローン」は発電原価です。維持費・売電収入などを含まない参考値であり、同一の料金条件を比較したものではありません。</div>
+      <div class="jd-note">「現状」は電力会社から購入する電気の単価、「現金・ローン」は20年間の総発電量を基準にしたじぶん電気単価です。維持費・売電収入などを含まない参考値であり、同一の料金条件を比較したものではありません。</div>
     </div>
 
     <!-- ── MAIN SLIDE 3：つくる電気と使い方 ── -->
@@ -760,13 +760,13 @@ html,body{
           <h3>💴 現金一括購入</h3>
           <div class="jd-big"><span id="jd-net-man">—</span><span style="font-size:19px"> 万円</span></div>
           <p class="jd-small">補助金を差し引いた設備購入額。借入金利の負担がありません。</p>
-          <div class="jd-tag">発電原価 <span id="jd-cash-cost-small">—</span> 円/kWh</div>
+          <div class="jd-tag">じぶん電気単価 <span id="jd-cash-cost-small">—</span> 円/kWh</div>
         </div>
         <div class="jd-panel">
           <h3>🏦 ローン活用</h3>
           <div class="jd-big"><span id="jd-loan-total-man">—</span><span style="font-size:19px"> 万円</span></div>
           <p class="jd-small">頭金と利息込みの総支払額。月々の返済額 <b id="jd-monthly-yen">—</b> 円、<span id="jd-loan-years">—</span> 年の想定です。</p>
-          <div class="jd-tag">発電原価 <span id="jd-loan-cost-small">—</span> 円/kWh</div>
+          <div class="jd-tag">じぶん電気単価 <span id="jd-loan-cost-small">—</span> 円/kWh</div>
         </div>
       </div>
       <div class="jd-note">ローンの金利・返済総額は契約条件と公式試算結果で確認します。変動金利は将来変更される場合があります。</div>
@@ -802,9 +802,9 @@ html,body{
       <div class="why-flow">
         <div class="why-side"><div class="why-icon">🏢</div><h3>買い続ける電気</h3><p>使用量と料金単価の変化により、毎月の電気代が決まります。</p><strong>料金の決定を電力会社に委ねる暮らし</strong></div>
         <div class="why-arrow">→</div>
-        <div class="why-side why-own"><div class="why-icon">☀️</div><h3>自分でつくる電気</h3><p>発電設備の費用と発電量から、自分の電気の原価を把握できます。</p><strong>原価を知り、使い方を選べる暮らし</strong></div>
+        <div class="why-side why-own"><div class="why-icon">☀️</div><h3>自分でつくる電気</h3><p>発電設備の費用と20年間の総発電量から、自分の電気の単価を把握できます。</p><strong>じぶん電気単価を知り、使い方を選べる暮らし</strong></div>
       </div>
-      <div class="jd-note">じぶん電気は、単に電気代を下げる提案ではありません。自分で電気をつくり、その原価を知り、将来の使い方を選べるようにする提案です。</div>
+      <div class="jd-note">じぶん電気は、単に電気代を下げる提案ではありません。自分で電気をつくり、その単価を知り、将来の使い方を選べるようにする提案です。</div>
     </div>
 
     <!-- ── 詳細ストーリー 2：発電量と使い方 ── -->
@@ -812,15 +812,15 @@ html,body{
       <div class="sh"><div class="slide-num">DETAIL 02 / GENERATION</div><div class="slide-ttl">20年間で、<span class="g">どれだけ発電するか</span></div></div>
       <div class="generation-hero"><div><div class="g-label">年間発電量（試算）</div><div class="g-number" id="story-annual-gen">—</div><div class="g-unit">kWh / 年</div></div><div class="g-multiply">× 20年間</div><div><div class="g-label">20年間の総発電量</div><div class="g-number" id="story-total-gen">—</div><div class="g-unit">kWh</div></div></div>
       <div class="power-flow"><div class="power-node"><span>☀️</span><b>太陽光で発電</b></div><div class="power-line">→</div><div class="power-split"><div class="power-node own"><span>🏠</span><b>自家消費</b><small>電力会社からの購入を減らす</small></div><div class="power-node surplus"><span>🔌</span><b>余剰売電</b><small>使い切れない電気を売る</small></div></div></div>
-      <div class="jd-note">総発電量は発電原価を計算するための分母です。自家消費量と売電量は別の指標として管理し、混同しません。</div>
+      <div class="jd-note">20年間の総発電量は、じぶん電気単価を計算するための分母です。自家消費量と売電量は別の指標として管理し、混同しません。</div>
     </div>
 
     <!-- ── 詳細ストーリー 3：単価の意味と計算根拠 ── -->
     <div class="slide jd-supplemental jd-story-detail jd-story-unit" data-idx="detail-unit">
       <div class="sh"><div class="slide-num">DETAIL 03 / UNIT COST</div><div class="slide-ttl"><span class="g">3つの単価</span>を同じ条件で読み解く</div></div>
       <div class="unit-story-grid"><div class="unit-story-card"><h3>🏢 現状</h3><div class="unit-story-number" id="story-buy-unit">—</div><b>円/kWh</b><p>現在の平均買電単価</p></div><div class="unit-story-card"><h3>💴 現金一括</h3><div class="unit-story-number" id="story-cash-unit">—</div><b>円/kWh</b><p>補助金控除後の設備購入額 ÷ 20年総発電量</p></div><div class="unit-story-card"><h3>🏦 ローン活用</h3><div class="unit-story-number" id="story-loan-unit">—</div><b>円/kWh</b><p>頭金＋利息込み総返済額 ÷ 20年総発電量</p></div></div>
-      <div class="formula-story"><div>現金発電原価 = <b>補助金控除後の設備購入額</b> ÷ 20年総発電量</div><div>ローン発電原価 = <b>頭金＋公式返済総額</b> ÷ 20年総発電量</div></div>
-      <div class="jd-note">現状は買電単価、現金・ローンは発電原価です。比較の意味が異なるため、維持費・売電収入を含む総合的な経済効果とは区別して説明します。</div>
+      <div class="formula-story"><div>現金購入時のじぶん電気単価 = <b>補助金控除後の設備購入額</b> ÷ 20年総発電量</div><div>ローン活用時のじぶん電気単価 = <b>頭金＋公式返済総額</b> ÷ 20年総発電量</div></div>
+      <div class="jd-note">現状は買電単価、現金・ローンは20年間の総発電量を基準にしたじぶん電気単価です。比較の意味が異なるため、維持費・売電収入を含む総合的な経済効果とは区別して説明します。</div>
     </div>
 
     <!-- ── 詳細ストーリー 4：ローン会社と返済計画 ── -->
@@ -835,7 +835,7 @@ html,body{
     <div class="slide jd-supplemental jd-story-detail jd-story-economics" data-idx="detail-economics">
       <div class="sh"><div class="slide-num">DETAIL 05 / 20-YEAR VIEW</div><div class="slide-ttl">20年間の支出と、<span class="g">電気の価値</span>を確認する</div></div>
       <div class="econ-story-grid"><div class="econ-card"><span>現金購入の対象負担額</span><strong id="story-cash-total">—</strong><small>設備費 − 補助金</small></div><div class="econ-card"><span>ローン活用の総支払額</span><strong id="story-loan-total-2">—</strong><small>頭金＋公式返済総額</small></div><div class="econ-card"><span>20年間の総発電量</span><strong id="story-gen-total-2">—</strong><small>年間発電量 × 20年</small></div></div>
-      <div class="econ-caveat"><b>経済効果を説明するときの注意</b><p>発電原価と、電気代削減額・売電収入・維持費を含めた経済効果は別の計算です。累積支出や回収年数は、電気料金上昇率、売電単価、設備維持費などの前提を明示した補足資料として説明します。</p></div>
+      <div class="econ-caveat"><b>経済効果を説明するときの注意</b><p>じぶん電気単価と、電気代削減額・売電収入・維持費を含めた経済効果は別の計算です。累積支出や回収年数は、電気料金上昇率、売電単価、設備維持費などの前提を明示した補足資料として説明します。</p></div>
       <div class="jd-note">20年間は設備保証を基準とした比較期間です。保証期間を超える発電・無償対応を前提にした収支は約束しません。</div>
     </div>
 
@@ -1561,9 +1561,9 @@ async function exportJibundenCorePPTX() {
   const txt=(sl,t,x,y,w,h,size=16,color=M,bold=false,align='left')=>sl.addText(String(t),{x,y,w,h,fontSize:size,color,bold,align,valign:'mid',fontFace:'Meiryo',margin:.06,breakLine:false});
   const box=(sl,x,y,w,h,fill='FFFFFF',line='D1E8DC')=>sl.addShape(ppt.ShapeType.roundRect,{x,y,w,h,rectRadius:.12,fill:{color:fill},line:{color,width:1.3}});
   {const sl=ppt.addSlide();sl.background={color:D};sl.addShape(ppt.ShapeType.rect,{x:0,y:0,w:13.333,h:7.5,fill:{color:D},line:{color:D}});txt(sl,'じぶん電気',1,1.4,11.3,1,52,L,true,'center');txt(sl,'20年間の単価比較・ご提案',1,2.65,11.3,.7,30,W,true,'center');txt(sl,'電気を買い続ける未来から、自分でつくり選べる未来へ',1,3.75,11.3,.5,20,L,false,'center');txt(sl,'20年の安心。その先も、ずっと。',1,5.55,11.3,.4,18,W,true,'center');}
-  {const sl=base('02 / UNIT COST','20年間のじぶん電気単価比較');const cards=[['🏢 現状','平均買電単価',Number.isFinite(JIBUNDEN_BUY_UNIT)&&JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—','64748B'],['💴 現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1),G],['🏦 ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1),'D4A72C']];cards.forEach((c,i)=>{const x=.65+i*4.25;box(sl,x,1.85,3.95,3.55);sl.addShape(ppt.ShapeType.rect,{x,y:1.85,w:3.95,h:.12,fill:{color:c[3]},line:{color:c[3]}});txt(sl,c[0],x+.15,2.2,3.65,.5,21,D,true,'center');txt(sl,c[2],x+.15,3.05,3.65,1,48,c[3],true,'center');txt(sl,'円/kWh',x+.15,4.0,3.65,.35,17,D,true,'center');txt(sl,c[1],x+.15,4.55,3.65,.45,12,M,false,'center');});box(sl,.75,5.75,11.8,.8,'EEF8F2');txt(sl,'現状は買電単価、現金・ローンは参考発電原価。維持費・売電収入は含みません。',.95,5.9,11.4,.45,14,M);}
+  {const sl=base('02 / UNIT COST','20年間のじぶん電気単価比較');const cards=[['🏢 現状','平均買電単価',Number.isFinite(JIBUNDEN_BUY_UNIT)&&JIBUNDEN_BUY_UNIT>0?JIBUNDEN_BUY_UNIT.toFixed(1):'—','64748B'],['💴 現金一括','20年総発電量ベース',JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1),G],['🏦 ローン活用','利息込み・20年総発電量ベース',JIBUNDEN_LOAN_UNIT===null?'—':JIBUNDEN_LOAN_UNIT.toFixed(1),'D4A72C']];cards.forEach((c,i)=>{const x=.65+i*4.25;box(sl,x,1.85,3.95,3.55);sl.addShape(ppt.ShapeType.rect,{x,y:1.85,w:3.95,h:.12,fill:{color:c[3]},line:{color:c[3]}});txt(sl,c[0],x+.15,2.2,3.65,.5,21,D,true,'center');txt(sl,c[2],x+.15,3.05,3.65,1,48,c[3],true,'center');txt(sl,'円/kWh',x+.15,4.0,3.65,.35,17,D,true,'center');txt(sl,c[1],x+.15,4.55,3.65,.45,12,M,false,'center');});box(sl,.75,5.75,11.8,.8,'EEF8F2');txt(sl,'現状は買電単価、現金・ローンは参考じぶん電気単価。維持費・売電収入は含みません。',.95,5.9,11.4,.45,14,M);}
   {const sl=base('03 / GENERATION','つくる電気の量と、使い方を選ぶ',true);box(sl,.8,1.9,5.2,3.9,'F8FAFC');txt(sl,'☀ 年間発電量',1.1,2.25,4.6,.5,23,D,true);txt(sl,JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20/20)+' kWh':'未連携',1.1,3.05,4.6,.85,39,G,true);txt(sl,'20年間 '+(JIBUNDEN_HAS_GEN?fmt(JIBUNDEN_GEN20)+' kWh':'未連携'),1.1,4.2,4.6,.45,17,M);txt(sl,'総発電量',1.1,4.8,4.6,.35,13,G,true);box(sl,6.6,1.9,5.85,3.9,'F8FAFC');txt(sl,'🏠 発電した電気の使い方',6.95,2.25,5.15,.5,22,D,true);txt(sl,'余剰売電量',6.95,3.05,2.5,.4,15,M);txt(sl,SURPLUS_KWH_YEAR>0?fmt(SURPLUS_KWH_YEAR)+' kWh/年':'未連携',9.45,3.05,2.5,.4,17,G,true,'right');txt(sl,'自家消費相当量（差引参考）',6.95,3.9,3.5,.4,14,M);txt(sl,JIBUNDEN_HAS_GEN&&SURPLUS_KWH_YEAR>0?fmt(JIBUNDEN_GEN20/20-SURPLUS_KWH_YEAR)+' kWh/年':'未連携',10,3.9,2.0,.4,15,G,true,'right');txt(sl,'自家消費相当量は総発電量から余剰売電量を引いた参考値です。',6.95,4.7,5.1,.65,12,M);txt(sl,'地域でつくり、地域で使い、地域の事業者が支える。',1,6.25,11.3,.45,18,L,true,'center');}
-  {const sl=base('04 / PAYMENT CHOICE','じぶん電気の始め方を選ぶ');box(sl,.8,1.9,5.65,3.9,'EAF5ED');box(sl,6.85,1.9,5.65,3.9,'FBF6E8');txt(sl,'💴 現金一括購入',1.1,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.1,3.1,5.05,.85,40,G,true);txt(sl,'発電原価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+' 円/kWh',1.1,4.3,5.05,.4,17,D,true);txt(sl,'金利負担なし。補助金適用後の設備購入額。',1.1,5.0,5.05,.5,14,M);txt(sl,'🏦 ローン活用',7.15,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.15,3.1,5.05,.85,40,G,true);txt(sl,'月々 '+fmt(pmt)+' 円 / '+MONTHS+' 回',7.15,4.3,5.05,.4,17,D,true);txt(sl,'利息込みの総支払額。変動金利は将来変わる場合があります。',7.15,5.0,5.05,.6,14,M);}
+  {const sl=base('04 / PAYMENT CHOICE','じぶん電気の始め方を選ぶ');box(sl,.8,1.9,5.65,3.9,'EAF5ED');box(sl,6.85,1.9,5.65,3.9,'FBF6E8');txt(sl,'💴 現金一括購入',1.1,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_CASH_TOTAL/10000).toFixed(1)+' 万円',1.1,3.1,5.05,.85,40,G,true);txt(sl,'じぶん電気単価 '+(JIBUNDEN_CASH_UNIT===null?'—':JIBUNDEN_CASH_UNIT.toFixed(1))+' 円/kWh',1.1,4.3,5.05,.4,17,D,true);txt(sl,'金利負担なし。補助金適用後の設備購入額。',1.1,5.0,5.05,.5,14,M);txt(sl,'🏦 ローン活用',7.15,2.3,5.05,.5,23,D,true);txt(sl,(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1)+' 万円',7.15,3.1,5.05,.85,40,G,true);txt(sl,'月々 '+fmt(pmt)+' 円 / '+MONTHS+' 回',7.15,4.3,5.05,.4,17,D,true);txt(sl,'利息込みの総支払額。変動金利は将来変わる場合があります。',7.15,5.0,5.05,.6,14,M);}
   {const sl=base('05 / LONG-TERM SUPPORT','20年の安心。その先も、ずっと。',true);box(sl,.8,2.0,5.35,3.1,'F0FDF4');box(sl,7.15,2.0,5.35,3.1,'F1F5F9');txt(sl,'20年間',1.15,2.45,4.65,.8,42,G,true,'center');txt(sl,'設備保証の安心',1.15,3.35,4.65,.45,22,D,true,'center');txt(sl,'対象設備・保証条件に基づく長期保証',1.15,4.15,4.65,.5,15,M,false,'center');txt(sl,'→',6.2,3.2,.8,.6,32,L,true,'center');txt(sl,'21年目以降も',7.45,2.45,4.75,.8,34,D,true,'center');txt(sl,'継続的に支える',7.45,3.35,4.75,.45,22,D,true,'center');txt(sl,'点検・修理・設備更新などの相談・対応',7.45,4.15,4.75,.5,15,M,false,'center');txt(sl,'※21年目以降の保証延長や無償修理を約束するものではありません。内容・費用は個別に確認します。',.9,5.65,11.5,.6,13,L);}
   await ppt.writeFile({fileName:'じぶん電気_20年間の単価比較_ご提案.pptx'});
 }
