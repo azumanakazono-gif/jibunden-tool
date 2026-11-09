@@ -747,6 +747,37 @@ html,body{
 .lifecycle-cost-input span{font-size:13px;color:#64748b}
 @media(max-width:850px){.lifecycle-costs .lifecycle-cost-row{grid-template-columns:minmax(135px,40%) minmax(0,1fr);gap:8px;padding:7px 9px}}
 
+
+/* 9ページ目：入力カードの文字切れと下端のはみ出しを防ぐ */
+.jd-story-lifecycle{box-sizing:border-box;height:720px;padding:10px 30px 8px;gap:5px;overflow:hidden}
+.jd-story-lifecycle .sh{flex:0 0 auto;margin:0}
+.jd-story-lifecycle .slide-num{font-size:12px;line-height:1.25;margin:0 0 3px}
+.jd-story-lifecycle .slide-ttl{font-size:27px;line-height:1.18;margin:0}
+.lifecycle-general-controls{flex:0 0 auto;gap:6px}
+.lifecycle-general-controls .life-control{min-height:48px;padding:4px 8px;gap:3px;box-sizing:border-box}
+.lifecycle-general-controls .life-control label{display:block;min-height:13px;font-size:10px;line-height:1.3;white-space:nowrap}
+.lifecycle-general-controls .life-control input,.lifecycle-general-controls .life-control select{height:28px;min-height:28px;box-sizing:border-box;padding:3px 7px;font-size:12px;line-height:1.25}
+.lifecycle-equipment-grid{flex:0 0 auto;gap:9px}
+.lifecycle-equipment-card{min-height:0;padding:5px;gap:4px;box-sizing:border-box}
+.lifecycle-equipment-card .life-control{min-height:52px;padding:5px 8px;gap:3px;box-sizing:border-box}
+.lifecycle-equipment-card .life-control label{display:block;min-height:14px;font-size:10px;line-height:1.3;white-space:nowrap}
+.lifecycle-equipment-card .life-control select{height:29px;min-height:29px;box-sizing:border-box;padding:3px 7px;font-size:12px;line-height:1.25}
+.lifecycle-cost-card{min-height:52px;padding:5px 8px;gap:3px;box-sizing:border-box}
+.lifecycle-cost-card label{min-height:14px;font-size:10px;line-height:1.3;white-space:nowrap}
+.lifecycle-cost-input input{height:29px;min-height:29px;box-sizing:border-box;padding:3px 8px;font-size:13px;line-height:1.25}
+.lifecycle-chart{height:350px;min-height:350px;max-height:350px;flex:0 0 350px;box-sizing:border-box;padding:7px}
+.lifecycle-summary{flex:0 0 auto;min-height:30px;max-height:34px;overflow:hidden;padding:5px 8px;font-size:9px;line-height:1.3}
+.jd-story-lifecycle .jd-note{flex:0 0 auto;max-height:42px;overflow:hidden;padding:4px 8px;font-size:9px;line-height:1.3}
+@media(max-width:850px){
+ .jd-story-lifecycle{padding:9px 14px 7px;gap:5px}
+ .jd-story-lifecycle .slide-ttl{font-size:22px}
+ .lifecycle-general-controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .lifecycle-equipment-grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+ .lifecycle-equipment-card{display:flex;flex-direction:column;padding:4px}
+ .lifecycle-equipment-card .life-control{min-height:50px}
+ .lifecycle-cost-card{min-height:50px}
+ .lifecycle-chart{height:320px;min-height:320px;max-height:320px;flex-basis:320px}
+}
 </style>
 </head>
 <body>
@@ -950,7 +981,7 @@ html,body{
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
       <div id="lifecycle-save-status" aria-live="polite" style="font-size:10px;color:#2D6A4F;min-height:14px">設定を変更すると顧客データへの保存を依頼します。</div>
-      <div class="jd-note">20年間のじぶん電気単価と設備保証の計算基準は変更しません。PCS更新費用は20年間計上せず、21年目以降に設定周期で試算します。蓄電池は20年目以降、パネルは初年度以降の任意の交換年を設定できます。交換費用は将来の参考想定であり、実際の更新・保証対応を約束するものではありません。20年間の保証条件と21年目以降の継続サポートは区別します。</div>
+      <div class="jd-note">20年間の設備保証を前提に、PCS交換費用は21年目以降に計上します。蓄電池は20年目以降、パネルは設定した年に計上します。交換費用は現在価格を物価上昇率で換算した参考値です。実際の更新・保証対応を約束するものではありません。</div>
     </div>
     <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
     
