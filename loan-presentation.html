@@ -947,6 +947,7 @@ html,body{
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
       <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
+      <div id="lifecycle-save-status" aria-live="polite" style="font-size:10px;color:#2D6A4F;min-height:14px">設定を変更すると顧客データへの保存を依頼します。</div>
       <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCS・蓄電池・パネルの更新費用は、20年間の保証期間中は計上せず、21年目以降の更新想定のみを反映します。PCSは21年目以降に10年または15年周期、蓄電池・パネルは21年目以降の任意の時期を設定します。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
     </div>
     <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
@@ -1284,8 +1285,34 @@ function updateLifecyclePlan(){
   summary.textContent='表示期間：'+years+'年間｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
  }
 }
+function readLifecyclePlanFromUrl(){
+ try{
+  const raw=params.get('lifecyclePlan');
+  if(!raw)return;
+  const plan=JSON.parse(raw);
+  const fields={'life-years':'years','life-pcs-cycle':'pcsCycle','life-battery-year':'batteryYear','life-panel-year':'panelYear','life-inflation':'inflation','life-electric':'electricRate','life-pcs-cost':'pcsCost','life-battery-cost':'batteryCost','life-panel-cost':'panelCost'};
+  Object.entries(fields).forEach(([id,key])=>{const el=document.getElementById(id);if(el&&plan[key]!==undefined&&plan[key]!==null)el.value=String(plan[key]);});
+ }catch(e){console.warn('[将来設計] 保存済み設定の復元に失敗:',e);}
+}
+function collectLifecyclePlan(){
+ const num=id=>{const v=Number(document.getElementById(id)?.value);return Number.isFinite(v)?v:0;};
+ return {version:1,years:num('life-years'),pcsCycle:num('life-pcs-cycle'),batteryYear:num('life-battery-year'),panelYear:num('life-panel-year'),inflation:num('life-inflation'),electricRate:num('life-electric'),pcsCost:num('life-pcs-cost'),batteryCost:num('life-battery-cost'),panelCost:num('life-panel-cost'),updatedAt:new Date().toISOString()};
+}
+function publishLifecyclePlan(){
+ const payload={type:'jibunden-lifecycle-plan',proposalId:params.get('proposalId')||'',customerName:params.get('customerName')||'',lifecyclePlan:collectLifecyclePlan()};
+ const status=document.getElementById('lifecycle-save-status');
+ try{
+  localStorage.setItem('jibunden_lifecycle_update',JSON.stringify(payload));
+  if(window.opener&&!window.opener.closed)window.opener.postMessage(payload,location.origin);
+  if(status)status.textContent=params.get('proposalId')?'顧客DBへの保存を依頼しました':'設定を一時保存しました。顧客データ保存時にDBへ反映します。';
+ }catch(e){if(status)status.textContent='設定の保存に失敗しました。';console.error(e);}
+}
 function initLifecyclePlan(){
- ['life-years','life-pcs-cycle','life-battery-year','life-panel-year','life-inflation','life-electric','life-pcs-cost','life-battery-cost','life-panel-cost'].forEach(id=>document.getElementById(id)?.addEventListener('change',updateLifecyclePlan));
+ readLifecyclePlanFromUrl();
+ ['life-years','life-pcs-cycle','life-battery-year','life-panel-year','life-inflation','life-electric','life-pcs-cost','life-battery-cost','life-panel-cost'].forEach(id=>{
+  const el=document.getElementById(id);
+  el?.addEventListener('change',()=>{updateLifecyclePlan();publishLifecyclePlan();});
+ });
  updateLifecyclePlan();
 }
 
