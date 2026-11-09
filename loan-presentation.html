@@ -1565,22 +1565,25 @@ function buildDots() {
 }
 
 function goTo(idx) {
-  slides[current].classList.remove('active');
-  dotsEl.children[current].classList.remove('active');
+  if (!slides.length || !TOTAL) return;
+  if (slides[current]) slides[current].classList.remove('active');
+  if (dotsEl.children[current]) dotsEl.children[current].classList.remove('active');
   current = Math.max(0, Math.min(idx, TOTAL - 1));
-  slides[current].classList.add('active');
-  dotsEl.children[current].classList.add('active');
-  counter.textContent = (current + 1) + ' / ' + TOTAL;
-   if (chartSlideIdx >= 0 && current === chartSlideIdx && !chartBuilt) {
+  if (slides[current]) slides[current].classList.add('active');
+  if (dotsEl.children[current]) dotsEl.children[current].classList.add('active');
+  if (counter) counter.textContent = (current + 1) + ' / ' + TOTAL;
+  if (chartSlideIdx >= 0 && current === chartSlideIdx && !chartBuilt) {
     chartBuilt = true;
-    setTimeout(build20YChart, 80);
+    setTimeout(() => { try { build20YChart(); } catch(error) { console.error('累積支出グラフの描画エラー:',error); } }, 80);
   }
 }
 
 refreshSlideNumbers();
 buildDots();
 goTo(0);
-initLifecyclePlan();
+/* 将来設計グラフの初期化失敗で、スライド操作全体が停止しないよう分離 */
+try { initLifecyclePlan(); }
+catch (error) { console.error('将来設計グラフの初期化エラー:', error); }
 
 /* ── Customer name badge ── */
 (function() {
@@ -1594,8 +1597,11 @@ initLifecyclePlan();
 /* スライド画面の左半分で戻る、右半分で進む。
    下部ナビ・ドット・ボタン上のクリックはページ移動させない。 */
 document.getElementById('slidesWrap').addEventListener('click', event => {
-  if (event.target.closest('.nav,button,a,input,select,textarea,[data-no-slide-nav]')) return;
-  const rect = event.currentTarget.getBoundingClientRect();
+  const target = event.target instanceof Element ? event.target : event.target.parentElement;
+  if (!target || target.closest('.nav,button,a,input,select,textarea,[data-no-slide-nav]')) return;
+  const activeSlide = target.closest('.slide');
+  if (!activeSlide || !activeSlide.classList.contains('active')) return;
+  const rect = activeSlide.getBoundingClientRect();
   const x = event.clientX - rect.left;
   if (x < rect.width / 2) goTo(current - 1);
   else goTo(current + 1);
