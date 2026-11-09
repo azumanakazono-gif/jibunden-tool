@@ -5923,9 +5923,17 @@ function updateSelfSummary(dc, bc, ag, mb, up, remainKWh, remainBill, bk) {
       interestRate:          _effectiveLr,
       loanCount:             _lcVal,
       monthlyBill:           v('mb') || 0,
+      currentBuyUnitPrice:   Number.isFinite(Number(up)) && Number(up) > 0 ? Number(up) : '',
       monthlyRemainingCost:  remainBill || 0,
       customerName:          _cleanCn,
     });
+    // 現在選択中の提案モードの年間発電量を20年間の総発電量に換算
+    const _poAnnualGeneration = proposalMode === 'pv_only'
+      ? Number(document.getElementById('ag-so')?.value)
+      : Number(ag);
+    if (Number.isFinite(_poAnnualGeneration) && _poAnnualGeneration > 0) {
+      _poParams.set('generationKwh20', String(_poAnnualGeneration * 20));
+    }
     if (hasRevenue) {
       _poParams.set('saleIncome',     _monthlySaleIncome);
       _poParams.set('surplusKwhYear', Math.round(surplusKwh));

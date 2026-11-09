@@ -74,6 +74,16 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 .btn-primary  { background: var(--dg); color: #fff; }
 .btn-success  { background: #16a34a; color: #fff; }
 .btn-secondary { background: #e67e22; color: #fff; }
+
+/* じぶん電気単価：既存の緑系UIを継承 */
+.jibunden-unit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
+.jibunden-unit-panel { background:var(--pg); border:1.5px solid var(--border); border-radius:10px; padding:16px 13px; min-width:0; }
+.jibunden-unit-panel h3 { font-size:15px; color:var(--dg); margin-bottom:10px; }
+.jibunden-unit-value { font-size:clamp(21px,3vw,30px); font-weight:800; color:var(--dg); margin:8px 0; overflow-wrap:anywhere; white-space:nowrap; }
+.jibunden-unit-value small { font-size:14px; }
+.jibunden-unit-meta { font-size:12px; color:var(--muted); line-height:1.8; }
+@media (max-width:620px) { .jibunden-unit-grid { grid-template-columns:1fr; } }
+
 </style>
 </head>
 <body>
@@ -245,9 +255,44 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     <p class="note">⚠️ 概算です。実際の返済額はローン会社の計算により異なります。必ず契約前に金融機関へご確認ください。</p>
   </div>
 
+  <!-- 20年間じぶん電気単価（追加案：既存計算は変更しない） -->
+  <div class="section-card" id="jibunden-unit-section">
+    <div class="section-title">☀️ 20年間のじぶん電気単価比較</div>
+    <p style="font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px">今の電気の購入単価と、自分でつくる電気の発電原価を3つ並べて比較します。</p>
+    <div class="jibunden-unit-grid">
+      <div class="jibunden-unit-panel">
+        <h3>🏢 現状（電力会社から購入）</h3>
+        <div class="jibunden-unit-meta">現在の買電単価</div>
+        <div class="jibunden-unit-value"><span id="jibunden-current-unit">—</span> <small>円/kWh</small></div>
+        <div class="result-row"><span>比較条件</span><span style="font-size:12px">現在の契約単価</span></div>
+      </div>
+      <div class="jibunden-unit-panel">
+        <h3>💴 現金一括購入</h3>
+        <div class="jibunden-unit-meta">20年間の総発電量ベースの発電原価</div>
+        <div class="jibunden-unit-value"><span id="jibunden-cash-unit">—</span> <small>円/kWh</small></div>
+        <div class="result-row"><span>設備取得費（補助金適用後）</span><span id="jibunden-cash-total">—</span></div>
+      </div>
+      <div class="jibunden-unit-panel">
+        <h3>🏦 ローン活用</h3>
+        <div class="jibunden-unit-meta">総発電量ベースの発電原価（利息込み）</div>
+        <div class="jibunden-unit-value"><span id="jibunden-loan-unit">—</span> <small>円/kWh</small></div>
+        <div class="result-row"><span>頭金＋返済総額</span><span id="jibunden-loan-total">—</span></div>
+      </div>
+    </div>
+    <div class="result-row" style="margin-top:12px"><span>20年間の総発電量</span><span id="jibunden-kwh20">未取得</span></div>
+    <p class="note" id="jibunden-unit-status" aria-live="polite">総発電量が未連携のため、発電原価は表示していません。</p>
+    <p class="note">※現状は購入する電気の単価、現金・ローンは総発電量で割った参考発電原価であり、同じ意味の単価ではありません。発電原価には維持費・売電収入等を含めていません。正式なじぶん電気単価の費用範囲は本番仕様との照合後に確定します。変動金利・ローン返済額は変わる場合があります。</p>
+    <p style="font-size:12px;color:var(--mg);line-height:1.7;margin-top:12px;font-weight:700">電気を買い続ける未来から、自分で電気をつくり、その原価を知り、自分で使い方を選べる未来へ。<br>20年の安心。その先も、ずっと。</p>
+  </div>
+
   <!-- 20年間累積支出グラフ -->
   <div id="cumulative-chart-section" class="section-card" style="display:none;margin-bottom:16px">
-    <div class="section-title">📈 20年間の累積支出イメージ比較</div>
+    <details id="cumulative-chart-details">
+      <summary class="section-title" style="cursor:pointer;display:flex;align-items:center;justify-content:space-between;list-style:none;margin-bottom:0">
+        <span>📈 20年間の累積支出イメージ比較</span>
+        <span id="cumulative-expand-label" style="font-size:12px;letter-spacing:normal">詳しく見る ▾</span>
+      </summary>
+      <div style="padding-top:16px">
     <div style="position:relative;height:280px">
       <canvas id="cumulative-chart-canvas"></canvas>
       <div id="chart-custom-tooltip" style="display:none;position:absolute;background:rgba(30,41,59,.93);color:#fff;border-radius:8px;padding:8px 12px;font-size:12px;line-height:1.9;pointer-events:none;z-index:10;box-shadow:0 4px 14px rgba(0,0,0,.25);min-width:190px"></div>
@@ -263,6 +308,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <b style="color:#ea580c">🏦 ローン活用：</b>初期費用ゼロで導入でき、手元資金を温存できます。完済後は支出がガクッと下がり、現金購入に近いコストへ収束していきます。
       </div>
     </div>
+      </div>
+    </details>
   </div>
 
   <!-- アクションエリア -->
@@ -303,6 +350,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
       </div>
     </div>
   </div>
+
+
 
 </div>
 
@@ -913,6 +962,15 @@ function updateSlideLink() {
   document.getElementById('slide-link').href = 'loan-presentation.html' + (qs ? '?' + qs : '');
 }
 
+// 累積支出グラフは初期状態で折りたたみ、お客様の希望時のみ開く。
+document.getElementById('cumulative-chart-details')?.addEventListener('toggle', function() {
+  const label = document.getElementById('cumulative-expand-label');
+  if (label) label.textContent = this.open ? '閉じる ▴' : '詳しく見る ▾';
+  if (this.open && _cumulChart) {
+    requestAnimationFrame(() => { _cumulChart.resize(); _cumulChart.update('none'); });
+  }
+});
+
 // ── 初期化 ──
 updateLoan();
 
@@ -1111,6 +1169,51 @@ async function generateLoanPPTX() {
     await buildLoanPPTX({grossMan,subMan,netMan,pmt,ly,loanMonths:count,mb,re});
   }catch(err){console.error(err);alert('エラーが発生しました: '+err.message);}
 }
+
+/* じぶん電気単価の表示専用処理。既存のローン計算式は変更しない。 */
+(function initJibundenUnitComparison() {
+  const q = new URLSearchParams(location.search);
+  const suppliedKwh = q.has('generationKwh20') ? Number(q.get('generationKwh20')) : NaN;
+  const buyUnit = q.has('currentBuyUnitPrice') ? Number(q.get('currentBuyUnitPrice')) : NaN;
+  const kwh20 = Number.isFinite(suppliedKwh) && suppliedKwh > 0 ? suppliedKwh : null;
+  const el = id => document.getElementById(id);
+  const asYen = v => Number.isFinite(v) && v >= 0 ? Math.round(v).toLocaleString('ja-JP') + '円' : '—';
+  const fromText = id => {
+    const t = el(id)?.textContent?.replace(/,/g, '').trim() || '';
+    if (!/^\d+(?:\.\d+)?円$/.test(t)) return null;
+    return Number(t.slice(0,-1));
+  };
+  function render() {
+    const cost = Number(el('po-cost')?.value);
+    const isPreset = typeof currentMode !== 'undefined' && currentMode === 'preset';
+    const cash = isPreset && Number.isFinite(cost) && cost >= 0
+      ? cost * 10000
+      : (Number.isFinite(_urlTotalCost) && _urlTotalCost > 0 ? Math.max(0,_urlTotalCost - subsidy) * 10000 : null);
+    const isGankin = isPreset && el('m-gankin')?.checked && !poOfficialResult();
+    const loanRepay = fromText(isGankin ? 'po-gankin-total' : 'po-total');
+    const down = isPreset ? Number(el('po-dp')?.value) * 10000 : 0;
+    const loan = loanRepay !== null && Number.isFinite(down) && down >= 0 ? loanRepay + down : null;
+    el('jibunden-current-unit').textContent = Number.isFinite(buyUnit) && buyUnit > 0 ? buyUnit.toFixed(1) : '—';
+    el('jibunden-cash-total').textContent = asYen(cash);
+    el('jibunden-loan-total').textContent = asYen(loan);
+    el('jibunden-kwh20').textContent = kwh20 ? Math.round(kwh20).toLocaleString('ja-JP')+' kWh' : '未取得';
+    el('jibunden-cash-unit').textContent = kwh20 && cash !== null ? (cash/kwh20).toFixed(1) : '—';
+    el('jibunden-loan-unit').textContent = kwh20 && loan !== null ? (loan/kwh20).toFixed(1) : '—';
+    el('jibunden-unit-status').textContent = !kwh20
+      ? '単価の算出には、元の発電シミュレーションから20年間の総発電量を連携する必要があります。'
+      : loan === null ? 'ローン条件が未確定または計算不可です。現金単価のみ参考表示します。'
+      : '20年間の総発電量を分母とした参考発電原価です。正式単価の算出には対象費用・売電等の本番仕様確認が必要です。';
+  }
+  document.addEventListener('input', () => setTimeout(render,0));
+  document.addEventListener('change', () => setTimeout(render,0));
+  ['po-total','po-gankin-total'].forEach(id => {
+    const target = el(id);
+    if (target) new MutationObserver(render).observe(target,{childList:true,characterData:true,subtree:true});
+  });
+  render();
+  window.addEventListener('load', () => setTimeout(render,100));
+})();
+
 </script>
 </body>
 </html>
