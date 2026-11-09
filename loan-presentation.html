@@ -691,7 +691,7 @@ html,body{
 .lifecycle-cost-input{display:grid;grid-template-columns:minmax(0,1fr) 22px;align-items:center;gap:5px}
 .lifecycle-cost-input input{width:100%;min-width:0;min-height:25px;border:1px solid #cbd5e1;border-radius:6px;padding:3px 7px;font-size:12px;background:#fff;color:#1e293b;text-align:right}
 .lifecycle-cost-input span{font-size:11px;color:#64748b}
-.lifecycle-chart{height:400px;min-height:370px;max-height:400px;flex:0 0 400px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:8px;position:relative}
+.lifecycle-chart{width:100%;max-width:100%;min-width:0;height:350px;min-height:350px;max-height:350px;flex:0 0 350px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:7px;position:relative;overflow:hidden;box-sizing:border-box}.lifecycle-chart canvas{display:block!important;width:100%!important;max-width:100%!important;height:100%!important;min-width:0!important}
 .lifecycle-summary{font-size:9px;line-height:1.25;color:#334155;background:#eef8f2;border-radius:7px;padding:5px 8px;flex:0 0 auto}
 .jd-story-lifecycle .jd-note{font-size:9px;line-height:1.3;padding:6px 9px;margin:0;flex:0 0 auto}
 @media(max-width:850px){.lifecycle-general-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-equipment-grid{grid-template-columns:1fr;gap:5px}.lifecycle-equipment-card{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:stretch;padding:5px}.lifecycle-equipment-card .life-control{min-height:unset}.lifecycle-equipment-card .life-control label{min-height:unset}.lifecycle-cost-card{justify-content:center}.jd-story-lifecycle{padding:10px 14px 8px}.lifecycle-chart{height:275px;min-height:245px;flex-basis:275px}}
@@ -1310,12 +1310,13 @@ function updateLifecyclePlan(){
  const chartAxisMax=chartStep*8;
  const chartHasData=chartMax>0;
  if(canvas&&typeof Chart!=='undefined'){
+   canvas.style.width='100%';canvas.style.maxWidth='100%';canvas.style.height='100%';
    if(lifecycleChart)lifecycleChart.destroy();
    lifecycleChart=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
     {label:'電力会社から購入し続ける場合',data:utility,borderColor:'#d97777',backgroundColor:'transparent',borderDash:[6,4],borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false},
     {label:'じぶん電気・現金一括購入',data:cash,borderColor:'#2563eb',backgroundColor:'transparent',borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false},
     {label:'じぶん電気・ローン購入',data:loan,borderColor:'#2D6A4F',backgroundColor:'transparent',borderWidth:3,pointRadius:0,pointHoverRadius:4,tension:.15,fill:false}
-   ]},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+Number(c.parsed.y).toLocaleString('ja-JP',{minimumFractionDigits:1,maximumFractionDigits:1})+'万円'}}},scales:{y:{beginAtZero:true,min:0,max:chartAxisMax,ticks:{stepSize:chartStep,callback:v=>v+'万円'}},x:{ticks:{maxTicksLimit:12}}}}});
+   ]},options:{responsive:true,maintainAspectRatio:false,animation:false,layout:{padding:{left:2,right:16,top:4,bottom:0}},interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom',labels:{boxWidth:34,padding:10}},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+Number(c.parsed.y).toLocaleString('ja-JP',{minimumFractionDigits:1,maximumFractionDigits:1})+'万円'}}},scales:{y:{beginAtZero:true,min:0,max:chartAxisMax,ticks:{stepSize:chartStep,callback:v=>v+'万円'}},x:{offset:true,ticks:{autoSkip:true,maxTicksLimit:11,includeBounds:true}}}}});
    if(!chartHasData)console.warn('[将来設計] グラフデータがすべて0です。入力条件を確認してください。');
  }
  const summary=document.getElementById('lifecycle-summary');
