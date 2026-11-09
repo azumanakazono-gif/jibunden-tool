@@ -667,6 +667,21 @@ html,body{
 .jd-story-economics{background:#f8fafc}.econ-story-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:auto 0}.econ-card{background:#fff;border-radius:18px;padding:22px;border-top:7px solid #2D6A4F;box-shadow:0 8px 24px #1b43320c}.econ-card span,.econ-card small{display:block;color:#64748b;font-size:13px}.econ-card strong{display:block;font-size:29px;color:#1B4332;margin:18px 0}.econ-caveat{background:#fff7ed;border-left:5px solid #d97706;padding:18px 22px;border-radius:12px}.econ-caveat b{color:#92400e}.econ-caveat p{color:#475569;line-height:1.65;font-size:14px;margin-top:8px}
 .jd-story-support{background:#f2f7f4}.support-timeline{display:grid;grid-template-columns:1fr 130px 1fr;align-items:center;gap:16px;flex:1}.support-phase{border-radius:20px;padding:28px;background:#fff;min-height:220px;box-shadow:0 10px 26px #1b43320c}.support-20{border-left:9px solid #2D6A4F}.support-after{border-left:9px solid #64748b}.support-year{font-size:14px;color:#2D6A4F;font-weight:800}.support-title{font-size:30px;color:#1B4332;font-weight:900;margin:18px 0}.support-phase p{font-size:15px;line-height:1.7;color:#475569}.support-bridge{text-align:center;font-size:16px;font-weight:800;color:#2D6A4F}
 
+
+.jd-story-lifecycle{gap:12px;padding:30px 44px}
+.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.life-control,.lifecycle-costs>div{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #d1e8dc;border-radius:10px;padding:9px 12px}
+.life-control label,.lifecycle-costs label{font-size:11px;font-weight:750;color:#475569}
+.life-control select,.life-control input,.lifecycle-costs input{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:6px 8px;font-size:14px;background:#fff;color:#1e293b}
+.life-control{display:grid;grid-template-columns:1fr auto;align-items:center}
+.life-control label{grid-column:1/-1}
+.life-control select,.life-control input{grid-column:1}
+.life-control:not(:has(input))::after{content:"";display:none}
+.lifecycle-costs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.lifecycle-chart{height:245px;min-height:200px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px}
+.lifecycle-summary{font-size:12px;line-height:1.5;color:#334155;background:#eef8f2;border-radius:9px;padding:9px 13px}
+@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.jd-story-lifecycle{padding:22px}}
+
 </style>
 </head>
 <body>
@@ -847,6 +862,27 @@ html,body{
       <div class="jd-footer">地域でエネルギーをつくり、地域で使い、地域の事業者が長く支える。じぶん電気は「地域循環共生圏」「強い田舎」につながる取り組みです。</div>
     </div>
 
+
+    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
+    <div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
+      <div class="sh"><div class="slide-num">DETAIL 07 / LIFECYCLE PLAN</div><div class="slide-ttl">お客様に合わせた<span class="g">設備更新と将来設計</span></div></div>
+      <div class="lifecycle-controls">
+        <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select> 年</div>
+        <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
+        <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
+        <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
+        <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"> %</div>
+        <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"> %</div>
+      </div>
+      <div class="lifecycle-costs">
+        <div><label for="life-pcs-cost">PCS現在交換費用</label><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"> 円</div>
+        <div><label for="life-battery-cost">蓄電池現在交換費用</label><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"> 円</div>
+        <div><label for="life-panel-cost">パネル現在交換費用</label><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"> 円</div>
+      </div>
+      <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
+      <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
+      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCSは20年間の保証基準後に10年または15年周期で更新する仮定です。蓄電池・パネルの更新時期と価格は個別設定です。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
+    </div>
     <!-- ── 詳細資料：従来のローン戦略スライド ── -->
     <!-- ── SLIDE 2 ── -->
     <div class="slide s2 jd-supplemental" data-idx="1">
@@ -1397,6 +1433,54 @@ function build20YChart() {
 
 /* ── 20年間の発電原価：既存の購入・公式返済試算をそのまま使用 ── */
 
+
+/* 35年を初期値とする顧客別ライフプラン。20年単価・保証の基準は変更しない。 */
+let lifecycleChart = null;
+function updateLifecyclePlan(){
+ const val=id=>document.getElementById(id)?.value;
+ const n=(id,def=0)=>{const v=Number(val(id));return Number.isFinite(v)?Math.max(0,v):def;};
+ const years=Math.max(20,Math.min(50,Math.round(n('life-years',35))));
+ const pcsCycle=n('life-pcs-cycle',10),batteryYear=n('life-battery-year'),panelYear=n('life-panel-year');
+ const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
+ const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
+ const gen20=Number(params.get('generationKwh20'));
+ const basePurchase=downPaymentRaw+totalPaid;
+ const labels=[],buy=[],solar=[],events=[];
+ let cumulativeBuy=0,cumulativeSolar=basePurchase;
+ for(let y=0;y<=years;y++){
+   labels.push(y===0?'導入時':y+'年目');
+   if(y>0){
+     cumulativeBuy+=CURRENT*12*Math.pow(1+electricRate,y-1);
+     const residual=RESIDUAL*12*Math.pow(1+electricRate,y-1);
+     const sales=SALE_INCOME_MON*12*Math.pow(1+electricRate,y-1);
+     const repayment=y<=loanYears?pmt*12:0;
+     cumulativeSolar+=Math.max(0,residual-sales)+repayment;
+     const addEvent=(name,cost)=>{const future=cost*Math.pow(1+inflation,y);cumulativeSolar+=future;events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');};
+     if(y>20&&pcsCycle>0&&(y-20)%pcsCycle===0&&pcsCost>0)addEvent('PCS更新',pcsCost);
+     if(y===batteryYear&&batteryYear>0&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
+     if(y===panelYear&&panelYear>0&&panelCost>0)addEvent('パネル更新',panelCost);
+   }
+   buy.push(Math.round(cumulativeBuy/10000));
+   solar.push(Math.round(cumulativeSolar/10000));
+ }
+ const canvas=document.getElementById('lifecycle-chart');
+ if(canvas&&typeof Chart!=='undefined'){
+   if(lifecycleChart)lifecycleChart.destroy();
+   lifecycleChart=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
+    {label:'電力会社から購入し続ける場合',data:buy,borderColor:'#d97777',borderDash:[6,4],pointRadius:0,tension:.2},
+    {label:'じぶん電気＋設備更新（参考）',data:solar,borderColor:'#2D6A4F',pointRadius:0,tension:.2}
+   ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+c.parsed.y.toLocaleString('ja-JP')+'万円'}}},scales:{y:{ticks:{callback:v=>v+'万円'}},x:{ticks:{maxTicksLimit:12}}}}});
+ }
+ const summary=document.getElementById('lifecycle-summary');
+ if(summary){
+  const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
+  summary.textContent='表示期間：'+years+'年間｜20年単価・保証基準：変更なし｜設備更新：'+list+' ※現在価格に物価上昇率を複利で反映した参考額です。';
+ }
+}
+function initLifecyclePlan(){
+ ['life-years','life-pcs-cycle','life-battery-year','life-panel-year','life-inflation','life-electric','life-pcs-cost','life-battery-cost','life-panel-cost'].forEach(id=>document.getElementById(id)?.addEventListener('change',updateLifecyclePlan));
+}
+
 /* 詳細ストーリー6ページへ、既存URLと公式ローン計算結果を反映 */
 (function updateDetailStory(){
  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
@@ -1517,6 +1601,7 @@ function goTo(idx) {
 
 buildDots();
 goTo(0);
+initLifecyclePlan();
 
 /* ── Customer name badge ── */
 (function() {
