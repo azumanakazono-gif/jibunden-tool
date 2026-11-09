@@ -1216,6 +1216,15 @@ async function generateLoanPPTX() {
   window.addEventListener('load', () => setTimeout(render,100));
 })();
 
+
+// 詳細資料（子タブ）から届いた将来設計設定を、元のじぶん電気画面へ中継
+window.addEventListener('message', event => {
+  if (event.origin !== location.origin || !event.data || event.data.type !== 'jibunden-lifecycle-plan') return;
+  try { localStorage.setItem('jibunden_lifecycle_update', JSON.stringify(event.data)); } catch (e) {}
+  if (window.opener && !window.opener.closed) {
+    window.opener.postMessage(event.data, location.origin);
+  }
+});
 </script>
 </body>
 </html>
