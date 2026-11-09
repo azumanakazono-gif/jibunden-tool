@@ -683,6 +683,21 @@ html,body{
 @media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.jd-story-lifecycle{padding:22px}}
 
 .jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
+
+/* 発電量ページ：数値の意味と単位を必ず左側ラベルで明示 */
+.jd-energy-metrics{display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.jd-energy-metric{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:14px;background:#f3f8f5;border:1px solid #d5e9dc;border-radius:13px;padding:15px 17px}
+.jd-energy-metric-label{display:flex;flex-direction:column;gap:5px;min-width:0}
+.jd-energy-metric-label strong{font-size:19px;color:#1B4332;font-weight:850}
+.jd-energy-metric-label span{font-size:12px;color:#64748b;line-height:1.45}
+.jd-energy-metric-value{display:flex;align-items:baseline;gap:5px;white-space:nowrap}
+.jd-energy-metric-value b{font-size:30px;line-height:1.15;color:#1B4332;font-weight:900}
+.jd-energy-metric-value small{font-size:12px;color:#475569;font-weight:750}
+.jd-energy-purchase-note{margin-top:12px;background:#edf2f7;border-radius:10px;padding:12px 15px;display:flex;flex-direction:column;gap:4px}
+.jd-energy-purchase-note span{font-size:12px;color:#64748b}
+.jd-energy-purchase-note strong{font-size:15px;color:#334155}
+@media(max-width:900px){.jd-energy-metric{padding:12px}.jd-energy-metric-label strong{font-size:16px}.jd-energy-metric-value b{font-size:25px}}
+
 </style>
 </head>
 <body>
@@ -753,12 +768,18 @@ html,body{
         </div>
         <div class="jd-panel">
           <h3>🏠 自家消費と余剰売電</h3>
-          <div class="jd-stats">
-            <div class="jd-stat"><span>年間余剰売電量</span><b id="jd-surplus-kwh">—</b></div>
-            <div class="jd-stat"><span>年間自家消費相当量（差引参考）</span><b id="jd-self-kwh">—</b></div>
-            <div class="jd-stat"><span>電力会社との関係</span><b>買電量の削減</b></div>
+          <div class="jd-energy-metrics">
+            <div class="jd-energy-metric">
+              <div class="jd-energy-metric-label"><strong>余剰売電量</strong><span>年間に売電する電力量</span></div>
+              <div class="jd-energy-metric-value"><b id="jd-surplus-kwh">—</b><small>kWh / 年</small></div>
+            </div>
+            <div class="jd-energy-metric">
+              <div class="jd-energy-metric-label"><strong>自家消費量（推計）</strong><span>発電した電気を自宅で使う量</span></div>
+              <div class="jd-energy-metric-value"><b id="jd-self-kwh">—</b><small>kWh / 年</small></div>
+            </div>
           </div>
-          <p class="jd-small" style="margin-top:15px">自家消費相当量は、年間総発電量から余剰売電量を差し引いた参考値です。</p>
+          <div class="jd-energy-purchase-note"><span>電力会社から購入する電気</span><strong>自家消費した分だけ購入量を抑えられます</strong></div>
+          <p class="jd-small" style="margin-top:12px">自家消費量は、年間総発電量から余剰売電量を差し引いた推計値です。実際の自家消費量は使用状況・計測条件によって異なります。</p>
         </div>
       </div>
       <div class="jd-note">じぶん電気は、電力会社の料金が変動しても、発電に必要な原価を見通し、自分で電気の使い方を選べる取り組みです。</div>
