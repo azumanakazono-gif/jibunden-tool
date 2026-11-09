@@ -262,9 +262,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
     <div class="jibunden-unit-grid">
       <div class="jibunden-unit-panel">
         <h3>🏢 現状（電力会社から購入）</h3>
-        <div class="jibunden-unit-meta">現在の買電単価</div>
+        <div class="jibunden-unit-meta">現在の平均買電単価（基本料金等含む）</div>
         <div class="jibunden-unit-value"><span id="jibunden-current-unit">—</span> <small>円/kWh</small></div>
-        <div class="result-row"><span>比較条件</span><span style="font-size:12px">現在の契約単価</span></div>
+        <div class="result-row"><span>比較条件</span><span style="font-size:11px">電気代÷使用量</span></div>
       </div>
       <div class="jibunden-unit-panel">
         <h3>💴 現金一括購入</h3>
@@ -403,7 +403,9 @@ const _fitCapacity     = _urlParams.get('fitCapacity') || 'under10';
 const _saleMode        = _urlParams.get('saleMode') || 'fit';
 let _monthlyRemainingCost = parseFloat(_urlParams.get('monthlyRemainingCost')) || 0;
 const _urlTotalCost       = parseFloat(_urlParams.get('totalCost')) || 0;
-const subsidy             = parseFloat(_urlParams.get('subsidy')) || parseFloat(localStorage.getItem('jibunden_subsidy')) || 0;
+const subsidy             = _urlParams.has('subsidy')
+  ? (Number(_urlParams.get('subsidy')) || 0)
+  : (Number(localStorage.getItem('jibunden_subsidy')) || 0);
 console.log("Current subsidy:", _urlParams.get('subsidy'));
 const _urlMonthlyBill     = parseFloat(_urlParams.get('monthlyBill')) || 0;
 if (_urlMonthlyBill > 0) {
