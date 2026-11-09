@@ -682,6 +682,7 @@ html,body{
 .lifecycle-summary{font-size:12px;line-height:1.5;color:#334155;background:#eef8f2;border-radius:9px;padding:9px 13px}
 @media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.jd-story-lifecycle{padding:22px}}
 
+.jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
 </style>
 </head>
 <body>
@@ -863,26 +864,6 @@ html,body{
     </div>
 
 
-    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
-    <div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
-      <div class="sh"><div class="slide-num">DETAIL 07 / LIFECYCLE PLAN</div><div class="slide-ttl">お客様に合わせた<span class="g">設備更新と将来設計</span></div></div>
-      <div class="lifecycle-controls">
-        <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select> 年</div>
-        <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
-        <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
-        <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
-        <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"> %</div>
-        <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"> %</div>
-      </div>
-      <div class="lifecycle-costs">
-        <div><label for="life-pcs-cost">PCS現在交換費用</label><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"> 円</div>
-        <div><label for="life-battery-cost">蓄電池現在交換費用</label><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"> 円</div>
-        <div><label for="life-panel-cost">パネル現在交換費用</label><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"> 円</div>
-      </div>
-      <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
-      <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
-      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCSは20年間の保証基準後に10年または15年周期で更新する仮定です。蓄電池・パネルの更新時期と価格は個別設定です。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
-    </div>
     <!-- ── 詳細資料：従来のローン戦略スライド ── -->
     <!-- ── SLIDE 2 ── -->
     <div class="slide s2 jd-supplemental" data-idx="1">
@@ -1018,79 +999,38 @@ html,body{
       </div>
     </div>
 
-    <!-- ── SLIDE 6 ── -->
-    <div class="slide s6 jd-supplemental" data-idx="5">
-      <div class="sh" style="margin-bottom:12px">
-        <div class="slide-num">SLIDE 06 / 20-YEAR ANALYSIS</div>
-        <div class="slide-ttl"><span class="g">20年間</span>の累積支出比較（参考資料）</div>
-        <div style="margin-top:8px;font-size:16px;color:#f87171;font-weight:700;letter-spacing:.03em">
-          💡 これは支出推移の参考比較です。採算・回収を保証するものではありません。
-        </div>
+    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
+    <div class="slide jd-supplemental jd-story-detail jd-story-lifecycle" data-idx="detail-lifecycle">
+      <div class="sh"><div class="slide-num">DETAIL 07 / LIFECYCLE PLAN</div><div class="slide-ttl">お客様に合わせた<span class="g">設備更新と将来設計</span></div></div>
+      <div class="lifecycle-controls">
+        <div class="life-control"><label for="life-years">グラフ表示期間</label><select id="life-years"><option>25</option><option>30</option><option selected>35</option><option>40</option><option>45</option><option>50</option></select> 年</div>
+        <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
+        <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30">30年目</option></select></div>
+        <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
+        <div class="life-control"><label for="life-inflation">物価上昇率（年率）</label><input id="life-inflation" type="number" min="0" max="10" step="0.1" value="2"> %</div>
+        <div class="life-control"><label for="life-electric">電気料金上昇率（年率）</label><input id="life-electric" type="number" min="0" max="10" step="0.1" value="2"> %</div>
       </div>
-      <div class="chart-wrap">
-        <div class="chart-badges">
-          <div class="c-badge"><div class="dot-badge" style="background:#e87070"></div>現状の累積電気代（赤点線）</div>
-          <div class="c-badge"><div class="dot-badge" style="background:#2D6A4F"></div>ローン戦略の累積支払（緑実線）</div>
-          <div class="c-badge"><div class="dot-badge" style="background:rgba(82,183,136,0.5);border-radius:3px;width:22px;height:10px"></div>節約エリア（緑）</div>
-          <div style="margin-left:auto;font-size:12px;color:var(--w60)" id="s6-payoff-label">縦線 = 完済タイミング（15年目）</div>
-        </div>
-        <div class="chart-canvas-box">
-          <canvas id="chart20y"></canvas>
-          <div class="chart-annot" id="chart-annot-s6">
-            <div class="ca-lbl">20年間の総節約額</div>
-            <div class="ca-val" id="s6-total-save">143.4万円</div>
-            <div class="ca-note">完済後の恩恵が最大化</div>
-          </div>
-        </div>
+      <div class="lifecycle-costs">
+        <div><label for="life-pcs-cost">PCS現在交換費用</label><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"> 円</div>
+        <div><label for="life-battery-cost">蓄電池現在交換費用</label><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"> 円</div>
+        <div><label for="life-panel-cost">パネル現在交換費用</label><input id="life-panel-cost" type="number" min="0" step="10000" value="1500000"> 円</div>
       </div>
+      <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
+      <div class="lifecycle-summary" id="lifecycle-summary" aria-live="polite">設定を変更すると、将来の更新費用と累積支出イメージを再計算します。</div>
+      <div class="jd-note">20年間のじぶん電気単価・設備保証期間は変更しません。PCSは20年間の保証基準後に10年または15年周期で更新する仮定です。蓄電池・パネルの更新時期と価格は個別設定です。更新は必ず発生するものではなく、実際の設備状態に応じて判断します。将来価格は設定した物価上昇率による参考換算です。</div>
     </div>
-
-    <!-- ── SLIDE 7 ── -->
-    <div class="slide s7 jd-supplemental" data-idx="6">
-      <div class="s7-inner">
-        <div class="sh" style="margin-bottom:14px">
-          <div class="slide-num">SLIDE 07 / POST-PAYOFF BENEFIT</div>
-          <div class="slide-ttl">完済後の<span class="g">家計変化</span>（参考資料）</div>
-        </div>
-        <div class="ben-grid">
-          <div class="ben-card">
-            <div class="bc-icon">📉</div>
-            <div class="bc-lbl">月間節約額</div>
-            <div class="bc-val" id="s7-monthly">19,400</div>
-            <div class="bc-unit">円 / 月</div>
-            <div class="bc-desc" id="s7-bc-desc">電気代がほぼゼロ達成<br>ローン返済もなし<br>完全な家計の自由へ</div>
-          </div>
-          <div class="ben-card">
-            <div class="bc-icon">📅</div>
-            <div class="bc-lbl">年間節約額</div>
-            <div class="bc-val" id="s7-annual">23.3</div>
-            <div class="bc-unit">万円 / 年</div>
-            <div class="bc-desc">旅行・教育・老後資金<br>使い道は自由<br>毎年の家計余力が増大</div>
-          </div>
-          <div class="ben-card">
-            <div class="bc-icon">🏆</div>
-            <div class="bc-lbl">完済後10年間の合計</div>
-            <div class="bc-val" id="s7-10y">233</div>
-            <div class="bc-unit">万円</div>
-            <div class="bc-desc">老後資金・教育資金へ<br>自動的に蓄積される<br>家計の強力な味方</div>
-          </div>
-        </div>
-        <div class="s7-bot">
-          <div class="s7-bot-top">
-            <div class="sb-left">
-              <div class="sb-ttl">完済後20年間の節約額（21年目以降を含む参考試算）</div>
-              <div class="sb-note">電気代の負担を大幅軽減 × 20年間の保証と21年目以降の有償サポートを区別</div>
-            </div>
-            <div class="sb-right">
-              <span class="sb-num" id="s7-20y">466</span><span class="sb-unit">万円</span>
-            </div>
-          </div>
-          <div class="sb-notice">
-            <div class="sb-notice-ttl">💡【20年目以降のメンテナンスについて】</div>
-            <div class="sb-notice-body">20年目までは長期メーカー保証で守られます。20年目以降に必要となる機器更新（パワーコンディショナ等の交換）は有償となりますが、その費用は将来の実額が不確定です。必要な機器更新・点検・修理は、保証条件とお客様の状況に応じて別途見積・相談します。</div>
-          </div>
-        </div>
+    <!-- ── FINAL SLIDE：将来設計のまとめ ── -->
+    <div class="slide s7 jd-supplemental jd-final-plan" data-idx="detail-final">
+      <div class="sh"><div class="slide-num">ページ 17</div><div class="slide-ttl">これからも、<span class="g">自分の電気と歩む</span>ために</div></div>
+      <div class="final-plan-lead">設備を導入して終わりではなく、使い続けるための準備を一緒に考えます。</div>
+      <div class="final-plan-grid">
+        <div class="final-plan-card"><span>01</span><h3>20年間の安心</h3><p>設備保証の条件を確認し、発電・自家消費を続けます。</p></div>
+        <div class="final-plan-card"><span>02</span><h3>更新時期を見通す</h3><p>PCS・蓄電池・パネルの状態を確認し、必要な更新を計画します。</p></div>
+        <div class="final-plan-card"><span>03</span><h3>費用を準備する</h3><p>現在価格と物価上昇の仮定から、将来費用の目安を把握します。</p></div>
+        <div class="final-plan-card"><span>04</span><h3>その先も相談できる</h3><p>点検・修理・設備更新・使い方の見直しを継続して支援します。</p></div>
       </div>
+      <div class="final-plan-note">20年間の保証と21年目以降のサポートは別のものです。将来の設備更新・費用・発電継続を保証するものではありません。実際の設備状態とその時点の条件に応じてご相談します。</div>
+      <div class="jd-footer">20年の安心。その先も、ずっと。｜株式会社アズマ「じぶん電気」</div>
     </div>
 
     <div class="customer-name-badge" id="customerNameBadge"></div>
@@ -1561,18 +1501,10 @@ function toggleJibundenDetails(){
   }
   chartSlideIdx = slides.findIndex(el=>el.classList.contains('s6'));
   current = 0;
-  buildDots();goTo(0);
+  refreshSlideNumbers();buildDots();goTo(0);
 }
 
-/* スライドが削除された分だけ連番を振り直す */
-slides.forEach((slide, i) => {
-  const numEl = slide.querySelector('.slide-num');
-  if (numEl) {
-    numEl.textContent = numEl.textContent.replace(
-      /^SLIDE \d+/, 'SLIDE ' + String(i + 1).padStart(2, '0')
-    );
-  }
-});
+function refreshSlideNumbers(){slides.forEach((slide,i)=>{const numEl=slide.querySelector('.slide-num');if(numEl)numEl.textContent='ページ '+(i+1)+' / '+TOTAL;});}
 
 /* s6（20年チャート）の動的インデックス */
 let chartSlideIdx = slides.findIndex(s => s.classList.contains('s6'));
@@ -1600,6 +1532,7 @@ function goTo(idx) {
   }
 }
 
+refreshSlideNumbers();
 buildDots();
 goTo(0);
 initLifecyclePlan();
