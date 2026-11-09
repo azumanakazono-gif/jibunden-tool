@@ -1225,6 +1225,15 @@ window.addEventListener('message', event => {
     window.opener.postMessage(event.data, location.origin);
   }
 });
+window.addEventListener('storage', event => {
+  if (event.key !== 'jibunden_lifecycle_update' || !event.newValue) return;
+  try {
+    const payload = JSON.parse(event.newValue);
+    if (payload.type === 'jibunden-lifecycle-plan' && window.opener && !window.opener.closed) {
+      window.opener.postMessage(payload, location.origin);
+    }
+  } catch (e) {}
+});
 </script>
 </body>
 </html>
