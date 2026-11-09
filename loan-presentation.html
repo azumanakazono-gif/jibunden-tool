@@ -668,19 +668,22 @@ html,body{
 .jd-story-support{background:#f2f7f4}.support-timeline{display:grid;grid-template-columns:1fr 130px 1fr;align-items:center;gap:16px;flex:1}.support-phase{border-radius:20px;padding:28px;background:#fff;min-height:220px;box-shadow:0 10px 26px #1b43320c}.support-20{border-left:9px solid #2D6A4F}.support-after{border-left:9px solid #64748b}.support-year{font-size:14px;color:#2D6A4F;font-weight:800}.support-title{font-size:30px;color:#1B4332;font-weight:900;margin:18px 0}.support-phase p{font-size:15px;line-height:1.7;color:#475569}.support-bridge{text-align:center;font-size:16px;font-weight:800;color:#2D6A4F}
 
 
-.jd-story-lifecycle{gap:12px;padding:30px 44px}
-.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
-.life-control,.lifecycle-costs>div{display:flex;flex-direction:column;gap:4px;background:#fff;border:1px solid #d1e8dc;border-radius:10px;padding:9px 12px}
-.life-control label,.lifecycle-costs label{font-size:11px;font-weight:750;color:#475569}
-.life-control select,.life-control input,.lifecycle-costs input{width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:6px 8px;font-size:14px;background:#fff;color:#1e293b}
-.life-control{display:grid;grid-template-columns:1fr auto;align-items:center}
-.life-control label{grid-column:1/-1}
-.life-control select,.life-control input{grid-column:1}
-.life-control:not(:has(input))::after{content:"";display:none}
-.lifecycle-costs{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-.lifecycle-chart{height:245px;min-height:200px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:8px}
-.lifecycle-summary{font-size:12px;line-height:1.5;color:#334155;background:#eef8f2;border-radius:9px;padding:9px 13px}
-@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.jd-story-lifecycle{padding:22px}}
+/* 設備更新ライフプラン：縦に揃えた費用入力と、16:9画面内に収まる密度 */
+.jd-story-lifecycle{gap:8px;padding:22px 38px 18px}
+.jd-story-lifecycle .sh{margin-bottom:4px}
+.jd-story-lifecycle .slide-ttl{font-size:29px}
+.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.life-control{display:grid;grid-template-columns:1fr;align-items:center;gap:3px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:6px 9px;min-width:0}
+.life-control label,.lifecycle-costs label{font-size:10px;line-height:1.25;font-weight:750;color:#475569}
+.life-control select,.life-control input,.lifecycle-costs input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;font-size:12px;background:#fff;color:#1e293b}
+.lifecycle-costs{display:flex;flex-direction:column;gap:5px}
+.lifecycle-cost-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);align-items:center;gap:12px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:5px 10px;min-height:35px}
+.lifecycle-cost-input{display:grid;grid-template-columns:minmax(0,1fr) 22px;align-items:center;gap:6px}
+.lifecycle-cost-input span{font-size:11px;color:#64748b}
+.lifecycle-chart{height:178px;min-height:150px;max-height:178px;flex:0 0 178px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:5px;position:relative}
+.lifecycle-summary{font-size:10px;line-height:1.35;color:#334155;background:#eef8f2;border-radius:8px;padding:6px 10px}
+.jd-story-lifecycle .jd-note{font-size:10px;line-height:1.35;padding:7px 10px;margin:0}
+@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-cost-row{grid-template-columns:minmax(0,1fr) 180px}.jd-story-lifecycle{padding:16px 20px 12px}.lifecycle-chart{height:155px;min-height:135px;flex-basis:155px}}
 
 .jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
 
@@ -1236,7 +1239,8 @@ function updateLifecyclePlan(){
      const repayment=y<=loanYears?pmt*12:0;
      cumulativeSolar+=Math.max(0,residual-sales)+repayment;
      const addEvent=(name,cost)=>{const future=cost*Math.pow(1+inflation,y);cumulativeSolar+=future;events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');};
-     if(y>20&&pcsCycle>0&&(y-20)%pcsCycle===0&&pcsCost>0)addEvent('PCS更新',pcsCost);
+     // PCSは保証基準の20年間は費用計上せず、21年目以降に選択周期で更新を想定
+     if(y>=21&&pcsCycle>0&&(y-20)%pcsCycle===0&&pcsCost>0)addEvent('PCS更新',pcsCost);
      if(y===batteryYear&&batteryYear>0&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
      if(y===panelYear&&panelYear>0&&panelCost>0)addEvent('パネル更新',panelCost);
    }
