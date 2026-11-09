@@ -1237,42 +1237,56 @@ let lifecycleChart = null;
 function updateLifecyclePlan(){
  const val=id=>document.getElementById(id)?.value;
  const n=(id,def=0)=>{const v=Number(val(id));return Number.isFinite(v)?Math.max(0,v):def;};
- const years=Math.max(20,Math.min(50,Math.round(n('life-years',35))));
- const pcsCycle=n('life-pcs-cycle',10),batteryYear=n('life-battery-year'),panelYear=n('life-panel-year');
+ const years=Math.max(20,Math.min(50,Math.round(n('life-years',40))));
+ const pcsCycle=n('life-pcs-cycle',10),batteryYear=n('life-battery-year',20),panelYear=n('life-panel-year',30);
  const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
  const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
- const gen20=Number(params.get('generationKwh20'));
- const labels=[],buy=[],solar=[],events=[];
- let cumulativeBuy=0,cumulativeSolar=0;
+ const labels=[],utility=[],cash=[],loan=[],events=[];
+ let cumulativeUtility=0,cumulativeCash=0,cumulativeLoan=0;
  for(let y=0;y<=years;y++){
    labels.push(y===0?'導入時':y+'年目');
    if(y>0){
-     cumulativeBuy+=CURRENT*12*Math.pow(1+electricRate,y-1);
-     const residual=RESIDUAL*12*Math.pow(1+electricRate,y-1);
-     const sales=fitSaleForYear(y)*12*Math.pow(1+electricRate,y-1);
-     const repayment=y<=loanYears?pmt*12:0;
-     cumulativeSolar+=Math.max(0,residual-sales)+repayment;
-     const addEvent=(name,cost)=>{const future=cost*Math.pow(1+inflation,y);cumulativeSolar+=future;events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');};
-     // PCSは保証基準の20年間は費用計上せず、21年目以降に選択周期で更新を想定
+     const escalation=Math.pow(1+electricRate,y-1);
+     cumulativeUtility+=CURRENT*12*escalation;
+     const residual=RESIDUAL*12*escalation;
+     const sales=fitSaleForYear(y)*12*escalation;
+     const operatingCost=Math.max(0,residual-sales);
+     // 導入時点は0円。初期投資は1年目の支出として計上する。
+     if(y===1){
+       cumulativeCash+=Math.max(0,netCost);
+       cumulativeLoan+=Math.max(0,downPaymentRaw);
+     }
+     cumulativeCash+=operatingCost;
+     cumulativeLoan+=operatingCost+(y<=loanYears?pmt*12:0);
+     const addEvent=(name,cost)=>{
+       const future=cost*Math.pow(1+inflation,y);
+       cumulativeCash+=future;
+       cumulativeLoan+=future;
+       events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');
+     };
+     // PCSは20年間の保証期間中は計上せず、21年目以降に更新を想定
      if(y>=21&&pcsCycle>0&&(y-20)%pcsCycle===0&&pcsCost>0)addEvent('PCS更新',pcsCost);
+     // 蓄電池は20年目以降、パネルは初年度以降の設定年に更新費用を計上
      if(y>=20&&y===batteryYear&&batteryYear>=20&&batteryCost>0)addEvent('蓄電池更新',batteryCost);
      if(y>=1&&y===panelYear&&panelYear>=1&&panelCost>0)addEvent('パネル更新',panelCost);
    }
-   buy.push(Math.round(cumulativeBuy/10000));
-   solar.push(Math.round(cumulativeSolar/10000));
+   utility.push(Math.round(cumulativeUtility/10000));
+   cash.push(Math.round(cumulativeCash/10000));
+   loan.push(Math.round(cumulativeLoan/10000));
  }
  const canvas=document.getElementById('lifecycle-chart');
  if(canvas&&typeof Chart!=='undefined'){
    if(lifecycleChart)lifecycleChart.destroy();
    lifecycleChart=new Chart(canvas.getContext('2d'),{type:'line',data:{labels,datasets:[
-    {label:'電力会社から購入し続ける場合',data:buy,borderColor:'#d97777',borderDash:[6,4],pointRadius:0,tension:.2},
-    {label:'じぶん電気＋設備更新（参考）',data:solar,borderColor:'#2D6A4F',pointRadius:0,tension:.2}
+    {label:'電力会社から購入し続ける場合',data:utility,borderColor:'#d97777',borderDash:[6,4],pointRadius:0,tension:.2},
+    {label:'じぶん電気・現金一括購入',data:cash,borderColor:'#2563eb',pointRadius:0,tension:.2},
+    {label:'じぶん電気・ローン購入',data:loan,borderColor:'#2D6A4F',pointRadius:0,tension:.2}
    ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:c=>c.dataset.label+'：'+c.parsed.y.toLocaleString('ja-JP')+'万円'}}},scales:{y:{ticks:{callback:v=>v+'万円'}},x:{ticks:{maxTicksLimit:12}}}}});
  }
  const summary=document.getElementById('lifecycle-summary');
  if(summary){
   const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
-  summary.textContent='表示期間：'+years+'年間｜20年単価・保証基準：変更なし｜設備更新：'+list+' ※現在価格に物価上昇率を複利で反映した参考額です。';
+  summary.textContent='表示期間：'+years+'年間｜導入時点：0円（初期投資は1年目に計上）｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
  }
 }
 function initLifecyclePlan(){
