@@ -935,7 +935,7 @@ function calcPpa() {
 
 // ── slide-link URL を po-dp / po-lr の最新値込みで更新 ──
 function updateSlideLink() {
-  const base = new URLSearchParams(location.search);
+  const base = new URLSearchParams(_urlParams.toString());
   const dpVal = parseFloat(document.getElementById('po-dp').value) || 0;
   if (dpVal > 0) {
     base.set('downPayment', dpVal);
@@ -1307,6 +1307,7 @@ function handlePaymentSaveAck(data) {
  if(!data||data.type!=='jibunden-payment-save-ack'||data.requestId!==_poPendingSaveRequest)return;
  _poPendingSaveRequest='';
  if(data.proposalId) _urlParams.set('proposalId',String(data.proposalId));
+ updateSlideLink();
  _paymentSaveMessage(data.ok?'顧客DBに保存しました。':'保存未完了：'+(data.message||'元画面の状態を確認してください。'),!!data.ok);
 }
 window.addEventListener('storage',event=>{
