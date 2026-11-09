@@ -7310,7 +7310,7 @@ function syncCustomerToSheet(entry) {
       author: (() => { try { return localStorage.getItem('jibunden_author') || ''; } catch (e) { return ''; } })(),
       proposal_name: cn,
       customer_name: cn.replace(/（内容変更版）.*$/, '').split('様')[0].trim(),
-      category: (typeof proposalMode !== 'undefined' ? proposalMode : '') || '',
+      category: String(entry.proposalMode || (typeof proposalMode !== 'undefined' ? proposalMode : '') || ''),
       monthly_bill: _toNum(entry.mb),
       monthly_usage: _toNum(entry.mkwh),
       json_data: JSON.stringify(entry),
@@ -7346,8 +7346,8 @@ function syncCustomerToSheet(entry) {
   }
 }
 
-function saveCustomer() {
-    if (!ensureCurrentUser(() => saveCustomer())) return null; // 担当者未設定・ゲストは保存ブロック
+function saveCustomer(paymentPlanOverride = null) {
+    if (!ensureCurrentUser(() => saveCustomer(paymentPlanOverride))) return null; // 担当者未設定・ゲストは保存ブロック
     let base = {};
     try {
         base = getFormData() || {};
@@ -7463,7 +7463,10 @@ function saveCustomer() {
         afterRatioLiving: document.getElementById('r-dn-living')?.value ?? base.afterRatioLiving ?? null,
         afterRatioNgt:    document.getElementById('r-dn-ngt')?.value    ?? base.afterRatioNgt    ?? null,
         // AIクロージングコメント（画面の最新値を優先）
-        aiClosingComment: document.getElementById('ai-comment-text')?.value ?? base.aiClosingComment ?? ''
+        aiClosingComment: document.getElementById('ai-comment-text')?.value ?? base.aiClosingComment ?? '',
+        // 導入手段ページで登録した条件を既存データ更新時も保持
+        paymentPlan: paymentPlanOverride || existing?.paymentPlan || base.paymentPlan || null,
+        lifecyclePlan: existing?.lifecyclePlan || base.lifecyclePlan || null
     };
 
     // 詳細資料で先に設定した将来設計条件を、顧客保存時に同じレコードへ取り込む
@@ -8740,6 +8743,89 @@ document.getElementById('manualBtn').addEventListener('click', () => {
 
   setTimeout(forceSyncUpperPanel, 50);
 })();
+
+// ── 導入手段ページの明示保存：顧客IDを検証して既存行へUpsert ──
+const _processedPaymentSaveIds = new Set();
+function _paymentSaveAck(request,ok,message,id) {
+  const ack={type:'jibunden-payment-save-ack',requestId:request.requestId,ok:!!ok,message:message||'',proposalId:id||request.proposalId||''};
+  try { localStorage.setItem('jibunden_payment_save_ack',JSON.stringify(ack)); } catch(e) { console.warn('[導入手段] 保存応答を送れません:',e); }
+}
+async function _handlePaymentOptionsSave(request) {
+ if(!request || request.type!=='jibunden-payment-save' || !request.requestId) return;
+ if(_processedPaymentSaveIds.has(request.requestId))return;
+ _processedPaymentSaveIds.add(request.requestId);
+ if(_processedPaymentSaveIds.size>60)_processedPaymentSaveIds.clear();
+ const clean=x=>String(x||'').replace('（内容変更版）','').replaceAll(' ','').replaceAll('　','').trim();
+ const customerName=clean(request.customerName);
+ const me=_localAuthor()||_currentUser;
+ if(!_isValidUser(me)){
+  _paymentSaveAck(request,false,'元画面で担当者名を設定してから保存してください。');
+  return;
+ }
+ if(!customerName||!request.paymentPlan||request.paymentPlan.version!==1){
+  _paymentSaveAck(request,false,'顧客名または支払条件が不足しています。');
+  return;
+ }
+ try {
+  const merged=getMergedHistory();
+  let existing=null;
+  if(request.proposalId){
+   existing=merged.find(x=>String(x.id)===String(request.proposalId));
+   if(!existing){
+    _paymentSaveAck(request,false,'元の顧客データが見つかりません。履歴を開き直してください。');
+    return;
+   }
+  }else{
+   const candidates=merged.filter(x=>clean(x.cn||x.customerName)===customerName);
+   if(candidates.length===1) existing=candidates[0];
+   if(candidates.length>1){
+    _paymentSaveAck(request,false,'同名の提案が複数あります。履歴から対象案件を開き直してください。');
+    return;
+   }
+  }
+  if(existing){
+   if(clean(existing.cn||existing.customerName)!==customerName){
+    _paymentSaveAck(request,false,'顧客IDと顧客名が一致しません。');
+    return;
+   }
+   if(existing.author && String(existing.author).trim()!==String(me).trim()){
+    _paymentSaveAck(request,false,'他の担当者が作成したデータは上書きできません。');
+    return;
+   }
+   // 計算式・基本情報はそのまま、支払条件のみ差し替える
+   const entry={...existing,paymentPlan:request.paymentPlan,updatedAt:Date.now(),date:new Date().toLocaleString('ja-JP'),author:me,_cloud:false};
+   const h=getHistory().filter(x=>String(x.id)!==String(entry.id));
+   h.unshift(entry);
+   try {saveHistory(h);}catch(err){_paymentSaveAck(request,false,'端末の保存に失敗しました。');return;}
+   renderSidebarHistory();renderHistoryFull();
+   const ok=await syncCustomerToSheet(entry);
+   _paymentSaveAck(request,ok,ok?'':'端末内には保存しましたが、クラウドDBの更新を確認できません。',entry.id);
+  }else{
+   // 顧客未保存時に限り、現在表示中の同一顧客のデータとして新規保存する
+   const currentName=clean(document.getElementById('cn')?.value||custData.cn||'');
+   if(!currentName||currentName!==customerName){
+    _paymentSaveAck(request,false,'元画面で同じ顧客の提案を開いてください。');
+    return;
+   }
+   const entry=saveCustomer(request.paymentPlan);
+   if(!entry){_paymentSaveAck(request,false,'元画面で顧客データを保存できませんでした。');return;}
+   const ok=await (entry._sheetSync||Promise.resolve(false));
+   _paymentSaveAck(request,ok,ok?'':'端末内には保存しましたが、クラウドDBの更新を確認できません。',entry.id);
+  }
+ }catch(error){
+  console.error('[導入手段] 保存失敗:',error);
+  _paymentSaveAck(request,false,'DBの保存処理でエラーが発生しました。');
+ }
+}
+window.addEventListener('storage',event=>{
+ if(event.key==='jibunden_payment_save_request' && event.newValue){
+  try{_handlePaymentOptionsSave(JSON.parse(event.newValue));}catch(e){console.error(e);}
+ }
+});
+window.addEventListener('message',event=>{
+ if(event.origin!==location.origin)return;
+ if(event.data?.type==='jibunden-payment-save')_handlePaymentOptionsSave(event.data);
+});
 
 // ── 詳細資料の将来設計設定を顧客DBへ同期 ──
 function _applyLifecyclePlanUpdate(payload) {
