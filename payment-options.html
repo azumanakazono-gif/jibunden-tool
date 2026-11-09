@@ -314,6 +314,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 
   <!-- アクションエリア -->
   <div class="action-area">
+    <button type="button" id="po-db-save-btn" class="btn btn-success" onclick="saveLoanDetailsToSheet()">💾 ローン情報を顧客DBへ保存</button>
     <a href="javascript:window.close()" class="btn btn-secondary">
       ✕ 閉じる
     </a>
@@ -321,6 +322,8 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
       🖥️ 導入手段用スライドを表示
     </a>
   </div>
+
+  <p id="po-db-save-status" class="note" role="status" aria-live="polite">顧客データベースの既存案件に、ローン会社・公式返済額・総返済額などを保存します。初めての案件は先にメイン画面で「データ保存」を行ってください。</p>
 
   <!-- リース・PPA メモ欄（非表示・コードは保持） -->
   <div class="section-card" id="lease-ppa-section" style="display:none">
@@ -380,18 +383,146 @@ function _savePO() {
   const method = document.querySelector('input[name="po-method"]:checked')?.value || 'kinri';
   localStorage.setItem('jibunden_po', JSON.stringify({
     selectedPayment: sel,
-    mode:   currentMode,
-    lr:     parseFloat(document.getElementById('po-lr')?.value)   || 4.0,
-    lc:     parseInt(document.getElementById('po-lc')?.value)     || 180,
-    dp:     parseFloat(document.getElementById('po-dp')?.value)   || 0,
-    cost:   parseFloat(document.getElementById('po-cost')?.value) || 0,
+    mode: currentMode,
+    lr: parseFloat(document.getElementById('po-lr')?.value) || 4.0,
+    lc: parseInt(document.getElementById('po-lc')?.value) || 180,
+    dp: parseFloat(document.getElementById('po-dp')?.value) || 0,
+    cost: parseFloat(document.getElementById('po-cost')?.value) || 0,
     method,
+    customerName: new URLSearchParams(location.search).get('customerName') || '',
+    loanSimulation: collectLoanSimulation(),
   }));
 }
 
 const fmt  = n => Math.round(n).toLocaleString('ja-JP') + '円';
 const fmt0 = n => Math.round(n).toLocaleString('ja-JP');
 let currentMode = 'preset';
+
+
+/* 顧客DBの既存行へ公式ローン計算結果を保存。
+   既存のGAS Upsert契約（id, json_data等）を使用し、シート列構成は変更しない。 */
+const PO_CUSTOMER_GAS_ENDPOINT = window.JIBUNDEN_GAS_URL || 'https://script.google.com/macros/s/AKfycbwmElEbni4PmrVUlfT-9mfkoSsRofCWvrqOQJpm2zqEVla7p11xqzi04v4hjXFOooo_Fw/exec';
+function collectLoanSimulation() {
+  const el = id => document.getElementById(id);
+  const numeric = id => Number(el(id)?.value);
+  const price = id => {
+    const t = String(el(id)?.textContent || '').replace(/,/g, '').trim();
+    return /^\\d+(?:\\.\\d+)?円$/.test(t) ? Number(t.slice(0,-1)) : null;
+  };
+  const mode = currentMode;
+  const costMan = numeric('po-cost');
+  const downMan = numeric('po-dp');
+  const principal = mode === 'preset'
+    ? Math.max(0,costMan-downMan)*10000 : numeric('po-la-m');
+  const method = el('m-gankin')?.checked ? 'gankin' : 'kinri';
+  const official = typeof poOfficialResult === 'function' ? poOfficialResult() : null;
+  const gankin = mode === 'preset' && method === 'gankin' && !official;
+  const repayment = price(gankin ? 'po-gankin-total' : 'po-total');
+  const loanTotal = repayment === null ? null : repayment + (mode === 'preset' ? downMan * 10000 : 0);
+  const generation = Number(new URLSearchParams(location.search).get('generationKwh20'));
+  const lender = el('po-lender')?.value || 'manual';
+  return {
+    version: 1,
+    customerName: new URLSearchParams(location.search).get('customerName') || '',
+    selectedPayment: el('card-loan')?.classList.contains('selected') ? 'loan' : 'cash',
+    lender, lenderLabel: el('po-lender')?.selectedOptions?.[0]?.textContent || '',
+    loanInputMode: mode, repaymentMethod: method,
+    principalYen: Number.isFinite(principal) && principal >= 0 ? principal : null,
+    downPaymentYen: mode === 'preset' && Number.isFinite(downMan) ? downMan * 10000 : 0,
+    effectiveCostYen: Number.isFinite(costMan) ? costMan * 10000 : null,
+    interestRatePercent: numeric(mode === 'manual' ? 'po-lr-m' : 'po-lr'),
+    repaymentCount: numeric(mode === 'manual' ? 'po-lc-m' : 'po-lc'),
+    official: !!official,
+    officialMonthlyYen: official?.monthly ?? null,
+    officialFirstYen: official?.first ?? null,
+    officialLastYen: official?.last ?? null,
+    repaymentTotalYen: repayment,
+    interestTotalYen: repayment !== null && Number.isFinite(principal) ? repayment-principal : null,
+    totalCustomerPaymentYen: loanTotal,
+    generationKwh20: Number.isFinite(generation) && generation > 0 ? generation : null,
+    loanGenerationCostYenKwh: loanTotal !== null && generation > 0 ? Math.round(loanTotal/generation*10)/10 : null,
+    rateType: lender.includes('variable') ? 'variable' : (lender === 'manual' ? 'manual' : 'fixed'),
+    recordedAt: new Date().toISOString(),
+  };
+}
+async function saveLoanDetailsToSheet() {
+  const status = document.getElementById('po-db-save-status');
+  const button = document.getElementById('po-db-save-btn');
+  const show = (message, ok=false) => { status.textContent = (ok?'✅ ':'⚠️ ')+message; status.style.color = ok ? 'var(--mg)' : '#9a3412'; };
+  const author = String(localStorage.getItem('jibunden_author') || '').trim();
+  const data = collectLoanSimulation();
+  const norm = v => String(v||'').replace(/[\\s　]+/g,'').replace(/金利\\d+(?:\\.\\d+)?[%％]/g,'').trim();
+  if (!author || !data.customerName) { show('担当者名または案件名がありません。メイン画面で担当者・案件を設定してください。'); return; }
+  if (data.selectedPayment === 'loan' && (!Number.isFinite(data.repaymentTotalYen) || data.repaymentTotalYen <= 0)) {
+    show('ローン返済額が未確定です。公式結果を入力するか、計算可能な条件を指定してください。'); return;
+  }
+  if (!PO_CUSTOMER_GAS_ENDPOINT) { show('顧客DB接続先が設定されていません。'); return; }
+  button.disabled = true;
+  status.textContent = '既存の顧客データを確認中…';
+  try {
+    // 直前の最新データを取得。古いlocalStorageで他の更新を上書きしない。
+    const response = await fetch(PO_CUSTOMER_GAS_ENDPOINT,{method:'GET',redirect:'follow',cache:'no-store'});
+    if (!response.ok) throw Error('顧客一覧の取得に失敗しました（HTTP '+response.status+'）');
+    const json = await response.json();
+    const rows = Array.isArray(json) ? json : (json?.rows || json?.data);
+    if (!Array.isArray(rows)) throw Error('顧客一覧の応答形式が不正です');
+    const found = rows.filter(r => {
+      let saved={};try{saved=JSON.parse(r.json_data||'{}')||{};}catch(e){return false;}
+      const name = saved.cn || r.proposal_name || saved.customerName;
+      const owner = String(saved.author||r.author||'').trim();
+      return norm(name) === norm(data.customerName) && owner === author;
+    });
+    if (found.length !== 1) {
+      show(found.length ? '同じ案件名が複数あります。メイン画面で対象を開いて確認してください。'
+        : '一致する保存済み案件が見つかりません。メイン画面で先に「データ保存」をしてください。');
+      return;
+    }
+    const row=found[0];
+    const entry=JSON.parse(row.json_data || '{}');
+    if (!entry || !entry.id) throw Error('対象案件の保存IDが不正です');
+    const stamp=new Date();
+    const jst=new Intl.DateTimeFormat('sv-SE',{timeZone:'Asia/Tokyo',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}).format(stamp).replace('T',' ');
+    entry.updatedAt=stamp.getTime();
+    entry.author=author;
+    entry.paymentOptions={...(entry.paymentOptions||{}), selectedPayment:data.selectedPayment, loanSimulation:data};
+    const payload={
+      id:String(entry.id),updated_at:jst,author,
+      proposal_name:String(row.proposal_name||entry.cn||data.customerName),
+      customer_name:String(row.customer_name||''),
+      category:String(row.category||''),
+      monthly_bill:Number(row.monthly_bill)||0,
+      monthly_usage:Number(row.monthly_usage)||0,
+      json_data:JSON.stringify(entry),
+      aiClosingComment:String(entry.aiClosingComment||''),
+      operation:'ローン情報保存'
+    };
+    const body=JSON.stringify(payload);
+    const posted=await fetch(PO_CUSTOMER_GAS_ENDPOINT,{
+      method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body,redirect:'follow',keepalive:new Blob([body]).size<60000
+    });
+    if (!posted.ok) throw Error('保存処理が失敗しました（HTTP '+posted.status+'）');
+    const result=await posted.json().catch(()=>null);
+    if (!result || !(result.ok === true || String(result.status||'').toLowerCase()==='success')) {
+      throw Error('顧客DB側で保存が確認できませんでした');
+    }
+    const history=JSON.parse(localStorage.getItem('jibunden_history')||'[]');
+    const pos=history.findIndex(item => String(item.id)===String(entry.id));
+    if(pos>=0) {history[pos]=entry;localStorage.setItem('jibunden_history',JSON.stringify(history));}
+    localStorage.setItem('jibunden_po',JSON.stringify({
+      selectedPayment:data.selectedPayment,mode:data.loanInputMode,
+      customerName:data.customerName,loanSimulation:data,
+      lr:data.interestRatePercent,lc:data.repaymentCount,
+      dp:data.downPaymentYen/10000,cost:data.effectiveCostYen/10000,
+      method:data.repaymentMethod
+    }));
+    show('指定の顧客データベースへローン情報を保存しました。案件ID: '+entry.id,true);
+  } catch(err) {
+    show('保存できませんでした。'+String(err?.message||err));
+  } finally {
+    button.disabled=false;
+  }
+}
 
 // ── URL パラメータ解析 ──
 const _urlParams       = new URLSearchParams(location.search);
