@@ -35,7 +35,7 @@ const LOAN_RATE_AUDIT_HEADERS = [
   '変更日時(JST)','商品ID','適用年月','変更前金利(%)','変更後金利(%)',
   '変更前出典','変更後出典','登録者名(申告)','操作'
 ];
-const LOAN_RATE_PRODUCTS = ['orico_reform','jaccs_fixed','jaccs_variable'];
+const LOAN_RATE_PRODUCTS = ['orico_fixed','orico_solar_variable','orico_general_variable','jaccs_fixed','jaccs_variable'];
 
 
 function _rateSheet(name, headers, create) {
