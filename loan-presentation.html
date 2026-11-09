@@ -669,21 +669,22 @@ html,body{
 
 
 /* 設備更新ライフプラン：縦に揃えた費用入力と、16:9画面内に収まる密度 */
-.jd-story-lifecycle{gap:8px;padding:22px 38px 18px}
-.jd-story-lifecycle .sh{margin-bottom:4px}
-.jd-story-lifecycle .slide-ttl{font-size:29px}
-.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
-.life-control{display:grid;grid-template-columns:1fr;align-items:center;gap:3px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:6px 9px;min-width:0}
+.jd-story-lifecycle{gap:7px;padding:16px 34px 12px;overflow-y:auto}
+.jd-story-lifecycle .sh{margin-bottom:2px;flex:0 0 auto}
+.jd-story-lifecycle .slide-ttl{font-size:28px}
+.lifecycle-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;flex:0 0 auto}
+.life-control{display:flex;flex-direction:column;align-items:stretch;gap:4px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:6px 9px;min-width:0}
 .life-control label,.lifecycle-costs label{font-size:10px;line-height:1.25;font-weight:750;color:#475569}
 .life-control select,.life-control input,.lifecycle-costs input{width:100%;min-width:0;border:1px solid #cbd5e1;border-radius:6px;padding:5px 7px;font-size:12px;background:#fff;color:#1e293b}
-.lifecycle-costs{display:flex;flex-direction:column;gap:5px}
-.lifecycle-cost-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);align-items:center;gap:12px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:5px 10px;min-height:35px}
+.lifecycle-costs{display:grid;grid-template-columns:1fr;gap:5px;flex:0 0 auto}
+.lifecycle-cost-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,260px);align-items:center;gap:14px;background:#fff;border:1px solid #d1e8dc;border-radius:8px;padding:5px 10px;min-height:34px}
+.lifecycle-cost-row label{display:block;text-align:left}
 .lifecycle-cost-input{display:grid;grid-template-columns:minmax(0,1fr) 22px;align-items:center;gap:6px}
 .lifecycle-cost-input span{font-size:11px;color:#64748b}
-.lifecycle-chart{height:178px;min-height:150px;max-height:178px;flex:0 0 178px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:5px;position:relative}
-.lifecycle-summary{font-size:10px;line-height:1.35;color:#334155;background:#eef8f2;border-radius:8px;padding:6px 10px}
-.jd-story-lifecycle .jd-note{font-size:10px;line-height:1.35;padding:7px 10px;margin:0}
-@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-cost-row{grid-template-columns:minmax(0,1fr) 180px}.jd-story-lifecycle{padding:16px 20px 12px}.lifecycle-chart{height:155px;min-height:135px;flex-basis:155px}}
+.lifecycle-chart{height:145px;min-height:125px;max-height:145px;flex:0 0 145px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:5px;position:relative}
+.lifecycle-summary{font-size:10px;line-height:1.35;color:#334155;background:#eef8f2;border-radius:8px;padding:6px 10px;flex:0 0 auto}
+.jd-story-lifecycle .jd-note{font-size:9px;line-height:1.3;padding:6px 9px;margin:0;flex:0 0 auto}
+@media(max-width:850px){.lifecycle-controls{grid-template-columns:repeat(2,minmax(0,1fr))}.lifecycle-cost-row{grid-template-columns:minmax(0,1fr) 180px}.jd-story-lifecycle{padding:12px 16px 10px}.lifecycle-chart{height:130px;min-height:110px;flex-basis:130px}}
 
 .jd-final-plan{background:linear-gradient(145deg,#102f24,#1B4332);color:#fff;padding:42px 58px;gap:18px}.jd-final-plan .slide-num,.jd-final-plan .slide-ttl{color:#fff}.jd-final-plan .slide-ttl .g{color:#74C69D}.final-plan-lead{font-size:21px;color:#d8f3dc}.final-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;flex:1;align-content:center}.final-plan-card{background:#fff;color:#1e293b;border-radius:15px;padding:20px 24px;border-left:6px solid #52B788}.final-plan-card span{font-size:12px;font-weight:900;color:#2D6A4F}.final-plan-card h3{font-size:21px;color:#1B4332;margin:7px 0}.final-plan-card p{font-size:14px;line-height:1.6;color:#475569}.final-plan-note{font-size:12px;line-height:1.65;color:#e2e8f0;border:1px solid #527b68;border-radius:10px;padding:12px 16px}.jd-final-plan .jd-footer{color:#b7e4c7}
 
@@ -1227,15 +1228,14 @@ function updateLifecyclePlan(){
  const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
  const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
  const gen20=Number(params.get('generationKwh20'));
- const basePurchase=downPaymentRaw+totalPaid;
  const labels=[],buy=[],solar=[],events=[];
- let cumulativeBuy=0,cumulativeSolar=basePurchase;
+ let cumulativeBuy=0,cumulativeSolar=0;
  for(let y=0;y<=years;y++){
    labels.push(y===0?'導入時':y+'年目');
    if(y>0){
      cumulativeBuy+=CURRENT*12*Math.pow(1+electricRate,y-1);
      const residual=RESIDUAL*12*Math.pow(1+electricRate,y-1);
-     const sales=SALE_INCOME_MON*12*Math.pow(1+electricRate,y-1);
+     const sales=fitSaleForYear(y)*12*Math.pow(1+electricRate,y-1);
      const repayment=y<=loanYears?pmt*12:0;
      cumulativeSolar+=Math.max(0,residual-sales)+repayment;
      const addEvent=(name,cost)=>{const future=cost*Math.pow(1+inflation,y);cumulativeSolar+=future;events.push(name+'（'+y+'年目：約'+Math.round(future).toLocaleString('ja-JP')+'円）');};
