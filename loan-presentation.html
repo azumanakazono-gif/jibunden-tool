@@ -922,8 +922,8 @@ html,body{
         <div class="s7-bot">
           <div class="s7-bot-top">
             <div class="sb-left">
-              <div class="sb-ttl">完済後20年間（16〜35年目）の総節約額</div>
-              <div class="sb-note">電気代の負担を大幅軽減 × 導入から20年間の長期メーカー保証</div>
+              <div class="sb-ttl">完済後20年間の節約額（21年目以降を含む参考試算）</div>
+              <div class="sb-note">電気代の負担を大幅軽減 × 20年間の保証と21年目以降の有償サポートを区別</div>
             </div>
             <div class="sb-right">
               <span class="sb-num" id="s7-20y">466</span><span class="sb-unit">万円</span>
@@ -1492,8 +1492,8 @@ async function exportToPPTX() {
   const WHT='0f172a',MUT='64748B',RED='dc2626';
   const newMonthly = pmt + RESIDUAL;
   const saving     = Math.max(0, CURRENT - newMonthly);
-  const totalPaid  = pmt * MONTHS;
-  const totalInt   = Math.max(0, totalPaid - loanPrincipal);
+  // 公式の初回・通常月・最終回がある場合は上で確定した総返済額を使用する。
+  const totalInt   = Math.max(0, totalInterest);
   const postMon    = CURRENT - RESIDUAL;
   const postAnn    = postMon * 12;
   const _custName  = params.get('customerName') || 'お客様';
@@ -1656,7 +1656,7 @@ async function exportToPPTX() {
     sl.addShape(pres.ShapeType.rect,{x:0.4,y:4.62,w:9.2,h:1.0,fill:{color:'d1fae5'},line:{color:GLD}});
     sl.addText('完済後20年間（16〜35年目）の総節約額',{x:0.6,y:4.66,w:6.5,h:0.3,fontSize:14,bold:true,color:WHT,fontFace:'Meiryo',valign:'middle'});
     sl.addText('電気代の負担を大幅軽減 × 導入から20年間の長期メーカー保証',{x:0.6,y:4.95,w:6.5,h:0.24,fontSize:11,color:GLD2,fontFace:'Meiryo'});
-    sl.addText(`※20年以降の機器更新・故障対応費用も、この${twenty7}万円の節約メリットでスマートに準備可能です。`,{x:0.6,y:5.17,w:6.5,h:0.22,fontSize:9,color:MUT,fontFace:'Meiryo'});
+    sl.addText(`※20年以降の設備更新・修理は保証対象外となる場合があり、費用は別途見積が必要です。`,{x:0.6,y:5.17,w:6.5,h:0.22,fontSize:9,color:MUT,fontFace:'Meiryo'});
     sl.addText(`${twenty7}万円`,{x:7.0,y:4.72,w:2.4,h:0.8,fontSize:28,bold:true,color:GLD2,fontFace:'Meiryo',align:'right',valign:'middle'});
   }
 
