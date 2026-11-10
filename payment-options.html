@@ -77,12 +77,20 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 
 /* じぶん電気単価：既存の緑系UIを継承 */
 .jibunden-unit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.jibunden-unit-panel { background:var(--pg); border:1.5px solid var(--border); border-radius:10px; padding:16px 13px; min-width:0; }
+.jibunden-unit-panel { background:var(--pg); border:1.5px solid var(--border); border-radius:10px; padding:16px 13px; min-width:0; display:grid; grid-template-rows:minmax(44px,auto) minmax(64px,auto) auto 1fr; align-items:start; }
 .jibunden-unit-panel h3 { font-size:15px; color:var(--dg); margin-bottom:10px; }
-.jibunden-unit-value { font-size:clamp(21px,3vw,30px); font-weight:800; color:var(--dg); margin:8px 0; overflow-wrap:anywhere; white-space:nowrap; }
+.jibunden-unit-value { font-size:clamp(21px,3vw,30px); font-weight:800; color:var(--dg); margin:8px 0; overflow-wrap:anywhere; white-space:nowrap; align-self:center; }
 .jibunden-unit-value small { font-size:14px; }
 .jibunden-unit-meta { font-size:12px; color:var(--muted); line-height:1.8; }
 @media (max-width:620px) { .jibunden-unit-grid { grid-template-columns:1fr; } }
+/* 保存失敗は画面内で確実に気付ける警告。動きは短時間で止める */
+#po-save-customer-status { display:inline-block; line-height:1.55; overflow-wrap:anywhere; }
+#po-save-customer-status.po-save-error { color:#991b1b; background:#fef2f2; border:2px solid #dc2626; border-radius:8px; padding:10px 12px; max-width:440px !important; font-size:14px !important; font-weight:700; }
+#po-save-customer-status.po-save-error.po-save-flash { animation:poSaveWarningPulse .55s ease-in-out 4; }
+#po-save-customer-status.po-save-success { color:#166534; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:8px 10px; max-width:440px !important; font-size:13px !important; font-weight:700; }
+@keyframes poSaveWarningPulse { 0%,100% { box-shadow:0 0 0 2px rgba(220,38,38,.12); background:#fef2f2; } 50% { box-shadow:0 0 0 5px rgba(220,38,38,.35); background:#fecaca; } }
+@media (prefers-reduced-motion:reduce) { #po-save-customer-status.po-save-error.po-save-flash { animation:none; } }
+
 
 </style>
 </head>
@@ -1273,7 +1281,20 @@ function restorePaymentOptionsForCustomer() {
 }
 function _paymentSaveMessage(msg, success){
  const label=document.getElementById('po-save-customer-status');
- if(label){label.textContent=msg;label.style.color=success===false?'#b45309':'#2D6A4F';}
+ if(label){
+  label.classList.remove('po-save-error','po-save-success','po-save-flash');
+  label.style.color='';
+  label.textContent=success===false?'⚠️ 保存できませんでした。'+msg:success===true?'✓ '+msg:msg;
+  label.setAttribute('role',success===false?'alert':'status');
+  label.setAttribute('aria-live',success===false?'assertive':'polite');
+  if(success===false){
+   label.classList.add('po-save-error');
+   void label.offsetWidth;
+   label.classList.add('po-save-flash');
+  }else if(success===true){
+   label.classList.add('po-save-success');
+  }
+ }
  const button=document.getElementById('po-save-customer-btn');
  if(button)button.disabled=false;
 }
