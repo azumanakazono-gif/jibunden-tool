@@ -1672,7 +1672,7 @@ canvas#mini-chart { height: 220px !important; }
         <span class="d-val" id="rd-loan">-</span>
       </div>
       <div style="display:flex;gap:10px;margin-top:20px">
-        <a id="payment-options-link" href="payment-options.html" target="_blank" rel="noopener noreferrer"
+        <a id="payment-options-link" href="payment-options.html" target="_blank" rel="noopener noreferrer" onclick="return openPaymentOptionsIfSaved(event,this)"
           style="flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:10px 14px;background:var(--mg);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit">
           🏦 導入手段 (Payment Options)
           <span style="font-size:10px;opacity:.8">↗</span>
@@ -7065,6 +7065,32 @@ function _cloudRowToEntry(r) {
 }
 
 // ローカル履歴＋クラウド履歴を id で統合（新しい方を採用）し、更新日時の降順で返す
+// 導入手段は保存済み提案だけを開く。保存直後も再読込不要でIDを反映。
+function openPaymentOptionsIfSaved(event,link) {
+  const p=new URL(link.href,location.href);
+  const currentName=String(document.getElementById('cn')?.value||'').trim();
+  const expectedName=String(p.searchParams.get('customerName')||'').trim();
+  const clean=x=>String(x||'').replace('（内容変更版）','').replaceAll(' ','').replaceAll('　','').trim();
+  if(!currentName || !expectedName || clean(currentName)!==clean(expectedName)){
+    event.preventDefault();
+    toast('⚠️ 提案内容を確認してから「データ保存」を押してください。', 'error');
+    return false;
+  }
+  const candidates=getMergedHistory().filter(x=>clean(x.cn||x.customerName)===clean(currentName));
+  if(candidates.length!==1 || !candidates[0].id){
+    event.preventDefault();
+    toast(candidates.length>1
+      ? '⚠️ 同名の保存データが複数あります。お客様履歴で対象を確認してください。'
+      : '⚠️ このご提案は未保存です。先に「データ保存」を押してください。', 'error');
+    return false;
+  }
+  // URLに残った古いローン条件を避け、保存済み顧客IDを必ず付与する。
+  p.searchParams.set('proposalId',String(candidates[0].id));
+  if(candidates[0].paymentPlan)p.searchParams.set('paymentPlan',JSON.stringify(candidates[0].paymentPlan));
+  link.href=p.toString();
+  return true;
+}
+
 function getMergedHistory() {
   const hidden = new Set(_getHiddenIds().map(Number));
   const map = new Map();
