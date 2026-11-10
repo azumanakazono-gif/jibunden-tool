@@ -170,7 +170,7 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <a id="po-official-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display:inline-block;margin-bottom:10px">公式シミュレーションを開く ↗</a>
         <div class="grid2">
           <div class="field"><label>公式の通常月返済額（円）</label><input id="po-official-monthly" type="number" min="1" step="1" placeholder="例：28500" oninput="updateLoan()"></div>
-          <div class="field" id="po-official-special-wrap"><label id="po-official-special-label">初回返済額（円・任意）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="通常月と同じなら空欄" oninput="updateLoan()"></div>
+          <div class="field" id="po-official-special-wrap"><label id="po-official-special-label">最終回返済額（円・必須）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="公式サイトの最終回額を入力" oninput="updateLoan()"></div>
         </div>
         <p id="po-official-note" style="font-size:11px;margin-top:8px">公式結果未入力：社内計算は概算です。返済方式は公式の契約条件に従ってください。</p>
       </div>
@@ -559,10 +559,9 @@ function syncOfficialLoanPO(){
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
- const jaccs=lender.startsWith('jaccs_');
- document.getElementById('po-official-special-label').textContent=jaccs?'最終回返済額（円・必須）':'初回返済額（円・任意）';
- document.getElementById('po-official-first').placeholder=jaccs?'公式サイトの最終回額を入力':'通常月と同じなら空欄';
- document.getElementById('po-official-note').textContent=jaccs?'通常月と最終回の返済額を両方入力してください。':'公式サイトの通常月返済額を入力してください。';
+ document.getElementById('po-official-special-label').textContent='最終回返済額（円・必須）';
+ document.getElementById('po-official-first').placeholder='公式サイトの最終回額を入力';
+ document.getElementById('po-official-note').textContent='通常月と最終回の返済額を両方入力してください。';
 }
 function clearOfficialLoanPO(){
  const monthly=document.getElementById('po-official-monthly');
@@ -574,11 +573,10 @@ function poOfficialResult(){
  if(currentMode!=='preset'||!PO_OFFICIAL_URLS[document.getElementById('po-lender').value])return null;
  const m=Number(document.getElementById('po-official-monthly').value);
  const raw=document.getElementById('po-official-first').value;
- const jaccs=document.getElementById('po-lender').value.startsWith('jaccs_');
- if(jaccs&&raw==='')return null;
- const special=raw===''?m:Number(raw);
- if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(special)||special<=0)return null;
- return jaccs?{monthly:m,first:m,last:special}:{monthly:m,first:special,last:m};
+ if(raw==='')return null;
+ const last=Number(raw);
+ if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(last)||last<=0)return null;
+ return {monthly:m,first:m,last};
 }
 // オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
 function syncLoanRepaymentLimitPO() {
