@@ -1381,7 +1381,7 @@ async function savePaymentOptionsDirectly(){
 function savePaymentOptionsToCustomer(){
  // 顧客IDのある案件はDBを直接更新。単独タブでも保存できる。
  if(_urlParams.get('proposalId')){savePaymentOptionsDirectly();return;}
- _paymentSaveMessage('このページには顧客IDがありません。じぶん電気ツールで顧客データを保存してから開き直してください。',false);
+ _paymentSaveMessage('このページには顧客IDがありません。じぶん電気ツールで顧客データを保存後、「導入手段の比較」から開いてください。開き直しは不要です。',false);
 }
 
 function handlePaymentSaveAck(data) {
