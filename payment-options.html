@@ -77,12 +77,20 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
 
 /* じぶん電気単価：既存の緑系UIを継承 */
 .jibunden-unit-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; }
-.jibunden-unit-panel { background:var(--pg); border:1.5px solid var(--border); border-radius:10px; padding:16px 13px; min-width:0; }
+.jibunden-unit-panel { background:var(--pg); border:1.5px solid var(--border); border-radius:10px; padding:16px 13px; min-width:0; display:grid; grid-template-rows:minmax(44px,auto) minmax(64px,auto) auto 1fr; align-items:start; }
 .jibunden-unit-panel h3 { font-size:15px; color:var(--dg); margin-bottom:10px; }
-.jibunden-unit-value { font-size:clamp(21px,3vw,30px); font-weight:800; color:var(--dg); margin:8px 0; overflow-wrap:anywhere; white-space:nowrap; }
+.jibunden-unit-value { font-size:clamp(21px,3vw,30px); font-weight:800; color:var(--dg); margin:8px 0; overflow-wrap:anywhere; white-space:nowrap; align-self:center; }
 .jibunden-unit-value small { font-size:14px; }
 .jibunden-unit-meta { font-size:12px; color:var(--muted); line-height:1.8; }
 @media (max-width:620px) { .jibunden-unit-grid { grid-template-columns:1fr; } }
+/* 保存失敗は画面内で確実に気付ける警告。動きは短時間で止める */
+#po-save-customer-status { display:inline-block; line-height:1.55; overflow-wrap:anywhere; }
+#po-save-customer-status.po-save-error { color:#991b1b; background:#fef2f2; border:2px solid #dc2626; border-radius:8px; padding:10px 12px; max-width:440px !important; font-size:14px !important; font-weight:700; }
+#po-save-customer-status.po-save-error.po-save-flash { animation:poSaveWarningPulse .55s ease-in-out 4; }
+#po-save-customer-status.po-save-success { color:#166534; background:#f0fdf4; border:1px solid #86efac; border-radius:8px; padding:8px 10px; max-width:440px !important; font-size:13px !important; font-weight:700; }
+@keyframes poSaveWarningPulse { 0%,100% { box-shadow:0 0 0 2px rgba(220,38,38,.12); background:#fef2f2; } 50% { box-shadow:0 0 0 5px rgba(220,38,38,.35); background:#fecaca; } }
+@media (prefers-reduced-motion:reduce) { #po-save-customer-status.po-save-error.po-save-flash { animation:none; } }
+
 
 </style>
 </head>
@@ -170,9 +178,9 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <a id="po-official-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="display:inline-block;margin-bottom:10px">公式シミュレーションを開く ↗</a>
         <div class="grid2">
           <div class="field"><label>公式の通常月返済額（円）</label><input id="po-official-monthly" type="number" min="1" step="1" placeholder="例：28500" oninput="updateLoan()"></div>
-          <div class="field" id="po-official-special-wrap"><label id="po-official-special-label">初回返済額（円・任意）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="通常月と同じなら空欄" oninput="updateLoan()"></div>
+          <div class="field" id="po-official-special-wrap"><label id="po-official-special-label">最終回返済額（円・必須）</label><input id="po-official-first" type="number" min="1" step="1" placeholder="公式サイトの最終回額を入力" oninput="updateLoan()"></div>
         </div>
-        <p id="po-official-note" style="font-size:11px;margin-top:8px">公式結果未入力：社内計算は概算です。返済方式は公式の契約条件に従ってください。</p>
+        <p id="po-official-note" style="font-size:11px;margin-top:8px">公式サイトの通常月返済額と最終回返済額を入力してください。</p>
       </div>
       <div class="grid2" style="margin-bottom:14px">
         <div class="field">
@@ -543,9 +551,10 @@ function poYearMonth() {
   return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
 const PO_OFFICIAL_URLS = {
- orico_reform:'http://simulation.m-orico.jp/eco/',
- orico_solar_variable:'http://simulation.m-orico.jp/eco/',
- orico_general_variable:'http://simulation.m-orico.jp/eco/',
+ // オリコからメールで案内された商品区分別の公式試算ページ
+ orico_reform:'http://orico.jp/ref',
+ orico_solar_variable:'http://simulation.m-orico.jp/living/',
+ orico_general_variable:'http://simulation.m-orico.jp/living/',
  jaccs_fixed:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1',
  jaccs_variable:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1'
 };
@@ -558,10 +567,10 @@ function syncOfficialLoanPO(){
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
- const jaccs=lender.startsWith('jaccs_');
- document.getElementById('po-official-special-label').textContent=jaccs?'最終回返済額（円・必須）':'初回返済額（円・任意）';
- document.getElementById('po-official-first').placeholder=jaccs?'公式サイトの最終回額を入力':'通常月と同じなら空欄';
- document.getElementById('po-official-note').textContent=jaccs?'通常月と最終回の返済額を両方入力してください。':'公式サイトの通常月返済額を入力してください。';
+ const firstRounded=lender==='orico_reform';
+ document.getElementById('po-official-special-label').textContent=firstRounded?'初回返済額（円・必須）':'最終回返済額（円・必須）';
+ document.getElementById('po-official-first').placeholder=firstRounded?'公式サイトの初回額を入力':'公式サイトの最終回額を入力';
+ document.getElementById('po-official-note').textContent=firstRounded?'通常月と初回の返済額を両方入力してください。':'通常月と最終回の返済額を両方入力してください。';
 }
 function clearOfficialLoanPO(){
  const monthly=document.getElementById('po-official-monthly');
@@ -573,11 +582,13 @@ function poOfficialResult(){
  if(currentMode!=='preset'||!PO_OFFICIAL_URLS[document.getElementById('po-lender').value])return null;
  const m=Number(document.getElementById('po-official-monthly').value);
  const raw=document.getElementById('po-official-first').value;
- const jaccs=document.getElementById('po-lender').value.startsWith('jaccs_');
- if(jaccs&&raw==='')return null;
- const special=raw===''?m:Number(raw);
+ if(raw==='')return null;
+ const special=Number(raw);
  if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(special)||special<=0)return null;
- return jaccs?{monthly:m,first:m,last:special}:{monthly:m,first:special,last:m};
+ // オリコ固定金利は初回のみ端数調整。オリコ変動・ジャックスは最終回のみ端数調整。
+ return document.getElementById('po-lender').value==='orico_reform'
+   ? {monthly:m,first:special,last:m}
+   : {monthly:m,first:m,last:special};
 }
 // オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
 function syncLoanRepaymentLimitPO() {
@@ -682,7 +693,7 @@ function updateLoan() {
     lbl.textContent='月々の返済額（公式結果を転記）';
     setKinri(fmt(official.monthly),fmt(total),fmt(total-principal));
     _currentMonthlyPayment=official.monthly;_currentLoanCount=count;_currentPrincipal=principal;
-    document.getElementById('po-official-note').textContent='公式結果を反映中（通常月 '+fmt(official.monthly)+'／最終回 '+fmt(official.last)+'）。ボーナス払い・その他の変動額は含みません。';
+    document.getElementById('po-official-note').textContent=document.getElementById('po-lender').value==='orico_reform' ? '公式結果を反映中（通常月 '+fmt(official.monthly)+'／初回 '+fmt(official.first)+'）。ボーナス払い・その他の変動額は含みません。' : '公式結果を反映中（通常月 '+fmt(official.monthly)+'／最終回 '+fmt(official.last)+'）。ボーナス払い・その他の変動額は含みません。';
     drawCumulativeChart();updateSlideLink();_savePO();return;
   }
   if(currentMode==='preset' && PO_OFFICIAL_URLS[document.getElementById('po-lender').value])
@@ -1270,7 +1281,20 @@ function restorePaymentOptionsForCustomer() {
 }
 function _paymentSaveMessage(msg, success){
  const label=document.getElementById('po-save-customer-status');
- if(label){label.textContent=msg;label.style.color=success===false?'#b45309':'#2D6A4F';}
+ if(label){
+  label.classList.remove('po-save-error','po-save-success','po-save-flash');
+  label.style.color='';
+  label.textContent=success===false?'⚠️ 保存できませんでした。'+msg:success===true?'✓ '+msg:msg;
+  label.setAttribute('role',success===false?'alert':'status');
+  label.setAttribute('aria-live',success===false?'assertive':'polite');
+  if(success===false){
+   label.classList.add('po-save-error');
+   void label.offsetWidth;
+   label.classList.add('po-save-flash');
+  }else if(success===true){
+   label.classList.add('po-save-success');
+  }
+ }
  const button=document.getElementById('po-save-customer-btn');
  if(button)button.disabled=false;
 }
