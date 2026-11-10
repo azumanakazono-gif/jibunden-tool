@@ -1683,6 +1683,8 @@ canvas#mini-chart { height: 220px !important; }
           <span style="font-size:10px;opacity:.8">↗</span>
         </a>
       </div>
+      <div id="payment-save-required-notice" hidden role="alert" aria-live="assertive"
+        style="display:none;margin-top:10px;padding:12px 15px;border:2px solid #dc2626;border-radius:8px;background:#fef2f2;color:#991b1b;font-size:14px;font-weight:700;line-height:1.6"></div>
 
       <!-- AIクロージングコメント（実データ版 最終ページ用） -->
       <div class="field" style="margin-top:24px">
@@ -7065,6 +7067,23 @@ function _cloudRowToEntry(r) {
 }
 
 // ローカル履歴＋クラウド履歴を id で統合（新しい方を採用）し、更新日時の降順で返す
+// 一時的なトーストではなく、保存完了まで残る案内（表示位置は導入手段ボタンの直下）。
+function showPaymentSaveRequired(message) {
+  const notice=document.getElementById('payment-save-required-notice');
+  if(!notice)return;
+  notice.textContent=message;
+  notice.hidden=false;
+  notice.style.display='block';
+  notice.setAttribute('role','alert');
+  notice.setAttribute('aria-live','assertive');
+}
+function clearPaymentSaveRequired() {
+  const notice=document.getElementById('payment-save-required-notice');
+  if(!notice)return;
+  notice.textContent='';
+  notice.hidden=true;
+  notice.style.display='none';
+}
 // 導入手段は保存済み提案だけを開く。保存直後も再読込不要でIDを反映。
 function openPaymentOptionsIfSaved(event,link) {
   const p=new URL(link.href,location.href);
@@ -7073,15 +7092,15 @@ function openPaymentOptionsIfSaved(event,link) {
   const clean=x=>String(x||'').replace('（内容変更版）','').replaceAll(' ','').replaceAll('　','').trim();
   if(!currentName || !expectedName || clean(currentName)!==clean(expectedName)){
     event.preventDefault();
-    toast('⚠️ 提案内容を確認してから「データ保存」を押してください。', 'error');
+    showPaymentSaveRequired('⚠️ 提案内容を確認してから「データ保存」を押してください。');
     return false;
   }
   const candidates=getMergedHistory().filter(x=>clean(x.cn||x.customerName)===clean(currentName));
   if(candidates.length!==1 || !candidates[0].id){
     event.preventDefault();
-    toast(candidates.length>1
+    showPaymentSaveRequired(candidates.length>1
       ? '⚠️ 同名の保存データが複数あります。お客様履歴で対象を確認してください。'
-      : '⚠️ このご提案は未保存です。先に「データ保存」を押してください。', 'error');
+      : '⚠️ このご提案は未保存です。先に「データ保存」を押してください。');
     return false;
   }
   // URLに残った古いローン条件を避け、保存済み顧客IDを必ず付与する。
@@ -7524,6 +7543,7 @@ function saveCustomer(paymentPlanOverride = null) {
     // 左サイドバー「最近の履歴」と履歴一覧を即時再描画
     renderSidebarHistory();
     renderHistoryFull();
+    clearPaymentSaveRequired();
     toast(forkedFrom
       ? `「${entry.customerName}」は${forkedFrom}さんのデータのため、新しいIDで新規保存しました`
       : `「${entry.customerName}」を保存しました`);
