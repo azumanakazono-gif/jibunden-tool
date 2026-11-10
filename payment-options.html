@@ -559,9 +559,10 @@ function syncOfficialLoanPO(){
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
- document.getElementById('po-official-special-label').textContent='最終回返済額（円・必須）';
- document.getElementById('po-official-first').placeholder='公式サイトの最終回額を入力';
- document.getElementById('po-official-note').textContent='通常月と最終回の返済額を両方入力してください。';
+ const firstRounded=lender==='orico_reform';
+ document.getElementById('po-official-special-label').textContent=firstRounded?'初回返済額（円・必須）':'最終回返済額（円・必須）';
+ document.getElementById('po-official-first').placeholder=firstRounded?'公式サイトの初回額を入力':'公式サイトの最終回額を入力';
+ document.getElementById('po-official-note').textContent=firstRounded?'通常月と初回の返済額を両方入力してください。':'通常月と最終回の返済額を両方入力してください。';
 }
 function clearOfficialLoanPO(){
  const monthly=document.getElementById('po-official-monthly');
@@ -574,9 +575,12 @@ function poOfficialResult(){
  const m=Number(document.getElementById('po-official-monthly').value);
  const raw=document.getElementById('po-official-first').value;
  if(raw==='')return null;
- const last=Number(raw);
- if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(last)||last<=0)return null;
- return {monthly:m,first:m,last};
+ const special=Number(raw);
+ if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(special)||special<=0)return null;
+ // オリコ固定金利は初回のみ端数調整。オリコ変動・ジャックスは最終回のみ端数調整。
+ return document.getElementById('po-lender').value==='orico_reform'
+   ? {monthly:m,first:special,last:m}
+   : {monthly:m,first:m,last:special};
 }
 // オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
 function syncLoanRepaymentLimitPO() {
