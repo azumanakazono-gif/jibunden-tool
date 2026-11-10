@@ -543,9 +543,10 @@ function poYearMonth() {
   return parts.find(p=>p.type==='year').value+'-'+parts.find(p=>p.type==='month').value;
 }
 const PO_OFFICIAL_URLS = {
- orico_reform:'http://simulation.m-orico.jp/eco/',
- orico_solar_variable:'http://simulation.m-orico.jp/eco/',
- orico_general_variable:'http://simulation.m-orico.jp/eco/',
+ // オリコからメールで案内された商品区分別の公式試算ページ
+ orico_reform:'http://orico.jp/ref',
+ orico_solar_variable:'http://simulation.m-orico.jp/living/',
+ orico_general_variable:'http://simulation.m-orico.jp/living/',
  jaccs_fixed:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1',
  jaccs_variable:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1'
 };
