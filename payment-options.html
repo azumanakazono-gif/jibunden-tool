@@ -1342,7 +1342,7 @@ const PAYMENT_CUSTOMER_CLOUD_TEST_MODE=
   _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
 // 検証用Apps Scriptをデプロイ後、ここにそのWebアプリURLを設定する。
 // 空欄の間はクラウド検証を停止し、本番共有DBへフォールバックしない。
-const PAYMENT_CUSTOMER_TEST_WEBAPP_URL='';
+const PAYMENT_CUSTOMER_TEST_WEBAPP_URL=_urlParams.get('customerDbUrl') || '';
 const PAYMENT_CUSTOMER_TEST_KEY='jibunden_payment_test_only_v1';
 async function paymentCustomerRequest(options){
  if(PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
