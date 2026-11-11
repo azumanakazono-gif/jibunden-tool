@@ -1327,7 +1327,7 @@ function updateLifecyclePlan(){
  const summary=document.getElementById('lifecycle-summary');
  if(summary){
   const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
-  summary.textContent='表示期間：'+years+'年間｜'+years+'年目累積：電力会社 '+utility[utility.length-1].toLocaleString('ja-JP')+'万円／現金 '+cash[cash.length-1].toLocaleString('ja-JP')+'万円／ローン '+loan[loan.length-1].toLocaleString('ja-JP')+'万円｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。';
+  summary.textContent='表示期間：'+years+'年間｜'+years+'年目累積：電力会社 '+utility[utility.length-1].toLocaleString('ja-JP')+'万円／現金 '+cash[cash.length-1].toLocaleString('ja-JP')+'万円／ローン '+loan[loan.length-1].toLocaleString('ja-JP')+'万円｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。'+(missingCostNames.length?' 【更新費用未設定：'+missingCostNames.join('・')+'。金額が未入力の設備更新費は計上していません】':'')+(CURRENT<=0?' 【電気料金未連携：電力会社との累積比較は参考になりません】':'');
  }
 }
 function readLifecyclePlanFromUrl(){
