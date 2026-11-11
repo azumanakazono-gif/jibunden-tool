@@ -1019,6 +1019,8 @@ html,body{
 ───────────────────────────────────────── */
 function calcPMT(principal) {
   const r = RATE / 12;
+  if (!Number.isFinite(principal) || principal <= 0 || MONTHS <= 0) return 0;
+  if (r <= 0) return Math.round(principal / MONTHS);
   return Math.round(principal * r / (1 - Math.pow(1 + r, -MONTHS)));
 }
 
@@ -1038,17 +1040,19 @@ function parseToYen(raw, defaultYen) {
 }
 
 const params          = new URLSearchParams(location.search);
-const RATE_PCT        = parseFloat(params.get('interestRate')) || 4.0;
+const RATE_PCT        = parseFloat(params.get('interestRate')) || 0;
 const RATE            = RATE_PCT / 100;
-const MONTHS          = (parseInt(params.get('loanPeriod')) || 15) * 12;
-const totalCostRaw    = parseToYen(params.get('totalCost'), 2800000);
+const MONTHS          = (parseInt(params.get('loanCount')) || (parseInt(params.get('loanPeriod')) || 0) * 12);
+const totalCostRaw    = parseToYen(params.get('totalCost'), 0); // 未連携時に架空の工事費を使わない
 const subsidyRaw      = parseToYen(params.get('subsidy'), 0);      // 0 = 補助金なし
 const downPaymentRaw  = parseToYen(params.get('downPayment'), 0);  // 0 = 頭金なし
 const hasSubsidy      = subsidyRaw > 0;
+const hasCostData = params.has('totalCost') && Number.isFinite(totalCostRaw) && totalCostRaw > 0;
+const hasLoanData = hasCostData && params.has('interestRate') && MONTHS > 0;
 const netCost         = totalCostRaw - subsidyRaw;           // 実質負担総額（補助金差引後）
 const loanPrincipal   = netCost - downPaymentRaw;            // 実際の借入元金（頭金も差引）
-const RESIDUAL        = parseFloat(params.get('monthlyRemainingCost')) || 1600;
-const CURRENT         = parseFloat(params.get('monthlyBill')) || 21000;
+const RESIDUAL        = parseFloat(params.get('monthlyRemainingCost')) || 0;
+const CURRENT         = parseFloat(params.get('monthlyBill')) || 0;
 const SALE_INCOME_MON = parseFloat(params.get('saleIncome')) || 0;
 const SURPLUS_KWH_YEAR  = parseFloat(params.get('surplusKwhYear')) || 0;
 const FIT_YEARS         = parseInt(params.get('fitYears')) || 10;
@@ -1086,7 +1090,7 @@ const officialLastRaw = params.get('officialLastPayment');
 const officialLast = officialLastRaw !== null && /^\d+$/.test(officialLastRaw) ? Number(officialLastRaw) : officialMonthly;
 const hasOfficialPayment = Number.isSafeInteger(officialMonthly) && officialMonthly > 0 && Number.isSafeInteger(officialFirst) && officialFirst > 0 && Number.isSafeInteger(officialLast) && officialLast > 0;
 const pmt          = hasOfficialPayment ? officialMonthly : calcPMT(loanPrincipal);
-const totalPaid    = hasOfficialPayment ? officialFirst + pmt * Math.max(0, MONTHS-2) + (MONTHS>1?officialLast:0) : pmt * MONTHS;
+const totalPaid    = hasLoanData ? (hasOfficialPayment ? officialFirst + pmt * Math.max(0, MONTHS-2) + (MONTHS>1?officialLast:0) : pmt * MONTHS) : 0;
 const totalInterest = totalPaid - loanPrincipal;
 const newMonthly   = pmt + RESIDUAL;
 const saving       = CURRENT - newMonthly;
@@ -1368,18 +1372,20 @@ function initLifecyclePlan(){
  set('story-annual-gen',Number.isFinite(gen)&&gen>0?Math.round(gen/20).toLocaleString('ja-JP'):'—');
  set('story-total-gen',Number.isFinite(gen)&&gen>0?Math.round(gen).toLocaleString('ja-JP'):'—');
  set('story-buy-unit',Number.isFinite(buy)&&buy>0?buy.toFixed(1):'—');
- set('story-cash-unit',Number.isFinite(gen)&&gen>0?(cash/gen).toFixed(1):'—');
- set('story-loan-unit',Number.isFinite(gen)&&gen>0?(loan/gen).toFixed(1):'—');
- set('story-principal',yen(loanPrincipal));
- set('story-monthly',yen(pmt));
- set('story-term',MONTHS+'回 / '+(MONTHS/12).toFixed(1)+'年');
- set('story-lender',params.get('loanLenderLabel')||params.get('loanLender')||'画面で選択したローン商品');
- set('story-rate',params.has('interestRate')?params.get('interestRate')+'%':'—');
- set('story-down',yen(downPaymentRaw));
- set('story-interest',yen(totalInterest));
- set('story-loan-total',yen(loan));
- set('story-cash-total',yen(cash));
- set('story-loan-total-2',yen(loan));
+ set('story-cash-unit',hasCostData&&Number.isFinite(gen)&&gen>0?(cash/gen).toFixed(1):'未設定');
+ set('story-loan-unit',hasLoanData&&Number.isFinite(gen)&&gen>0?(loan/gen).toFixed(1):'未設定');
+ const lenderLabels={orico_fixed:'オリコ｜固定金利',orico_solar_variable:'オリコ｜太陽光・蓄電池 変動',orico_general_variable:'オリコ｜一般リフォーム 変動',jaccs_fixed:'ジャックス｜固定金利',jaccs_variable:'ジャックス｜変動金利'};
+ const lenderId=params.get('loanLender');
+ set('story-principal',hasCostData?yen(loanPrincipal):'未設定');
+ set('story-monthly',hasLoanData?yen(pmt):'未設定');
+ set('story-term',hasLoanData?MONTHS+'回 / '+(MONTHS/12).toFixed(1)+'年':'未設定');
+ set('story-lender',params.get('loanLenderLabel')||lenderLabels[lenderId]||'未設定');
+ set('story-rate',params.has('interestRate')?params.get('interestRate')+'%':'未設定');
+ set('story-down',hasCostData?yen(downPaymentRaw):'未設定');
+ set('story-interest',hasLoanData?yen(totalInterest):'未設定');
+ set('story-loan-total',hasLoanData?yen(loan):'未設定');
+ set('story-cash-total',hasCostData?yen(cash):'未設定');
+ set('story-loan-total-2',hasLoanData?yen(loan):'未設定');
  set('story-gen-total-2',Number.isFinite(gen)&&gen>0?Math.round(gen).toLocaleString('ja-JP')+' kWh':'—');
 })();
 
@@ -1388,8 +1394,8 @@ const JIBUNDEN_HAS_GEN = Number.isFinite(JIBUNDEN_GEN20) && JIBUNDEN_GEN20 > 0;
 const JIBUNDEN_BUY_UNIT = Number(params.get('currentBuyUnitPrice'));
 const JIBUNDEN_CASH_TOTAL = Math.max(0,netCost);
 const JIBUNDEN_LOAN_TOTAL = downPaymentRaw + totalPaid;
-const JIBUNDEN_CASH_UNIT = JIBUNDEN_HAS_GEN ? JIBUNDEN_CASH_TOTAL/JIBUNDEN_GEN20 : null;
-const JIBUNDEN_LOAN_UNIT = JIBUNDEN_HAS_GEN ? JIBUNDEN_LOAN_TOTAL/JIBUNDEN_GEN20 : null;
+const JIBUNDEN_CASH_UNIT = JIBUNDEN_HAS_GEN && hasCostData ? JIBUNDEN_CASH_TOTAL/JIBUNDEN_GEN20 : null;
+const JIBUNDEN_LOAN_UNIT = JIBUNDEN_HAS_GEN && hasLoanData ? JIBUNDEN_LOAN_TOTAL/JIBUNDEN_GEN20 : null;
 function jdText(id,text){
   const element=document.getElementById(id);
   if(element)element.textContent=String(text);
@@ -1406,10 +1412,10 @@ function jdText(id,text){
   jdText('jd-surplus-kwh',SURPLUS_KWH_YEAR>0 ? fmt(SURPLUS_KWH_YEAR)+' kWh/年' : '未連携');
   jdText('jd-self-kwh',JIBUNDEN_HAS_GEN && SURPLUS_KWH_YEAR>0 && JIBUNDEN_GEN20/20>=SURPLUS_KWH_YEAR
     ? fmt(JIBUNDEN_GEN20/20-SURPLUS_KWH_YEAR)+' kWh/年' : '未連携');
-  jdText('jd-net-man',(JIBUNDEN_CASH_TOTAL/10000).toFixed(1));
-  jdText('jd-loan-total-man',(JIBUNDEN_LOAN_TOTAL/10000).toFixed(1));
-  jdText('jd-monthly-yen',fmt(pmt));
-  jdText('jd-loan-years',(MONTHS/12).toFixed(MONTHS%12===0?0:1));
+  jdText('jd-net-man',hasCostData ? (JIBUNDEN_CASH_TOTAL/10000).toFixed(1) : '未設定');
+  jdText('jd-loan-total-man',hasLoanData ? (JIBUNDEN_LOAN_TOTAL/10000).toFixed(1) : '未設定');
+  jdText('jd-monthly-yen',hasLoanData ? fmt(pmt) : '未設定');
+  jdText('jd-loan-years',hasLoanData ? (MONTHS/12).toFixed(MONTHS%12===0?0:1) : '未設定');
 })();
 
 /* ─────────────────────────────────────────
@@ -1606,179 +1612,3 @@ scaleSlides();
 </script>
 </body>
 </html>
-
-
-<!-- 非表示：旧ページの計算参照用。提案スライドには表示しない -->
-<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-generation" style="display:none" data-idx="detail-generation">
-      <div class="sh"><div class="slide-num">DETAIL 02 / GENERATION</div><div class="slide-ttl">20年間で、<span class="g">どれだけ発電するか</span></div></div>
-      <div class="generation-hero"><div><div class="g-label">年間発電量（試算）</div><div class="g-number" id="story-annual-gen">—</div><div class="g-unit">kWh / 年</div></div><div class="g-multiply">× 20年間</div><div><div class="g-label">20年間の総発電量</div><div class="g-number" id="story-total-gen">—</div><div class="g-unit">kWh</div></div></div>
-      <div class="power-flow"><div class="power-node"><span>☀️</span><b>太陽光で発電</b></div><div class="power-line">→</div><div class="power-split"><div class="power-node own"><span>🏠</span><b>自家消費</b><small>電力会社からの購入を減らす</small></div><div class="power-node surplus"><span>🔌</span><b>余剰売電</b><small>使い切れない電気を売る</small></div></div></div>
-      <div class="jd-note">20年間の総発電量は、じぶん電気単価を計算するための分母です。自家消費量と売電量は別の指標として管理し、混同しません。</div>
-    </div>
-
-    <!-- ── 詳細ストーリー 3：単価の意味と計算根拠 ── -->
-    
-
-<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-unit" style="display:none" data-idx="detail-unit">
-      <div class="sh"><div class="slide-num">DETAIL 03 / UNIT COST</div><div class="slide-ttl"><span class="g">3つの単価</span>を同じ条件で読み解く</div></div>
-      <div class="unit-story-grid"><div class="unit-story-card"><h3>🏢 現状</h3><div class="unit-story-number" id="story-buy-unit">—</div><b>円/kWh</b><p>現在の平均買電単価</p></div><div class="unit-story-card"><h3>💴 現金一括</h3><div class="unit-story-number" id="story-cash-unit">—</div><b>円/kWh</b><p>補助金控除後の設備購入額 ÷ 20年総発電量</p></div><div class="unit-story-card"><h3>🏦 ローン活用</h3><div class="unit-story-number" id="story-loan-unit">—</div><b>円/kWh</b><p>頭金＋利息込み総返済額 ÷ 20年総発電量</p></div></div>
-      <div class="formula-story"><div>現金購入時のじぶん電気単価 = <b>補助金控除後の設備購入額</b> ÷ 20年総発電量</div><div>ローン活用時のじぶん電気単価 = <b>頭金＋公式返済総額</b> ÷ 20年総発電量</div></div>
-      <div class="jd-note">現状は買電単価、現金・ローンは20年間の総発電量を基準にしたじぶん電気単価です。比較の意味が異なるため、維持費・売電収入を含む総合的な経済効果とは区別して説明します。</div>
-    </div>
-
-    <!-- ── 詳細ストーリー 4：ローン会社と返済計画 ── -->
-    
-
-<div class="legacy-slide-reference jd-supplemental jd-story-detail jd-story-support" style="display:none" data-idx="detail-support">
-      <div class="sh"><div class="slide-num">DETAIL 06 / LONG-TERM SUPPORT</div><div class="slide-ttl">20年の安心。<span class="g">その先も、ずっと。</span></div></div>
-      <div class="support-timeline"><div class="support-phase support-20"><div class="support-year">導入〜20年</div><div class="support-title">設備保証</div><p>対象機器・保証条件に基づく保証で、長期利用の安心を支えます。</p></div><div class="support-bridge">20年を経過</div><div class="support-phase support-after"><div class="support-year">21年目以降</div><div class="support-title">継続サポート</div><p>点検・修理・設備更新・使い方の見直しなど、必要に応じて相談・対応します。</p></div></div>
-      <div class="jd-note">21年目以降の継続サポートは保証延長や無償修理を約束するものではありません。対応内容と費用は、その時点の設備状況に応じて個別に確認します。</div>
-      <div class="jd-footer">地域でエネルギーをつくり、地域で使い、地域の事業者が長く支える。じぶん電気は「地域循環共生圏」「強い田舎」につながる取り組みです。</div>
-    </div>
-
-
-    <!-- ── 詳細資料：従来のローン戦略スライド ── -->
-    <!-- ── SLIDE 2 ── -->
-    
-
-<div class="legacy-slide-reference s2 jd-supplemental" style="display:none" data-idx="1">
-      <div class="sh">
-        <div class="slide-num">SLIDE 02 / CONCEPT</div>
-        <div class="slide-ttl">電気代を<span class="g">費用</span>から<span class="g">資産</span>へ</div>
-      </div>
-      <div class="concept-row">
-        <div class="cb before">
-          <div class="cb-icon">🔥</div>
-          <div class="cb-tag">BEFORE — 現在</div>
-          <div class="cb-main">費用（コスト）</div>
-          <div class="cb-desc">
-            毎月 <strong style="color:#f87171">2.1万円</strong> が<br>
-            電力会社に消えていく<br><br>
-            支払い続けても<br>何も残らない
-          </div>
-        </div>
-        <div class="c-arr">
-          <div class="c-arr-icon">▶</div>
-          <div class="c-arr-txt">SMART<br>LOAN<br>PLAN</div>
-          <div class="c-arr-icon">▶</div>
-        </div>
-        <div class="cb after">
-          <div class="cb-icon">☀️</div>
-          <div class="cb-tag">AFTER — 導入後</div>
-          <div class="cb-main">資産形成へ変換</div>
-          <div class="cb-desc">
-            電気代がローン返済に置き換わり<br>
-            <strong style="color:var(--gold-light)" id="s2-loan-years">15年で完済</strong> すれば<br><br>
-            以降は固定費を賢く抑え<br>家計にゆとりが生まれる生活へ
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SLIDE 3 ── -->
-    
-
-<div class="legacy-slide-reference s3 jd-supplemental" style="display:none" data-idx="2">
-      <div class="sh">
-        <div class="slide-num">SLIDE 03 / INVESTMENT</div>
-        <div class="slide-ttl"><span class="g">初期投資</span>の透明性</div>
-      </div>
-      <div class="inv-flow">
-        <div class="ib total">
-          <div class="ib-lbl">工事費（総額）</div>
-          <div class="ib-num" id="s3-total">280</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note">太陽光パネル＋工事費<br>一式込みの正直価格</div>
-        </div>
-        <div class="inv-op minus">－</div>
-        <div class="ib sub">
-          <div class="ib-lbl">補助金（国・自治体）</div>
-          <div class="ib-num" id="s3-sub">38</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note">各種補助金を<br>フル活用した場合</div>
-        </div>
-        <div class="inv-op eq">=</div>
-        <div class="ib net">
-          <div class="ib-lbl">実質負担総額</div>
-          <div class="ib-num" id="s3-net">242</div>
-          <div class="ib-unit">万円</div>
-          <div class="ib-note" id="s3-net-note">この金額をローンで<br>分割してスタート</div>
-        </div>
-      </div>
-      <div class="inv-sub-note">
-        補助金 <strong id="s3-sub2" style="color:var(--accent)">38万円</strong> の適用により、実質負担を大幅に削減。総額のうち約 <strong id="s3-pct" style="color:var(--accent)">13.6%</strong> が補助金でカバーされます。
-      </div>
-    </div>
-
-    <!-- ── SLIDE 4 ── -->
-    
-
-<div class="legacy-slide-reference s4 jd-supplemental" style="display:none" data-idx="3">
-      <div class="sh" style="margin-bottom:0">
-        <div class="slide-num">SLIDE 04 / MONTHLY CASHFLOW</div>
-        <div class="slide-ttl"><span class="g">月間収支</span>の最適化</div>
-      </div>
-      <div class="s4-banner">
-        <span id="s4-banner-text">月々の家計負担が <strong id="s4-saving">1,500</strong>円 軽減されます</span>
-      </div>
-      <div class="cf-row">
-        <div class="cf-box cur">
-          <div class="cf-lbl">▲ 現在（電力会社へ支払い続ける）</div>
-          <div><span class="cf-amount" id="s4-cur-amount">2.1</span><span class="cf-unit">万円/月</span></div>
-          <div class="cf-note">毎月電力会社に消えていく費用<br>支払い続けても何も資産に残らない</div>
-          <div class="cf-bk">
-            <div class="cf-bk-row"><span>月額電気代</span><span id="s4-cur-monthly">21,000円</span></div>
-            <div class="cf-bk-row"><span>年間コスト</span><span id="s4-cur-annual">252,000円</span></div>
-            <div class="cf-bk-row cf-bk-main"><span>20年累計</span><span id="s4-cur-20y">504万円</span></div>
-          </div>
-        </div>
-        <div class="cf-box nw">
-          <div class="cf-lbl">✦ 導入後の実質持ち出し額</div>
-          <div><span class="cf-amount" id="s4-total-man">1.45</span><span class="cf-unit">万円/月</span></div>
-          <div class="cf-note">ローン返済＋残り電気代から<br>売電収入を差し引いた実質負担</div>
-          <div class="cf-bk">
-            <div class="cf-bk-row"><span>実質月額負担</span><span id="s4-jis-monthly">14,500円</span></div>
-            <div id="s4-breakdown" style="font-size:12px;color:var(--w60);margin:2px 0 6px;line-height:1.5;font-weight:500">（内訳：ローン返済 約17,900円 ＋ 残り電気代 約3,000円 － 売電収入 約6,400円）</div>
-            <div class="cf-bk-row"><span>実質年間負担</span><span id="s4-jis-annual">174,000円</span></div>
-            <div class="cf-bk-row cf-bk-main"><span>20年累計実質負担</span><span id="s4-jis-20y">348万円</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SLIDE 5 ── -->
-    
-
-<div class="legacy-slide-reference s5 jd-supplemental" style="display:none" data-idx="4">
-      <div class="sh">
-        <div class="slide-num">SLIDE 05 / REPAYMENT</div>
-        <div class="slide-ttl"><span class="g">返済額</span>シミュレーション</div>
-      </div>
-      <div class="rep-layout">
-        <div class="rep-left">
-          <div class="rep-circle">
-            <div class="rc-lbl">月々のご返済額</div>
-            <div class="rc-val" id="s5-pmt">17,900</div>
-            <div class="rc-unit">円 / 月</div>
-            <div class="rc-note" id="s5-pmt-note">実質242万円 / 15年想定</div>
-          </div>
-        </div>
-        <div class="rep-right">
-          <table class="rep-tbl">
-            <tr><td>借入額（実質負担）</td><td id="s5-net">2,420,000 円</td></tr>
-            <tr><td>返済期間</td><td id="s5-period">15年（180回払い）</td></tr>
-            <tr><td>適用金利（想定）</td><td id="s5-rate-lbl">年 4.0%</td></tr>
-            <tr class="hl"><td>月々返済額</td><td id="s5-pmt2">17,900 円</td></tr>
-            <tr><td>総返済額</td><td id="s5-total">3,222,000 円</td></tr>
-            <tr><td>支払利息総額</td><td id="s5-interest">802,000 円</td></tr>
-          </table>
-          <div class="rep-note" id="s5-note">
-            ※ 金利は<span id="s5-rate-note">年4.0%</span>の元利均等返済を想定した試算値です。実際の金利は金融機関・商品により異なります。<br>
-            ※ 補助金 <span id="s5-sub-note">38万円</span> を差し引いた後の借入額を基準に算出しています。
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── 詳細ストーリー 7：期間別の設備更新ライフプラン ── -->
-    
