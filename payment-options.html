@@ -174,6 +174,14 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </select>
         <div id="po-rate-status" style="font-size:11px;margin-top:5px;line-height:1.6" aria-live="polite">手入力の金利を使用します。</div>
       </div>
+      <div id="po-loan-terms" style="display:none;background:#f0f7f4;border:1px solid #d1e8dc;border-radius:10px;padding:12px;margin-bottom:14px" aria-live="polite">
+        <div style="font-size:12px;font-weight:700;color:#1b4332;margin-bottom:8px">このローンの利用条件</div>
+        <div class="grid2" style="gap:12px;margin-bottom:0">
+          <div><div style="font-size:11px;color:#6b7280">選択可能な返済回数</div><strong id="po-terms-count" style="font-size:15px">-</strong></div>
+          <div><div style="font-size:11px;color:#6b7280">借入可能金額</div><strong id="po-terms-amount" style="font-size:15px">-</strong></div>
+        </div>
+        <p style="font-size:11px;color:#6b7280;margin-top:8px">※ 上記は選択したローン商品の利用条件です。じぶん電気単価の算出期間は返済期間にかかわらず20年間です。</p>
+      </div>
       <div id="po-official-area" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;margin-bottom:14px">
         <b>公式シミュレーション優先</b>
         <p style="font-size:12px;margin:8px 0">公式サイトで借入額・回数を入力して試算し、表示された返済額を転記してください。自動入力・自動取得には対応していません。</p>
@@ -191,7 +199,6 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
         <div class="field">
           <label>返済期間</label>
-          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
           <select id="po-lc" onchange="clearOfficialLoanPO();updateLoan()">
             <option value="6">6ヶ月（6回）</option>
             <option value="12">1年（12回）</option>
@@ -592,22 +599,38 @@ function poOfficialResult(){
    ? {monthly:m,first:special,last:m}
    : {monthly:m,first:m,last:special};
 }
-// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+// 商品ごとの返済回数・借入金額条件を独立表示し、選べる返済期間を一致させる。
 function syncLoanRepaymentLimitPO() {
   const lender = document.getElementById('po-lender');
   const countSelect = document.getElementById('po-lc');
+  const terms = document.getElementById('po-loan-terms');
   if (!lender || !countSelect) return;
   const product = PO_MONTHLY_RATES[lender.value];
-  const isOrico = lender.value.indexOf('orico_') === 0;
-  const limit = isOrico && product ? product.maxCount : null;
-  Array.from(countSelect.options).forEach(option => {
-    option.disabled = limit !== null && Number(option.value) > limit;
-  });
-  if (limit !== null && Number(countSelect.value) > limit) {
-    countSelect.value = String(limit);
+  if (terms) terms.style.display = product ? '' : 'none';
+  if (product) {
+    const countText = document.getElementById('po-terms-count');
+    const amountText = document.getElementById('po-terms-amount');
+    if (countText) countText.textContent = product.minCount + '〜' + product.maxCount
+      + '回（最大' + (product.maxCount / 12) + '年）';
+    if (amountText) amountText.textContent = (product.min / 10000) + '万円以上'
+      + (product.max ? '〜' + (product.max / 10000) + '万円以下' : '（上限は金融会社に確認）');
   }
-  const note = document.getElementById('po-lc-orico-limit');
-  if (note) note.style.display = isOrico ? '' : 'none';
+  const options = Array.from(countSelect.options);
+  options.forEach(option => {
+    const count = Number(option.value);
+    const allowed = !product || (count >= product.minCount && count <= product.maxCount);
+    option.disabled = !allowed;
+    option.hidden = !allowed;
+  });
+  if (product && !options.some(option => option.value === countSelect.value && !option.disabled)) {
+    const valid = options.filter(option => !option.disabled).map(option => Number(option.value));
+    if (valid.length) {
+      const current = Number(countSelect.value);
+      const next = valid.reduce((best, count) => Math.abs(count - current) < Math.abs(best - current) ? count : best, valid[0]);
+      countSelect.value = String(next);
+      clearOfficialLoanPO();
+    }
+  }
 }
 
 function poApplyLenderRate(principal,count) {
