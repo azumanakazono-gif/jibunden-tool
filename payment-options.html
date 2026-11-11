@@ -1336,8 +1336,21 @@ const PAYMENT_CUSTOMER_TEST_MODE=
   location.hostname.endsWith('.vercel.app') &&
   _urlParams.get('customerDbTest')==='local' &&
   _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
+const PAYMENT_CUSTOMER_CLOUD_TEST_MODE=
+  location.hostname.endsWith('.vercel.app') &&
+  _urlParams.get('customerDbTest')==='cloud' &&
+  _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
+// 検証用Apps Scriptをデプロイ後、ここにそのWebアプリURLを設定する。
+// 空欄の間はクラウド検証を停止し、本番共有DBへフォールバックしない。
+const PAYMENT_CUSTOMER_TEST_WEBAPP_URL='';
 const PAYMENT_CUSTOMER_TEST_KEY='jibunden_payment_test_only_v1';
 async function paymentCustomerRequest(options){
+ if(PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
+  if(!PAYMENT_CUSTOMER_TEST_WEBAPP_URL)throw Error('検証用Apps ScriptのWebアプリURLが未設定です。本番DBへの接続は行いません。');
+  return fetch(PAYMENT_CUSTOMER_TEST_WEBAPP_URL,options);
+ }
+ if(_urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID && !PAYMENT_CUSTOMER_TEST_MODE)
+  throw Error('検証用顧客IDは専用テストモードでのみ使用できます。本番顧客DBへの接続を停止しました。');
  if(!PAYMENT_CUSTOMER_TEST_MODE)return fetch(PAYMENT_CUSTOMER_DB_URL,options);
  if(options.method==='GET'){
   const stored=localStorage.getItem(PAYMENT_CUSTOMER_TEST_KEY);
@@ -1355,11 +1368,13 @@ async function paymentCustomerRequest(options){
  }
  throw Error('検証用DBの未対応操作です。');
 }
-if(PAYMENT_CUSTOMER_TEST_MODE){
+if(PAYMENT_CUSTOMER_TEST_MODE || PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
  const btn=document.getElementById('po-save-customer-btn');
- if(btn)btn.textContent='🧪 ブラウザ内テストデータへ保存';
+ if(btn)btn.textContent=PAYMENT_CUSTOMER_TEST_MODE?'🧪 ブラウザ内テストデータへ保存':'☁️ 検証用クラウドDBへ保存';
  const note=document.getElementById('po-save-customer-status');
- if(note)note.textContent='🧪 検証専用：このブラウザ内に保存します。共有顧客DBには接続しません。';
+ if(note)note.textContent=PAYMENT_CUSTOMER_TEST_MODE
+  ?'🧪 検証専用：このブラウザ内に保存します。共有顧客DBには接続しません。'
+  :'☁️ 検証専用：専用Apps Scriptと専用スプレッドシートのみを使用します。';
 }
 
 let _paymentFieldsEdited=false;
@@ -1388,7 +1403,7 @@ async function restorePaymentPlanFromCustomerDB(){
   if(saved.paymentPlan && saved.paymentPlan.version===1){
    _urlParams.set('paymentPlan',JSON.stringify(saved.paymentPlan));
    restorePaymentOptionsForCustomer();
-   if(status)status.textContent=PAYMENT_CUSTOMER_TEST_MODE?'ブラウザ内の検証用データから支払条件を復元しました。':'保存済みの支払条件を顧客DBから復元しました。';
+   if(status)status.textContent=PAYMENT_CUSTOMER_TEST_MODE?'ブラウザ内の検証用データから支払条件を復元しました。':PAYMENT_CUSTOMER_CLOUD_TEST_MODE?'検証用クラウドDBから支払条件を復元しました。':'保存済みの支払条件を顧客DBから復元しました。';
   }else if(status){
    status.textContent='この案件の支払条件は未保存です。入力して保存できます。';
   }
@@ -1404,7 +1419,7 @@ async function savePaymentOptionsDirectly(){
  if(button)button.disabled=true;
  try{
   const row=await fetchPaymentCustomerRow();
-  const author=PAYMENT_CUSTOMER_TEST_MODE?'検証用':((localStorage.getItem('jibunden_author')||'').trim() ||
+  const author=(PAYMENT_CUSTOMER_TEST_MODE||PAYMENT_CUSTOMER_CLOUD_TEST_MODE)?'検証用':((localStorage.getItem('jibunden_author')||'').trim() ||
    String(window.prompt('顧客DBの保存者名を入力してください（元のじぶん電気画面と同じ担当者名）')||'').trim());
   if(!author || /^(ゲスト|ゲストユーザー|guest|未設定)$/i.test(author))throw Error('担当者名が未設定のため、保存を中止しました。');
   const owner=String(row.author||'').replace(/^'/,'').trim();
@@ -1431,10 +1446,10 @@ async function savePaymentOptionsDirectly(){
   const reply=await res.json();
   if(!reply || reply.ok!==true || String(reply.id)!==String(row.id) || reply.action==='forked')
    throw Error('DBの更新が確認できません：'+String(reply?.error||reply?.action||'応答不正'));
-  if(!PAYMENT_CUSTOMER_TEST_MODE){try{localStorage.setItem('jibunden_author',author);}catch(e){}}
+  if(!PAYMENT_CUSTOMER_TEST_MODE&&!PAYMENT_CUSTOMER_CLOUD_TEST_MODE){try{localStorage.setItem('jibunden_author',author);}catch(e){}}
   _urlParams.set('paymentPlan',JSON.stringify(plan));
   updateSlideLink();
-  _paymentSaveMessage(PAYMENT_CUSTOMER_TEST_MODE?'テストデータをこのブラウザに保存しました。ページを再読み込みして復元を確認してください。':'顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
+  _paymentSaveMessage(PAYMENT_CUSTOMER_TEST_MODE?'テストデータをこのブラウザに保存しました。ページを再読み込みして復元を確認してください。':PAYMENT_CUSTOMER_CLOUD_TEST_MODE?'検証用クラウドDBに保存しました。再読み込みして復元を確認してください。':'顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
  }catch(error){
   console.error('[導入手段] 顧客DB保存失敗:',error);
   _paymentSaveMessage('保存未完了：'+error.message,false);
