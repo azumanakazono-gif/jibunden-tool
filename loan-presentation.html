@@ -967,15 +967,15 @@ html,body{
       <div class="lifecycle-equipment-grid" aria-label="設備ごとの更新時期と現在交換費用">
         <div class="lifecycle-equipment-card">
           <div class="life-control"><label for="life-pcs-cycle">PCS交換周期（20年経過後）</label><select id="life-pcs-cycle"><option value="10" selected>10年ごと</option><option value="15">15年ごと</option><option value="0">更新費用を計上しない</option></select></div>
-          <div class="lifecycle-cost-card"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" value="400000"><span>円</span></div></div>
+          <div class="lifecycle-cost-card"><label for="life-pcs-cost">PCS現在交換費用</label><div class="lifecycle-cost-input"><input id="life-pcs-cost" type="number" min="0" step="10000" placeholder="未設定"><span>円</span></div></div>
         </div>
         <div class="lifecycle-equipment-card">
           <div class="life-control"><label for="life-battery-year">蓄電池交換（創蓄の場合）</label><select id="life-battery-year"><option value="0">未設定・計上しない</option><option value="20" selected>20年目</option><option value="25">25年目</option><option value="30">30年目</option><option value="35">35年目</option><option value="40">40年目</option><option value="45">45年目</option><option value="50">50年目</option></select></div>
-          <div class="lifecycle-cost-card"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" value="1000000"><span>円</span></div></div>
+          <div class="lifecycle-cost-card"><label for="life-battery-cost">蓄電池現在交換費用</label><div class="lifecycle-cost-input"><input id="life-battery-cost" type="number" min="0" step="10000" placeholder="未設定"><span>円</span></div></div>
         </div>
         <div class="lifecycle-equipment-card">
           <div class="life-control"><label for="life-panel-year">パネル交換想定</label><select id="life-panel-year"><option value="0">未設定・計上しない</option><option value="1">初年度</option><option value="5">5年目</option><option value="10">10年目</option><option value="15">15年目</option><option value="20">20年目</option><option value="25">25年目</option><option value="30" selected>30年目</option><option value="35">35年目</option><option value="40">40年目</option></select></div>
-          <div class="lifecycle-cost-card"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" value="700000"><span>円</span></div></div>
+          <div class="lifecycle-cost-card"><label for="life-panel-cost">パネル現在交換費用</label><div class="lifecycle-cost-input"><input id="life-panel-cost" type="number" min="0" step="10000" placeholder="未設定"><span>円</span></div></div>
         </div>
       </div>
       <div class="lifecycle-chart"><canvas id="lifecycle-chart"></canvas></div>
@@ -1279,6 +1279,7 @@ function updateLifecyclePlan(){
  const pcsCycle=n('life-pcs-cycle',10),batteryYear=n('life-battery-year',20),panelYear=n('life-panel-year',30);
  const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
  const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
+ const missingCostNames=[['life-pcs-cost','PCS'],['life-battery-cost','蓄電池'],['life-panel-cost','パネル']].filter(([id])=>val(id)==='').map(([,name])=>name);
  const labels=[],utility=[],cash=[],loan=[],events=[];
  let cumulativeUtility=0,cumulativeCash=Math.max(0,netCost),cumulativeLoan=Math.max(0,downPaymentRaw);
  for(let y=0;y<=years;y++){
