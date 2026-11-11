@@ -1329,11 +1329,44 @@ function _paymentSaveMessage(msg, success){
 }
 // このページ単独でも共有顧客DBを読み書きする。元画面のwindow.openerには依存しない。
 const PAYMENT_CUSTOMER_DB_URL='https://script.google.com/macros/s/AKfycbwmElEbni4PmrVUlfT-9mfkoSsRofCWvrqOQJpm2zqEVla7p11xqzi04v4hjXFOooo_Fw/exec';
+/* 検証用のブラウザ内擬似DB。明示フラグ＋専用テストIDの両方がある場合のみ有効。
+   実際の共有顧客DBへはGET/POSTしない。クラウド連携の合格判定には使用しない。 */
+const PAYMENT_CUSTOMER_TEST_ID='TEST-LOAN-20261111';
+const PAYMENT_CUSTOMER_TEST_MODE=
+  location.hostname.endsWith('.vercel.app') &&
+  _urlParams.get('customerDbTest')==='local' &&
+  _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
+const PAYMENT_CUSTOMER_TEST_KEY='jibunden_payment_test_only_v1';
+async function paymentCustomerRequest(options){
+ if(!PAYMENT_CUSTOMER_TEST_MODE)return fetch(PAYMENT_CUSTOMER_DB_URL,options);
+ if(options.method==='GET'){
+  const stored=localStorage.getItem(PAYMENT_CUSTOMER_TEST_KEY);
+  const row=stored?JSON.parse(stored):{
+   id:PAYMENT_CUSTOMER_TEST_ID,proposal_name:'検証用ローン保存復元',customer_name:'検証専用',
+   author:'検証用',json_data:JSON.stringify({id:PAYMENT_CUSTOMER_TEST_ID})
+  };
+  return {ok:true,status:200,json:async()=>({ok:true,rows:[row]})};
+ }
+ if(options.method==='POST'){
+  const payload=JSON.parse(options.body);
+  if(String(payload.id)!==PAYMENT_CUSTOMER_TEST_ID)throw Error('検証用IDが一致しません。');
+  localStorage.setItem(PAYMENT_CUSTOMER_TEST_KEY,JSON.stringify(payload));
+  return {ok:true,status:200,json:async()=>({ok:true,id:payload.id,action:'updated'})};
+ }
+ throw Error('検証用DBの未対応操作です。');
+}
+if(PAYMENT_CUSTOMER_TEST_MODE){
+ const btn=document.getElementById('po-save-customer-btn');
+ if(btn)btn.textContent='🧪 ブラウザ内テストデータへ保存';
+ const note=document.getElementById('po-save-customer-status');
+ if(note)note.textContent='🧪 検証専用：このブラウザ内に保存します。共有顧客DBには接続しません。';
+}
+
 let _paymentFieldsEdited=false;
 async function fetchPaymentCustomerRow(){
  const id=_urlParams.get('proposalId');
  if(!id)throw Error('顧客IDがありません。元のじぶん電気ツールで対象の顧客データを保存し直してください。');
- const res=await fetch(PAYMENT_CUSTOMER_DB_URL,{method:'GET',redirect:'follow',cache:'no-store'});
+ const res=await paymentCustomerRequest({method:'GET',redirect:'follow',cache:'no-store'});
  if(!res.ok)throw Error('DBから顧客情報を取得できません（HTTP '+res.status+'）。');
  const json=await res.json();
  if(!json || json.ok===false || !Array.isArray(json.rows))throw Error('DBから正しい顧客データが返されませんでした。');
@@ -1355,7 +1388,7 @@ async function restorePaymentPlanFromCustomerDB(){
   if(saved.paymentPlan && saved.paymentPlan.version===1){
    _urlParams.set('paymentPlan',JSON.stringify(saved.paymentPlan));
    restorePaymentOptionsForCustomer();
-   if(status)status.textContent='保存済みの支払条件を顧客DBから復元しました。';
+   if(status)status.textContent=PAYMENT_CUSTOMER_TEST_MODE?'ブラウザ内の検証用データから支払条件を復元しました。':'保存済みの支払条件を顧客DBから復元しました。';
   }else if(status){
    status.textContent='この案件の支払条件は未保存です。入力して保存できます。';
   }
@@ -1371,8 +1404,8 @@ async function savePaymentOptionsDirectly(){
  if(button)button.disabled=true;
  try{
   const row=await fetchPaymentCustomerRow();
-  const author=(localStorage.getItem('jibunden_author')||'').trim() ||
-   String(window.prompt('顧客DBの保存者名を入力してください（元のじぶん電気画面と同じ担当者名）')||'').trim();
+  const author=PAYMENT_CUSTOMER_TEST_MODE?'検証用':((localStorage.getItem('jibunden_author')||'').trim() ||
+   String(window.prompt('顧客DBの保存者名を入力してください（元のじぶん電気画面と同じ担当者名）')||'').trim());
   if(!author || /^(ゲスト|ゲストユーザー|guest|未設定)$/i.test(author))throw Error('担当者名が未設定のため、保存を中止しました。');
   const owner=String(row.author||'').replace(/^'/,'').trim();
   if(owner && owner!==author)throw Error('この顧客レコードは別の担当者が作成したため、上書きできません。');
@@ -1390,7 +1423,7 @@ async function savePaymentOptionsDirectly(){
   };
   _paymentSaveMessage('顧客DBへ書き込んでいます…');
   if(button)button.disabled=true;
-  const res=await fetch(PAYMENT_CUSTOMER_DB_URL,{
+  const res=await paymentCustomerRequest({
    method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
    body:JSON.stringify(payload)
   });
@@ -1398,10 +1431,10 @@ async function savePaymentOptionsDirectly(){
   const reply=await res.json();
   if(!reply || reply.ok!==true || String(reply.id)!==String(row.id) || reply.action==='forked')
    throw Error('DBの更新が確認できません：'+String(reply?.error||reply?.action||'応答不正'));
-  try{localStorage.setItem('jibunden_author',author);}catch(e){}
+  if(!PAYMENT_CUSTOMER_TEST_MODE){try{localStorage.setItem('jibunden_author',author);}catch(e){}}
   _urlParams.set('paymentPlan',JSON.stringify(plan));
   updateSlideLink();
-  _paymentSaveMessage('顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
+  _paymentSaveMessage(PAYMENT_CUSTOMER_TEST_MODE?'テストデータをこのブラウザに保存しました。ページを再読み込みして復元を確認してください。':'顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
  }catch(error){
   console.error('[導入手段] 顧客DB保存失敗:',error);
   _paymentSaveMessage('保存未完了：'+error.message,false);
