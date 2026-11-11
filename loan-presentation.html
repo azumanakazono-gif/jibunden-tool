@@ -1280,6 +1280,9 @@ function updateLifecyclePlan(){
  const inflation=n('life-inflation',2)/100,electricRate=n('life-electric',2)/100;
  const pcsCost=n('life-pcs-cost'),batteryCost=n('life-battery-cost'),panelCost=n('life-panel-cost');
  const missingCostNames=[['life-pcs-cost','PCS'],['life-battery-cost','蓄電池'],['life-panel-cost','パネル']].filter(([id])=>val(id)==='').map(([,name])=>name);
+ // 買電料金が未連携の場合、電力会社の累積支出は「0円」ではなく比較対象外とする。
+ const hasUtilityData=params.has('monthlyBill') && Number.isFinite(Number(params.get('monthlyBill'))) && Number(params.get('monthlyBill'))>0;
+ const hasCashflowData=hasCostData && hasLoanData && params.has('monthlyRemainingCost');
  const labels=[],utility=[],cash=[],loan=[],events=[];
  let cumulativeUtility=0,cumulativeCash=Math.max(0,netCost),cumulativeLoan=Math.max(0,downPaymentRaw);
  for(let y=0;y<=years;y++){
@@ -1305,12 +1308,12 @@ function updateLifecyclePlan(){
      if(y>=1&&y===panelYear&&panelYear>=1&&panelCost>0)addEvent('パネル更新',panelCost);
    }
    // グラフ描画単位は万円に統一（内部計算は円）。小数1桁を保持する。
-   utility.push(Number((cumulativeUtility/10000).toFixed(1)));
-   cash.push(Number((cumulativeCash/10000).toFixed(1)));
-   loan.push(Number((cumulativeLoan/10000).toFixed(1)));
+   utility.push(hasUtilityData ? Number((cumulativeUtility/10000).toFixed(1)) : null);
+   cash.push(hasCashflowData ? Number((cumulativeCash/10000).toFixed(1)) : null);
+   loan.push(hasCashflowData ? Number((cumulativeLoan/10000).toFixed(1)) : null);
  }
  const canvas=document.getElementById('lifecycle-chart');
- const chartMax=Math.max(0,...utility,...cash,...loan);
+ const chartMax=Math.max(0,...[...utility,...cash,...loan].filter(Number.isFinite));
  const chartStep=chartMax>0?Math.max(10,Math.ceil(chartMax/8/10)*10):10;
  const chartAxisMax=chartStep*8;
  const chartHasData=chartMax>0;
@@ -1327,7 +1330,8 @@ function updateLifecyclePlan(){
  const summary=document.getElementById('lifecycle-summary');
  if(summary){
   const list=events.length?events.join(' ／ '):'設定期間内の設備更新費用は計上されていません。';
-  summary.textContent='表示期間：'+years+'年間｜'+years+'年目累積：電力会社 '+utility[utility.length-1].toLocaleString('ja-JP')+'万円／現金 '+cash[cash.length-1].toLocaleString('ja-JP')+'万円／ローン '+loan[loan.length-1].toLocaleString('ja-JP')+'万円｜0年目：現金購入額・ローン頭金を計上｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。'+(missingCostNames.length?' 【更新費用未設定：'+missingCostNames.join('・')+'。金額が未入力の設備更新費は計上していません】':'')+(CURRENT<=0?' 【電気料金未連携：電力会社との累積比較は参考になりません】':'');
+  const end=v=>Number.isFinite(v)?v.toLocaleString('ja-JP')+'万円':'未設定（比較不可）';
+  summary.textContent='表示期間：'+years+'年間｜'+years+'年目累積：電力会社 '+end(utility[utility.length-1])+'／現金 '+end(cash[cash.length-1])+'／ローン '+end(loan[loan.length-1])+'｜設備更新：'+list+' ※現金・ローンとも同じ設備更新条件を適用した参考比較です。'+(missingCostNames.length?' 【更新費用未設定：'+missingCostNames.join('・')+'。金額が未入力の設備更新費は計上していません】':'')+(!hasUtilityData?' 【電気料金未連携：電力会社の推移は非表示】':'')+(!hasCashflowData?' 【導入後の月額買電費用が未連携：現金・ローン累積推移は非表示。導入費用と返済総額は別ページをご確認ください】':'');
  }
 }
 function readLifecyclePlanFromUrl(){
