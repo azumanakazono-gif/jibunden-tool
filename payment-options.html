@@ -1368,7 +1368,21 @@ async function paymentCustomerRequest(options){
 }
 if(PAYMENT_CUSTOMER_TEST_MODE || PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
  const btn=document.getElementById('po-save-customer-btn');
- if(btn)btn.textContent=PAYMENT_CUSTOMER_TEST_MODE?'🧪 ブラウザ内テストデータへ保存':'☁️ 検証用クラウドDBへ保存';
+ if(btn){
+  btn.textContent=PAYMENT_CUSTOMER_TEST_MODE?'🧪 ブラウザ内テストデータへ保存':'🔒 外部クラウド保存は認証待ち';
+  if(PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
+   btn.disabled=true;
+   btn.title='認証方式が未設定のため、Vercel画面からのクラウド保存は利用できません';
+   const link=document.createElement('a');
+   link.href='https://script.google.com/macros/s/AKfycbzAoddHpvxlqPz3RzI-j7tdKgW8_fUCluB8v_lDFUhrNhWJRt8EhS7Y2W-XNeoI8ObI/exec?view=test';
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   link.textContent='🔐 Googleで本人認証して検証用DB画面を開く';
+   link.className='btn btn-secondary';
+   link.style.cssText='background:#eef5f1;color:#1b4332;border:1px solid #aacbbb';
+   btn.insertAdjacentElement('afterend',link);
+  }
+ }
  const note=document.getElementById('po-save-customer-status');
  if(note)note.textContent=PAYMENT_CUSTOMER_TEST_MODE
   ?'🧪 検証専用：このブラウザ内に保存します。共有顧客DBには接続しません。'
