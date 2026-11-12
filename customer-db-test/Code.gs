@@ -225,7 +225,7 @@ small{color:#4e6570}
 <label for="loanAmount">借入額（円）</label><input id="loanAmount" type="number" min="1" max="100000000" step="1" value="3380000">
 <label for="monthlyPayment">月額返済（円・検証用の保存値）</label><input id="monthlyPayment" type="number" min="0" max="10000000" step="1" value="25857">
 <div class="actions"><button id="save">クラウドDBに保存</button><button id="load" class="secondary">クラウドDBから復元</button></div>
-<div id="message" role="status">まず「クラウドDBから復元」を押して、保存済みのデータを確認してください。</div>
+<div id="message" role="status">起動時に検証専用クラウドDBから前回の支払条件を自動復元します。</div>
 <small>※ 本画面は検証用であり、実際のお客様への返済額提案には使用しません。</small>
 </main><script>
 (function () {
@@ -256,6 +256,9 @@ small{color:#4e6570}
       .withFailureHandler(function(e){setBusy(false);message('復元失敗：'+e.message);})
       .loadTestPaymentPlan();
   });
+  // 画面起動時にクラウド保存値を自動復元。手動復元ボタンも残す。
+  // 読込完了前の入力競合を避けるため、ロード中は両ボタンを無効化する。
+  $('load').click();
   $('save').addEventListener('click',function(){
     var data={};names.forEach(function(k){data[k]=$(k).value;});
     setBusy(true);message('検証専用DBに保存中…');
