@@ -81,3 +81,49 @@ function doPost(e) {
     try { lock.releaseLock(); } catch (_) {}
   }
 }
+
+/**
+ * エディタから実行するクラウド保存→再読込の検証。
+ * 本番顧客DBは参照せず、TEST_CUSTOMER_ID だけを更新する。
+ */
+function testCloudSaveAndRestore() {
+  const inputs = {
+    'po-mb':'', 'po-cost':'338', 'po-dp':'0',
+    'po-lender':'orico_solar_variable', 'po-lr':'4.5', 'po-lc':'180',
+    'po-official-monthly':'', 'po-official-first':'',
+    'po-la-m':'', 'po-lr-m':'', 'po-lc-m':'', 'po-monthly-m':''
+  };
+  const paymentPlan = {
+    version:1,selectedPayment:'loan',mode:'preset',
+    lender:'orico_solar_variable',method:'kinri',inputs:inputs,
+    officialResult:null,
+    calculatedMonthlyPayment:25857,
+    calculatedLoanCount:180,
+    calculatedPrincipal:3380000,
+    updatedAt:new Date().toISOString()
+  };
+  const payload = {
+    id:TEST_CUSTOMER_ID,
+    updated_at:new Date().toISOString(),
+    json_data:JSON.stringify({id:TEST_CUSTOMER_ID,testRecord:true,paymentPlan:paymentPlan})
+  };
+  const result = JSON.parse(doPost({postData:{contents:JSON.stringify(payload)}}).getContent());
+  if (!result.ok || result.id !== TEST_CUSTOMER_ID || result.action !== 'updated') {
+    throw new Error('保存に失敗: '+JSON.stringify(result));
+  }
+  const fetched = JSON.parse(doGet().getContent());
+  if (!fetched.ok || !Array.isArray(fetched.rows)) throw new Error('再取得に失敗');
+  const row = fetched.rows.find(r=>r.id===TEST_CUSTOMER_ID);
+  if (!row) throw new Error('保存したテストIDが見つかりません');
+  const actual = JSON.parse(row.json_data || '{}').paymentPlan;
+  if (!actual || actual.lender!==paymentPlan.lender ||
+      actual.inputs['po-lr']!==paymentPlan.inputs['po-lr'] ||
+      actual.inputs['po-lc']!==paymentPlan.inputs['po-lc'] ||
+      actual.calculatedMonthlyPayment!==paymentPlan.calculatedMonthlyPayment ||
+      actual.calculatedPrincipal!==paymentPlan.calculatedPrincipal) {
+    throw new Error('保存前後の値に差があります: '+JSON.stringify(actual));
+  }
+  console.log('PASS：検証専用DBへの保存と再取得が一致しました / '
+    +actual.lender+' / '+actual.inputs['po-lr']+'% / '
+    +actual.inputs['po-lc']+'回 / 月額'+actual.calculatedMonthlyPayment+'円');
+}
