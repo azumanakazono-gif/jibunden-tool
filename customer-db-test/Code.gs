@@ -236,8 +236,8 @@ small{color:#4e6570}
   var message=function(v){$('message').textContent=v;};
   var format=function(p){
     if(!p) return '検証レコードに支払条件がありません';
-    return 'ローン会社：'+p.lender+'\n金利：'+p.inputs['po-lr']+
-      '% / 返済：'+p.inputs['po-lc']+'回\n借入額：'+p.calculatedPrincipal+
+    return 'ローン会社：'+p.lender+'\\n金利：'+p.inputs['po-lr']+
+      '% / 返済：'+p.inputs['po-lc']+'回\\n借入額：'+p.calculatedPrincipal+
       '円 / 月額：'+p.calculatedMonthlyPayment+'円';
   };
   var restore=function(data){
@@ -248,7 +248,7 @@ small{color:#4e6570}
     $('loanCount').value=p.inputs['po-lc'];
     $('loanAmount').value=p.calculatedPrincipal;
     $('monthlyPayment').value=p.calculatedMonthlyPayment;
-    message('クラウドDBから復元しました。\n'+format(p));
+    message('クラウドDBから復元しました。\\n'+format(p));
   };
   $('load').addEventListener('click',function(){
     setBusy(true);message('クラウドDBから取得中…');
@@ -260,7 +260,7 @@ small{color:#4e6570}
     var data={};names.forEach(function(k){data[k]=$(k).value;});
     setBusy(true);message('検証専用DBに保存中…');
     google.script.run.withSuccessHandler(function(d){
-      setBusy(false);message('クラウドDBへの保存に成功しました。\n'+format(d.paymentPlan));
+      setBusy(false);message('クラウドDBへの保存に成功しました。\\n'+format(d.paymentPlan));
     }).withFailureHandler(function(e){setBusy(false);message('保存失敗：'+e.message);})
       .saveTestPaymentPlan(data);
   });
