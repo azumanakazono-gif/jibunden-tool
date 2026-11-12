@@ -26,7 +26,7 @@ a{color:#17634a}
 const status=document.getElementById('status');
 async function init(){
  try{
-  const res=await fetch('/api/staff-auth-preview',{credentials:'omit',cache:'no-store'});
+  const res=await fetch('/api/staff-auth-preview',{credentials:'same-origin',cache:'no-store'});
   const cfg=await res.json();
   if(!cfg.configured){
    status.textContent='Google OAuthクライアントIDが未設定です。現在、Googleログインと顧客DBアクセスは停止しています。';
@@ -39,7 +39,7 @@ async function init(){
     status.textContent='Googleの本人確認結果をサーバーで確認しています…';
     try{
      const response=await fetch('/api/staff-auth-preview',{
-      method:'POST',credentials:'omit',
+      method:'POST',credentials:'same-origin',
       headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})});
      const answer=await response.json();
      status.textContent=answer.error==='STAFF_APPROVAL_NOT_IMPLEMENTED'
