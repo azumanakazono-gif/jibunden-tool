@@ -3145,8 +3145,16 @@ function buildCfg(data, lp, ly) {
     customerName: data.cn || '○○様○○システム',
     familyComposition: data.fm || '',
     lifestyleNote: data.ls || '',
-    monthlyElectricBill: data.mb || 0,
+    monthlyElectricBill: (!monthlyInputActive && _calcBeforeGrand(document.getElementById('kyuden-plan').value, data.mkwh||0) > 0)
+      ? _calcBeforeGrand(document.getElementById('kyuden-plan').value, data.mkwh||0) : (data.mb || 0),
     currentUnitPrice: data.mkwh > 0 ? Math.round(data.mb / data.mkwh * 10) / 10 : 0,
+    postPlan: document.getElementById('post-kyuden-plan').value,
+    postUnitPrice: (() => {
+      const kp = document.getElementById('post-kyuden-plan').value;
+      if (kp === 'kyushu_juuryo_b' || kp === 'kyushu_juuryo_c') return calcJuuryoSteps(data.mkwh||0).eff;
+      if (['kyushu_ohisama','kyushu_denka_night','kyushu_kiji'].includes(kp)) return calcEffectiveUnitPrice(kp);
+      return parseFloat(kp) || (data.mkwh > 0 ? data.mb/data.mkwh : 0);
+    })(),
     annualGenerationKWh: isPvOnly ? (so.ag || 0) : (data.ag || 0),
     solarCapacityKW: isPvOnly ? (so.sk || 0) : (data.sk || 0),
     batteryCapacityKWh: isPvOnly ? 0 : (data.bk || 0),
@@ -4044,6 +4052,50 @@ function renderPostPlanBreakdown() {
   _updatePostPlanBreakdown(postKp, post_up, remainKwh);
 }
 
+
+/**
+ * 導入後の月額買電料金の唯一の計算入口。
+ * 「導入後料金内訳」と詳細内訳／20年比較／提案書の全てで使用する。
+ * 売電収入・設備購入費・ローン返済額は含めない。
+ * 戻り値 null は料金プラン未指定を意味する。
+ */
+function _calcPostMonthlyBill(postKp, postUnitPrice, annualRemainKwh) {
+  if (!postKp) return null;
+  const annual = Math.max(0, Number(annualRemainKwh) || 0);
+  const monthly = Math.round(annual / 12);
+  const adjustAnnual = Math.round(annual * SAIENE_LEVY / 12) + Math.round(annual * FUEL_ADJUST / 12);
+  if (postKp === 'kyushu_juuryo_b' || postKp === 'kyushu_juuryo_c') {
+    const { s1, s2, s3 } = calcJuuryoSteps(monthly);
+    const energy = Math.round(s1 * 18.37 + s2 * 23.97 + s3 * 26.97);
+    // 段階料金は既存の月間使用量・各調整額の丸め規則を維持する
+    return energy + Math.round(monthly * SAIENE_LEVY) + Math.round(monthly * FUEL_ADJUST)
+      + Math.round(_juuryoBasicCharge(postKp))
+      - (postKp === 'kyushu_juuryo_b' ? JUURYO_B_KOZA_DISCOUNT : 0);
+  }
+  let zones;
+  if (postKp === 'kyushu_ohisama') {
+    const ratios = getEffectiveRatios(postKp) || { ohisama:0.35, peak:0.35, ngt:0.30 };
+    const t = KYUSHU_OHISAMA.tariff;
+    zones = [[t.ohisama,ratios.ohisama||0],[t.peak,ratios.peak||0],[t.ngt,ratios.ngt||0]];
+  } else if (postKp === 'kyushu_denka_night') {
+    const ratios = getEffectiveRatios(postKp) || { day:0.30, hol:0.10, living:0.10, ngt:0.50 };
+    const t = KYUSHU_DENKA_NIGHT.tariff;
+    const wDay = Math.round((t.weekdaySummerWinter*(4/12) + t.weekdaySpringFall*(8/12))*100)/100;
+    const wHol = Math.round((t.weekendSummerWinter*(4/12) + t.weekendSpringFall*(8/12))*100)/100;
+    zones = [[wDay,ratios.day||0],[wDay,ratios.living||0],[wHol,ratios.hol||0],[t.night,ratios.ngt||0]];
+  } else if (postKp === 'kyushu_kiji') {
+    const ratios = getEffectiveRatios(postKp) || { day:0.30, living:0.20, ngt:0.50 };
+    const t = KYUSHU_KIJI.tariff;
+    const wDay = Math.round((t.daytimeSummer*(3/12) + t.daytimeOther*(9/12))*100)/100;
+    zones = [[wDay,ratios.day||0],[t.living,ratios.living||0],[t.night,ratios.ngt||0]];
+  }
+  if (zones) {
+    const energyYear = zones.reduce((sum,[rate,ratio]) => sum + Math.round(annual*ratio)*rate, 0);
+    return Math.round(energyYear/12) + adjustAnnual + Math.round(_juuryoBasicCharge(postKp));
+  }
+  return Math.round(monthly*(Number(postUnitPrice)||0)) + adjustAnnual;
+}
+
 function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
   const body = document.getElementById('post-plan-breakdown-body');
   if (!body) return null;
@@ -4116,7 +4168,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         fxRow('再エネ賦課金', `${fr(remainKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
         (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
-    setTotal(grand);
+    setTotal(_calcPostMonthlyBill(postKp, post_up, remainKwh));
 
   } else if (postKp === 'kyushu_denka_night') {
     const ratios = getEffectiveRatios('kyushu_denka_night') || { day:0.30, hol:0.10, living:0.10, ngt:0.50 };
@@ -4143,7 +4195,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         fxRow('再エネ賦課金', `${fr(remainKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
         (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
-    setTotal(grand);
+    setTotal(_calcPostMonthlyBill(postKp, post_up, remainKwh));
 
   } else if (postKp === 'kyushu_kiji') {
     const ratios = getEffectiveRatios('kyushu_kiji') || { day:0.30, living:0.20, ngt:0.50 };
@@ -4168,7 +4220,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         fxRow('再エネ賦課金', `${fr(remainKwh)}kWh/年 × ${SAIENE_LEVY}円`, f2(saieneMonthly) + '/月') +
         (basicCharge > 0 ? fxRow('基本料金', '', f2(basicCharge)) : '')
       );
-    setTotal(grand);
+    setTotal(_calcPostMonthlyBill(postKp, post_up, remainKwh));
 
   } else if (postKp === 'kyushu_juuryo_b' || postKp === 'kyushu_juuryo_c') {
     const isB = postKp === 'kyushu_juuryo_b';
@@ -4192,7 +4244,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         (isB ? fxRow('口座振替割引', '', '-' + JUURYO_B_KOZA_DISCOUNT) : '')
       ) +
       `<div style="font-size:10px;color:var(--muted)">電力量のみ平均：${base}円/kWh　／　調整済み：${eff}円/kWh</div>`;
-    setTotal(totalAmt);
+    setTotal(_calcPostMonthlyBill(postKp, post_up, remainKwh));
 
   } else {
     const saieneMonthly = Math.round(remainKwh * SAIENE_LEVY / 12 * 100) / 100;
@@ -4209,7 +4261,7 @@ function _updatePostPlanBreakdown(postKp, post_up, remainKwh) {
         fxRow('基本料金', '', '0')
       ) +
       `<div style="font-size:10px;color:var(--muted)">※目安単価プランは基本料金0円として試算。実際の契約内容で異なる場合があります。</div>`;
-    setTotal(grand);
+    setTotal(_calcPostMonthlyBill(postKp, post_up, remainKwh));
   }
   setPBToggle(true);
   return _grandResult;
@@ -6146,7 +6198,9 @@ function calcMetrics(c) {
   const selfKWh = (c.directConsumptionKWh || 0) + (c.batteryConsumptionKWh || 0);
   const annualConsumptionKWh = c.annualConsumptionKWh || (c.monthlyElectricBill / c.currentUnitPrice * 12);
   const remainKWh  = Math.max(0, annualConsumptionKWh - selfKWh);
-  const remainBill = Math.round(remainKWh * (c.postUnitPrice || c.currentUnitPrice) / 12) + (c.postBasicCharge || 0);
+  const planBill = _calcPostMonthlyBill(c.postPlan || '', c.postUnitPrice, remainKWh);
+  const remainBill = planBill != null ? planBill
+    : Math.round(remainKWh * (c.postUnitPrice || c.currentUnitPrice) / 12) + (c.postBasicCharge || 0);
   const monthlySaving = c.monthlyElectricBill - remainBill;
   const selfRate = c.annualGenerationKWh > 0 ? Math.round(selfKWh / c.annualGenerationKWh * 100) : 0;
 
@@ -6318,7 +6372,10 @@ function calc() {
   if (_dtSoEl) _dtSoEl.innerHTML = document.getElementById('daytime-rate-disp').innerHTML.replace(/#15803d|var\(--mg\)/g,'#1d4ed8');
   const _postBasicPlans = ['kyushu_juuryo_b','kyushu_juuryo_c','kyushu_ohisama','kyushu_denka_night','kyushu_kiji'];
   const postBasicCharge = _postBasicPlans.includes(_postKp) ? Math.round(_juuryoBasicCharge(_postKp)) : 0;
-  const c = { monthlyElectricBill:mb, currentUnitPrice:up, postUnitPrice:post_up,
+  // 導入前の比較基準も同じ月額で統一。手入力月額が優先される場合は入力値を使用。
+  const _computedBefore = !monthlyInputActive ? _calcBeforeGrand(_kpCalc, mkwh) : null;
+  const currentMonthlyBill = _computedBefore > 0 ? _computedBefore : mb;
+  const c = { monthlyElectricBill:currentMonthlyBill, currentUnitPrice:up, postUnitPrice:post_up, postPlan:_postKp,
                annualGenerationKWh:ag, solarCapacityKW:sk, totalConstructionCost,
                subsidyAmount, warrantyYears:wy, directConsumptionKWh:dc,
                batteryConsumptionKWh:bc_eff, annualConsumptionKWh, escalationRate:er, postBasicCharge };
@@ -6329,7 +6386,7 @@ function calc() {
         totalConstructionCost: ckActive * 10000, subsidyAmount: subActive,
         warrantyYears: wyActive, directConsumptionKWh: dcActive, batteryConsumptionKWh: 0 })
     : m;
-  const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, m.remainKWh);
+  const _postGrand = _updatePostPlanBreakdown(_postKp, post_up, mActive.remainKWh);
   // 上昇率ノート表示切替
   document.getElementById('er-note').style.display = er > 0 ? '' : 'none';
   // 上昇率がある場合は20年電気代を上昇後の数値で表示
@@ -6339,7 +6396,7 @@ function calc() {
   const m_pb = proposalMode === 'pv_only'
     ? calcMetrics({ ...c, batteryConsumptionKWh: bc })
     : m;
-  updateSelfSummary(dc, bc, ag, mb, up, m_pb.remainKWh, m_pb.remainBill, bk);
+  updateSelfSummary(dcActive, bc_eff, agActive, currentMonthlyBill, up, mActive.remainKWh, mActive.remainBill, bk);
 
   // 補助金サマリー表示
   const subEl = document.getElementById('subsidy-summary');
@@ -6367,14 +6424,14 @@ function calc() {
     const hasSolarMode = proposalMode !== 'battery_only';
     const saleP = parseFloat(document.getElementById('sale-price').value) || 0;
     const surplusKwhCalc = _surplusKwhActive;
-    const annualSelfSaving    = Math.round((dcActive + bc_eff) * up);
+    const annualSelfSaving    = Math.round((currentMonthlyBill - mActive.remainBill) * 12);
     const annualSellRevenue   = hasSolarMode ? Math.round(surplusKwhCalc * saleP) : 0;
     return annualSelfSaving + annualSellRevenue;
   })();
   // 20年累計の売電収入（年別FIT単価反映）
   const _sellTotalActive = (proposalMode !== 'battery_only' && (parseFloat(document.getElementById('sale-price').value) || 0) > 0)
     ? calcSellRevenueTotal(_surplusKwhActive, wyActive) : 0;
-  const _selfSavingActive = Math.round((dcActive + bc_eff) * up);
+  const _selfSavingActive = Math.round((currentMonthlyBill - mActive.remainBill) * 12);
   document.getElementById('rs').textContent = fmt(_annualTotal);
   document.getElementById('rs-month').textContent = fmt(Math.round(_annualTotal / 12));
   // 画面表示と完全一致させるため、AIコメント生成が参照する実測値をここで保持しておく
@@ -6426,7 +6483,7 @@ function calc() {
     var dcSo = parseFloat(document.getElementById('dc-so').value) || 0;
     var soValid = skSo > 0 && ckSo > 0 && agSo > 0;
     var cSo = {
-      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      monthlyElectricBill: currentMonthlyBill, currentUnitPrice: up, postUnitPrice: post_up, postPlan:_postKp,
       annualGenerationKWh: agSo, solarCapacityKW: skSo,
       totalConstructionCost: ckSo * 10000,
       subsidyAmount: subSo, warrantyYears: wySo,
@@ -6477,7 +6534,7 @@ function calc() {
       else { subElSo.style.display='none'; }
     }
     // ── 太陽光のみ：年間自家消費メリット / 年間余剰売電収入 カード ──
-    var selfSavingSo = Math.round(dcSo * up);
+    var selfSavingSo = Math.round((currentMonthlyBill - mSo.remainBill) * 12);
     document.getElementById('pv-only-solar-benefit').textContent = fmt(selfSavingSo);
     var hasRevSo = soValid && surplusSo > 0 && _saleP0 > 0;
     document.getElementById('pv-only-sell-benefit').textContent = hasRevSo ? fmt(annualSellSo) : '-';
@@ -6539,7 +6596,7 @@ function calc() {
     var selfRatePb = Math.min(100, Math.round(selfRateRawPb));
     var surplusRatePb = pbAg > 0 ? Math.round(surplusPb / pbAg * 100) : 0;
     var cPb = {
-      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      monthlyElectricBill: currentMonthlyBill, currentUnitPrice: up, postUnitPrice: post_up, postPlan:_postKp,
       annualGenerationKWh: pbAg, solarCapacityKW: pbSk,
       totalConstructionCost: (pbCk || 0) * 10000,
       subsidyAmount: pbSub, warrantyYears: pbWy,
@@ -6549,12 +6606,12 @@ function calc() {
     var mPb = calcMetrics(cPb);
     var _salePPb = parseFloat(document.getElementById('sale-price').value) || 0;
     var annSellPb = (surplusPb > 0 && _salePPb > 0) ? Math.round(surplusPb * _salePPb) : 0;
-    var annSavePb = Math.round(selfKwhPb * up) + annSellPb;
+    var annSavePb = Math.round((currentMonthlyBill - mPb.remainBill) * 12) + annSellPb;
     var diffPb = mPb.costDiff_with_rise + (annSellPb > 0 ? Math.round(calcSellRevenueTotal(surplusPb, pbWy) / 10000) : 0);
     var pbData = {
       ag: pbAg, dc: pbDc, bc: pbBcEff, surplus: surplusPb,
       remainKwh: remainKwhPb, remainBill: mPb.remainBill,
-      currentBill: mb, monthlySaving: mb - mPb.remainBill,
+      currentBill: currentMonthlyBill, monthlySaving: currentMonthlyBill - mPb.remainBill,
       totalCostMan: mPb.totalCostMan, annualSaving: annSavePb,
       annualSell: annSellPb, diffMan: diffPb,
       selfRate: selfRatePb, selfRateRaw: selfRateRawPb, surplusRate: surplusRatePb,
@@ -6568,7 +6625,7 @@ function calc() {
     var wySo2 = parseFloat(document.getElementById('wy-so').value) || 20;
     var soValid2 = skSo2 > 0 && ckSo2 > 0 && agSo2 > 0;
     var cSo2 = {
-      monthlyElectricBill: mb, currentUnitPrice: up, postUnitPrice: post_up,
+      monthlyElectricBill: currentMonthlyBill, currentUnitPrice: up, postUnitPrice: post_up, postPlan:_postKp,
       annualGenerationKWh: agSo2, solarCapacityKW: skSo2,
       totalConstructionCost: ckSo2 * 10000,
       subsidyAmount: subSo2, warrantyYears: wySo2,
@@ -6580,7 +6637,7 @@ function calc() {
     var remainKwhSo2 = Math.max(0, annualConsumptionKWh - dcSo2);
     var saleP2 = parseFloat(document.getElementById('sale-price').value) || 0;
     var annSellSo2 = (surplusSo2 > 0 && saleP2 > 0) ? Math.round(surplusSo2 * saleP2) : 0;
-    var annSaveSo2 = Math.round(dcSo2 * up) + annSellSo2;
+    var annSaveSo2 = Math.round((currentMonthlyBill - mSo2.remainBill) * 12) + annSellSo2;
     var diffSo2 = mSo2.costDiff_with_rise + (annSellSo2 > 0 ? Math.round(calcSellRevenueTotal(surplusSo2, wySo2) / 10000) : 0);
     var selfRateRawSo2 = agSo2 > 0 ? (dcSo2 / agSo2 * 100) : 0;
     var selfRateSo2 = Math.min(100, Math.round(selfRateRawSo2));
@@ -6588,7 +6645,7 @@ function calc() {
     var soData = {
       valid: soValid2, ag: agSo2, dc: dcSo2, surplus: surplusSo2,
       remainKwh: remainKwhSo2, remainBill: mSo2.remainBill,
-      currentBill: mb, monthlySaving: mb - mSo2.remainBill,
+      currentBill: currentMonthlyBill, monthlySaving: currentMonthlyBill - mSo2.remainBill,
       totalCostMan: mSo2.totalCostMan, annualSaving: annSaveSo2,
       annualSell: annSellSo2, diffMan: diffSo2,
       selfRate: selfRateSo2, selfRateRaw: selfRateRawSo2, surplusRate: surplusRateSo2
@@ -6650,11 +6707,11 @@ function calc() {
     window._simCostDiffLoan = loanDiffMan;
     document.getElementById('loan-diff-note').textContent = er > 0 ? `電気代年${er}%上昇想定` : '電気代現状維持';
     document.querySelectorAll('.loan-bar-only').forEach(el => el.style.display = '');
-    const re = m_pb.remainBill; // 残り購入電力量 × 平均単価 / 12（月額）
+    const re = mActive.remainBill; // 選択中モードと共通の料金プラン別買電料金
     const mt = lp+re;
-    const mdiff = mb-mt;
+    const mdiff = currentMonthlyBill-mt;
     document.getElementById('loan-preview-box').style.display='';
-    document.getElementById('ln').textContent = '¥'+fmt(mb);
+    document.getElementById('ln').textContent = '¥'+fmt(currentMonthlyBill);
     document.getElementById('ll').textContent = '¥'+fmt(lp);
     document.getElementById('le2').textContent = '¥'+fmt(re);
     document.getElementById('lt').textContent = '¥'+fmt(mt);
@@ -6664,7 +6721,7 @@ function calc() {
     else{dd.textContent='月々 約'+fmt(Math.abs(mdiff))+'円 増加（返済後は削減）';dr.className='loan-row neg';}
 
     // ミニチャート（ローンON: 3系列）
-    _prepareChartData(m_pb, mb, wy, re, lp, ly, mt, true, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
+    _prepareChartData(mActive, currentMonthlyBill, wyActive, re, lp, ly, mt, true, _surplusKwhActive); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（ローン総額ベース・アクティブな提案モードの発電量を参照）
     const _genUP_loan = (agActive > 0 && wyActive > 0) ? parseFloat((loanTotal / (agActive * wyActive)).toFixed(1)) : null;
     const _loanYears = Math.round(lp > 0 ? ly : wyActive);
@@ -6679,7 +6736,7 @@ function calc() {
     document.getElementById('stacked-legend-loan-r').style.display = 'none';
     document.getElementById('rk-loan-row').style.display = 'none';
     // ミニチャート（ローンOFF: 2系列）
-    _prepareChartData(m_pb, mb, wy, m_pb.remainBill, 0, 0, 0, false, _surplusKwhChart); setTimeout(() => { renderMiniChart(); }, 0);
+    _prepareChartData(mActive, currentMonthlyBill, wyActive, mActive.remainBill, 0, 0, 0, false, _surplusKwhActive); setTimeout(() => { renderMiniChart(); }, 0);
     // 単価比較カード（現金購入ベース・アクティブな提案モードの初期費用・発電量を参照）
     const _genUP_cash = (agActive > 0 && wyActive > 0) ? parseFloat((mActive.totalCostMan * 10000 / (agActive * wyActive)).toFixed(1)) : null;
     _updateUnitPriceCompare(up, _genUP_cash, wyActive, { isLoan: false });
@@ -6721,11 +6778,7 @@ function calc() {
   _updateBeforeBreakdownToggleVisibility();
   // 導入前 概算月額合計（内訳と同一計算式で完全同期）
   const _kpBefore = document.getElementById('kyuden-plan').value;
-  let _beforeGrand = mb;
-  if (!monthlyInputActive) {
-    const _cg = _calcBeforeGrand(_kpBefore, mkwh);
-    if (_cg > 0) _beforeGrand = _cg;
-  }
+  const _beforeGrand = currentMonthlyBill;
   const _beforeTotalEl = document.getElementById('before-plan-total-val');
   if (_beforeTotalEl) _beforeTotalEl.textContent = _beforeGrand > 0 ? '約' + fmt(_beforeGrand) + '円' : '-';
   // 精密計算値で payment-options リンクの monthlyBill を上書き
@@ -6738,7 +6791,7 @@ function calc() {
     _poLinkEl2.href = 'payment-options.html?' + _p2.toString();
   }
   // 導入後：内訳grand優先、なければm.remainBill（売電収入は含まない純粋な買電コスト）
-  const _afterDisplay = (_postGrand != null && _postGrand > 0) ? _postGrand : (m.remainBill > 0 ? m.remainBill : 0);
+  const _afterDisplay = mActive.remainBill; // 詳細内訳・20年比較・PPTXと同一の計算結果
   const _afterNet = _afterDisplay; // 売電収入は年間売電収入・経済メリット側のみで扱う
   // after-plan-total-val を _afterNet で上書き（savings と辻褄を合わせるため）
   const _afterTotalEl = document.getElementById('after-plan-total-val');
@@ -6749,8 +6802,8 @@ function calc() {
   const _mcSavings = document.getElementById('mc-savings');
   if (_mcBefore) _mcBefore.textContent = _beforeGrand > 0 ? fmt(_beforeGrand) : '-';
   if (_mcAfter)  _mcAfter.textContent  = _afterNet > 0 ? fmt(_afterNet) : fmt(0);
-  _updateSavingsDisplay(_beforeGrand, _afterNet > 0 ? _afterNet : 0, dc, bc_eff, up);
-  _updateMeritBreakdown(dc, bc_eff, up, Math.max(0, _beforeGrand - (_afterNet > 0 ? _afterNet : 0)));
+  _updateSavingsDisplay(_beforeGrand, _afterNet, dcActive, bc_eff, up);
+  _updateMeritBreakdown(dcActive, bc_eff, up, Math.max(0, _beforeGrand - _afterNet));
   if (proposalMode === 'pv_only') updatePkgSummaryPv();
   // ── 最終行：上部パネルの自家消費率・余剰率を強制同期 ──
   setTimeout(function() {
