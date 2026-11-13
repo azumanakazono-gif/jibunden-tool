@@ -7,7 +7,7 @@
  * Expected schema: ./staff-registry-postgres.preview.sql
  * Runtime login must have only the narrow permissions documented there.
  */
-const toStaff = (row) => row && ({
+const toStaff = (row) => !row ? null : ({
   googleSub: row.google_sub,
   status: row.status,
   role: row.role,
