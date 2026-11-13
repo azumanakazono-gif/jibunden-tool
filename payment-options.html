@@ -6,6 +6,8 @@
 <title>導入手段 (Payment Options) — じぶん電気 提案書作成ツール</title>
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/api/loan-rate-config.js"></script>
+<script src="loan-rate-registry.js"></script>
 <style>
 :root {
   --dg: #1B4332; --mg: #2D6A4F; --lg: #52B788;
@@ -164,13 +166,21 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         <label>ローン会社・金利区分</label>
         <select id="po-lender" onchange="syncLoanRepaymentLimitPO();syncOfficialLoanPO();updateLoan();updateSlideLink()">
           <option value="manual">金利を手入力（従来方式）</option>
-          <option value="orico_reform">オリコ｜固定金利（5.40%・最大120回）</option>
+          <option value="orico_fixed">オリコ｜固定金利（太陽光・蓄電池／リフォーム）</option>
           <option value="orico_solar_variable">オリコ｜太陽光・蓄電池 変動（4.50%・最大180回）</option>
           <option value="orico_general_variable">オリコ｜一般リフォーム 変動（4.80%・最大180回）</option>
           <option value="jaccs_fixed">ジャックス｜固定金利</option>
           <option value="jaccs_variable">ジャックス｜変動金利</option>
         </select>
         <div id="po-rate-status" style="font-size:11px;margin-top:5px;line-height:1.6" aria-live="polite">手入力の金利を使用します。</div>
+      </div>
+      <div id="po-loan-terms" style="display:none;background:#f0f7f4;border:1px solid #d1e8dc;border-radius:10px;padding:12px;margin-bottom:14px" aria-live="polite">
+        <div style="font-size:12px;font-weight:700;color:#1b4332;margin-bottom:8px">このローンの利用条件</div>
+        <div class="grid2" style="gap:12px;margin-bottom:0">
+          <div><div style="font-size:11px;color:#6b7280">選択可能な返済回数</div><strong id="po-terms-count" style="font-size:15px">-</strong></div>
+          <div><div style="font-size:11px;color:#6b7280">借入可能金額</div><strong id="po-terms-amount" style="font-size:15px">-</strong></div>
+        </div>
+        <p style="font-size:11px;color:#6b7280;margin-top:8px">※ 上記は選択したローン商品の利用条件です。じぶん電気単価の算出期間は返済期間にかかわらず20年間です。</p>
       </div>
       <div id="po-official-area" style="display:none;background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:12px;margin-bottom:14px">
         <b>公式シミュレーション優先</b>
@@ -189,7 +199,6 @@ body { font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; backgroun
         </div>
         <div class="field">
           <label>返済期間</label>
-          <div id="po-lc-orico-limit" style="display:none;color:#9a3412;font-size:11px;margin:4px 0 6px">オリコは最大120回（10年）。120回超は選択できません。</div>
           <select id="po-lc" onchange="clearOfficialLoanPO();updateLoan()">
             <option value="6">6ヶ月（6回）</option>
             <option value="12">1年（12回）</option>
@@ -540,9 +549,9 @@ function setMode(mode) {
 
 // 毎月の金利は提供された会社資料だけを使用。未登録月は計算を停止する。
 const PO_MONTHLY_RATES = {
-  orico_reform: {name:'オリコ 固定金利', min:100000,max:10000000,minCount:6,maxCount:120,rates:{'2026-11':5.40}},
-  orico_solar_variable: {name:'オリコ 太陽光・蓄電池 変動金利', min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.50},variable:true},
-  orico_general_variable: {name:'オリコ 一般リフォーム 変動金利', min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.80},variable:true},
+  orico_fixed: {name:'オリコ 固定金利（太陽光・蓄電池／リフォーム）',min:100000,max:10000000,minCount:6,maxCount:120,rates:{'2026-11':5.40},source:'オリコ Webリフォームローンのご案内（固定金利）・2026年11月'},
+  orico_solar_variable: {name:'オリコ 変動金利（太陽光・蓄電池）',min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.50},source:'オリコ 【11月度】【太陽光用】変動金利型Webリフォームローンチラシ',variable:true},
+  orico_general_variable: {name:'オリコ 変動金利（一般リフォーム）',min:100000,max:10000000,minCount:6,maxCount:180,rates:{'2026-11':4.80},source:'オリコ 【11月度】【一般リフォーム用】変動金利型Webリフォームローンチラシ',variable:true},
   jaccs_fixed: {name:'ジャックス 固定金利', min:200000,max:null,minCount:6,maxCount:120,rates:{'2026-11':5.40,'2026-12':5.70}},
   jaccs_variable: {name:'ジャックス 変動金利',min:1000000,max:null,minCount:60,maxCount:240,rates:{'2026-11':4.45,'2026-12':4.45},variable:true}
 };
@@ -552,7 +561,7 @@ function poYearMonth() {
 }
 const PO_OFFICIAL_URLS = {
  // オリコからメールで案内された商品区分別の公式試算ページ
- orico_reform:'http://orico.jp/ref',
+ orico_fixed:'http://orico.jp/ref',
  orico_solar_variable:'http://simulation.m-orico.jp/living/',
  orico_general_variable:'http://simulation.m-orico.jp/living/',
  jaccs_fixed:'https://sp2.ecredit.jaccs.co.jp/Service?_TRANID=JXGA010010_01M&subindex=1',
@@ -567,7 +576,7 @@ function syncOfficialLoanPO(){
  document.getElementById('po-method-toggle').style.display=official||currentMode==='manual'?'none':'';
  document.getElementById('po-official-monthly').value='';
  document.getElementById('po-official-first').value='';
- const firstRounded=lender==='orico_reform';
+ const firstRounded=lender==='orico_fixed';
  document.getElementById('po-official-special-label').textContent=firstRounded?'初回返済額（円・必須）':'最終回返済額（円・必須）';
  document.getElementById('po-official-first').placeholder=firstRounded?'公式サイトの初回額を入力':'公式サイトの最終回額を入力';
  document.getElementById('po-official-note').textContent=firstRounded?'通常月と初回の返済額を両方入力してください。':'通常月と最終回の返済額を両方入力してください。';
@@ -586,30 +595,41 @@ function poOfficialResult(){
  const special=Number(raw);
  if(!Number.isSafeInteger(m)||m<=0||!Number.isSafeInteger(special)||special<=0)return null;
  // オリコ固定金利は初回のみ端数調整。オリコ変動・ジャックスは最終回のみ端数調整。
- return document.getElementById('po-lender').value==='orico_reform'
+ return document.getElementById('po-lender').value==='orico_fixed'
    ? {monthly:m,first:special,last:m}
    : {monthly:m,first:m,last:special};
 }
-// オリコは最長120回。会社切替時は他社の返済回数を再び選択可能にする。
+// 商品ごとの返済回数・借入金額条件を独立表示し、選べる返済期間を一致させる。
 function syncLoanRepaymentLimitPO() {
   const lender = document.getElementById('po-lender');
   const countSelect = document.getElementById('po-lc');
+  const terms = document.getElementById('po-loan-terms');
   if (!lender || !countSelect) return;
-  const product=PO_MONTHLY_RATES[lender.value];
-  const isOrico=lender.value.startsWith('orico_');
-  const min=product?product.minCount:1;
-  const max=product?product.maxCount:Infinity;
-  Array.from(countSelect.options).forEach(option => {
-    option.disabled=Number(option.value)<min||Number(option.value)>max;
-  });
-  if (product && (Number(countSelect.value)<min || Number(countSelect.value)>max)) {
-    const allowed=Array.from(countSelect.options).filter(o=>!o.disabled).map(o=>Number(o.value));
-    countSelect.value=String(allowed[allowed.length-1]);
+  const product = PO_MONTHLY_RATES[lender.value];
+  if (terms) terms.style.display = product ? '' : 'none';
+  if (product) {
+    const countText = document.getElementById('po-terms-count');
+    const amountText = document.getElementById('po-terms-amount');
+    if (countText) countText.textContent = product.minCount + '〜' + product.maxCount
+      + '回（最大' + (product.maxCount / 12) + '年）';
+    if (amountText) amountText.textContent = (product.min / 10000) + '万円以上'
+      + (product.max ? '〜' + (product.max / 10000) + '万円以下' : '（上限は金融会社に確認）');
   }
-  const note=document.getElementById('po-lc-orico-limit');
-  if(note) {
-    note.style.display=isOrico?'':'none';
-    note.textContent=isOrico?'オリコの返済回数：6〜'+max+'回（商品ごとに異なります）。':'';
+  const options = Array.from(countSelect.options);
+  options.forEach(option => {
+    const count = Number(option.value);
+    const allowed = !product || (count >= product.minCount && count <= product.maxCount);
+    option.disabled = !allowed;
+    option.hidden = !allowed;
+  });
+  if (product && !options.some(option => option.value === countSelect.value && !option.disabled)) {
+    const valid = options.filter(option => !option.disabled).map(option => Number(option.value));
+    if (valid.length) {
+      const current = Number(countSelect.value);
+      const next = valid.reduce((best, count) => Math.abs(count - current) < Math.abs(best - current) ? count : best, valid[0]);
+      countSelect.value = String(next);
+      clearOfficialLoanPO();
+    }
   }
 }
 
@@ -623,7 +643,10 @@ function poApplyLenderRate(principal,count) {
     status.textContent='手入力の金利を使用します。';
     return true;
   }
-  const product=PO_MONTHLY_RATES[sel.value], month=poYearMonth(), rate=product && product.rates[month];
+  const product=PO_MONTHLY_RATES[sel.value], month=poYearMonth();
+  const fallback=product && product.rates[month];
+  const sharedRate=window.LoanRateRegistry && window.LoanRateRegistry.get(sel.value,month,fallback,product && product.source || '添付の金利資料');
+  const rate=sharedRate ? sharedRate.rate : undefined;
   input.readOnly=true;
   if (rate===undefined) {
     input.value='';
@@ -638,7 +661,7 @@ function poApplyLenderRate(principal,count) {
       +product.minCount+'〜'+product.maxCount+'回）';
     return false;
   }
-  status.textContent=month+'の適用金利：年'+rate.toFixed(2)+'%。'
+  status.textContent=month+'の適用金利：年'+rate.toFixed(2)+'%（'+(sharedRate ? (sharedRate.shared ? '共有DB登録値：' : '資料登録値：')+sharedRate.source : '資料登録値')+'）。'
     +(product.variable?'変動金利のため将来の返済額は変わる可能性があります。':'')
     +'正式な返済額はローン会社へご確認ください。';
   return true;
@@ -693,7 +716,7 @@ function updateLoan() {
     lbl.textContent='月々の返済額（公式結果を転記）';
     setKinri(fmt(official.monthly),fmt(total),fmt(total-principal));
     _currentMonthlyPayment=official.monthly;_currentLoanCount=count;_currentPrincipal=principal;
-    document.getElementById('po-official-note').textContent=document.getElementById('po-lender').value==='orico_reform' ? '公式結果を反映中（通常月 '+fmt(official.monthly)+'／初回 '+fmt(official.first)+'）。ボーナス払い・その他の変動額は含みません。' : '公式結果を反映中（通常月 '+fmt(official.monthly)+'／最終回 '+fmt(official.last)+'）。ボーナス払い・その他の変動額は含みません。';
+    document.getElementById('po-official-note').textContent=document.getElementById('po-lender').value==='orico_fixed' ? '公式結果を反映中（通常月 '+fmt(official.monthly)+'／初回 '+fmt(official.first)+'）。ボーナス払い・その他の変動額は含みません。' : '公式結果を反映中（通常月 '+fmt(official.monthly)+'／最終回 '+fmt(official.last)+'）。ボーナス払い・その他の変動額は含みません。';
     drawCumulativeChart();updateSlideLink();_savePO();return;
   }
   if(currentMode==='preset' && PO_OFFICIAL_URLS[document.getElementById('po-lender').value])
@@ -986,6 +1009,12 @@ document.getElementById('cumulative-chart-details')?.addEventListener('toggle', 
   }
 });
 
+// 金利共有マスタを読み込み、登録値があれば計算へ反映する。
+window.addEventListener('load',function(){
+ if(!window.LoanRateRegistry)return;
+ window.LoanRateRegistry.attach({selector:'po-lender',status:'po-rate-status',recalculate:function(){updateLoan();updateSlideLink();}});
+ window.LoanRateRegistry.load();
+});
 // ── 初期化 ──
 updateLoan();
 
@@ -1300,11 +1329,71 @@ function _paymentSaveMessage(msg, success){
 }
 // このページ単独でも共有顧客DBを読み書きする。元画面のwindow.openerには依存しない。
 const PAYMENT_CUSTOMER_DB_URL='https://script.google.com/macros/s/AKfycbwmElEbni4PmrVUlfT-9mfkoSsRofCWvrqOQJpm2zqEVla7p11xqzi04v4hjXFOooo_Fw/exec';
+/* 検証用のブラウザ内擬似DB。明示フラグ＋専用テストIDの両方がある場合のみ有効。
+   実際の共有顧客DBへはGET/POSTしない。クラウド連携の合格判定には使用しない。 */
+const PAYMENT_CUSTOMER_TEST_ID='TEST-LOAN-20261111';
+const PAYMENT_CUSTOMER_TEST_MODE=
+  location.hostname.endsWith('.vercel.app') &&
+  _urlParams.get('customerDbTest')==='local' &&
+  _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
+const PAYMENT_CUSTOMER_CLOUD_TEST_MODE=
+  location.hostname.endsWith('.vercel.app') &&
+  _urlParams.get('customerDbTest')==='cloud' &&
+  _urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID;
+// 外部GASへの無認証ブラウザfetchは未対応（本人限定公開とCORS）。
+// URLクエリから任意の送信先を指定できないようにし、誤って本番DB等へ送信しない。
+const PAYMENT_CUSTOMER_TEST_KEY='jibunden_payment_test_only_v1';
+async function paymentCustomerRequest(options){
+ if(PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
+  throw Error('外部クラウド連携は認証方式が未設定のため停止中です。GAS内の検証画面では保存・自動復元を確認済みです。本番DBには接続しません。');
+ }
+ if(_urlParams.get('proposalId')===PAYMENT_CUSTOMER_TEST_ID && !PAYMENT_CUSTOMER_TEST_MODE)
+  throw Error('検証用顧客IDは専用テストモードでのみ使用できます。本番顧客DBへの接続を停止しました。');
+ if(!PAYMENT_CUSTOMER_TEST_MODE)return fetch(PAYMENT_CUSTOMER_DB_URL,options);
+ if(options.method==='GET'){
+  const stored=localStorage.getItem(PAYMENT_CUSTOMER_TEST_KEY);
+  const row=stored?JSON.parse(stored):{
+   id:PAYMENT_CUSTOMER_TEST_ID,proposal_name:'検証用ローン保存復元',customer_name:'検証専用',
+   author:'検証用',json_data:JSON.stringify({id:PAYMENT_CUSTOMER_TEST_ID})
+  };
+  return {ok:true,status:200,json:async()=>({ok:true,rows:[row]})};
+ }
+ if(options.method==='POST'){
+  const payload=JSON.parse(options.body);
+  if(String(payload.id)!==PAYMENT_CUSTOMER_TEST_ID)throw Error('検証用IDが一致しません。');
+  localStorage.setItem(PAYMENT_CUSTOMER_TEST_KEY,JSON.stringify(payload));
+  return {ok:true,status:200,json:async()=>({ok:true,id:payload.id,action:'updated'})};
+ }
+ throw Error('検証用DBの未対応操作です。');
+}
+if(PAYMENT_CUSTOMER_TEST_MODE || PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
+ const btn=document.getElementById('po-save-customer-btn');
+ if(btn){
+  btn.textContent=PAYMENT_CUSTOMER_TEST_MODE?'🧪 ブラウザ内テストデータへ保存':'🔒 外部クラウド保存は認証待ち';
+  if(PAYMENT_CUSTOMER_CLOUD_TEST_MODE){
+   btn.disabled=true;
+   btn.title='認証方式が未設定のため、Vercel画面からのクラウド保存は利用できません';
+   const link=document.createElement('a');
+   link.href='https://script.google.com/macros/s/AKfycbzAoddHpvxlqPz3RzI-j7tdKgW8_fUCluB8v_lDFUhrNhWJRt8EhS7Y2W-XNeoI8ObI/exec?view=test';
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   link.textContent='🔐 Googleで本人認証して検証用DB画面を開く';
+   link.className='btn btn-secondary';
+   link.style.cssText='background:#eef5f1;color:#1b4332;border:1px solid #aacbbb';
+   btn.insertAdjacentElement('afterend',link);
+  }
+ }
+ const note=document.getElementById('po-save-customer-status');
+ if(note)note.textContent=PAYMENT_CUSTOMER_TEST_MODE
+  ?'🧪 検証専用：このブラウザ内に保存します。共有顧客DBには接続しません。'
+  :'⚠️ 検証専用：外部GASとの直接接続は認証設定待ちのため停止中です。';
+}
+
 let _paymentFieldsEdited=false;
 async function fetchPaymentCustomerRow(){
  const id=_urlParams.get('proposalId');
  if(!id)throw Error('顧客IDがありません。元のじぶん電気ツールで対象の顧客データを保存し直してください。');
- const res=await fetch(PAYMENT_CUSTOMER_DB_URL,{method:'GET',redirect:'follow',cache:'no-store'});
+ const res=await paymentCustomerRequest({method:'GET',redirect:'follow',cache:'no-store'});
  if(!res.ok)throw Error('DBから顧客情報を取得できません（HTTP '+res.status+'）。');
  const json=await res.json();
  if(!json || json.ok===false || !Array.isArray(json.rows))throw Error('DBから正しい顧客データが返されませんでした。');
@@ -1326,7 +1415,7 @@ async function restorePaymentPlanFromCustomerDB(){
   if(saved.paymentPlan && saved.paymentPlan.version===1){
    _urlParams.set('paymentPlan',JSON.stringify(saved.paymentPlan));
    restorePaymentOptionsForCustomer();
-   if(status)status.textContent='保存済みの支払条件を顧客DBから復元しました。';
+   if(status)status.textContent=PAYMENT_CUSTOMER_TEST_MODE?'ブラウザ内の検証用データから支払条件を復元しました。':PAYMENT_CUSTOMER_CLOUD_TEST_MODE?'検証用クラウドDBから支払条件を復元しました。':'保存済みの支払条件を顧客DBから復元しました。';
   }else if(status){
    status.textContent='この案件の支払条件は未保存です。入力して保存できます。';
   }
@@ -1342,8 +1431,8 @@ async function savePaymentOptionsDirectly(){
  if(button)button.disabled=true;
  try{
   const row=await fetchPaymentCustomerRow();
-  const author=(localStorage.getItem('jibunden_author')||'').trim() ||
-   String(window.prompt('顧客DBの保存者名を入力してください（元のじぶん電気画面と同じ担当者名）')||'').trim();
+  const author=(PAYMENT_CUSTOMER_TEST_MODE||PAYMENT_CUSTOMER_CLOUD_TEST_MODE)?'検証用':((localStorage.getItem('jibunden_author')||'').trim() ||
+   String(window.prompt('顧客DBの保存者名を入力してください（元のじぶん電気画面と同じ担当者名）')||'').trim());
   if(!author || /^(ゲスト|ゲストユーザー|guest|未設定)$/i.test(author))throw Error('担当者名が未設定のため、保存を中止しました。');
   const owner=String(row.author||'').replace(/^'/,'').trim();
   if(owner && owner!==author)throw Error('この顧客レコードは別の担当者が作成したため、上書きできません。');
@@ -1361,7 +1450,7 @@ async function savePaymentOptionsDirectly(){
   };
   _paymentSaveMessage('顧客DBへ書き込んでいます…');
   if(button)button.disabled=true;
-  const res=await fetch(PAYMENT_CUSTOMER_DB_URL,{
+  const res=await paymentCustomerRequest({
    method:'POST',redirect:'follow',headers:{'Content-Type':'text/plain;charset=utf-8'},
    body:JSON.stringify(payload)
   });
@@ -1369,10 +1458,10 @@ async function savePaymentOptionsDirectly(){
   const reply=await res.json();
   if(!reply || reply.ok!==true || String(reply.id)!==String(row.id) || reply.action==='forked')
    throw Error('DBの更新が確認できません：'+String(reply?.error||reply?.action||'応答不正'));
-  try{localStorage.setItem('jibunden_author',author);}catch(e){}
+  if(!PAYMENT_CUSTOMER_TEST_MODE&&!PAYMENT_CUSTOMER_CLOUD_TEST_MODE){try{localStorage.setItem('jibunden_author',author);}catch(e){}}
   _urlParams.set('paymentPlan',JSON.stringify(plan));
   updateSlideLink();
-  _paymentSaveMessage('顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
+  _paymentSaveMessage(PAYMENT_CUSTOMER_TEST_MODE?'テストデータをこのブラウザに保存しました。ページを再読み込みして復元を確認してください。':PAYMENT_CUSTOMER_CLOUD_TEST_MODE?'検証用クラウドDBに保存しました。再読み込みして復元を確認してください。':'顧客DBに保存しました。次回この顧客を開くと設定を復元します。',true);
  }catch(error){
   console.error('[導入手段] 顧客DB保存失敗:',error);
   _paymentSaveMessage('保存未完了：'+error.message,false);

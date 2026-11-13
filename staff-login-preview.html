@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>じぶん電気｜スタッフログイン検証</title>
+<style>
+body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f2f7f4;color:#163d31;padding:24px}
+main{max-width:650px;margin:5vh auto;background:white;border:1px solid #cdded2;border-radius:16px;padding:28px;box-shadow:0 6px 20px #1233}
+h1{font-size:1.5rem}p{line-height:1.75}
+#status{padding:16px;border-radius:8px;background:#eaf1ed;white-space:pre-wrap}
+.note{font-size:0.91rem;color:#555}
+#googleButton{margin:18px 0}
+a{color:#17634a}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body><main>
+<h1>🔐 営業スタッフのGoogleログイン検証</h1>
+<p>個人Gmail・会社のGoogleアカウントのどちらでも本人確認できる設計です。登録済みスタッフの管理、顧客DB接続、ログインセッションの発行はまだ有効化していません。</p>
+<div id="status" role="status">設定を確認しています…</div>
+<div id="googleButton"></div>
+<p class="note">検証専用です。Googleアカウントで認証しても、この画面から顧客データにアクセスできません。本人確認後は必ずアクセス拒否になります。</p>
+<p><a href="payment-options.html?customerDbTest=cloud&amp;proposalId=TEST-LOAN-20261111">導入手段の比較（検証画面）へ戻る</a></p>
+</main>
+<script>
+const status=document.getElementById('status');
+async function init(){
+ try{
+  const res=await fetch('/api/staff-auth-preview',{credentials:'same-origin',cache:'no-store'});
+  const cfg=await res.json();
+  if(!cfg.configured){
+   status.textContent='Google OAuthクライアントIDが未設定です。現在、Googleログインと顧客DBアクセスは停止しています。';
+   return;
+  }
+  status.textContent='Google本人確認は設定されています。スタッフ承認と顧客DBアクセスは未実装のため許可されません。';
+  function showButton(){
+   if(!window.google?.accounts?.id)return false;
+   google.accounts.id.initialize({client_id:cfg.clientId,callback:async ({credential})=>{
+    status.textContent='Googleの本人確認結果をサーバーで確認しています…';
+    try{
+     const response=await fetch('/api/staff-auth-preview',{
+      method:'POST',credentials:'same-origin',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})});
+     const answer=await response.json();
+     status.textContent=answer.error==='STAFF_APPROVAL_NOT_IMPLEMENTED'
+      ?'本人確認は通過しました。スタッフ承認は未実装のため、アクセスは許可されません。'
+      :'ログインは承認されませんでした（'+(answer.error||'UNKNOWN')+'）。';
+    }catch{status.textContent='本人確認の通信に失敗しました。顧客データへのアクセスは許可されません。'}
+   }});
+   google.accounts.id.renderButton(document.getElementById('googleButton'),{type:'standard',theme:'outline',size:'large',text:'signin_with'});
+   return true;
+  }
+  if(!showButton()){
+   const script=document.querySelector('script[src*="accounts.google.com/gsi/client"]');
+   if(script)script.addEventListener('load',showButton,{once:true});
+  }
+ }catch{status.textContent='設定の読み込みに失敗しました。顧客データへのアクセスは許可されません。'}
+}
+init();
+</script></body></html>
