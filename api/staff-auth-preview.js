@@ -4,6 +4,7 @@ import {getStaffPool,previewConfigurationReady,json,allowOrigin,jsonBody} from '
 import {registerStaffSelf,claimNotification,markNotificationSent} from '../customer-db-test/staff-instant-service.mjs';
 import {issueSession,setSessionCookie} from '../customer-db-test/staff-session-preview.mjs';
 import {mailReady,sendStaffNotice} from '../customer-db-test/staff-notice-preview.mjs';
+import {isLoanGateEnabled} from '../customer-db-test/staff-loan-page-policy.mjs';
 
 // Preview only: do not issue access to any customer DB or loan endpoint.
 // Approval status is informative until all resources are actually guarded.
@@ -14,7 +15,7 @@ export default async function handler(req,res){
   const googleConfigured=/^\d+-[a-z0-9-]+\.apps\.googleusercontent\.com$/.test(clientId||'');
   if(req.method==='GET')return json(res,200,{ok:true,configured:googleConfigured,
     clientId:googleConfigured?clientId:null,registrationEnabled:previewConfigurationReady(),
-    notificationEnabled:mailReady(),customerDbConnected:false,loanAccessGranted:false});
+    notificationEnabled:mailReady(),customerDbConnected:false,loanAccessGranted:false,loanGateEnabled:isLoanGateEnabled()});
   if(!allowOrigin(req))return json(res,403,{ok:false,error:'ORIGIN_DENIED'});
   if(!previewConfigurationReady())
     return json(res,503,{ok:false,error:'PREVIEW_NOT_CONFIGURED'});
@@ -54,7 +55,7 @@ export default async function handler(req,res){
       }
     }
     return json(res,200,{ok:true,status:staff.status,role:staff.status==='approved'?staff.role:null,
-      notification,accessGranted:staff.status==='approved',loanAccessGranted:false});
+      notification,accessGranted:staff.status==='approved',loanAccessGranted:staff.status==='approved' && isLoanGateEnabled(),loanGateEnabled:isLoanGateEnabled()});
   }catch(e){
     console.error('[staff-auth-preview]',e.message);
     return json(res,503,{ok:false,error:'PREVIEW_UNAVAILABLE'});
