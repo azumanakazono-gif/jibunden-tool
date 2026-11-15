@@ -4,16 +4,17 @@
 <style>
 body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f2f7f4;color:#163d31;padding:24px}
 main{max-width:620px;margin:5vh auto;background:#fff;border:1px solid #cdded2;border-radius:16px;padding:28px;box-shadow:0 6px 20px #1233}
-h1{font-size:1.5rem}p{line-height:1.75}#status{padding:16px;border-radius:8px;background:#eaf1ed;white-space:pre-wrap}
+h1{font-size:1.5rem}p{line-height:1.75}#status{padding:16px;border-radius:8px;background:#eaf1ed;white-space:pre-wrap}.field{display:block;margin:18px 0 8px;font-weight:600}.field input{display:block;box-sizing:border-box;width:100%;margin-top:7px;padding:12px;border:1px solid #b9cfc1;border-radius:8px;font:inherit}.hint{font-size:.88rem;color:#52675b;margin:5px 0 14px}
 .note{font-size:.9rem;color:#555}#googleButton{margin:18px 0}a{color:#17634a}
 </style><script src="https://accounts.google.com/gsi/client" async defer></script></head><body><main>
 <h1>☀️ じぶん電気｜スタッフログイン</h1>
 <p>会社Googleアカウント・個人Gmailの両方を利用できます。初回は管理者の承認が必要です。承認は同じアカウントで継続して有効です。</p>
-<div id="status" role="status">設定を確認しています…</div><div id="googleButton"></div>
+<label class="field" for="staffName">氏名（必須）</label><input id="staffName" name="staffName" type="text" maxlength="120" autocomplete="name" placeholder="例：山田 太郎" required><p class="hint">申請者ご本人が入力してください。Googleアカウントのメールアドレスとあわせて管理者に表示されます。</p><div id="status" role="status">設定を確認しています…</div><div id="googleButton"></div>
 <p class="note">検証用画面です。承認済みでも本番の顧客データやローン画面のアクセス権はまだ付与されません。</p>
 <p><a href="staff-approval-preview.html">管理者用・承認待ちを確認する</a></p>
 <script>
 const statusEl=document.getElementById('status');
+const nameInput=document.getElementById('staffName');
 let timer=null;
 const requestedNext=new URLSearchParams(location.search).get('next');
 const safeNext=['/','/index.html','/payment-options.html','/loan-presentation.html'];
@@ -49,15 +50,18 @@ async function start(){
     setStatus('現在、申請受付の準備中です。データへのアクセスは許可されていません。');
     return;
   }
-  setStatus('Googleアカウントでログインしてください。');
+  setStatus('氏名を入力してからGoogleアカウントでログインしてください。');
   await checkStatus();
   const show=()=>{
    if(!window.google?.accounts?.id)return false;
    google.accounts.id.initialize({client_id:cfg.clientId,callback:async ({credential})=>{
+    const displayName=nameInput.value.trim();
+    if(!displayName){setStatus('氏名を入力してから、もう一度Googleログインしてください。');nameInput.focus();return;}
+    if(displayName.length>120){setStatus('氏名は120文字以内で入力してください。');nameInput.focus();return;}
     setStatus('Google本人確認と利用状態を確認しています…');
     try{
       const r=await fetch('/api/staff-auth-preview',{method:'POST',credentials:'same-origin',
-        headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})});
+        headers:{'Content-Type':'application/json'},body:JSON.stringify({credential,displayName})});
       const data=await r.json();
       if(!data.ok)throw Error(data.error||'LOGIN_FAILED');
       renderStatus(data);
