@@ -1,59 +1,62 @@
 import {OAuth2Client} from 'google-auth-library';
 import {verifyStaffGoogleIdentity} from '../customer-db-test/google-identity-verifier.mjs';
+import {getStaffPool,previewConfigurationReady,json,allowOrigin,jsonBody} from '../customer-db-test/staff-runtime-preview.mjs';
+import {registerStaffSelf,claimNotification,markNotificationSent} from '../customer-db-test/staff-instant-service.mjs';
+import {issueSession,setSessionCookie} from '../customer-db-test/staff-session-preview.mjs';
+import {mailReady,sendStaffNotice} from '../customer-db-test/staff-notice-preview.mjs';
 
-// PR #318 only: authentication boundary test. No customer DB access.
-// Until a server-owned staff registry and session issuance are implemented,
-// successful Google verification STILL returns access denied.
-const json=(res,code,body)=>{
-  res.statusCode=code;
-  res.setHeader('Content-Type','application/json; charset=utf-8');
-  res.setHeader('Cache-Control','no-store');
-  res.setHeader('X-Content-Type-Options','nosniff');
-  res.end(JSON.stringify(body));
-};
+// Preview only: do not issue access to any customer DB or loan endpoint.
+// Approval status is informative until all resources are actually guarded.
 export default async function handler(req,res){
-  if(req.method!=='GET' && req.method!=='POST'){
-    res.setHeader('Allow','GET, POST');
+  if(!['GET','POST'].includes(req.method))
     return json(res,405,{ok:false,error:'METHOD_NOT_ALLOWED'});
-  }
-  const configured=typeof process.env.JIBUNDEN_STAFF_GOOGLE_CLIENT_ID==='string' &&
-    /^\d+-[a-z0-9-]+\.apps\.googleusercontent\.com$/.test(process.env.JIBUNDEN_STAFF_GOOGLE_CLIENT_ID);
-  if(req.method==='GET')return json(res,200,{
-    ok:true,configured,
-    clientId:configured?process.env.JIBUNDEN_STAFF_GOOGLE_CLIENT_ID:null,
-    registrationEnabled:false,
-    customerDbConnected:false
-  });
-  if(!configured)return json(res,503,{ok:false,error:'GOOGLE_LOGIN_NOT_CONFIGURED'});
-  const origin=req.headers.origin;
-  const host=req.headers['x-forwarded-host']||req.headers.host;
-  // This endpoint will not set session cookies; still require same-origin requests.
-  if(typeof origin!=='string'||!host){
-    return json(res,403,{ok:false,error:'ORIGIN_REQUIRED'});
-  }
-  let originURL;
-  try{originURL=new URL(origin)}catch{return json(res,403,{ok:false,error:'ORIGIN_INVALID'})}
-  if(originURL.protocol!=='https:'||originURL.host!==host)
-    return json(res,403,{ok:false,error:'ORIGIN_DENIED'});
-  if(!(req.headers['content-type']||'').startsWith('application/json'))
-    return json(res,415,{ok:false,error:'CONTENT_TYPE_REQUIRED'});
-  let credential;
-  try{
-    const body=req.body;
-    const parsed=typeof body==='string'?JSON.parse(body):body;
-    credential=parsed?.credential;
-  }catch{return json(res,400,{ok:false,error:'INVALID_REQUEST'})}
-  if(typeof credential!=='string'||credential.length>8192||credential.length<20)
+  const clientId=process.env.JIBUNDEN_STAFF_GOOGLE_CLIENT_ID;
+  const googleConfigured=/^\d+-[a-z0-9-]+\.apps\.googleusercontent\.com$/.test(clientId||'');
+  if(req.method==='GET')return json(res,200,{ok:true,configured:googleConfigured,
+    clientId:googleConfigured?clientId:null,registrationEnabled:previewConfigurationReady(),
+    notificationEnabled:mailReady(),customerDbConnected:false,loanAccessGranted:false});
+  if(!allowOrigin(req))return json(res,403,{ok:false,error:'ORIGIN_DENIED'});
+  if(!previewConfigurationReady())
+    return json(res,503,{ok:false,error:'PREVIEW_NOT_CONFIGURED'});
+  let body;
+  try{body=jsonBody(req);}
+  catch{return json(res,400,{ok:false,error:'INVALID_REQUEST'});}
+  if(typeof body.credential!=='string' || body.credential.length<20 || body.credential.length>8192)
     return json(res,400,{ok:false,error:'INVALID_REQUEST'});
+  let identity;
   try{
-    const client=new OAuth2Client();
-    await verifyStaffGoogleIdentity({
-      idToken:credential,clientId:process.env.JIBUNDEN_STAFF_GOOGLE_CLIENT_ID,
-      oauthClient:client
+    identity=await verifyStaffGoogleIdentity({
+      idToken:body.credential,clientId,oauthClient:new OAuth2Client()
     });
-    // Explicit fail-closed. No user list, customer data or sessions are exposed.
-    return json(res,403,{ok:false,error:'STAFF_APPROVAL_NOT_IMPLEMENTED'});
-  }catch{
-    return json(res,401,{ok:false,error:'GOOGLE_IDENTITY_VERIFICATION_FAILED'});
+  }catch{return json(res,401,{ok:false,error:'GOOGLE_IDENTITY_VERIFICATION_FAILED'});}
+  try{
+    const pool=await getStaffPool();
+    const staff=await registerStaffSelf(pool,identity);
+    const token=issueSession(identity.sub,process.env.JIBUNDEN_STAFF_SESSION_SECRET);
+    setSessionCookie(res,token);
+    let notification='not_needed';
+    if(staff.status==='pending'){
+      notification='queued';
+      // Mail delivery failure must not erase a persisted pending request.
+      try{
+        if(!mailReady()) notification='mail_not_configured';
+        else {
+          const claim=await claimNotification(pool,identity.sub);
+          if(claim){
+            await sendStaffNotice(claim);
+            await markNotificationSent(pool,identity.sub);
+            notification='sent';
+          }
+        }
+      }catch(e){
+        notification='delivery_pending';
+        console.error('[staff-preview-notify]',e.message);
+      }
+    }
+    return json(res,200,{ok:true,status:staff.status,role:staff.status==='approved'?staff.role:null,
+      notification,accessGranted:staff.status==='approved',loanAccessGranted:false});
+  }catch(e){
+    console.error('[staff-auth-preview]',e.message);
+    return json(res,503,{ok:false,error:'PREVIEW_UNAVAILABLE'});
   }
 }
