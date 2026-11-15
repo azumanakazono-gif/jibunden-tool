@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>じぶん電気｜スタッフ承認（検証）</title>
+<style>
+body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f2f7f4;color:#153d31;padding:20px}
+main{max-width:640px;margin:3vh auto;padding:24px;background:#fff;border:1px solid #cdded2;border-radius:16px}
+h1{font-size:1.4rem}p{line-height:1.6}#status{padding:12px;background:#e9f3ee;border-radius:8px;white-space:pre-wrap}
+.entry{padding:14px;border:1px solid #d3e5d8;border-radius:10px;margin:12px 0;overflow-wrap:anywhere}
+button{border:0;border-radius:8px;padding:10px 15px;background:#26734d;color:white;cursor:pointer}
+button:disabled{opacity:.4}button.reject{background:#9b3232}button+button{margin-left:8px}
+small{color:#52675b}#googleButton{margin:16px 0}
+</style><script src="https://accounts.google.com/gsi/client" async defer></script></head><body><main>
+<h1>🔐 じぶん電気｜スタッフ利用承認</h1>
+<p>中園管理者用の検証画面です。メール内のリンクだけでは承認されず、管理者Google本人確認が必要です。</p>
+<div id="status" role="status">設定を確認しています…</div>
+<div id="googleButton"></div><div id="requests"></div>
+<p><small>ここでの承認はプレビュー用台帳だけに反映されます。本番の顧客DB・ローン利用権限は変更しません。</small></p>
+<script>
+const statusEl=document.getElementById('status'),listEl=document.getElementById('requests');
+const focusId=new URLSearchParams(location.search).get('request');
+const msg=s=>statusEl.textContent=s;
+async function load(){
+ const q=focusId?'?request='+encodeURIComponent(focusId):'';
+ const r=await fetch('/api/staff-approval-preview'+q,{credentials:'same-origin',cache:'no-store'});
+ if(!r.ok){msg('管理者としてのログインと事前承認が必要です。');return;}
+ const result=await r.json();
+ const records=focusId?(result.request?[result.request]:[]):result.requests;
+ listEl.replaceChildren();
+ if(!records.length){msg('承認待ちの申請はありません。');return;}
+ msg('承認待ち '+records.length+'件。申請者が実際のスタッフであることを確認してください。');
+ for(const entry of records){
+   const panel=document.createElement('section');panel.className='entry';
+   const title=document.createElement('strong');title.textContent=entry.name||'氏名未確認';
+   const details=document.createElement('p');details.textContent=entry.email||'メール表示なし';
+   panel.append(title,details);
+   if(entry.status && entry.status!=='pending'){
+     const p=document.createElement('p');p.textContent='状態: '+entry.status;panel.append(p);
+   }else{
+     const approve=document.createElement('button');approve.textContent='承認する';
+     const reject=document.createElement('button');reject.textContent='却下する';reject.className='reject';
+     for(const [button,action] of [[approve,'approve'],[reject,'reject']]){
+      button.addEventListener('click',async()=>{
+       if(!confirm((entry.name||entry.email)+' の申請を'+(action==='approve'?'承認':'却下')+'しますか？'))return;
+       approve.disabled=true;reject.disabled=true;
+       try{
+        const r=await fetch('/api/staff-approval-preview',{method:'POST',credentials:'same-origin',
+         headers:{'Content-Type':'application/json'},body:JSON.stringify({requestId:entry.requestId,action})});
+        const out=await r.json();
+        if(!r.ok)throw Error(out.error||'FAILED');
+        msg('操作を記録しました。状態: '+out.status);
+        await load();
+       }catch(e){msg('処理に失敗しました: '+e.message);approve.disabled=false;reject.disabled=false;}
+      });
+     }
+     panel.append(approve,reject);
+   }
+   listEl.append(panel);
+ }
+}
+async function start(){
+ try{
+  const cfg=await (await fetch('/api/staff-auth-preview',{cache:'no-store'})).json();
+  if(!cfg.configured||!cfg.registrationEnabled){msg('現在、承認機能の準備中です。');return;}
+  await load();
+  const show=()=>{
+   if(!window.google?.accounts?.id)return false;
+   google.accounts.id.initialize({client_id:cfg.clientId,callback:async ({credential})=>{
+    try{
+      const r=await fetch('/api/staff-auth-preview',{method:'POST',credentials:'same-origin',
+       headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})});
+      const out=await r.json();
+      if(!r.ok)throw Error(out.error||'LOGIN_FAILED');
+      await load();
+    }catch(e){msg('ログインに失敗しました: '+e.message);}
+   }});
+   google.accounts.id.renderButton(document.getElementById('googleButton'),{type:'standard',theme:'outline',size:'large'});
+   return true;
+  };
+  if(!show())document.querySelector('script[src*="accounts.google.com/gsi/client"]')?.addEventListener('load',show,{once:true});
+ }catch{msg('承認機能を利用できません。');}
+}
+start();
+</script></main></body></html>
