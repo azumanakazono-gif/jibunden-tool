@@ -22,7 +22,8 @@ export default async function handler(req,res){
   let body;
   try{body=jsonBody(req);}
   catch{return json(res,400,{ok:false,error:'INVALID_REQUEST'});}
-  if(typeof body.credential!=='string' || body.credential.length<20 || body.credential.length>8192)
+  if(typeof body.credential!=='string' || body.credential.length<20 || body.credential.length>8192 ||
+     typeof body.displayName!=='string' || !body.displayName.trim() || body.displayName.trim().length>120)
     return json(res,400,{ok:false,error:'INVALID_REQUEST'});
   let identity;
   try{
@@ -32,7 +33,7 @@ export default async function handler(req,res){
   }catch{return json(res,401,{ok:false,error:'GOOGLE_IDENTITY_VERIFICATION_FAILED'});}
   try{
     const pool=await getStaffPool();
-    const staff=await registerStaffSelf(pool,identity);
+    const staff=await registerStaffSelf(pool,{...identity,displayName:body.displayName.trim()});
     const token=issueSession(identity.sub,process.env.JIBUNDEN_STAFF_SESSION_SECRET);
     setSessionCookie(res,token);
     let notification='not_needed';
