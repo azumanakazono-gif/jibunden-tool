@@ -1,60 +1,79 @@
 <!doctype html>
-<html lang="ja">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>じぶん電気｜スタッフログイン検証</title>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>じぶん電気｜スタッフログイン（検証）</title>
 <style>
 body{font-family:system-ui,-apple-system,"Noto Sans JP",sans-serif;background:#f2f7f4;color:#163d31;padding:24px}
-main{max-width:650px;margin:5vh auto;background:white;border:1px solid #cdded2;border-radius:16px;padding:28px;box-shadow:0 6px 20px #1233}
-h1{font-size:1.5rem}p{line-height:1.75}
-#status{padding:16px;border-radius:8px;background:#eaf1ed;white-space:pre-wrap}
-.note{font-size:0.91rem;color:#555}
-#googleButton{margin:18px 0}
-a{color:#17634a}
-</style>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-</head>
-<body><main>
-<h1>🔐 営業スタッフのGoogleログイン検証</h1>
-<p>個人Gmail・会社のGoogleアカウントのどちらでも本人確認できる設計です。登録済みスタッフの管理、顧客DB接続、ログインセッションの発行はまだ有効化していません。</p>
-<div id="status" role="status">設定を確認しています…</div>
-<div id="googleButton"></div>
-<p class="note">検証専用です。Googleアカウントで認証しても、この画面から顧客データにアクセスできません。本人確認後は必ずアクセス拒否になります。</p>
-<p><a href="payment-options.html?customerDbTest=cloud&amp;proposalId=TEST-LOAN-20261111">導入手段の比較（検証画面）へ戻る</a></p>
-</main>
+main{max-width:620px;margin:5vh auto;background:#fff;border:1px solid #cdded2;border-radius:16px;padding:28px;box-shadow:0 6px 20px #1233}
+h1{font-size:1.5rem}p{line-height:1.75}#status{padding:16px;border-radius:8px;background:#eaf1ed;white-space:pre-wrap}.field{display:block;margin:18px 0 8px;font-weight:600}.field input{display:block;box-sizing:border-box;width:100%;margin-top:7px;padding:12px;border:1px solid #b9cfc1;border-radius:8px;font:inherit}.hint{font-size:.88rem;color:#52675b;margin:5px 0 14px}
+.note{font-size:.9rem;color:#555}#googleButton{margin:18px 0}a{color:#17634a}
+</style><script src="https://accounts.google.com/gsi/client" async defer></script></head><body><main>
+<h1>☀️ じぶん電気｜スタッフログイン</h1>
+<p>会社Googleアカウント・個人Gmailの両方を利用できます。初回は管理者の承認が必要です。承認は同じアカウントで継続して有効です。</p>
+<label class="field" for="staffName">氏名（必須）</label><input id="staffName" name="staffName" type="text" maxlength="120" autocomplete="name" placeholder="例：山田 太郎" required><p class="hint">申請者ご本人が入力してください。Googleアカウントのメールアドレスとあわせて管理者に表示されます。</p><div id="status" role="status">設定を確認しています…</div><div id="googleButton"></div>
+<p class="note">検証用画面です。承認済みでも本番の顧客データやローン画面のアクセス権はまだ付与されません。</p>
+<p><a href="staff-approval-preview.html">管理者用・承認待ちを確認する</a></p>
 <script>
-const status=document.getElementById('status');
-async function init(){
+const statusEl=document.getElementById('status');
+const nameInput=document.getElementById('staffName');
+let timer=null;
+const requestedNext=new URLSearchParams(location.search).get('next');
+const safeNext=['/','/index.html','/payment-options.html','/loan-presentation.html'];
+const nextPage=typeof requestedNext==='string' && safeNext.includes(requestedNext.split('?')[0]) ? requestedNext : null;
+function maybeEnterLoan(data){if(data.loanAccessGranted===true && nextPage)location.assign(nextPage);}
+const setStatus=(text)=>statusEl.textContent=text;
+function renderStatus(data){
+ if(data.status==='approved'){
+   if(timer)clearInterval(timer);
+   maybeEnterLoan(data);
+   setStatus('✅ スタッフとして承認済みです。\nログイン承認は継続利用できます。\nローン画面の権限連携はプレビュー環境で検証中です。');
+ }else if(data.status==='pending'){
+   setStatus('⏳ 利用申請を受け付けました。\n中園管理者に承認依頼を送ります。承認されると画面が自動で更新されます。\n通知状態: '+(data.notification||'確認中'));
+   if(!timer)timer=setInterval(checkStatus,5000);
+ }else if(data.status==='suspended'||data.status==='rejected') {
+   if(timer)clearInterval(timer);
+   setStatus('現在このアカウントは利用できません。管理者へお問い合わせください。');
+ }else setStatus('Googleでログインしてください。');
+}
+async function checkStatus(){
  try{
-  const res=await fetch('/api/staff-auth-preview',{credentials:'same-origin',cache:'no-store'});
-  const cfg=await res.json();
-  if(!cfg.configured){
-   status.textContent='Google OAuthクライアントIDが未設定です。現在、Googleログインと顧客DBアクセスは停止しています。';
-   return;
+  const resp=await fetch('/api/staff-status-preview',{credentials:'same-origin',cache:'no-store'});
+  if(resp.status===401){if(timer)clearInterval(timer);timer=null;return;}
+  const data=await resp.json();
+  if(data.ok)renderStatus(data);
+ }catch{}
+}
+async function start(){
+ try{
+  const resp=await fetch('/api/staff-auth-preview',{cache:'no-store'});
+  const cfg=await resp.json();
+  if(!cfg.configured||!cfg.registrationEnabled){
+    setStatus('現在、申請受付の準備中です。データへのアクセスは許可されていません。');
+    return;
   }
-  status.textContent='Google本人確認は設定されています。スタッフ承認と顧客DBアクセスは未実装のため許可されません。';
-  function showButton(){
+  setStatus('氏名を入力してからGoogleアカウントでログインしてください。');
+  await checkStatus();
+  const show=()=>{
    if(!window.google?.accounts?.id)return false;
    google.accounts.id.initialize({client_id:cfg.clientId,callback:async ({credential})=>{
-    status.textContent='Googleの本人確認結果をサーバーで確認しています…';
+    const displayName=nameInput.value.trim();
+    if(!displayName){setStatus('氏名を入力してから、もう一度Googleログインしてください。');nameInput.focus();return;}
+    if(displayName.length>120){setStatus('氏名は120文字以内で入力してください。');nameInput.focus();return;}
+    setStatus('Google本人確認と利用状態を確認しています…');
     try{
-     const response=await fetch('/api/staff-auth-preview',{
-      method:'POST',credentials:'same-origin',
-      headers:{'Content-Type':'application/json'},body:JSON.stringify({credential})});
-     const answer=await response.json();
-     status.textContent=answer.error==='STAFF_APPROVAL_NOT_IMPLEMENTED'
-      ?'本人確認は通過しました。スタッフ承認は未実装のため、アクセスは許可されません。'
-      :'ログインは承認されませんでした（'+(answer.error||'UNKNOWN')+'）。';
-    }catch{status.textContent='本人確認の通信に失敗しました。顧客データへのアクセスは許可されません。'}
+      const r=await fetch('/api/staff-auth-preview',{method:'POST',credentials:'same-origin',
+        headers:{'Content-Type':'application/json'},body:JSON.stringify({credential,displayName})});
+      const data=await r.json();
+      if(!data.ok)throw Error(data.error||'LOGIN_FAILED');
+      renderStatus(data);
+    }catch(e){setStatus('申請に失敗しました: '+e.message+'。利用権限は付与されていません。');}
    }});
-   google.accounts.id.renderButton(document.getElementById('googleButton'),{type:'standard',theme:'outline',size:'large',text:'signin_with'});
+   google.accounts.id.renderButton(document.getElementById('googleButton'),{
+    type:'standard',theme:'outline',size:'large',text:'signin_with'
+   });
    return true;
-  }
-  if(!showButton()){
-   const script=document.querySelector('script[src*="accounts.google.com/gsi/client"]');
-   if(script)script.addEventListener('load',showButton,{once:true});
-  }
- }catch{status.textContent='設定の読み込みに失敗しました。顧客データへのアクセスは許可されません。'}
+  };
+  if(!show())document.querySelector('script[src*="accounts.google.com/gsi/client"]')?.addEventListener('load',show,{once:true});
+ }catch{setStatus('設定を取得できません。管理者にお問い合わせください。');}
 }
-init();
-</script></body></html>
+start();
+</script></main></body></html>
