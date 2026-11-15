@@ -15,11 +15,16 @@ h1{font-size:1.5rem}p{line-height:1.75}#status{padding:16px;border-radius:8px;ba
 <script>
 const statusEl=document.getElementById('status');
 let timer=null;
+const requestedNext=new URLSearchParams(location.search).get('next');
+const safeNext=['/','/index.html','/payment-options.html','/loan-presentation.html'];
+const nextPage=typeof requestedNext==='string' && safeNext.includes(requestedNext.split('?')[0]) ? requestedNext : null;
+function maybeEnterLoan(data){if(data.loanAccessGranted===true && nextPage)location.assign(nextPage);}
 const setStatus=(text)=>statusEl.textContent=text;
 function renderStatus(data){
  if(data.status==='approved'){
    if(timer)clearInterval(timer);
-   setStatus('✅ スタッフとして承認済みです。\nログイン承認は継続利用できます。\nローン画面の権限連携は現在検証中です。');
+   maybeEnterLoan(data);
+   setStatus('✅ スタッフとして承認済みです。\nログイン承認は継続利用できます。\nローン画面の権限連携はプレビュー環境で検証中です。');
  }else if(data.status==='pending'){
    setStatus('⏳ 利用申請を受け付けました。\n中園管理者に承認依頼を送ります。承認されると画面が自動で更新されます。\n通知状態: '+(data.notification||'確認中'));
    if(!timer)timer=setInterval(checkStatus,5000);
