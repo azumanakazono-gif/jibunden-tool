@@ -6,8 +6,9 @@ import {randomUUID} from 'node:crypto';
 
 const subOK = (s) => typeof s === 'string' && s.length > 0 && s.length <= 255 && !/\s/.test(s);
 const identityOK = (i) => i?.verified === true && i?.email_verified === true && subOK(i.sub) &&
-  typeof i.email === 'string' && i.email.length <= 320 && i.email.includes('@');
-const nameFor = (i) => String(i.displayName || i.email).trim().slice(0,120);
+  typeof i.email === 'string' && i.email.length <= 320 && i.email.includes('@') &&
+  typeof i.displayName === 'string' && i.displayName.trim().length > 0 && i.displayName.trim().length <= 120;
+const nameFor = (i) => i.displayName.trim();
 
 export async function registerStaffSelf(pool, identity) {
   if (!identityOK(identity)) throw new Error('IDENTITY_NOT_VERIFIED');
