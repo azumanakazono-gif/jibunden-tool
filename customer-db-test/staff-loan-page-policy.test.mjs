@@ -18,5 +18,6 @@ test('pending, suspended, rejected, wrong subject and invalid role are denied',(
 test('gate is opt-in, never enabled by preview default or truthy strings',()=>{
   assert.equal(isLoanGateEnabled({}),false);
   assert.equal(isLoanGateEnabled({JIBUNDEN_STAFF_GATE_MODE:'true'}),false);
-  assert.equal(isLoanGateEnabled({JIBUNDEN_STAFF_GATE_MODE:'enforce'}),true);
+  assert.equal(isLoanGateEnabled({VERCEL_ENV:'production',JIBUNDEN_STAFF_GATE_MODE:'enforce'}),false);
+  assert.equal(isLoanGateEnabled({VERCEL_ENV:'preview',JIBUNDEN_STAFF_GATE_MODE:'enforce'}),true);
 });
