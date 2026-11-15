@@ -9,5 +9,5 @@ export function mayAccessLoanPage(subject, staff) {
     (staff.role === 'staff' || staff.role === 'admin');
 }
 export function isLoanGateEnabled(env=process.env) {
-  return env.JIBUNDEN_STAFF_GATE_MODE === 'enforce';
+  return env.VERCEL_ENV === 'preview' && env.JIBUNDEN_STAFF_GATE_MODE === 'enforce';
 }
