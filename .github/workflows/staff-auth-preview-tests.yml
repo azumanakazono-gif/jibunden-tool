@@ -5,6 +5,7 @@ on:
     paths:
       - 'api/staff-*.js'
       - 'package.json'
+      - 'middleware.js'
       - 'staff-*-preview.html'
       - 'customer-db-test/staff-*.mjs'
       - 'customer-db-test/google-identity-verifier.mjs'
@@ -25,4 +26,4 @@ jobs:
       - name: Verify Node.js test runtime
         run: node --version
       - name: Test fail-closed staff approval and registry commands
-        run: node --test customer-db-test/staff-approval-policy.test.mjs customer-db-test/staff-registry-commands.test.mjs customer-db-test/staff-postgres-store.test.mjs customer-db-test/staff-session-preview.test.mjs customer-db-test/staff-notice-preview.test.mjs
+        run: node --test customer-db-test/staff-approval-policy.test.mjs customer-db-test/staff-registry-commands.test.mjs customer-db-test/staff-postgres-store.test.mjs customer-db-test/staff-session-preview.test.mjs customer-db-test/staff-notice-preview.test.mjs customer-db-test/staff-loan-page-policy.test.mjs
